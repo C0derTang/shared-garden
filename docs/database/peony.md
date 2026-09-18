@@ -97,8 +97,10 @@ Both current and bloomed Peonies use this same bounded read as their history.
 `current_garden_state()` remains compatible and exposes the updated flower's
 growth/bloom, while this separate RPC supplies Peony-specific details. Refresh
 on open, foreground return, reconnect, rejected/successful mutations, and at
-`next_rollover_at`. UI and Realtime wiring are deferred to #31; the new tables
-are not published to Realtime by this migration.
+`next_rollover_at`. [Issue #31](https://github.com/C0derTang/shared-garden/issues/31)
+adds the [Peony interface](../decisions/0015-peony-interface.md) and a separate
+additive migration publishing the three Peony tables for authorized INSERT/UPDATE
+invalidation. DELETE stays unpublished; plan UPDATE covers acceptance clearing.
 
 ## Tables, access, and verification
 
@@ -150,3 +152,33 @@ clock replacement and fixtures are confined to a rolled-back transaction.
 These checks do not claim browser Peony rendering, Realtime delivery, real Google
 sign-in, hosted changes, or actual achievement awards. The additive migration
 does not rewrite existing functions or records; old frontend calls remain valid.
+
+
+## Interface and live-update verification
+
+For #31 use `/tmp/shared-garden-issue31`, project ID
+`shared-garden-peony-ui31`, API/database/shadow ports 57921/57922/57920, and
+loopback app/helper ports 57929/57930. Capture local status outside the repository
+with mode 600. Run all checks above against that container/project, then with
+empty fixture tables run:
+
+```sh
+node scripts/verify-peony-realtime.mjs /tmp/shared-garden-issue31/status.json
+```
+
+The committed harness admits only that dedicated endpoint/container or explicit
+`ci` mode, and refuses preconfigured membership/Auth/garden data. It verifies
+actual partner idea/plan/acceptance invalidation, material edit clearing,
+exact-version rejection, four same-day completions, anonymous/outsider denial,
+live revocation and repeated reads without a notification loop. It removes its
+synthetic fixtures child-first in `finally`. Reset afterward, rerun pgTAP, and
+confirm membership/Auth/garden are empty. The database CI also runs this harness.
+
+Phone verification uses two synthetic local sessions on separate loopback hosts,
+never real Google sign-in or production accounts. Check visible partner ideas
+before submitting, explicit PDT/PST fold choice, a plan edit after one acceptance,
+both members reaccepting the new version, confirmations and favorite moments,
+author edit original time retention, immediate bloom and read-only final history.
+The temporary loopback cookie helper is outside application source and is never
+shipped. Unit tests additionally cover preserved drafts on rejection/partner
+revision, expired edits, DST gaps/folds, exact-version inputs and guarded actions.

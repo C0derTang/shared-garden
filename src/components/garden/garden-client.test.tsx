@@ -1,3 +1,4 @@
+vi.mock("@/lib/peony/actions", () => ({ readPeony: vi.fn(), mutatePeony: vi.fn() }));
 import {
   act,
   fireEvent,

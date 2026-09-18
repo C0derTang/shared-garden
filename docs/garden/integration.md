@@ -66,3 +66,16 @@ hostname. That is synthetic Auth verification, not a real Google OAuth exchange.
 No login bypass, test clock, helper route or production demo fixture is shipped.
 Record actual phone/desktop, focus, entry/edit, partner update and rollover
 observations separately from unit/mock evidence in the review handoff.
+
+
+## Peony extension (#31)
+
+`PeonyPanel` composes inside `FlowerSheet`, using guarded Peony actions and the
+validated bounded state in `src/lib/peony`. It watches the owning garden snapshot's
+server timestamp for invalidation. The shared `Mutate` coordinator also accepts
+an external operation callback, retaining its pending/read/day guards and
+refreshing the garden afterward. A callback resolves only on a confirmed save;
+`checkCurrent()` can be called before a delayed external finalization. Ordinary
+commands keep the same server action contract. Do not make separate competing
+garden subscriptions. Peony INSERT/UPDATE notifications enter `subscribeGarden`
+and the existing debounce; plan UPDATE also covers acceptance deletion.
