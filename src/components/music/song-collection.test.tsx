@@ -103,3 +103,65 @@ it("shows an empty collection, retryable initial error and user initiated player
     screen.getByRole("link", { name: /Open original song link/ }),
   ).toBeInTheDocument();
 });
+
+it("refreshes a long loaded collection in bounded batches and keeps an open player mounted", async () => {
+  render(
+    <SongCollection
+      memberId={1}
+      initial={{
+        entries: Array.from({ length: 42 }, (_, i) => song(42 - i)),
+        more: false,
+        error: null,
+      }}
+    />,
+  );
+  fireEvent.click(
+    screen.getAllByRole("button", { name: /Load Spotify player/ })[0],
+  );
+  const player = document.querySelector("iframe");
+  loadSongs.mockImplementation(async (query: { ids: number[] }) => ({
+    entries: query.ids.map((id) => song(id, id === 42 ? "Edited" : "Again")),
+    more: false,
+    error: null,
+  }));
+  fireEvent.click(screen.getByRole("button", { name: "Refresh saved songs" }));
+  await screen.findByText("Saved songs refreshed.");
+  expect(loadSongs.mock.calls.map((call) => call[0].ids.length)).toEqual([
+    20, 20, 2,
+  ]);
+  expect(document.querySelector("iframe")).toBe(player);
+  expect(screen.getAllByRole("article")).toHaveLength(42);
+});
+
+it("continues through multiple new batches without losing the older browsing cursor", async () => {
+  render(
+    <SongCollection
+      memberId={1}
+      initial={{ entries: [song(22), song(21)], more: true, error: null }}
+    />,
+  );
+  loadSongs.mockResolvedValueOnce({
+    entries: Array.from({ length: 20 }, (_, i) => song(23 + i)),
+    more: true,
+    error: null,
+  });
+  fireEvent.click(
+    screen.getByRole("button", { name: "Check for newer songs" }),
+  );
+  await screen.findByText("New songs added. Check again for more.");
+  loadSongs.mockResolvedValueOnce({
+    entries: [song(43), song(44)],
+    more: false,
+    error: null,
+  });
+  fireEvent.click(
+    screen.getByRole("button", { name: "Check for newer songs" }),
+  );
+  await screen.findByText("New songs added.");
+  expect(loadSongs).toHaveBeenLastCalledWith({ kind: "newer", id: 42 });
+  expect(screen.getAllByRole("article")).toHaveLength(24);
+  fireEvent.click(screen.getByRole("button", { name: "Older songs" }));
+  await waitFor(() =>
+    expect(loadSongs).toHaveBeenLastCalledWith({ kind: "older", id: 21 }),
+  );
+});
