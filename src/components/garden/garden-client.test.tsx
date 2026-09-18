@@ -536,8 +536,21 @@ it("retains an observed Tulip history edit when the next garden day clears curre
     />,
   );
   expect(
-    screen.getByRole("heading", { name: "Edited song" }),
-  ).toBeInTheDocument();
+    screen.queryByRole("heading", { name: "Edited song" }),
+  ).not.toBeInTheDocument();
+  loadFlowerHistory.mockResolvedValue({
+    entries: [
+      {
+        ...original,
+        updated_at: "2026-09-18T17:00:01Z",
+        payload: { ...original.payload, title: "Edited song" },
+      },
+    ],
+    error: null,
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Read history" }));
+  await screen.findByRole("heading", { name: "Edited song" });
+  expect(loadFlowerHistory).toHaveBeenLastCalledWith(plant.flower.id, null);
 });
 
 it("reconciles an older in-flight Tulip history response with a newer current entry", async () => {

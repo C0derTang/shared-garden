@@ -53,10 +53,13 @@ The collection is read-only. Current author edits remain in the Tulip sheet,
 using the existing server-authorized 30-minute AND same-garden-day conditions.
 The backend retains original time and author, and rechecks the edit window.
 The Tulip sheet retains newest observed versions independently of loaded history,
-including edits seen while the first page is still pending. Arriving history pages
-reconcile against those versions even after rollover clears current entries.
-Comparison preserves database microseconds, and an older current snapshot cannot
-replace newer history. The cache lasts only while the sheet is open.
+including edits seen while the first page is still pending. Same-day history pages
+reconcile against those versions. The shared photo/ordinary history contract tags
+pages with their request garden day: rollover hides loaded pages and late old-day
+responses, and a fresh Read history starts from a null cursor. The retained Tulip
+versions also protect against an older current snapshot within the same day.
+The shared `compareTimestamps` preserves database microseconds; an older snapshot
+cannot replace newer history. The cache lasts only while the sheet is open.
 
 ## Bounded browsing and refresh
 

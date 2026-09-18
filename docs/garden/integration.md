@@ -19,6 +19,11 @@ are recorded in [decision 0011](../decisions/0011-working-garden.md).
   `EntryContent` for safe rendering. Keep current entries outside the form so
   reading is never contingent on submitting. Add media signing/authorization at
   its backend boundary; never expose privileged keys or permanent public URLs.
+- Sunflower uses `PhotoForm`/`PhotoViewer` and the guarded private media protocol.
+  `GardenMutation` additionally accepts an external operation with a
+  `checkCurrent()` callback; operations must call it again before the final
+  state-changing request, resolve only after a confirmed receipt, and throw on
+  ambiguous/error outcomes. The shared hook handles locks and refresh.
 - `EntryForm` handles ordinary text, song metadata, moods and one-tap Cactus.
   Preserve both original timestamp and same-day edit bounds. A shared-plan Peony
   editor has its separate approved negotiation rules and must not reuse the

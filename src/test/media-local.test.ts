@@ -7,6 +7,7 @@ import { createClient } from "@supabase/supabase-js";
 import sharp from "sharp";
 import { expect, it } from "vitest";
 
+const sunflower = process.env.LOCAL_MEDIA_MODE === "sunflower28";
 const audio = Boolean(process.env.LOCAL_AUDIO_STATUS_FILE);
 const statusPath =
   process.env.LOCAL_AUDIO_STATUS_FILE ?? process.env.LOCAL_MEDIA_STATUS_FILE;
@@ -17,7 +18,11 @@ it.skipIf(!statusPath)(
     const local = JSON.parse(readFileSync(statusPath!, "utf8"));
     const projectAudio = local.API_URL === "http://127.0.0.1:57721";
     expect(local.API_URL).toBe(
-      projectAudio ? "http://127.0.0.1:57721" : "http://127.0.0.1:57321",
+      sunflower
+        ? "http://127.0.0.1:57821"
+        : projectAudio
+          ? "http://127.0.0.1:57721"
+          : "http://127.0.0.1:57321",
     );
     expect(/^sb_publishable_/.test(local.PUBLISHABLE_KEY)).toBe(true);
     expect(/^sb_secret_/.test(local.SECRET_KEY)).toBe(true);
@@ -27,9 +32,11 @@ it.skipIf(!statusPath)(
         [
           "exec",
           "-i",
-          projectAudio
-            ? "supabase_db_shared-garden-audio50"
-            : "supabase_db_shared-garden-media48",
+          sunflower
+            ? "supabase_db_shared-garden-sunflower28"
+            : projectAudio
+              ? "supabase_db_shared-garden-audio50"
+              : "supabase_db_shared-garden-media48",
           "psql",
           "-U",
           "supabase_admin",
@@ -43,12 +50,14 @@ it.skipIf(!statusPath)(
       ).trim();
     expect(
       sql(
-        "select (select count(*) from private.garden_members)+(select count(*) from auth.users)+(select count(*) from public.garden)+(select count(*) from storage.objects);",
+        "select (select count(*) from private.garden_members)+(select count(*) from auth.users)+(select count(*) from public.garden)+(select count(*) from storage.objects)+(select count(*) from public.achievement_awards)+(select count(*) from public.achievement_progress);",
       ),
     ).toBe("0");
-    const origin = projectAudio
-      ? "http://127.0.0.1:57729"
-      : "http://127.0.0.1:57329";
+    const origin = sunflower
+      ? "http://127.0.0.1:57829"
+      : projectAudio
+        ? "http://127.0.0.1:57729"
+        : "http://127.0.0.1:57329";
     const ids = [
       "11111111-1111-4111-8111-111111111111",
       "22222222-2222-4222-8222-222222222222",
@@ -76,9 +85,11 @@ it.skipIf(!statusPath)(
       auth: { persistSession: false, autoRefreshToken: false },
     });
     const log = openSync(
-      projectAudio
-        ? "/tmp/shared-garden-issue50/web.log"
-        : "/tmp/shared-garden-issue48/web.log",
+      sunflower
+        ? "/tmp/shared-garden-issue28/web.log"
+        : projectAudio
+          ? "/tmp/shared-garden-issue50/web.log"
+          : "/tmp/shared-garden-issue48/web.log",
       "w",
       0o600,
     );
@@ -107,7 +118,7 @@ it.skipIf(!statusPath)(
         "--hostname",
         "127.0.0.1",
         "--port",
-        projectAudio ? "57729" : "57329",
+        sunflower ? "57829" : projectAudio ? "57729" : "57329",
       ],
       {
         env: webEnv,
@@ -181,8 +192,8 @@ it.skipIf(!statusPath)(
           )
         : await sharp({
             create: {
-              width: 640,
-              height: 360,
+              width: 5712,
+              height: 4284,
               channels: 3,
               background: "#76985b",
             },
@@ -198,6 +209,11 @@ it.skipIf(!statusPath)(
               },
             })
             .toBuffer();
+      // Match the browser SDK's multipart File upload path. Raw Node Buffer
+      // uploads can leave the local proxy/Storage connection stalled when an
+      // authorization rejection arrives before its request body is consumed.
+      const uploadFile = (bytes: Buffer, mime = inputMime) =>
+        new File([new Uint8Array(bytes)], "synthetic-media", { type: mime });
       const intent = async (
         bytes: Buffer,
         mimeType = inputMime,
@@ -227,7 +243,7 @@ it.skipIf(!statusPath)(
         const signing = await clients[0].storage
           .from("garden-staging")
           .createSignedUploadUrl(original.staging_path, { upsert });
-        expect(signing.error !== null).toBe(true);
+        expect(signing.error).toMatchObject({ status: 400 });
         expect(signing.data === null).toBe(true);
       }
 
@@ -237,7 +253,7 @@ it.skipIf(!statusPath)(
         (
           await clients[1].storage
             .from("garden-staging")
-            .upload(abandoned.staging_path, image, {
+            .upload(abandoned.staging_path, uploadFile(image), {
               contentType: inputMime,
             })
         ).error,
@@ -251,8 +267,8 @@ it.skipIf(!statusPath)(
             await clients[1].storage
               .from("garden-staging")
               .createSignedUploadUrl(abandoned.staging_path, { upsert })
-          ).error !== null,
-        ).toBe(true);
+          ).error,
+        ).toMatchObject({ status: 400 });
       }
       expect((await post("cleanup", {})).status).toBe(200);
       expect(
@@ -260,27 +276,27 @@ it.skipIf(!statusPath)(
           await trusted.storage
             .from("garden-staging")
             .download(abandoned.staging_path)
-        ).error !== null,
-      ).toBe(true);
+        ).error,
+      ).toMatchObject({ status: 400 });
       expect((await trusted.rpc("media_cleanup_candidates")).data).toEqual([]);
       expect(
         (
           await clients[1].storage
             .from("garden-staging")
-            .upload(abandoned.staging_path, image, {
+            .upload(abandoned.staging_path, uploadFile(image), {
               contentType: inputMime,
             })
-        ).error !== null,
-      ).toBe(true);
+        ).error,
+      ).toMatchObject({ status: 400 });
       expect(
         (
           await anon.storage
             .from("garden-staging")
-            .upload(abandoned.staging_path, image, {
+            .upload(abandoned.staging_path, uploadFile(image), {
               contentType: inputMime,
             })
-        ).error !== null,
-      ).toBe(true);
+        ).error,
+      ).toMatchObject({ status: 400 });
       const revoked = await intent(image, inputMime, 1);
       sql(
         "update private.garden_members set revoked_at=now() where member_id=2;",
@@ -289,17 +305,17 @@ it.skipIf(!statusPath)(
         (
           await clients[1].storage
             .from("garden-staging")
-            .upload(revoked.staging_path, image, { contentType: inputMime })
-        ).error !== null,
-      ).toBe(true);
+            .upload(revoked.staging_path, uploadFile(image), { contentType: inputMime })
+        ).error,
+      ).toMatchObject({ status: 400 });
       for (const upsert of [false, true]) {
         expect(
           (
             await clients[1].storage
               .from("garden-staging")
               .createSignedUploadUrl(revoked.staging_path, { upsert })
-          ).error !== null,
-        ).toBe(true);
+          ).error,
+        ).toMatchObject({ status: 400 });
       }
       sql(
         `update private.media_uploads set expires_at=clock_timestamp()-interval '2 hours' where id='${revoked.id}';`,
@@ -309,9 +325,9 @@ it.skipIf(!statusPath)(
         (
           await clients[1].storage
             .from("garden-staging")
-            .upload(revoked.staging_path, image, { contentType: inputMime })
-        ).error !== null,
-      ).toBe(true);
+            .upload(revoked.staging_path, uploadFile(image), { contentType: inputMime })
+        ).error,
+      ).toMatchObject({ status: 400 });
       expect((await trusted.rpc("media_cleanup_candidates")).data).toEqual([]);
       expect(
         sql(
@@ -326,37 +342,37 @@ it.skipIf(!statusPath)(
         (
           await clients[0].storage
             .from("garden-staging")
-            .upload(original.staging_path, Buffer.alloc(12 * 1024 * 1024 + 1), {
+            .upload(original.staging_path, uploadFile(Buffer.alloc(12 * 1024 * 1024 + 1)), {
               contentType: inputMime,
             })
-        ).error !== null,
-      ).toBe(true);
+        ).error,
+      ).toMatchObject({ status: 400 });
       expect(
         (
           await clients[1].storage
             .from("garden-staging")
-            .upload(original.staging_path, image, { contentType: inputMime })
-        ).error !== null,
-      ).toBe(true);
+            .upload(original.staging_path, uploadFile(image), { contentType: inputMime })
+        ).error,
+      ).toMatchObject({ status: 400 });
       expect(
         (
           await anon.storage
             .from("garden-staging")
-            .upload(original.staging_path, image, { contentType: inputMime })
-        ).error !== null,
-      ).toBe(true);
+            .upload(original.staging_path, uploadFile(image), { contentType: inputMime })
+        ).error,
+      ).toMatchObject({ status: 400 });
       expect(
         (
           await clients[2].storage
             .from("garden-staging")
-            .upload(original.staging_path, image, { contentType: inputMime })
-        ).error !== null,
-      ).toBe(true);
+            .upload(original.staging_path, uploadFile(image), { contentType: inputMime })
+        ).error,
+      ).toMatchObject({ status: 400 });
       expect(
         (
           await clients[0].storage
             .from("garden-staging")
-            .upload(original.staging_path, image, {
+            .upload(original.staging_path, uploadFile(image), {
               contentType: inputMime,
               upsert: false,
             })
@@ -366,26 +382,26 @@ it.skipIf(!statusPath)(
         (
           await clients[0].storage
             .from("garden-staging")
-            .upload(original.staging_path, Buffer.from("replacement"), {
+            .upload(original.staging_path, uploadFile(Buffer.from("replacement")), {
               contentType: inputMime,
               upsert: true,
             })
-        ).error !== null,
-      ).toBe(true);
+        ).error,
+      ).toMatchObject({ status: 400 });
       expect(
         (
           await clients[0].storage
             .from("garden-staging")
             .download(original.staging_path)
-        ).error !== null,
-      ).toBe(true);
+        ).error,
+      ).toMatchObject({ status: 400 });
       expect(
         (
           await clients[0].storage
             .from("garden-staging")
             .createSignedUrl(original.staging_path, 60)
-        ).error !== null,
-      ).toBe(true);
+        ).error,
+      ).toMatchObject({ status: 400 });
       expect((await post("read", { mediaId: original.id })).status).toBe(403);
       expect((await post("finalize", { mediaId: original.id }, 1)).status).toBe(
         403,
@@ -417,7 +433,7 @@ it.skipIf(!statusPath)(
           signed.data.width,
           signed.data.height,
           signed.data.expiresIn,
-        ]).toEqual([360, 640, 60]);
+        ]).toEqual([4284, 5712, 60]);
       const signedToken = new URL(signed.data.url).searchParams.get("token")!;
       const signedClaims = JSON.parse(
         Buffer.from(signedToken.split(".")[1], "base64url").toString(),
@@ -440,7 +456,7 @@ it.skipIf(!statusPath)(
           metadata.exif,
           metadata.xmp,
           metadata.orientation,
-        ]).toEqual([360, 640, undefined, undefined, undefined]);
+        ]).toEqual([4284, 5712, undefined, undefined, undefined]);
       }
       for (const client of [...clients, anon]) {
         expect(
@@ -448,28 +464,28 @@ it.skipIf(!statusPath)(
             await client.storage
               .from("garden-media")
               .download(original.final_path)
-          ).error !== null,
-        ).toBe(true);
+          ).error,
+        ).toMatchObject({ status: 400 });
         expect(
           (
             await client.storage
               .from("garden-media")
               .createSignedUrl(original.final_path, 60)
-          ).error !== null,
-        ).toBe(true);
+          ).error,
+        ).toMatchObject({ status: 400 });
         expect(
           (
             await client.storage
               .from("garden-media")
-              .upload(original.final_path, image, {
+              .upload(original.final_path, uploadFile(image), {
                 contentType: inputMime,
                 upsert: true,
               })
-          ).error !== null,
-        ).toBe(true);
-        expect(
-          (await client.storage.from("garden-media").list()).data?.length ?? 0,
-        ).toBe(0);
+          ).error,
+        ).toMatchObject({ status: 400 });
+        const listing = await client.storage.from("garden-media").list();
+        expect(listing.error).toBeNull();
+        expect(listing.data).toEqual([]);
       }
       expect(
         (
@@ -484,7 +500,7 @@ it.skipIf(!statusPath)(
         (
           await clients[0].storage
             .from("garden-staging")
-            .upload(replacement.staging_path, image, {
+            .upload(replacement.staging_path, uploadFile(image), {
               contentType: inputMime,
             })
         ).error,
@@ -503,7 +519,7 @@ it.skipIf(!statusPath)(
         (
           await clients[0].storage
             .from("garden-staging")
-            .upload(late.staging_path, image, { contentType: inputMime })
+            .upload(late.staging_path, uploadFile(image), { contentType: inputMime })
         ).error,
       ).toBeNull();
       sql(
@@ -542,6 +558,20 @@ it.skipIf(!statusPath)(
         : ([
             [Buffer.from("<svg>bad</svg>"), inputMime, "invalid_photo"],
             [
+              await sharp({
+                create: {
+                  width: 5001,
+                  height: 5000,
+                  channels: 3,
+                  background: "white",
+                },
+              })
+                .jpeg()
+                .toBuffer(),
+              inputMime,
+              "invalid_photo",
+            ],
+            [
               readFileSync(
                 new URL("./fixtures/two-frame.apng", import.meta.url),
               ),
@@ -568,7 +598,7 @@ it.skipIf(!statusPath)(
           (
             await clients[1].storage
               .from("garden-staging")
-              .upload(bad.staging_path, bytes, { contentType: mime })
+              .upload(bad.staging_path, uploadFile(bytes, mime), { contentType: mime })
           ).error,
         ).toBeNull();
         expect(
@@ -597,8 +627,8 @@ it.skipIf(!statusPath)(
           await trusted.storage
             .from("garden-staging")
             .download(replacement.staging_path)
-        ).error !== null,
-      ).toBe(true);
+        ).error,
+      ).toMatchObject({ status: 400 });
       expect((await post("read", { mediaId: replacement.id }, 1)).status).toBe(
         200,
       );
@@ -633,12 +663,12 @@ it.skipIf(!statusPath)(
           ).toBeNull();
       }
       sql(
-        `begin; delete from private.media_uploads; delete from public.flower_entries; delete from public.daisy_assignments; delete from public.flower_day_facts; delete from public.before_noon_snapshots; delete from public.peony_activity; delete from public.garden_days; delete from public.flowers; delete from public.flower_unlocks; delete from public.garden; delete from private.garden_members; delete from auth.users where id in (${ids.map((id) => `'${id}'`).join(",")}); commit;`,
+        `begin; delete from public.achievement_awards; delete from public.achievement_progress; delete from private.media_uploads; delete from public.flower_entries; delete from public.daisy_assignments; delete from public.flower_day_facts; delete from public.before_noon_snapshots; delete from public.peony_activity; delete from public.garden_days; delete from public.flowers; delete from public.flower_unlocks; delete from public.garden; delete from private.garden_members; delete from auth.users where id in (${ids.map((id) => `'${id}'`).join(",")}); commit;`,
       );
     }
     expect(
       sql(
-        "select (select count(*) from private.garden_members)+(select count(*) from auth.users)+(select count(*) from public.garden)+(select count(*) from storage.objects);",
+        "select (select count(*) from private.garden_members)+(select count(*) from auth.users)+(select count(*) from public.garden)+(select count(*) from storage.objects)+(select count(*) from public.achievement_awards)+(select count(*) from public.achievement_progress);",
       ),
     ).toBe("0");
   },

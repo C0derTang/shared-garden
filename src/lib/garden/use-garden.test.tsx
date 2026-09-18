@@ -168,3 +168,45 @@ it("does not reopen a crossed boundary when a delayed pre-rollover snapshot arri
   expect(outcome.saved).toBe(false);
   expect(result.current.busy).toBe(false);
 });
+it("external photo work shares the mutation lock and refuses a rollover during upload", async () => {
+  vi.useFakeTimers();
+  const state = gardenFixture();
+  state.server_now = "2026-09-19T10:59:58Z";
+  state.moonflower_open = true;
+  read.mockResolvedValue({ state, error: null });
+  const { result } = renderHook(() => useGarden({ state, error: null }));
+  let release!: () => void;
+  let entered = false;
+  let finalized = false;
+  let outcome!: Promise<GardenResult>;
+  await act(async () => {
+    outcome = result.current.mutate({
+      kind: "external",
+      run: async (check) => {
+        entered = true;
+        await new Promise<void>((resolve) => {
+          release = resolve;
+        });
+        check();
+        finalized = true;
+      },
+    });
+  });
+  expect(entered).toBe(true);
+  await act(async () => {
+    expect(
+      (
+        await result.current.mutate({
+          kind: "submit",
+          flowerId: state.plants[0].flower.id,
+          payload: {},
+        })
+      ).saved,
+    ).toBe(false);
+    await vi.advanceTimersByTimeAsync(3000);
+    release();
+    expect((await outcome).saved).toBe(false);
+  });
+  expect(finalized).toBe(false);
+  expect(write).not.toHaveBeenCalled();
+});

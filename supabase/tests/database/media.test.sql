@@ -75,6 +75,12 @@ select ok(not public.media_upload_allowed(pg_temp.media('original')::text||'/sou
 select pg_temp.actor(1);
 reset role;
 select pg_temp.attest('original');
+-- Test trusted registry pixel boundaries independently of native decode fixtures.
+select lives_ok($$update private.media_uploads set width=5712,height=4284 where id=pg_temp.media('original')$$,'nominal 24MP phone dimensions fit trusted bound');
+select lives_ok($$update private.media_uploads set width=5000,height=5000 where id=pg_temp.media('original')$$,'exactly 25 million pixels fit trusted bound');
+select throws_ok($$update private.media_uploads set width=5001,height=5000 where id=pg_temp.media('original')$$,'23514',null,'over 25 million pixels rejected by trusted registry');
+select throws_ok($$update private.media_uploads set width=12001,height=1 where id=pg_temp.media('original')$$,'23514',null,'per-side bound remains 12000');
+update private.media_uploads set width=10,height=10 where id=pg_temp.media('original');
 set local role authenticated;
 select is(public.media_upload_state(pg_temp.media('original'))->>'status','ready','server attestation makes ready');
 select ok(not public.media_upload_allowed(pg_temp.media('original')::text||'/source'),'claimed or validated stage cannot be written');
