@@ -41,6 +41,9 @@ and [CLAUDE.md](../../CLAUDE.md).
 7. **Marigold volume achievement.** Require 10 bloomed Marigolds, not 10
    individual compliments per person. No separate per-person bloom quota is
    approved.
+8. **Dandelion wishes.** Each Dandelion represents one shared wish. Daily
+   watering entries add details to that wish rather than unrelated new wishes.
+   This decision does not establish additional completion or agreement rules.
 
 ## Unresolved choices
 
