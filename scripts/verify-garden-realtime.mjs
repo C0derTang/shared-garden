@@ -15,14 +15,21 @@ assert(
 );
 const local = JSON.parse(readFileSync(statusFile, "utf8"));
 const ci = process.argv[3] === "ci";
+const achievements = process.argv[3] === "achievements";
 assert.equal(
   local.API_URL,
-  ci ? "http://127.0.0.1:56321" : "http://127.0.0.1:57121",
+  ci
+    ? "http://127.0.0.1:56321"
+    : achievements
+      ? "http://127.0.0.1:58221"
+      : "http://127.0.0.1:57121",
 );
 assert.match(local.PUBLISHABLE_KEY, /^sb_publishable_/);
 const container = ci
   ? "supabase_db_shared-garden-clock"
-  : "supabase_db_shared-garden-garden-ui";
+  : achievements
+    ? "supabase_db_shared-garden-achievements33"
+    : "supabase_db_shared-garden-garden-ui";
 const sql = (query) =>
   execFileSync(
     "docker",
@@ -83,7 +90,13 @@ async function subscribe(client, list) {
   const channel = client.channel(`local-garden-${channels.length}`, {
     config: { postgres_changes_options: { wait: true, timeout: 15000 } },
   });
-  for (const table of ["flowers", "flower_entries", "flower_unlocks"])
+  for (const table of [
+    "flowers",
+    "flower_entries",
+    "flower_unlocks",
+    "achievement_progress",
+    "achievement_awards",
+  ])
     channel.on(
       "postgres_changes",
       { event: "*", schema: "public", table },
@@ -163,6 +176,27 @@ try {
     p_flower_id: rose.id,
     p_payload: { text: "A second synthetic thought." },
   });
+  await until(
+    () =>
+      events[1].some(
+        (e) =>
+          e.table === "achievement_awards" &&
+          e.new.achievement_id === "first-seed",
+      ) &&
+      events[1].some(
+        (e) =>
+          e.table === "achievement_awards" &&
+          e.new.achievement_id === "ten-minutes",
+      ),
+    "Partner did not receive permanent achievements",
+  );
+  const achievementsState = await rpc(clients[1], "current_achievements");
+  assert.equal(achievementsState.achievements.length, 26);
+  assert.ok(
+    achievementsState.achievements.find(
+      (a) => a.achievement_id === "ten-minutes",
+    ).earned_at,
+  );
   const paired = await rpc(clients[0], "current_garden_state");
   assert.equal(
     paired.plants.find((p) => p.flower.id === rose.id).member2_submitted,
@@ -187,7 +221,10 @@ try {
   );
   await delay(500);
   const count = events[1].length;
-  for (let i = 0; i < 3; i++) await rpc(clients[0], "current_garden_state");
+  for (let i = 0; i < 3; i++) {
+    await rpc(clients[0], "current_garden_state");
+    await rpc(clients[0], "current_achievements");
+  }
   await delay(700);
   assert.equal(
     events[1].length,
@@ -238,14 +275,14 @@ try {
   );
   assert.equal(first.plants.length, 1);
   console.log(
-    "PASS: member planting, entry insert/edit, paired markers, growth/unlock delivery; anonymous/outsider denial; live revocation; no read loop. Synthetic local OAuth fixtures only.",
+    "PASS: member planting, entry insert/edit, paired markers, growth/unlock/achievement delivery; anonymous/outsider denial; live revocation; no read loop. Synthetic local OAuth fixtures only.",
   );
 } finally {
   await Promise.all(
     channels.map(([client, channel]) => client.removeChannel(channel)),
   );
   sql(
-    `delete from public.before_noon_snapshots; delete from public.flower_day_facts; delete from public.peony_activity; delete from public.garden_days; delete from public.flower_entries; delete from public.daisy_assignments; delete from public.flowers; delete from public.flower_unlocks; delete from public.garden; delete from private.garden_members; delete from auth.users where id in (${ids.map((id) => `'${id}'`).join(",")});`,
+    `delete from public.achievement_awards; delete from public.achievement_progress; delete from public.before_noon_snapshots; delete from public.flower_day_facts; delete from public.peony_activity; delete from public.garden_days; delete from public.flower_entries; delete from public.daisy_assignments; delete from public.flowers; delete from public.flower_unlocks; delete from public.garden; delete from private.garden_members; delete from auth.users where id in (${ids.map((id) => `'${id}'`).join(",")});`,
   );
   assert.equal(sql("select count(*) from private.garden_members"), "0");
 }
