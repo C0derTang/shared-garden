@@ -1,0 +1,130 @@
+.collection {
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 1rem;
+  color: var(--ink, #333d2d);
+}
+.intro {
+  max-width: 44rem;
+  margin-bottom: 1.5rem;
+}
+.intro h1 {
+  font-size: clamp(1.6rem, 5vw, 2.5rem);
+  margin: 0.25rem 0;
+}
+.intro p {
+  line-height: 1.6;
+}
+.eyebrow {
+  color: #536342;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.summary {
+  padding: 1rem;
+  background: #e6eed9;
+  border: 2px solid #698054;
+  box-shadow: 3px 3px 0 #c8d3ba;
+}
+.summary strong {
+  font-size: 1.35rem;
+}
+.summary p {
+  margin: 0.5rem 0 0;
+}
+.refresh {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 1rem;
+  font-size: 0.85rem;
+}
+.refresh button {
+  min-height: 44px;
+  padding: 0.5rem 0.8rem;
+  border: 2px solid #5b6e49;
+  background: #fff8e9;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: 1rem;
+  padding: 0;
+  list-style: none;
+}
+.list li {
+  padding: 1rem;
+  border: 2px solid #b9ac8e;
+  background: #fffaf0;
+  box-shadow: 3px 3px 0 #e4d9c4;
+}
+.list li.earned {
+  border-color: #698054;
+  background: #f0f5e5;
+}
+.cardHeading {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+.cardHeading > span {
+  color: #526e39;
+  font-size: 1.5rem;
+}
+.cardHeading h2 {
+  font-size: 1.05rem;
+  margin: 0;
+  line-height: 1.4;
+}
+.list p {
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+.status {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+.collection progress {
+  display: block;
+  width: 100%;
+  height: 0.65rem;
+  margin-top: 0.65rem;
+  accent-color: #56763c;
+  border: 0;
+  background: #e6dfcd;
+}
+.collection progress::-webkit-progress-bar {
+  background: #e6dfcd;
+}
+.collection progress::-webkit-progress-value {
+  background: #56763c;
+}
+.collection progress::-moz-progress-bar {
+  background: #56763c;
+}
+.date {
+  color: #4b6040;
+  margin-bottom: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .earned {
+    animation: appear 0.4s ease-out;
+  }
+  @keyframes appear {
+    from {
+      opacity: 0.65;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}

@@ -25,6 +25,8 @@ export function subscribeGarden(
     "peony_contributions",
     "peony_plans",
     "peony_acceptances",
+    "achievement_progress",
+    "achievement_awards",
   ]) {
     for (const event of ["INSERT", "UPDATE"] as const) {
       channel.on(
