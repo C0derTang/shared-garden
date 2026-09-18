@@ -19,7 +19,15 @@ parameters is rejected. Expiry never renews on retry.
 
 The browser directly inserts into private `garden-staging` with its normal
 publishable client and authenticated session. RLS recognizes live membership and
-the exact owner's pending path. There are no browser SELECT, UPDATE or DELETE
+the exact owner's pending path **and** permits only Storage's exact
+`object.upload` operation. An INSERT grant alone also enables reusable signed
+upload URLs; `storage.allow_only_operation('object.upload')` explicitly denies
+that signing operation, including its upsert variant, and denies other upload
+protocols. The verified local Storage v1.72.1 supplies the operation itself;
+browser-supplied headers or object metadata do not choose it. Missing/unknown
+operations fail closed. No signed-upload capability is issued by this protocol,
+so expired, revoked or cleaned intents cannot be resurrected by an anonymous
+bearer upload. There are no browser SELECT, UPDATE or DELETE
 policies on either media bucket. Upserts and overwrite races fail. Bucket limits
 bound transfers before the application receives any bytes. Staging is never
 viewable as a contribution and counts as no care.
@@ -52,7 +60,11 @@ issue. These conservative formats have standard native decoders in the pinned
 Sharp 0.35.4 build on Node 24, macOS and Linux/Vercel.
 
 Sharp's decoder enforces the pixel bound, rejects decoder warnings, and fully
-decodes every accepted image during re-encoding. Processing has a 20-second
+decodes every accepted image during re-encoding. PNG additionally receives a
+bounded chunk walk rejecting `acTL`, `fcTL` or `fdAT` animation chunks before
+encoding. This is required because the native PNG decoder may omit `pages` for
+a valid APNG and otherwise flatten it. Chunk lengths and the final `IEND` are
+checked; strings inside unrelated chunk data do not count as animation. Processing has a 20-second
 native timeout; the route is limited to 30 seconds. Output is at most 32 MiB.
 There is no resize, crop or pixel-dimension downscaling. Apply all eight EXIF
 orientations, including mirrors, before stripping metadata: a 6000 × 4000 image
@@ -113,5 +125,8 @@ Primary references checked during implementation:
 - [Sharp orientation operations](https://sharp.pixelplumbing.com/api-operation/).
 - [Sharp output encoding and default metadata removal](https://sharp.pixelplumbing.com/api-output/).
 - [Sharp native platform and optional-dependency support](https://sharp.pixelplumbing.com/install/).
+- [Supabase operation-aware Storage policy helpers](https://supabase.com/docs/guides/storage/schema/helper-functions).
+- [Storage v1.72.1 operation names](https://github.com/supabase/storage/blob/v1.72.1/src/http/routes/operations.ts).
+- [PNG/APNG animation chunk specification](https://www.w3.org/TR/png-3/#11acTL).
 - [Vercel function limits](https://vercel.com/docs/functions/limitations): direct
   Storage upload keeps photo bytes out of the function's 4.5 MB request limit.

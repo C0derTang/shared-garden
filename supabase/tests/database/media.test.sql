@@ -61,7 +61,7 @@ select ok(not public.media_upload_allowed(gen_random_uuid()::text||'/source'),'a
 select throws_ok($$select public.submit_flower_entry(pg_temp.flower(),jsonb_build_object('media_id',pg_temp.media('original')))$$,'42501','media_invalid_reference','unvalidated media cannot count as care');
 select throws_ok($$select public.submit_flower_entry(pg_temp.flower(),jsonb_build_object('media_id',pg_temp.media('original'),'width',10))$$,'22023','This flower requires its dedicated workflow','browser metadata is rejected');
 select throws_ok($$select public.attest_media_upload(pg_temp.media('original'),gen_random_uuid(),100,10,10,repeat('a',64))$$,'42501',null,'member cannot invoke attestation');
-select lives_ok($$insert into storage.objects(bucket_id,name) values('garden-staging',pg_temp.media('original')::text||'/source')$$,'member may insert own stage');
+select throws_ok($$insert into storage.objects(bucket_id,name) values('garden-staging',pg_temp.media('original')::text||'/source')$$,'42501',null,'non-Storage INSERT without an operation is denied');
 select is((select count(*)::integer from storage.objects),0,'member cannot list or read staging/final Storage rows');
 select throws_ok($$insert into storage.objects(bucket_id,name) values('garden-media',pg_temp.media('original')::text||'/photo.png')$$,'42501',null,'member cannot insert final object');
 select throws_ok($$insert into storage.objects(bucket_id,name) values('garden-staging',gen_random_uuid()::text||'/source')$$,'42501',null,'member cannot stage arbitrary path');

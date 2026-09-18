@@ -195,6 +195,105 @@ it.skipIf(!statusPath)(
         return result.data;
       };
       const original = await intent(image);
+      // An INSERT grant must not mint a longer-lived bearer upload capability.
+      for (const upsert of [false, true]) {
+        const signing = await clients[0].storage
+          .from("garden-staging")
+          .createSignedUploadUrl(original.staging_path, { upsert });
+        expect(signing.error !== null).toBe(true);
+        expect(signing.data === null).toBe(true);
+      }
+
+      // Expired or revoked capabilities cannot recreate an object after cleanup.
+      const abandoned = await intent(image, "image/jpeg", 1);
+      expect(
+        (
+          await clients[1].storage
+            .from("garden-staging")
+            .upload(abandoned.staging_path, image, {
+              contentType: "image/jpeg",
+            })
+        ).error,
+      ).toBeNull();
+      sql(
+        `update private.media_uploads set expires_at=clock_timestamp()-interval '2 hours' where id='${abandoned.id}';`,
+      );
+      for (const upsert of [false, true]) {
+        expect(
+          (
+            await clients[1].storage
+              .from("garden-staging")
+              .createSignedUploadUrl(abandoned.staging_path, { upsert })
+          ).error !== null,
+        ).toBe(true);
+      }
+      expect((await post("cleanup", {})).status).toBe(200);
+      expect(
+        (
+          await trusted.storage
+            .from("garden-staging")
+            .download(abandoned.staging_path)
+        ).error !== null,
+      ).toBe(true);
+      expect((await trusted.rpc("media_cleanup_candidates")).data).toEqual([]);
+      expect(
+        (
+          await clients[1].storage
+            .from("garden-staging")
+            .upload(abandoned.staging_path, image, {
+              contentType: "image/jpeg",
+            })
+        ).error !== null,
+      ).toBe(true);
+      expect(
+        (
+          await anon.storage
+            .from("garden-staging")
+            .upload(abandoned.staging_path, image, {
+              contentType: "image/jpeg",
+            })
+        ).error !== null,
+      ).toBe(true);
+      const revoked = await intent(image, "image/jpeg", 1);
+      sql(
+        "update private.garden_members set revoked_at=now() where member_id=2;",
+      );
+      expect(
+        (
+          await clients[1].storage
+            .from("garden-staging")
+            .upload(revoked.staging_path, image, { contentType: "image/jpeg" })
+        ).error !== null,
+      ).toBe(true);
+      for (const upsert of [false, true]) {
+        expect(
+          (
+            await clients[1].storage
+              .from("garden-staging")
+              .createSignedUploadUrl(revoked.staging_path, { upsert })
+          ).error !== null,
+        ).toBe(true);
+      }
+      sql(
+        `update private.media_uploads set expires_at=clock_timestamp()-interval '2 hours' where id='${revoked.id}';`,
+      );
+      expect((await post("cleanup", {})).status).toBe(200);
+      expect(
+        (
+          await clients[1].storage
+            .from("garden-staging")
+            .upload(revoked.staging_path, image, { contentType: "image/jpeg" })
+        ).error !== null,
+      ).toBe(true);
+      expect((await trusted.rpc("media_cleanup_candidates")).data).toEqual([]);
+      expect(
+        sql(
+          `select count(*) from storage.objects where bucket_id='garden-staging' and name in ('${abandoned.staging_path}', '${revoked.staging_path}');`,
+        ),
+      ).toBe("0");
+      sql(
+        "update private.garden_members set revoked_at=null where member_id=2;",
+      );
       // Storage, not a Vercel body handler, enforces the direct transfer ceiling.
       expect(
         (
@@ -385,6 +484,11 @@ it.skipIf(!statusPath)(
       // Invalid upload bytes never become entries, even with a permitted MIME.
       for (const [bytes, mime, code] of [
         [Buffer.from("<svg>bad</svg>"), "image/jpeg", "invalid_photo"],
+        [
+          readFileSync(new URL("./fixtures/two-frame.apng", import.meta.url)),
+          "image/png",
+          "unsupported_photo",
+        ],
         [
           await sharp({
             create: { width: 80, height: 40, channels: 3, background: "red" },

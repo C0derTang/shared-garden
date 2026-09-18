@@ -72,7 +72,10 @@ begin
  return private.media_upload_json(v);
 end $$;
 
--- RLS grants INSERT only: no client overwrite, upsert, download, list or delete.
+-- INSERT alone also authorizes two-hour signed upload URLs in Storage. Permit
+-- only the actual live direct-upload operation; signing, resumable/S3/copy and
+-- future operations fail closed. Membership and expiry are rechecked on upload.
+-- No client overwrite, upsert, download, list or delete policies exist.
 create function public.media_upload_allowed(p_path text)
 returns boolean language sql stable security definer set search_path = pg_catalog as $$
  select public.is_garden_member() and exists(select 1 from private.media_uploads where
@@ -82,7 +85,7 @@ insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types) v
  ('garden-staging','garden-staging',false,12582912,array['image/jpeg','image/png','image/webp']),
  ('garden-media','garden-media',false,33554432,array['image/jpeg','image/png','image/webp']);
 create policy media_staging_insert on storage.objects for insert to authenticated
- with check(bucket_id='garden-staging' and public.media_upload_allowed(name));
+ with check(bucket_id='garden-staging' and storage.allow_only_operation('object.upload') and public.media_upload_allowed(name));
 
 create function public.claim_media_upload(p_id uuid)
 returns jsonb language plpgsql security definer set search_path = pg_catalog as $$

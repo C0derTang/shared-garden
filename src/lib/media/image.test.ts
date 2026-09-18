@@ -146,3 +146,29 @@ it.each([
     );
   },
 );
+
+it("rejects a real two-frame APNG even when Sharp omits frame metadata", async () => {
+  const { readFileSync } = await import("node:fs");
+  const source = readFileSync(
+    new URL("../../test/fixtures/two-frame.apng", import.meta.url),
+  );
+  const metadata = await sharp(source).metadata();
+  expect(metadata.format).toBe("png");
+  expect(metadata.pages).toBeUndefined();
+  await expect(sanitizePhoto(source, "image/png")).rejects.toMatchObject({
+    code: "unsupported_photo",
+  });
+});
+
+it("does not mistake animation words inside static PNG metadata for chunks", async () => {
+  const source = await sharp({
+    create: { width: 20, height: 10, channels: 3, background: "red" },
+  })
+    .png()
+    .withExif({ IFD0: { ImageDescription: "acTL fcTL fdAT" } })
+    .toBuffer();
+  expect(source.includes(Buffer.from("acTL fcTL fdAT"))).toBe(true);
+  const result = await sanitizePhoto(source, "image/png");
+  expect([result.width, result.height]).toEqual([20, 10]);
+  expect((await sharp(result.bytes).metadata()).exif).toBeUndefined();
+});

@@ -17,6 +17,28 @@ export class MediaError extends Error {
   }
 }
 
+// libvips may report an APNG as a single PNG with no `pages` metadata. Walk
+// actual chunk boundaries, not substring matches inside compressed pixel data.
+function assertStaticPng(input: Buffer) {
+  let offset = 8; // PNG signature, already recognized by the decoder.
+  while (offset < input.length) {
+    if (input.length - offset < 12) throw new MediaError("invalid_photo");
+    const length = input.readUInt32BE(offset);
+    if (length > input.length - offset - 12)
+      throw new MediaError("invalid_photo");
+    const type = input.toString("ascii", offset + 4, offset + 8);
+    if (type === "acTL" || type === "fcTL" || type === "fdAT")
+      throw new MediaError("unsupported_photo");
+    offset += length + 12;
+    if (type === "IEND") {
+      if (length !== 0 || offset !== input.length)
+        throw new MediaError("invalid_photo");
+      return;
+    }
+  }
+  throw new MediaError("invalid_photo");
+}
+
 export async function sanitizePhoto(input: Buffer, claimedType: string) {
   if (!(PHOTO_TYPES as readonly string[]).includes(claimedType))
     throw new MediaError("unsupported_photo");
@@ -38,6 +60,7 @@ export async function sanitizePhoto(input: Buffer, claimedType: string) {
     if (!type || (metadata.pages ?? 1) !== 1)
       throw new MediaError("unsupported_photo");
     if (type !== claimedType) throw new MediaError("type_mismatch");
+    if (type === "image/png") assertStaticPng(input);
     if (
       !metadata.width ||
       !metadata.height ||

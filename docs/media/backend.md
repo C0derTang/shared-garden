@@ -58,7 +58,12 @@ reestablish the normal session. No test login or fixture clock is shipped.
    Storage, not through Next.js. The bucket enforces 12 MiB and the supported
    MIME list, then the server validates the actual bytes. A failed/ambiguous
    upload may already exist; never use upsert. Call finalize to discover whether
-   the complete object arrived. A different file always requires a new intent.
+   the complete object arrived. A different file always requires a new intent. Do not call
+   `createSignedUploadUrl` / `uploadToSignedUrl`, resumable or S3 upload methods:
+   staging permits only the exact live `object.upload` operation. Signed-upload
+   creation (including `upsert: true`) is denied even for a pending owner's path.
+   Expiry, revocation and cleanup remain enforceable because clients cannot mint
+   a longer-lived upload token.
 
 3. Request `/api/media/finalize` with `{ "mediaId": "<MEDIA_UUID>" }`.
    Successful validation and entry acceptance return
@@ -168,6 +173,7 @@ python3 supabase/tests/concurrency/media_race.py supabase_db_shared-garden-media
 python3 supabase/tests/concurrency/planting_race.py supabase_db_shared-garden-media48
 python3 supabase/tests/concurrency/entries_race.py supabase_db_shared-garden-media48
 python3 supabase/tests/concurrency/rollover_race.py supabase_db_shared-garden-media48
+python3 supabase/tests/concurrency/peony_race.py supabase_db_shared-garden-media48
 docker exec -i supabase_db_shared-garden-media48 \
   psql -U supabase_admin -d postgres -v ON_ERROR_STOP=1 \
   < docs/auth/verify-identity-auth-role.sql
@@ -186,9 +192,13 @@ synthetic JPEG/PNG fixtures, real Google-bound test Auth records and locally
 signed disposable JWTs, actual `getUser`/`current_member`, real HTTP routes and
 Storage APIs. It proves private policies, server decoded sanitized output,
 parallel finalize/retry, replacement preservation, cleanup and revocation.
-The image unit tests use actual native decoding and prove all eight EXIF
+Actual Storage regression checks also deny signed-upload creation with both
+upsert options, deny revoked/expired direct uploads, and prevent object
+resurrection after cleanup acknowledgement. The image unit tests use actual
+native decoding and prove all eight EXIF
 orientations, original dimensions, GPS removal, malformed/spoofed/oversized and
-animated rejection. The SQL and race tests seed trusted metadata explicitly;
+animated rejection, including a real two-frame APNG whose native metadata omits
+frame count. The SQL and race tests seed trusted metadata explicitly;
 those alone do not prove file decoding. No test bypass is in application code.
 
 The `Private media / media-integration` CI job runs on Linux with normal optional
