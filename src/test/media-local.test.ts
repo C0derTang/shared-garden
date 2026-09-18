@@ -72,16 +72,26 @@ it.skipIf(!statusPath)(
       (access_token, i) =>
         `sg-auth=base64-${Buffer.from(JSON.stringify({ access_token, refresh_token: "synthetic-not-issued", token_type: "bearer", expires_at: now + 3600, expires_in: 3600, user: { id: ids[i] } })).toString("base64url")}`,
     );
+    // Node's pooled connection can stall after Storage rejects an upload before
+    // consuming its body. Isolate this harness's SDK requests; preserve the full
+    // upload payload and actual Storage policies rather than retrying denials.
+    const storageFetch: typeof fetch = (input, init) => {
+      const headers = new Headers(init?.headers);
+      headers.set("connection", "close");
+      return fetch(input, { ...init, headers });
+    };
     const clients = tokens.map((token) =>
       createClient(local.API_URL, local.PUBLISHABLE_KEY, {
         auth: { persistSession: false, autoRefreshToken: false },
-        global: { headers: { Authorization: `Bearer ${token}` } },
+        global: { fetch: storageFetch, headers: { Authorization: `Bearer ${token}` } },
       }),
     );
     const anon = createClient(local.API_URL, local.PUBLISHABLE_KEY, {
+      global: { fetch: storageFetch },
       auth: { persistSession: false, autoRefreshToken: false },
     });
     const trusted = createClient(local.API_URL, local.SECRET_KEY, {
+      global: { fetch: storageFetch },
       auth: { persistSession: false, autoRefreshToken: false },
     });
     const log = openSync(
@@ -238,7 +248,7 @@ it.skipIf(!statusPath)(
         const signing = await clients[0].storage
           .from("garden-staging")
           .createSignedUploadUrl(original.staging_path, { upsert });
-        expect(signing.error !== null).toBe(true);
+        expect(signing.error).toMatchObject({ status: 400 });
         expect(signing.data === null).toBe(true);
       }
 
@@ -262,8 +272,8 @@ it.skipIf(!statusPath)(
             await clients[1].storage
               .from("garden-staging")
               .createSignedUploadUrl(abandoned.staging_path, { upsert })
-          ).error !== null,
-        ).toBe(true);
+          ).error,
+        ).toMatchObject({ status: 400 });
       }
       expect((await post("cleanup", {})).status).toBe(200);
       expect(
@@ -271,8 +281,8 @@ it.skipIf(!statusPath)(
           await trusted.storage
             .from("garden-staging")
             .download(abandoned.staging_path)
-        ).error !== null,
-      ).toBe(true);
+        ).error,
+      ).toMatchObject({ status: 400 });
       expect((await trusted.rpc("media_cleanup_candidates")).data).toEqual([]);
       expect(
         (
@@ -281,8 +291,8 @@ it.skipIf(!statusPath)(
             .upload(abandoned.staging_path, image, {
               contentType: inputMime,
             })
-        ).error !== null,
-      ).toBe(true);
+        ).error,
+      ).toMatchObject({ status: 400 });
       expect(
         (
           await anon.storage
@@ -290,8 +300,8 @@ it.skipIf(!statusPath)(
             .upload(abandoned.staging_path, image, {
               contentType: inputMime,
             })
-        ).error !== null,
-      ).toBe(true);
+        ).error,
+      ).toMatchObject({ status: 400 });
       const revoked = await intent(image, inputMime, 1);
       sql(
         "update private.garden_members set revoked_at=now() where member_id=2;",
@@ -301,16 +311,16 @@ it.skipIf(!statusPath)(
           await clients[1].storage
             .from("garden-staging")
             .upload(revoked.staging_path, image, { contentType: inputMime })
-        ).error !== null,
-      ).toBe(true);
+        ).error,
+      ).toMatchObject({ status: 400 });
       for (const upsert of [false, true]) {
         expect(
           (
             await clients[1].storage
               .from("garden-staging")
               .createSignedUploadUrl(revoked.staging_path, { upsert })
-          ).error !== null,
-        ).toBe(true);
+          ).error,
+        ).toMatchObject({ status: 400 });
       }
       sql(
         `update private.media_uploads set expires_at=clock_timestamp()-interval '2 hours' where id='${revoked.id}';`,
@@ -321,8 +331,8 @@ it.skipIf(!statusPath)(
           await clients[1].storage
             .from("garden-staging")
             .upload(revoked.staging_path, image, { contentType: inputMime })
-        ).error !== null,
-      ).toBe(true);
+        ).error,
+      ).toMatchObject({ status: 400 });
       expect((await trusted.rpc("media_cleanup_candidates")).data).toEqual([]);
       expect(
         sql(
@@ -340,29 +350,29 @@ it.skipIf(!statusPath)(
             .upload(original.staging_path, Buffer.alloc(12 * 1024 * 1024 + 1), {
               contentType: inputMime,
             })
-        ).error !== null,
-      ).toBe(true);
+        ).error,
+      ).toMatchObject({ status: 400 });
       expect(
         (
           await clients[1].storage
             .from("garden-staging")
             .upload(original.staging_path, image, { contentType: inputMime })
-        ).error !== null,
-      ).toBe(true);
+        ).error,
+      ).toMatchObject({ status: 400 });
       expect(
         (
           await anon.storage
             .from("garden-staging")
             .upload(original.staging_path, image, { contentType: inputMime })
-        ).error !== null,
-      ).toBe(true);
+        ).error,
+      ).toMatchObject({ status: 400 });
       expect(
         (
           await clients[2].storage
             .from("garden-staging")
             .upload(original.staging_path, image, { contentType: inputMime })
-        ).error !== null,
-      ).toBe(true);
+        ).error,
+      ).toMatchObject({ status: 400 });
       expect(
         (
           await clients[0].storage
@@ -381,22 +391,22 @@ it.skipIf(!statusPath)(
               contentType: inputMime,
               upsert: true,
             })
-        ).error !== null,
-      ).toBe(true);
+        ).error,
+      ).toMatchObject({ status: 400 });
       expect(
         (
           await clients[0].storage
             .from("garden-staging")
             .download(original.staging_path)
-        ).error !== null,
-      ).toBe(true);
+        ).error,
+      ).toMatchObject({ status: 400 });
       expect(
         (
           await clients[0].storage
             .from("garden-staging")
             .createSignedUrl(original.staging_path, 60)
-        ).error !== null,
-      ).toBe(true);
+        ).error,
+      ).toMatchObject({ status: 400 });
       expect((await post("read", { mediaId: original.id })).status).toBe(403);
       expect((await post("finalize", { mediaId: original.id }, 1)).status).toBe(
         403,
@@ -459,15 +469,15 @@ it.skipIf(!statusPath)(
             await client.storage
               .from("garden-media")
               .download(original.final_path)
-          ).error !== null,
-        ).toBe(true);
+          ).error,
+        ).toMatchObject({ status: 400 });
         expect(
           (
             await client.storage
               .from("garden-media")
               .createSignedUrl(original.final_path, 60)
-          ).error !== null,
-        ).toBe(true);
+          ).error,
+        ).toMatchObject({ status: 400 });
         expect(
           (
             await client.storage
@@ -476,11 +486,11 @@ it.skipIf(!statusPath)(
                 contentType: inputMime,
                 upsert: true,
               })
-          ).error !== null,
-        ).toBe(true);
-        expect(
-          (await client.storage.from("garden-media").list()).data?.length ?? 0,
-        ).toBe(0);
+          ).error,
+        ).toMatchObject({ status: 400 });
+        const listing = await client.storage.from("garden-media").list();
+        expect(listing.error).toBeNull();
+        expect(listing.data).toEqual([]);
       }
       expect(
         (
@@ -622,8 +632,8 @@ it.skipIf(!statusPath)(
           await trusted.storage
             .from("garden-staging")
             .download(replacement.staging_path)
-        ).error !== null,
-      ).toBe(true);
+        ).error,
+      ).toMatchObject({ status: 400 });
       expect((await post("read", { mediaId: replacement.id }, 1)).status).toBe(
         200,
       );

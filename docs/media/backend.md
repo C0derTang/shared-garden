@@ -159,6 +159,16 @@ local Next server at
 `127.0.0.1:57329` and refuses a failed startup. Keep that port free, and do not run another build/dev server in the same checkout
 during this opt-in test. Build output and logs stay local and ignored.
 
+The Node-only harness isolates SDK connections with `Connection: close`. A
+rejected raw upload can otherwise leave a pooled connection stalled: local Linux
+tracing observed a subsequent list request return 504 after 60 seconds, while
+the same payloads on isolated connections completed without that delay. This
+does not change browser or server transports, payloads, policy checks, or the
+120-second test budget. Denied Storage operations must return the expected HTTP
+400 error, and private object listings must successfully return an empty array;
+network errors and upstream timeouts cannot satisfy either assertion.
+
+
 ```sh
 umask 077
 node_modules/.bin/supabase start --workdir /tmp/shared-garden-issue48 \

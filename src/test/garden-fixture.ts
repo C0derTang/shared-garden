@@ -119,6 +119,8 @@ export function gardenFixture(): GardenState {
           growth_units: 0,
           first_bloom_at: null,
           first_bloom_day: null,
+          fulfilled_at: null,
+          fulfilled_by: null,
         },
         entries: [],
         daisy_question: null,

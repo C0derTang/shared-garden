@@ -82,6 +82,8 @@ export async function mutateGarden(
         p_flower_id: command.flowerId,
         p_payload: command.payload,
       });
+    else if (command?.kind === "fulfillDandelion")
+      response = await client.rpc("fulfill_dandelion", { p_flower_id: command.flowerId });
     else if (command?.kind === "edit")
       response = await client.rpc("edit_flower_entry", {
         p_entry_id: command.entryId,
@@ -93,7 +95,9 @@ export async function mutateGarden(
         saved: false,
         error: "Choose a valid garden action.",
       };
-    if (response.error) error = rejection(response.error);
+    if (response.error) error = command.kind === "fulfillDandelion"
+      ? "We could not confirm fulfillment. Refresh and check this wish before trying again."
+      : rejection(response.error);
     else saved = true;
   } catch {
     error =
