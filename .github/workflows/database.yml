@@ -1,0 +1,34 @@
+name: Database
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  database-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Start isolated local Supabase
+        # Startup output contains local development keys. Keep it out of logs
+        # and artifacts; the exit code still fails CI if startup fails.
+        run: |
+          umask 077
+          npm run db:start > "$RUNNER_TEMP/supabase-start.log" 2>&1
+      - name: Apply migrations to local database
+        run: npm run db:reset
+      - name: Test garden clock
+        run: npm run db:test
+      - name: Stop local Supabase
+        if: always()
+        run: npm run db:stop
