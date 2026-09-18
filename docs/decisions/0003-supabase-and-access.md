@@ -1,6 +1,7 @@
 # Supabase backend, access, and Next.js frontend
 
-Status: approved, incremental decision record.
+Status: approved historical decision record, extended by
+[record 0004](0004-finalized-launch-rules.md).
 
 Sources: [Issue #7](https://github.com/C0derTang/shared-garden/issues/7),
 [Issue #11](https://github.com/C0derTang/shared-garden/issues/11), and
@@ -23,7 +24,9 @@ Future feature issues must reference these records and follow
    be published in this public repository or its public artifacts.
 3. **No daily care reminders.** Do not provide daily care reminders or nudges.
    Do not build email, push, notification opt-in, or reminder scheduling for
-   that purpose. This does not settle unrelated notification requirements.
+   that purpose. Unrelated notification requirements were initially open;
+   [record 0004](0004-finalized-launch-rules.md) now specifies the in-app admin
+   notification for the final interaction and excludes email and push.
 4. **Next.js frontend and Vercel hosting.** Use Next.js for the Shared Garden
    website and Vercel as its hosting provider. Hosting selection does not mean
    that a Vercel deployment exists.
@@ -48,7 +51,12 @@ the user submitted it. Automatic RLS has not been independently audited in the
 live database. These dashboard observations are not a database security audit or
 verification of application authorization.
 
-## Unresolved choices and resource status
+CLI login, linking, and a dry-run subsequently succeeded, as recorded in
+[record 0004](0004-finalized-launch-rules.md) and
+[Issue #15](https://github.com/C0derTang/shared-garden/issues/15). A dry-run is
+not a hosted migration or proof of Google OAuth setup.
+
+## Current decisions and resource status
 
 Vercel deployment, hosted migrations, application connection, Google provider
 configuration, and the two-account access configuration remain integration
@@ -56,7 +64,10 @@ work. Provisioning does not establish that any of this work is complete. Account
 identities, credentials, and hosted organization/project identifiers stay
 outside this public record.
 
-Detailed security architecture, UI design, rollout, and the remaining product
-rules identified in the earlier records remain open. This is a decision record,
-not an implemented application or a complete specification. Unresolved choices
-require further approval before implementation.
+[Record 0004](0004-finalized-launch-rules.md) settles launch, access requirements,
+UI direction, and remaining product rules, and authorizes documented conservative
+implementation and design choices within those boundaries. Google Cloud ownership
+and account setup, OAuth credentials, and the two allowed identities remain
+external dependencies. These records do not establish that an application has
+been built or deployed. Conflicts, unapproved costs, required credentials/account
+actions, or material scope/privacy changes still require escalation.
