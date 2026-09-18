@@ -58,7 +58,9 @@ it("requires local preview, submits only on review, and releases preview after s
   expect(save).not.toHaveBeenCalled();
   fireEvent.click(screen.getByText("Share photo"));
   await waitFor(() => expect(p.onSaved).toHaveBeenCalledTimes(1));
-  expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:photo");
+  await waitFor(() =>
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:photo"),
+  );
 });
 it("retains preview on rejected/ambiguous save without claiming success", async () => {
   const p = props();
