@@ -52,8 +52,8 @@ Future feature issues must reference these records and follow
 
 These approvals do not establish a complete product specification.
 [Record 0003](0003-supabase-and-access.md) approves the Supabase backend,
-Google sign-in restricted to the two approved accounts, and no daily care
-reminders or nudges. Frontend, hosting, detailed security architecture, and
+Google sign-in restricted to the two approved accounts, the Next.js frontend,
+and no daily care reminders or nudges. Hosting, detailed security architecture, and
 unrelated notification requirements remain open. Detailed visual and interaction
 choices beyond the decisions above, and the remaining unresolved rules in
 record 0001, require further approval.

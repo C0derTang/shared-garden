@@ -48,8 +48,8 @@ and [CLAUDE.md](../../CLAUDE.md).
 ## Unresolved choices
 
 [Record 0003](0003-supabase-and-access.md) approves the Supabase backend,
-Google sign-in restricted to the two approved accounts, and no daily care
-reminders or nudges. Frontend, hosting, detailed security architecture, and
+Google sign-in restricted to the two approved accounts, the Next.js frontend,
+and no daily care reminders or nudges. Hosting, detailed security architecture, and
 unrelated notification requirements remain open.
 [Record 0002](0002-progression-and-mobile-garden.md) approves unlock progression,
 Peony timing, a working visual direction, fixed planting spots, automatic bed
