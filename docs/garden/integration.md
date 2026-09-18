@@ -25,8 +25,9 @@ are recorded in [decision 0011](../decisions/0011-working-garden.md).
   ordinary payload mutation as a shortcut.
 - `SeedPicker` uses actual catalog/unlocks and the selected fixed spot. Its
   unavailable notice can be removed for a type when that care workflow lands.
-  Dandelion wish planting and daily detail entries already work; fulfillment
-  requires its future authoritative fact before passing `fulfilled` to artwork.
+  Dandelion fulfillment uses `fulfill_dandelion` and the nullable actor/time fact
+  on the authoritative flower; see [its contract](../database/dandelion.md).
+  Only that fact drives the fulfilled sprite; planting and daily details stay unchanged.
 - Tulip drafts/current/history compose the safe `SongPlayer`. The private
   `/garden/songs` route and bounded `loadSongs` action retain both members’
   contributions across all instances and blooms. See

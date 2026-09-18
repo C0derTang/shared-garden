@@ -13,6 +13,7 @@ import { loadFlowerHistory } from "@/lib/garden/actions";
 import Link from "next/link";
 import { SongPlayer } from "@/components/music/song-player";
 import { FlowerSprite } from "./flower-sprite";
+import { DandelionWish } from "./dandelion-wish";
 import { PeonyPanel } from "./peony-panel";
 import { EntryForm } from "./entry-form";
 import type { Mutate } from "./seed-picker";
@@ -153,7 +154,9 @@ export function FlowerSheet({
     <div className={styles.stack}>
       <div className={styles.flowerSummary}>
         <FlowerSprite
-          type={item.type_key}
+          {...(item.type_key === "dandelion"
+            ? { type: "dandelion" as const, fulfilled: !!flower.fulfilled_at }
+            : { type: item.type_key })}
           growthUnits={flower.growth_units}
           growthTarget={item.growth_target}
           bloomed={bloomed}
@@ -189,17 +192,12 @@ export function FlowerSheet({
           {item.type_key === "tulip" && (
             <Link href="/garden/songs">Our song collection</Link>
           )}
-          {flower.shared_wish && (
-            <div className={styles.notice}>
-              <span className="eyebrow">OUR SHARED WISH</span>
-              <p className={styles.entryText}>{flower.shared_wish}</p>
-              {bloomed && (
-                <p className={styles.quiet}>
-                  Wish fulfillment and seed scattering are coming soon.
-                </p>
-              )}
-            </div>
-          )}
+          <DandelionWish
+            flower={flower}
+            memberId={state.member_id}
+            busy={busy}
+            mutate={mutate}
+          />
           {plant.daisy_question && (
             <div className={styles.question}>
               <span className="eyebrow">

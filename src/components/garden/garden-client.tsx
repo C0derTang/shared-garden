@@ -76,14 +76,14 @@ function GardenSpot({
             className={plant ? styles.flowerButton : styles.emptyButton}
             aria-label={
               plant
-                ? `${item!.display_name}, spot ${spot}, ${bloom ? "permanent bloom" : `${plant.flower.growth_units} of ${item!.growth_target} ${plant.flower.type_key === "peony" ? "milestones" : "growth units"}`}${plant.flower.type_key === "peony" ? "" : `, ${cared} of 2 cared today`}`
+                ? `${item!.display_name}, spot ${spot}, ${plant.flower.fulfilled_at ? "fulfilled wish" : bloom ? "permanent bloom" : `${plant.flower.growth_units} of ${item!.growth_target} ${plant.flower.type_key === "peony" ? "milestones" : "growth units"}`}${plant.flower.type_key === "peony" ? "" : `, ${cared} of 2 cared today`}`
                 : `Plant in spot ${spot}`
             }
           >
             {plant ? (
               <>
                 <FlowerSprite
-                  type={plant.flower.type_key}
+                  {...(plant.flower.type_key === "dandelion" ? { type: "dandelion" as const, fulfilled: !!plant.flower.fulfilled_at } : { type: plant.flower.type_key })}
                   growthUnits={plant.flower.growth_units}
                   growthTarget={item!.growth_target}
                   bloomed={bloom}
@@ -91,7 +91,7 @@ function GardenSpot({
                 />
                 <strong>{item!.display_name}</strong>
                 <span>
-                  {bloom
+                  {plant.flower.fulfilled_at ? "Wish fulfilled" : bloom
                     ? "In bloom"
                     : `${plant.flower.growth_units} / ${item!.growth_target}`}
                 </span>
