@@ -92,12 +92,6 @@ export function SeedPicker({
                   bloom
                 </span>
                 <small>{availability.reason}</small>
-                {seed.type_key === "bluebell" && (
-                  <small>
-                    Planting is available when unlocked; its special care is
-                    coming soon.
-                  </small>
-                )}
               </span>
             </button>
           );

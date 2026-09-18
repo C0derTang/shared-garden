@@ -1,0 +1,26 @@
+.stack {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.controls > button {
+  flex: 1 1 120px;
+  min-height: 44px;
+}
+.player {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+.clock {
+  font-variant-numeric: tabular-nums;
+  font-size: 1.5rem;
+}
+.error {
+  color: #862e23;
+}

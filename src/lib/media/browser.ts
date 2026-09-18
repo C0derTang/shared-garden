@@ -57,7 +57,7 @@ export async function mediaRequest<T>(
   if (!response.ok) throw new MediaError(result.error ?? "media_unavailable");
   return result as T;
 }
-export type PhotoAttempt = {
+export type MediaAttempt = {
   requestId: string;
   intent?: {
     id: string;
@@ -66,6 +66,7 @@ export type PhotoAttempt = {
     status: string;
   };
 };
+export type PhotoAttempt = MediaAttempt;
 export async function savePhoto(
   file: File,
   flowerId: string,
@@ -73,11 +74,44 @@ export async function savePhoto(
   attempt: PhotoAttempt,
   checkCurrent: () => void,
 ) {
+  return saveMedia(
+    file,
+    file.type,
+    flowerId,
+    replacementEntryId,
+    attempt,
+    checkCurrent,
+  );
+}
+export async function saveVoice(
+  file: File,
+  flowerId: string,
+  replacementEntryId: number | undefined,
+  attempt: MediaAttempt,
+  checkCurrent: () => void,
+) {
+  return saveMedia(
+    file,
+    "audio/webm",
+    flowerId,
+    replacementEntryId,
+    attempt,
+    checkCurrent,
+  );
+}
+async function saveMedia(
+  file: File,
+  mimeType: string,
+  flowerId: string,
+  replacementEntryId: number | undefined,
+  attempt: MediaAttempt,
+  checkCurrent: () => void,
+) {
   checkCurrent();
   attempt.intent ??= await mediaRequest("intents", {
     requestId: attempt.requestId,
     flowerId,
-    mimeType: file.type,
+    mimeType,
     byteLength: file.size,
     ...(replacementEntryId ? { replacementEntryId } : {}),
   });
@@ -103,4 +137,32 @@ export async function savePhoto(
     mediaId: intent.id,
   });
   if (result.status !== "submitted") throw new MediaError("media_unavailable");
+}
+
+export function voiceSaveMessage(error: unknown) {
+  if (!(error instanceof MediaError))
+    return "We could not confirm the save. Check today's entries, then retry this same memo when connected.";
+  if (
+    [
+      "unsupported_audio",
+      "invalid_audio",
+      "audio_too_large",
+      "type_mismatch",
+      "photo_size_mismatch",
+    ].includes(error.code)
+  )
+    return "This recording could not be accepted. Record a new WebM/Opus memo up to five minutes and 12 MiB. The server checks the whole recording; it is never shortened automatically.";
+  if (error.code === "audio_unavailable")
+    return "Voice processing is temporarily unavailable. Keep this memo and retry later.";
+  if (error.code === "media_processing")
+    return "Your memo may still be processing. Check today's entries and wait two minutes before retrying this same memo.";
+  if (error.code === "upload_missing")
+    return "The upload was interrupted. Keep this memo and retry when connected.";
+  if (error.code === "entry_rejected" || error.code.startsWith("media_expired"))
+    return "The care or edit window changed. Check today's entries; your previous saved memo is kept. Record again only if care is still available.";
+  if (error.code === "media_upload_limit")
+    return "Too many unfinished uploads. Wait for them to expire, then try again.";
+  if (["signin_required", "media_not_available"].includes(error.code))
+    return "Voice access could not be verified. Sign in again to your garden.";
+  return "We could not confirm the memo save. Check today's entries before retrying this same memo.";
 }

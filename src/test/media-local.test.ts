@@ -7,6 +7,7 @@ import { createClient } from "@supabase/supabase-js";
 import sharp from "sharp";
 import { expect, it } from "vitest";
 
+const bluebell = process.env.LOCAL_MEDIA_MODE === "bluebell29";
 const sunflower = process.env.LOCAL_MEDIA_MODE === "sunflower28";
 const audio = Boolean(process.env.LOCAL_AUDIO_STATUS_FILE);
 const statusPath =
@@ -18,11 +19,13 @@ it.skipIf(!statusPath)(
     const local = JSON.parse(readFileSync(statusPath!, "utf8"));
     const projectAudio = local.API_URL === "http://127.0.0.1:57721";
     expect(local.API_URL).toBe(
-      sunflower
-        ? "http://127.0.0.1:57821"
-        : projectAudio
-          ? "http://127.0.0.1:57721"
-          : "http://127.0.0.1:57321",
+      bluebell
+        ? "http://127.0.0.1:58321"
+        : sunflower
+          ? "http://127.0.0.1:57821"
+          : projectAudio
+            ? "http://127.0.0.1:57721"
+            : "http://127.0.0.1:57321",
     );
     expect(/^sb_publishable_/.test(local.PUBLISHABLE_KEY)).toBe(true);
     expect(/^sb_secret_/.test(local.SECRET_KEY)).toBe(true);
@@ -32,11 +35,13 @@ it.skipIf(!statusPath)(
         [
           "exec",
           "-i",
-          sunflower
-            ? "supabase_db_shared-garden-sunflower28"
-            : projectAudio
-              ? "supabase_db_shared-garden-audio50"
-              : "supabase_db_shared-garden-media48",
+          bluebell
+            ? "supabase_db_shared-garden-bluebell29"
+            : sunflower
+              ? "supabase_db_shared-garden-sunflower28"
+              : projectAudio
+                ? "supabase_db_shared-garden-audio50"
+                : "supabase_db_shared-garden-media48",
           "psql",
           "-U",
           "supabase_admin",
@@ -53,11 +58,13 @@ it.skipIf(!statusPath)(
         "select (select count(*) from private.garden_members)+(select count(*) from auth.users)+(select count(*) from public.garden)+(select count(*) from storage.objects)+(select count(*) from public.achievement_awards)+(select count(*) from public.achievement_progress);",
       ),
     ).toBe("0");
-    const origin = sunflower
-      ? "http://127.0.0.1:57829"
-      : projectAudio
-        ? "http://127.0.0.1:57729"
-        : "http://127.0.0.1:57329";
+    const origin = bluebell
+      ? "http://127.0.0.1:58329"
+      : sunflower
+        ? "http://127.0.0.1:57829"
+        : projectAudio
+          ? "http://127.0.0.1:57729"
+          : "http://127.0.0.1:57329";
     const ids = [
       "11111111-1111-4111-8111-111111111111",
       "22222222-2222-4222-8222-222222222222",
@@ -85,11 +92,13 @@ it.skipIf(!statusPath)(
       auth: { persistSession: false, autoRefreshToken: false },
     });
     const log = openSync(
-      sunflower
-        ? "/tmp/shared-garden-issue28/web.log"
-        : projectAudio
-          ? "/tmp/shared-garden-issue50/web.log"
-          : "/tmp/shared-garden-issue48/web.log",
+      bluebell
+        ? "/tmp/shared-garden-bluebell29/web.log"
+        : sunflower
+          ? "/tmp/shared-garden-issue28/web.log"
+          : projectAudio
+            ? "/tmp/shared-garden-issue50/web.log"
+            : "/tmp/shared-garden-issue48/web.log",
       "w",
       0o600,
     );
@@ -118,7 +127,7 @@ it.skipIf(!statusPath)(
         "--hostname",
         "127.0.0.1",
         "--port",
-        sunflower ? "57829" : projectAudio ? "57729" : "57329",
+        bluebell ? "58329" : sunflower ? "57829" : projectAudio ? "57729" : "57329",
       ],
       {
         env: webEnv,

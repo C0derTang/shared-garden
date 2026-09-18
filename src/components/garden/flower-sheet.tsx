@@ -15,6 +15,8 @@ import Link from "next/link";
 import { SongPlayer } from "@/components/music/song-player";
 import { FlowerSprite } from "./flower-sprite";
 import { PhotoForm } from "@/components/media/photo-form";
+import { VoiceForm } from "@/components/media/voice-form";
+import { VoiceViewer } from "@/components/media/voice-player";
 import { PhotoViewer } from "@/components/media/photo-viewer";
 import { DandelionWish } from "./dandelion-wish";
 import { PeonyPanel } from "./peony-panel";
@@ -26,6 +28,8 @@ function EntryContent({ entry, type }: { entry: Entry; type: string }) {
   const payload = entry.payload;
   if (type === "sunflower" && payload.media_id)
     return <PhotoViewer key={payload.media_id} mediaId={payload.media_id} />;
+  if (type === "bluebell" && payload.media_id)
+    return <VoiceViewer key={payload.media_id} mediaId={payload.media_id} />;
   if (type === "cactus") return <p>Checked in. I’m here.</p>;
   if (type === "hydrangea")
     return (
@@ -141,7 +145,9 @@ export function FlowerSheet({
   const own = plant.entries.find(
     (entry) => entry.author_id === state.member_id,
   );
-  const unsupported = item.type_key === "bluebell";
+  const mediaFlower =
+    item.type_key === "sunflower" || item.type_key === "bluebell";
+  const MediaForm = item.type_key === "bluebell" ? VoiceForm : PhotoForm;
   const moonClosed = item.type_key === "moonflower" && !state.moonflower_open;
   const pair = [1, 2].map((id) =>
     moods.find(
@@ -304,8 +310,8 @@ export function FlowerSheet({
               Your care is saved and visible to your partner.
             </p>
           )}
-          {editing && item.type_key === "sunflower" ? (
-            <PhotoForm
+          {editing && mediaFlower ? (
+            <MediaForm
               key={editing.id}
               {...{ plant, state, now, busy, mutate, editing }}
               onSaved={() => {
@@ -329,16 +335,6 @@ export function FlowerSheet({
             <p className={styles.notice}>
               This bloom is here to stay. No more daily care is needed.
             </p>
-          ) : unsupported ? (
-            <p className={styles.notice}>
-              {item.type_key === "sunflower"
-                ? "Photo sharing"
-                : item.type_key === "bluebell"
-                  ? "Voice recording and playback"
-                  : "The four shared date milestones"}{" "}
-              will arrive soon. This flower stays in your garden; that care
-              cannot be submitted yet.
-            </p>
           ) : own ? (
             <p className={styles.quiet}>
               Your care for this garden day is already here.
@@ -346,8 +342,8 @@ export function FlowerSheet({
                 ? " Come back tomorrow for another check-in."
                 : " When both of you contribute, growth settles at 4 a.m."}
             </p>
-          ) : item.type_key === "sunflower" ? (
-            <PhotoForm
+          ) : mediaFlower ? (
+            <MediaForm
               {...{ plant, state, now, busy, mutate }}
               onSaved={() => setSaved(true)}
             />
@@ -362,7 +358,7 @@ export function FlowerSheet({
               onSaved={() => setSaved(true)}
             />
           )}
-          {!ordinaryDone && !unsupported && (
+          {!ordinaryDone && (
             <p className={styles.quiet}>
               {item.type_key === "cactus"
                 ? "Cactus never loses growth, and you can keep checking in after it blooms."

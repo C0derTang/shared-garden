@@ -24,6 +24,12 @@ are recorded in [decision 0011](../decisions/0011-working-garden.md).
   `checkCurrent()` callback; operations must call it again before the final
   state-changing request, resolve only after a confirmed receipt, and throw on
   ambiguous/error outcomes. The shared hook handles locks and refresh.
+- Bluebell composes `VoiceForm` and reusable `VoiceViewer` through that same
+  protocol and mutation guard. Recorder drafts remain local until explicit
+  sharing; playback is private, user initiated and never writes growth. See
+  [0013](../decisions/0013-bluebell-voice-interface.md) for lifecycle, day and
+  browser boundaries. The generic current/history reconciliation applies to
+  both audio and photo replacements.
 - `EntryForm` handles ordinary text, song metadata, moods and one-tap Cactus.
   Preserve both original timestamp and same-day edit bounds. A shared-plan Peony
   editor has its separate approved negotiation rules and must not reuse the
