@@ -1,0 +1,16 @@
+.container { display: grid; gap: 1rem; margin-block-end: 1rem; min-width: 0; }
+.notice, .controls { padding: clamp(1rem, 3vw, 1.5rem); background: #fff7e7; color: #3c4638; border: 2px solid #a4b484; box-shadow: 4px 4px 0 #e6dbc0; overflow-wrap: anywhere; }
+.notice h2, .controls h2 { font-size: 1.2rem; margin-top: 0; }
+.container button, .choices button { min-height: 44px; padding: .7rem 1rem; font: inherit; cursor: pointer; white-space: normal; overflow-wrap: anywhere; }
+.container button:disabled, .choices button:disabled { cursor: default; opacity: .65; }
+.controlButtons { display: flex; gap: .7rem; flex-wrap: wrap; }
+.hiddenTrigger { display: none; }
+.moment { overflow-wrap: anywhere; }
+.message { white-space: pre-wrap; line-height: 1.65; }
+.bloom { display: flex; flex-wrap: wrap; justify-content: center; gap: .35rem; padding: .75rem .4rem; background: #fff1de; border: 2px dashed #b5bd82; animation: bloom-in 700ms ease-out both; }
+.choices { display: grid; gap: .7rem; margin-block: 1.2rem; }
+.choices button { background: #fffdf6; border: 2px solid #9bac88; color: #33452f; text-align: left; }
+.choices button[aria-pressed="true"] { background: #e4edcc; border-color: #406538; box-shadow: inset 5px 0 #406538; }
+.quiet { font-size: .9rem; color: #59634e; }
+@keyframes bloom-in { from { opacity: .3; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .bloom { animation: none; } }

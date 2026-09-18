@@ -44,6 +44,7 @@ jobs:
           python3 supabase/tests/concurrency/peony_race.py supabase_db_shared-garden-clock
           npm run db:reset
           python3 supabase/tests/concurrency/achievements_race.py supabase_db_shared-garden-clock
+          python3 supabase/tests/concurrency/private_interaction_race.py supabase_db_shared-garden-clock
           npm run db:reset
           npm run db:test
       - name: Verify real authorized Realtime delivery
@@ -52,6 +53,8 @@ jobs:
           node_modules/.bin/supabase status -o json > "$RUNNER_TEMP/garden-status.json"
           node scripts/verify-garden-realtime.mjs "$RUNNER_TEMP/garden-status.json" ci
           node scripts/verify-peony-realtime.mjs "$RUNNER_TEMP/garden-status.json" ci
+          npm run db:reset
+          node scripts/verify-private-interaction.mjs "$RUNNER_TEMP/garden-status.json" ci
           npm run db:reset
           npm run db:test
       - name: Stop local Supabase

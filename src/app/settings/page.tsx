@@ -5,7 +5,7 @@ export default function SettingsPage() {
     <UpcomingPage
       current="settings"
       title="Garden settings"
-      description="Settings and the reopenable garden introduction are coming soon. Your garden follows Pacific time, with each new day beginning at 4 a.m."
+      description="The reopenable garden introduction is coming soon. Your garden follows Pacific time, with each new day beginning at 4 a.m."
     />
   );
 }
