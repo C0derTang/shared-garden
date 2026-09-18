@@ -159,14 +159,35 @@ local Next server at
 `127.0.0.1:57329` and refuses a failed startup. Keep that port free, and do not run another build/dev server in the same checkout
 during this opt-in test. Build output and logs stay local and ignored.
 
-The Node-only harness uploads synthetic bytes as `File` objects, matching the
-browser SDK's multipart upload path. Raw Buffer uploads can leave a local
-proxy/Storage connection stalled after an early denial; local Linux tracing
-observed a following request return 504 after 60 seconds. The same bytes using
-multipart completed without that delay. The default transport and 120-second
-test budget remain unchanged. Denied Storage operations must return the expected
-HTTP 400 error, and private object listings must successfully return an empty
-array; network errors and upstream timeouts cannot satisfy either assertion.
+The Node-only harness uploads unchanged synthetic bytes as `File` objects,
+matching the browser SDK's multipart path. This alone does not resolve the local
+Storage/gateway transport defect: under Linux loopback, a rejected upload was
+followed by HTTP 504 after 60 seconds, and Kong logged a timeout while **sending**
+the next request upstream. The Storage log had only the preceding denial.
+The disposable CI gateways therefore set `upstream_keepalive_max_requests=1`
+after startup/reset, so a socket handling an early rejected body is not reused.
+A controlled run changed only this gateway setting and passed the same payloads
+and strict assertions, including repeated final-object denials. This is local
+fixture configuration, not a hosted or application transport change; hosted
+transport behavior remains a separate release verification requirement.
+
+The default SDK/browser transport and 120-second test budget remain unchanged.
+Denied Storage operations must return the expected HTTP 400 error, and private
+object listings must successfully return an empty array. Network errors and
+upstream timeouts cannot satisfy either assertion. For local HTTP verification,
+apply the same setting after service startup/reset (substitute the dedicated
+local container name for audio or Sunflower fixtures):
+
+```sh
+docker exec -e KONG_UPSTREAM_KEEPALIVE_MAX_REQUESTS=1 supabase_kong_shared-garden-media48 kong reload
+docker exec supabase_kong_shared-garden-media48 sh -c 'grep -Fx "upstream_keepalive_max_requests = 1" /usr/local/kong/.kong_env'
+```
+
+Pinned upstream source: [Storage v1.72.1 uploader](https://github.com/supabase/storage/blob/v1.72.1/src/storage/uploader.ts)
+checks permission before the upload catch that marks some errors for connection
+closure; its [error handler](https://github.com/supabase/storage/blob/v1.72.1/src/http/error-handler.ts)
+closes connections only for marked errors. This supports the observed early-denial
+boundary; no upstream source patch or weakened policy is part of this feature.
 
 ```sh
 umask 077

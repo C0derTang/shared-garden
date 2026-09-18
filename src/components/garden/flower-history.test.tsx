@@ -185,3 +185,15 @@ it("keeps a history response newer than the current snapshot", async () => {
     ).findByAltText("Shared Sunflower photo"),
   ).toHaveAttribute("src", "https://example.test/newest-photo");
 });
+
+it("keeps newer history within the same millisecond across timezone offsets", async () => {
+  const p = setup();
+  p.entry.updated_at = "2026-09-18T10:01:00.000100-07:00";
+  load.mockResolvedValue({
+    entries: [{ ...p.entry, updated_at: "2026-09-18T17:01:00.000900+00:00", payload: { media_id: "newest-photo" } }],
+    error: null,
+  });
+  render(<FlowerSheet {...p} />);
+  fireEvent.click(screen.getByText("Read history"));
+  expect(await within(screen.getByRole("region", { name: "Flower history" })).findByAltText("Shared Sunflower photo")).toHaveAttribute("src", "https://example.test/newest-photo");
+});

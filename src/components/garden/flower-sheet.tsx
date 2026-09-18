@@ -9,6 +9,7 @@ import {
   type GardenState,
   type Plant,
 } from "@/lib/garden/model";
+import { compareTimestamps } from "@/lib/garden/timestamp";
 import { loadFlowerHistory } from "@/lib/garden/actions";
 import { parseSongLink } from "@/lib/music/song-link";
 import { FlowerSprite } from "./flower-sprite";
@@ -114,7 +115,7 @@ export function FlowerSheet({
             (candidate) => candidate.id === entry.id,
           );
           return current &&
-            Date.parse(current.updated_at) >= Date.parse(entry.updated_at)
+            compareTimestamps(current.updated_at, entry.updated_at) >= 0
             ? current
             : entry;
         })

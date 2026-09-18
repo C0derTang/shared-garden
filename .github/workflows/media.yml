@@ -36,6 +36,12 @@ jobs:
           node_modules/.bin/supabase start --workdir /tmp/shared-garden-issue48 > /tmp/shared-garden-issue48/start.log 2>&1
           node_modules/.bin/supabase status --workdir /tmp/shared-garden-issue48 -o json > /tmp/shared-garden-issue48/status.json
           node_modules/.bin/supabase db reset --local --workdir /tmp/shared-garden-issue48
+      - name: Isolate disposable gateway upstream requests
+        # Storage can reject an upload before consuming its body. Do not reuse
+        # that upstream socket for a following request in this local fixture.
+        run: |
+          docker exec -e KONG_UPSTREAM_KEEPALIVE_MAX_REQUESTS=1 supabase_kong_shared-garden-media48 kong reload
+          docker exec supabase_kong_shared-garden-media48 sh -c 'grep -Fx "upstream_keepalive_max_requests = 1" /usr/local/kong/.kong_env'
       - name: Verify native Linux image decoding and actual private HTTP storage
         env:
           LOCAL_MEDIA_STATUS_FILE: /tmp/shared-garden-issue48/status.json
