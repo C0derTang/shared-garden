@@ -19,6 +19,8 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - name: Verify Daisy migration matches the authored bank
+        run: node scripts/sync-daisy-bank.mjs --check
       - name: Start isolated local Supabase
         # Startup output contains local development keys. Keep it out of logs
         # and artifacts; the exit code still fails CI if startup fails.
@@ -27,13 +29,18 @@ jobs:
           npm run db:start > "$RUNNER_TEMP/supabase-start.log" 2>&1
       - name: Apply migrations to local database
         run: npm run db:reset
-      - name: Test clock and identity boundaries
+      - name: Test database boundaries
         run: npm run db:test
       - name: Verify platform Auth role lifecycle
         run: |
           docker exec -i supabase_db_shared-garden-clock \
             psql -U supabase_admin -d postgres -v ON_ERROR_STOP=1 \
             < docs/auth/verify-identity-auth-role.sql
+      - name: Verify overlapping entry transactions
+        run: |
+          python3 supabase/tests/concurrency/entries_race.py supabase_db_shared-garden-clock
+          npm run db:reset
+          npm run db:test
       - name: Stop local Supabase
         if: always()
         run: npm run db:stop
