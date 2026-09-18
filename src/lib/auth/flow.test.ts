@@ -425,3 +425,29 @@ describe("sign out", () => {
     expect(response.cookies.getAll()).toHaveLength(0);
   });
 });
+it("rejects unavailable Server Actions in place so their drafts survive", async () => {
+  userStatus = 503;
+  const response = await proxy(
+    request("/garden", {
+      method: "POST",
+      headers: { cookie: cookie(), "next-action": "synthetic-action" },
+    }),
+  );
+  expect(response.status).toBe(503);
+  expect(response.headers.get("location")).toBeNull();
+  expect(response.headers.get("cache-control")).toContain("no-store");
+  expect(await response.text()).not.toContain("private-upstream-detail");
+});
+it("a forged action header cannot bypass membership denial", async () => {
+  memberRows = [];
+  const response = await proxy(
+    request("/garden", {
+      method: "POST",
+      headers: { cookie: cookie(), "next-action": "forged" },
+    }),
+  );
+  expect(response.status).toBe(303);
+  expect(response.headers.get("location")).toBe(
+    `${origin}/auth/error?reason=denied`,
+  );
+});

@@ -8,6 +8,17 @@ export async function proxy(request: NextRequest) {
   if (!config) return redirectTo(null, "/auth/error?reason=setup");
   const auth = createRequestClient(request, config);
   const access = await verifyMember(auth.client);
+  // A transient action failure must reject in place so an open draft survives.
+  // The action still independently authorizes if the proxy is bypassed.
+  if (
+    access.status === "unavailable" &&
+    request.method === "POST" &&
+    !request.nextUrl.pathname.startsWith("/api/media/") &&
+    request.headers.has("next-action")
+  )
+    return auth.finish(
+      new NextResponse("Garden temporarily unavailable", { status: 503 }),
+    );
   if (access.status !== "allowed")
     return auth.finish(
       redirectTo(config, `/auth/error?reason=${access.status}`),

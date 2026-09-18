@@ -1,5 +1,8 @@
 import "server-only";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  isAuthRetryableFetchError,
+  type SupabaseClient,
+} from "@supabase/supabase-js";
 
 export type Member =
   | { member_id: 1; member_role: "owner" }
@@ -12,6 +15,7 @@ export async function verifyMember(client: SupabaseClient): Promise<Access> {
   try {
     // getSession() and editable user metadata are never authorization evidence.
     const { data, error } = await client.auth.getUser();
+    if (isAuthRetryableFetchError(error)) return { status: "unavailable" };
     if (error || !data.user) return { status: "signin" };
     const { data: rows, error: membershipError } =
       await client.rpc("current_member");
