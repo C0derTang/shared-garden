@@ -1,11 +1,15 @@
-import { UpcomingPage } from "@/components/layout/upcoming-page";
+import { GardenLayout } from "@/components/layout/garden-layout";
+import { MemberHeader } from "@/components/layout/member-header";
+import { MemoriesClient } from "@/components/memories/memories-client";
+import { requireMember } from "@/lib/auth/server";
+import { loadMemories } from "@/lib/memories/actions";
 export const dynamic = "force-dynamic";
-export default function MemoriesPage() {
+export default async function MemoriesPage() {
+  const { member } = await requireMember();
+  const initial = await loadMemories();
   return (
-    <UpcomingPage
-      current="memories"
-      title="Our memories"
-      description="Your shared memory collection is coming soon. For now, open any flower in the garden to read its entries and history."
-    />
+    <GardenLayout current="memories" header={<MemberHeader />}>
+      <MemoriesClient initial={initial} memberId={member.member_id} />
+    </GardenLayout>
   );
 }
