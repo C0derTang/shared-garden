@@ -5,7 +5,7 @@ type ServerConfigResult =
   | { status: "missing" | "invalid" };
 
 // Use only in privileged server operations after their authorization checks.
-// This foundation does not need or invoke a privileged Supabase client.
+// Private media uses this only for server validation, private signing and cleanup.
 export function getServerConfig(): ServerConfigResult {
   const key = process.env.SUPABASE_SECRET_KEY?.trim();
   if (!key) return { status: "missing" };

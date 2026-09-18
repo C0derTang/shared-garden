@@ -1,0 +1,20 @@
+import { requireMember } from "@/lib/auth/server";
+import {
+  exactFields,
+  mediaFailure,
+  mediaJson,
+  readMediaRequest,
+  uuid,
+} from "@/lib/media/http";
+import { readPhoto } from "@/lib/media/server";
+export const runtime = "nodejs";
+export async function POST(request: Request) {
+  const { client } = await requireMember();
+  try {
+    const body = await readMediaRequest(request);
+    exactFields(body, ["mediaId"]);
+    return mediaJson(await readPhoto(client, uuid(body.mediaId)));
+  } catch (error) {
+    return mediaFailure(error);
+  }
+}

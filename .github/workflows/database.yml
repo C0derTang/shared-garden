@@ -41,6 +41,7 @@ jobs:
           python3 supabase/tests/concurrency/planting_race.py supabase_db_shared-garden-clock
           python3 supabase/tests/concurrency/entries_race.py supabase_db_shared-garden-clock
           python3 supabase/tests/concurrency/rollover_race.py supabase_db_shared-garden-clock
+          python3 supabase/tests/concurrency/peony_race.py supabase_db_shared-garden-clock
           npm run db:reset
           npm run db:test
       - name: Verify real authorized Realtime delivery
