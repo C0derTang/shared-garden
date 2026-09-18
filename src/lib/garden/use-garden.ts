@@ -5,6 +5,13 @@ import { mutateGarden, refreshGarden } from "./actions";
 import { subscribeGarden } from "./realtime";
 import type { GardenCommand, GardenResult, GardenState } from "./model";
 
+export type GardenMutation =
+  | GardenCommand
+  | {
+      kind: "external";
+      run: (checkCurrent: () => void) => Promise<void>;
+    };
+
 export function useGarden(initial: GardenResult) {
   const [snapshot, setSnapshot] = useState<{
     state: GardenState | null;
@@ -77,7 +84,7 @@ export function useGarden(initial: GardenResult) {
     return work;
   }, [apply]);
   const mutate = useCallback(
-    async (command: GardenCommand): Promise<GardenResult> => {
+    async (command: GardenMutation): Promise<GardenResult> => {
       if (pendingMutation.current)
         return {
           state: null,
@@ -116,7 +123,31 @@ export function useGarden(initial: GardenResult) {
               "The garden day is changing. Your draft is here; wait for the current day, then review it before saving.",
           };
         } else {
-          result = await mutateGarden(command);
+          if (command.kind === "external") {
+            const checkCurrent = () => {
+              const latest = latestSnapshot.current;
+              const state = latest.state;
+              const instant = state
+                ? Date.parse(state.server_now) +
+                  Math.max(
+                    0,
+                    performance.now() - started.current - latest.received,
+                  )
+                : 0;
+              if (
+                !mounted.current ||
+                !state ||
+                state.garden_day !== renderedDay ||
+                instant >= Date.parse(state.next_rollover_at)
+              )
+                throw new Error(
+                  "The garden day changed. Review your draft before saving.",
+                );
+            };
+            checkCurrent();
+            await command.run(checkCurrent);
+            result = { ...(await refreshGarden()), saved: true };
+          } else result = await mutateGarden(command);
         }
       } catch {
         result = {

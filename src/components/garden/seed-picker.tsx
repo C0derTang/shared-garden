@@ -3,13 +3,14 @@ import { useRef, useState } from "react";
 import { FlowerSprite, type FlowerType } from "./flower-sprite";
 import {
   seedAvailability,
-  type GardenCommand,
   type GardenResult,
   type GardenState,
 } from "@/lib/garden/model";
 import styles from "./garden.module.css";
 
-export type Mutate = (command: GardenCommand) => Promise<GardenResult>;
+import type { GardenMutation } from "@/lib/garden/use-garden";
+
+export type Mutate = (command: GardenMutation) => Promise<GardenResult>;
 export function SeedPicker({
   state,
   spot,
@@ -91,7 +92,7 @@ export function SeedPicker({
                   bloom
                 </span>
                 <small>{availability.reason}</small>
-                {["sunflower", "bluebell", "peony"].includes(seed.type_key) && (
+                {["sunflower", "bluebell"].includes(seed.type_key) && (
                   <small>
                     Planting is available when unlocked; its special care is
                     coming soon.

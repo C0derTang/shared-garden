@@ -6,7 +6,7 @@ Status: conservative implementation choices under the approved discretion in
 Dependencies #27 and #45 are merged. The existing
 [entry](0009-daily-entries-and-questions.md),
 [garden](0011-working-garden.md), and
-[player](0024-song-player-and-safe-links.md) contracts remain authoritative.
+[player](0024-reusable-song-player.md) contracts remain authoritative.
 
 ## Reading, review, and playback
 
