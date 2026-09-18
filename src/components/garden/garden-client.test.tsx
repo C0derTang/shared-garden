@@ -1,4 +1,7 @@
-vi.mock("@/lib/peony/actions", () => ({ readPeony: vi.fn(), mutatePeony: vi.fn() }));
+vi.mock("@/lib/peony/actions", () => ({
+  readPeony: vi.fn(),
+  mutatePeony: vi.fn(),
+}));
 import {
   act,
   fireEvent,
@@ -533,5 +536,66 @@ it("retains an observed Tulip history edit when the next garden day clears curre
   );
   expect(
     screen.getByRole("heading", { name: "Edited song" }),
+  ).toBeInTheDocument();
+});
+
+it("reconciles an older in-flight Tulip history response with a newer current entry", async () => {
+  const state = gardenFixture();
+  const plant = state.plants[0];
+  plant.flower.type_key = "tulip";
+  const original = {
+    ...entryFixture(),
+    payload: {
+      title: "Before pending read",
+      artist: "Artist",
+      url: "https://example.com/song",
+    },
+  };
+  plant.entries = [original];
+  let resolve!: (value: { entries: (typeof original)[]; error: null }) => void;
+  loadFlowerHistory.mockReturnValue(
+    new Promise((done) => {
+      resolve = done;
+    }),
+  );
+  const props = {
+    state,
+    item: state.catalog[2],
+    now: Date.parse(state.server_now),
+    busy: false,
+    mutate: mutateGarden,
+  };
+  const view = render(<FlowerSheet {...props} plant={plant} />);
+  fireEvent.click(screen.getByRole("button", { name: "Read history" }));
+  const edited = {
+    ...original,
+    updated_at: "2026-09-18T17:00:00.000200Z",
+    payload: { ...original.payload, title: "After pending read" },
+  };
+  view.rerender(
+    <FlowerSheet {...props} plant={{ ...plant, entries: [edited] }} />,
+  );
+  await act(async () => resolve({ entries: [original], error: null }));
+  expect(
+    screen.getAllByRole("heading", { name: "After pending read" }),
+  ).toHaveLength(2);
+  view.rerender(
+    <FlowerSheet
+      {...props}
+      plant={{
+        ...plant,
+        entries: [{ ...original, updated_at: "2026-09-18T17:00:00.000100Z" }],
+      }}
+    />,
+  );
+  expect(
+    within(screen.getByRole("region", { name: "Flower history" })).getByRole(
+      "heading",
+      { name: "After pending read" },
+    ),
+  ).toBeInTheDocument();
+  view.rerender(<FlowerSheet {...props} plant={{ ...plant, entries: [] }} />);
+  expect(
+    screen.getByRole("heading", { name: "After pending read" }),
   ).toBeInTheDocument();
 });

@@ -18,6 +18,15 @@ import { EntryForm } from "./entry-form";
 import type { Mutate } from "./seed-picker";
 import styles from "./garden.module.css";
 
+// Preserve the database's microseconds when comparing authoritative replacements.
+function entryVersion(entry: Entry) {
+  const fraction = entry.updated_at.match(/\.(\d+)/)?.[1] ?? "";
+  return (
+    Date.parse(entry.updated_at) * 1000 +
+    Number(fraction.padEnd(6, "0").slice(3, 6))
+  );
+}
+
 function EntryContent({ entry, type }: { entry: Entry; type: string }) {
   const payload = entry.payload;
   if (type === "cactus") return <p>Checked in. I’m here.</p>;
@@ -82,19 +91,17 @@ export function FlowerSheet({
   const [editing, setEditing] = useState<Entry | null>(null);
   const [saved, setSaved] = useState(false);
   const [history, setHistory] = useState<Entry[] | null>(null);
-  const [observedEntries, setObservedEntries] = useState(plant.entries);
-  if (observedEntries !== plant.entries) {
-    setObservedEntries(plant.entries);
-    // Remember replacements in loaded history before rollover clears current entries.
-    if (item.type_key === "tulip")
-      setHistory(
-        (old) =>
-          old?.map(
-            (stored) =>
-              plant.entries.find((current) => current.id === stored.id) ??
-              stored,
-          ) ?? null,
-      );
+  // Reconcile both arriving history pages and current snapshots. Keep replacements
+  // in the cache so rollover cannot restore an earlier song after current entries clear.
+  if (item.type_key === "tulip" && history) {
+    const reconciled = history.map((stored) => {
+      const current = plant.entries.find((entry) => entry.id === stored.id);
+      return current && entryVersion(current) >= entryVersion(stored)
+        ? current
+        : stored;
+    });
+    if (reconciled.some((entry, index) => entry !== history[index]))
+      setHistory(reconciled);
   }
 
   const [more, setMore] = useState(false);
