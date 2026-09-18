@@ -54,6 +54,8 @@ private routes or establish that sign-in or a hosted deployment works.
   support. Direct supported plugins avoid an obsolete linter or forced peers.
 - Focused component/config tests, lint, typecheck, and production build run in
   a separate Web workflow. Existing database scripts and workflow are retained.
+  `npm test` also runs the merged Daisy question-bank validator so Web CI keeps
+  checking the content contract without modifying the bank or its tests.
 
 ## Primary references
 

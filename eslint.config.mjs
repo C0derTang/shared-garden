@@ -8,6 +8,12 @@ export default defineConfig([
   js.configs.recommended,
   ts.configs.recommended,
   {
+    files: ["content/**/*.mjs"],
+    languageOptions: {
+      globals: { URL: "readonly", structuredClone: "readonly" },
+    },
+  },
+  {
     files: ["src/**/*.{ts,tsx}"],
     plugins: { "@next/next": next },
     rules: {

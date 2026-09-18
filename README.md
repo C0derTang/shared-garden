@@ -42,7 +42,8 @@ npm run start
 `typecheck` generates Next.js route types before running TypeScript. Focused
 Vitest/Testing Library tests cover configuration failure states, public access
 boundaries, navigation semantics, and dialog keyboard/focus behavior. The Web
-workflow runs these checks and a production build under Node.js 24, alongside
+workflow also runs the existing Daisy content validator through `npm test`,
+plus a production build under Node.js 24, alongside
 the separate database workflow. Browser smoke checks use CUA. There is no hosted
 deployment in this foundation.
 
