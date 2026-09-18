@@ -6,6 +6,11 @@ Source: [Issue #21](https://github.com/C0derTang/shared-garden/issues/21).
 Identity follows [decision 0006](0006-fixed-identity-boundary.md).
 These choices add no product scope or extra capacity limit.
 
+Historical allocation details below are partially superseded by
+[decision 0023](0023-selected-planting-spots.md): callers can select a visible
+empty fixed spot, `next_spot` is the lowest empty spot, and beds expose twelve
+spots at a time. The catalog, retained facts, limits, and completion seam remain.
+
 ## Catalog and persistent facts
 
 `public.flower_catalog` contains exactly the 13 approved lowercase type keys,
