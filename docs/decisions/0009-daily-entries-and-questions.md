@@ -51,8 +51,10 @@ flower. Sunflower, Bluebell, and Peony reject generic payloads until their priva
 media and ordered milestone workflows are implemented. There is no placeholder
 media reference that a browser can forge.
 
-Tulip links accept HTTPS URLs with a valid ASCII DNS hostname, optional port
-1–65,535, and optional path/query/fragment. International hostnames use punycode.
+Tulip links accept HTTPS URLs with a valid ASCII DNS hostname of at most 253
+characters (each label at most 63), optional port 1–65,535, and optional
+path/query/fragment. Only the hostname counts toward the hostname length limit.
+International hostnames use punycode.
 Credentials, whitespace, control characters (including percent-encoded ASCII
 controls), backslashes, malformed percent escapes, malformed hosts, and other
 schemes are rejected. No submitted URL is fetched by this database feature.

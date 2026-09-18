@@ -101,6 +101,11 @@ select lives_ok(format('select private.validate_entry_payload(%L,%L::jsonb,%L)',
 select throws_ok(format('select private.validate_entry_payload(%L,%L::jsonb,%L)','tulip',jsonb_build_object('title','Song','artist','Artist','url',u),'2026-09-18'),'22023','Use a valid HTTPS song link without credentials or control characters','reject URL '||label)
 from (values ('http://music.example.test/song','http'),('javascript:alert(1)','script scheme'),('https://user:pass@music.example.test/song','credentials'),('https://good.test@evil.test/','at authority'),('https://music.example.test/'||chr(92)||'evil','backslash'),('https://music.example.test/a b','space'),('https://music.example.test/a'||chr(10),'newline'),('https://music.example.test/%0a','encoded control'),('https://music.example.test/%zz','bad escape'),('https://music.example.test:99999/song','port range'),('https://-music.example.test/song','bad host'),('https://music..test/song','empty host label'),('https:///song','missing host')) x(u,label);
 
+-- Every label is individually legal; the total ASCII DNS hostname still has
+-- a 253-character limit. Ports, paths, queries, and fragments do not count.
+select lives_ok(format('select private.validate_entry_payload(%L,%L::jsonb,%L)','tulip',jsonb_build_object('title','Song','artist','Artist','url','https://'||repeat('a',63)||'.'||repeat('b',63)||'.'||repeat('c',63)||'.'||repeat('d',61)||':443/song?id=1#play'),'2026-09-18'),'253-character host accepted independently of port and path');
+select throws_ok(format('select private.validate_entry_payload(%L,%L::jsonb,%L)','tulip',jsonb_build_object('title','Song','artist','Artist','url','https://'||repeat('a',63)||'.'||repeat('b',63)||'.'||repeat('c',63)||'.'||repeat('d',n-192)||'/song'),'2026-09-18'),'22023','Use a valid HTTPS song link without credentials or control characters',n||'-character host rejected despite legal labels') from (values (254),(255)) x(n);
+
 select pg_temp.set_entry_clock('2026-09-19 05:29:59.999999+00');
 set local role authenticated;
 select lives_ok($$select public.edit_flower_entry((select id from public.flower_entries where flower_id=pg_temp.flower('rose') and author_id=1),'{"text":"First correction"}')$$,'edit just before 30 minutes accepted');

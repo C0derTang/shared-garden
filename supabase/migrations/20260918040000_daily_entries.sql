@@ -213,9 +213,11 @@ begin
   if p_type = 'tulip' then
     v_url := p_payload ->> 'url';
     -- Accept links, never fetch them. Require an ASCII DNS host (IDNs use
-    -- punycode), no credentials, controls, whitespace, backslashes or bad
-    -- escapes. Provider-specific embed parsing is a separate integration.
+    -- punycode), at most 253 host characters, no credentials, controls,
+    -- whitespace, backslashes or malformed escapes. Provider-specific embed
+    -- parsing is a separate integration.
     if v_url !~ '^https://([A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?[.])+[A-Za-z]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(:[0-9]{1,5})?([/?#][^[:space:][:cntrl:]]*)?$'
+      or char_length(substring(v_url from '^https://([^/:?#]+)')) > 253
       or v_url ~ '[[:space:][:cntrl:]]' or position(chr(92) in v_url) > 0
       or v_url ~* '%(0[0-9a-f]|1[0-9a-f]|7f)'
       or position('%' in regexp_replace(v_url, '%[0-9A-Fa-f]{2}', '', 'g')) > 0 then
