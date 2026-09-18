@@ -1,4 +1,5 @@
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -22,6 +23,7 @@ vi.mock("@/lib/auth/browser", () => ({ gardenBrowserClient: () => null }));
 import { GardenClient } from "./garden-client";
 import { FlowerSheet } from "./flower-sheet";
 import { SeedPicker } from "./seed-picker";
+import type { GardenResult } from "@/lib/garden/model";
 beforeEach(() => {
   vi.clearAllMocks();
   refreshGarden.mockResolvedValue({ state: gardenFixture(), error: null });
@@ -339,4 +341,92 @@ it("keeps a fresh Cactus check-in one tap across rollover when there is no draft
   expect(
     screen.getByRole("button", { name: "I’m here · Check in" }),
   ).toBeEnabled();
+});
+it("blocks a stale boundary draft until the current day arrives and the author reviews it", async () => {
+  const state = gardenFixture();
+  const plant = state.plants[0];
+  plant.flower.type_key = "rose";
+  const mutate = vi.fn().mockResolvedValue({ saved: true, state, error: null });
+  const props = {
+    plant,
+    state,
+    item: state.catalog[1],
+    now: Date.parse(state.server_now),
+    busy: false,
+    mutate,
+  };
+  const view = render(<FlowerSheet {...props} />);
+  fireEvent.change(screen.getByRole("textbox"), {
+    target: { value: "Keep and review this note" },
+  });
+  view.rerender(
+    <FlowerSheet {...props} now={Date.parse(state.next_rollover_at)} />,
+  );
+  expect(screen.getByRole("button", { name: "Share care" })).toBeDisabled();
+  expect(
+    screen.queryByRole("button", { name: "Use this draft today" }),
+  ).not.toBeInTheDocument();
+  fireEvent.submit(screen.getByRole("form", { name: "Today's care" }));
+  expect(mutate).not.toHaveBeenCalled();
+  expect(screen.getByRole("textbox")).toHaveValue("Keep and review this note");
+  const next = {
+    ...state,
+    garden_day: "2026-09-19",
+    server_now: "2026-09-19T11:00:01Z",
+    next_rollover_at: "2026-09-20T11:00:00Z",
+  };
+  view.rerender(
+    <FlowerSheet {...props} state={next} now={Date.parse(next.server_now)} />,
+  );
+  expect(screen.getByRole("textbox")).toHaveValue("Keep and review this note");
+  expect(screen.getByRole("button", { name: "Share care" })).toBeDisabled();
+  fireEvent.click(screen.getByRole("button", { name: "Use this draft today" }));
+  fireEvent.click(screen.getByRole("button", { name: "Share care" }));
+  await waitFor(() =>
+    expect(mutate).toHaveBeenCalledExactlyOnceWith({
+      kind: "submit",
+      flowerId: plant.flower.id,
+      payload: { text: "Keep and review this note" },
+    }),
+  );
+});
+it("keeps a queued care draft when an in-flight refresh changes the day, then saves only after review", async () => {
+  const state = gardenFixture();
+  state.plants[0].flower.type_key = "rose";
+  refreshGarden.mockResolvedValue({ state, error: null });
+  render(<GardenClient initial={{ state, error: null }} />);
+  const user = userEvent.setup();
+  await user.click(screen.getByRole("button", { name: /Rose, spot 1/ }));
+  fireEvent.change(screen.getByRole("textbox"), {
+    target: { value: "Keep the pending draft" },
+  });
+  let finishRead!: (value: GardenResult) => void;
+  refreshGarden.mockImplementation(
+    () =>
+      new Promise<GardenResult>((resolve) => {
+        finishRead = resolve;
+      }),
+  );
+  fireEvent.focus(window);
+  fireEvent.click(screen.getByRole("button", { name: "Share care" }));
+  expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
+  const next = structuredClone(state);
+  next.garden_day = "2026-09-19";
+  next.server_now = "2026-09-19T11:00:01Z";
+  next.next_rollover_at = "2026-09-20T11:00:00Z";
+  await act(async () => {
+    refreshGarden.mockResolvedValue({ state: next, error: null });
+    finishRead({ state: next, error: null });
+  });
+  expect(mutateGarden).not.toHaveBeenCalled();
+  expect(screen.getByRole("textbox")).toHaveValue("Keep the pending draft");
+  expect(screen.getByRole("button", { name: "Share care" })).toBeDisabled();
+  fireEvent.click(screen.getByRole("button", { name: "Use this draft today" }));
+  mutateGarden.mockResolvedValue({ state: next, saved: true, error: null });
+  await user.click(screen.getByRole("button", { name: "Share care" }));
+  expect(mutateGarden).toHaveBeenCalledExactlyOnceWith({
+    kind: "submit",
+    flowerId: state.plants[0].flower.id,
+    payload: { text: "Keep the pending draft" },
+  });
 });

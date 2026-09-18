@@ -48,6 +48,7 @@ export function EntryForm({
     (value) => value.trim().length > 0,
   );
   const newDay = draftDay !== state.garden_day && hasDraft;
+  const unresolvedRollover = now >= Date.parse(state.next_rollover_at);
   const change = (key: string, value: string) => {
     if (!hasDraft && draftDay !== state.garden_day)
       setDraftDay(state.garden_day);
@@ -67,7 +68,15 @@ export function EntryForm({
           (type !== "daisy" || !!plant.daisy_question));
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (!valid || expired || newDay || unavailable || lock.current || busy)
+    if (
+      !valid ||
+      expired ||
+      newDay ||
+      unresolvedRollover ||
+      unavailable ||
+      lock.current ||
+      busy
+    )
       return;
     lock.current = true;
     setPending(true);
@@ -193,7 +202,13 @@ export function EntryForm({
           {unavailable}
         </p>
       )}
-      {newDay && !editing && (
+      {unresolvedRollover && (
+        <p className={styles.notice} role="status">
+          Waiting for the current garden day. Your draft stays here; review it
+          after the garden refreshes before saving.
+        </p>
+      )}
+      {newDay && !editing && !unresolvedRollover && (
         <div className={styles.notice} role="status">
           <p>
             A new garden day has begun. Review your draft
@@ -223,7 +238,13 @@ export function EntryForm({
         type="submit"
         className="button button-primary"
         disabled={
-          !valid || busy || pending || !!expired || newDay || !!unavailable
+          !valid ||
+          busy ||
+          pending ||
+          !!expired ||
+          newDay ||
+          unresolvedRollover ||
+          !!unavailable
         }
       >
         {pending

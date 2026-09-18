@@ -10,6 +10,8 @@ export function useGarden(initial: GardenResult) {
     state: GardenState | null;
     received: number;
   }>({ state: initial.state, received: 0 });
+  const latestSnapshot = useRef(snapshot);
+  const renderedDay = snapshot.state?.garden_day;
   const [error, setError] = useState(initial.error);
   const [connected, setConnected] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -24,13 +26,25 @@ export function useGarden(initial: GardenResult) {
     if (!mounted.current) return;
     if (result.state) {
       const state = result.state;
-      const received = performance.now() - started.current;
-      setSnapshot((old) =>
+      const elapsed = performance.now() - started.current;
+      const old = latestSnapshot.current;
+      if (
         !old.state ||
         Date.parse(state.server_now) >= Date.parse(old.state.server_now)
-          ? { state, received }
-          : old,
-      );
+      ) {
+        const previousNow = old.state
+          ? Date.parse(old.state.server_now) +
+            Math.max(0, elapsed - old.received)
+          : 0;
+        // A delayed pre-rollover response cannot rewind an already crossed
+        // boundary. Keep the clock monotonic without changing server fields.
+        const received =
+          elapsed - Math.max(0, previousNow - Date.parse(state.server_now));
+        const next = { state, received };
+        // A waiting mutation resumes before React necessarily commits a render.
+        latestSnapshot.current = next;
+        setSnapshot(next);
+      }
     }
     setError(result.error);
   }, []);
@@ -79,11 +93,31 @@ export function useGarden(initial: GardenResult) {
         };
       pendingMutation.current = true;
       setBusy(true);
-      // Avoid an older read replacing feedback from this mutation.
-      await pendingRead.current;
       let result: GardenResult;
       try {
-        result = await mutateGarden(command);
+        // Reads may move the day while a clicked command is waiting. Revalidate
+        // synchronously before sending it; no client day/time reaches the RPC.
+        await pendingRead.current;
+        const latest = latestSnapshot.current;
+        const current = latest.state;
+        const calibratedNow = current
+          ? Date.parse(current.server_now) +
+            Math.max(0, performance.now() - started.current - latest.received)
+          : 0;
+        if (
+          !current ||
+          current.garden_day !== renderedDay ||
+          calibratedNow >= Date.parse(current.next_rollover_at)
+        ) {
+          result = {
+            state: null,
+            saved: false,
+            error:
+              "The garden day is changing. Your draft is here; wait for the current day, then review it before saving.",
+          };
+        } else {
+          result = await mutateGarden(command);
+        }
       } catch {
         result = {
           state: null,
@@ -91,17 +125,18 @@ export function useGarden(initial: GardenResult) {
             "We could not confirm the save. Your draft is here. Refresh and check today's entries before trying again.",
           saved: false,
         };
+      } finally {
+        pendingMutation.current = false;
+        if (mounted.current) setBusy(false);
       }
       apply(result);
-      pendingMutation.current = false;
-      if (mounted.current) setBusy(false);
       if (!result.state || readAgain.current) {
         readAgain.current = false;
         void refresh();
       }
       return result;
     },
-    [apply, refresh],
+    [apply, refresh, renderedDay],
   );
   useEffect(() => {
     mounted.current = true;

@@ -37,6 +37,12 @@ inclusivity and garden day. A local countdown only removes stale controls; the
 backend checks permission again. Drafts survive refresh and failed saves while
 the sheet is open. At rollover an existing draft needs explicit review before
 posting into the new day; an expired edit draft remains copyable but unsavable.
+If the calibrated clock reaches the supplied rollover before a current snapshot
+arrives, saving and draft acknowledgment remain disabled. A save waiting behind
+an authoritative read is canceled if that read advances the day or leaves an
+unresolved boundary. The draft remains for review; no captured command is queued
+into the next day. This guard recalibrates immediately before dispatch, without
+sending a client day or timestamp to the backend.
 Moonflower keeps an unsaved thought visible when its window closes, with
 submission disabled. Closing a sheet discards its unsaved draft. Actions are never queued offline.
 
