@@ -3,19 +3,11 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { AuthConfig } from "@/lib/auth/config";
 
-export const AUTH_COOKIE = "sg-auth";
+import { AUTH_COOKIE, cookieOptions } from "@/lib/auth/cookies";
+export { AUTH_COOKIE, cookieOptions } from "@/lib/auth/cookies";
 export const PRIVATE_CACHE =
   "private, no-cache, no-store, must-revalidate, max-age=0";
 type CookieWrite = { name: string; value: string; options: CookieOptions };
-
-export function cookieOptions(config: AuthConfig): CookieOptions {
-  return {
-    path: "/",
-    httpOnly: false,
-    secure: config.appOrigin.startsWith("https:"),
-    sameSite: "lax",
-  };
-}
 
 export function noStore(response: NextResponse) {
   response.headers.set("Cache-Control", PRIVATE_CACHE);

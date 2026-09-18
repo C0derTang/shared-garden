@@ -5,8 +5,9 @@ import { redirect } from "next/navigation";
 import { AUTH_COOKIE, cookieOptions } from "@/lib/auth/client";
 import { getAuthConfig } from "@/lib/auth/config";
 import { verifyMember } from "@/lib/auth/member";
+import { MemberAccessUnavailableError } from "@/lib/auth/access-error";
 
-export async function requireMember() {
+export async function requireMember(options?: { unavailable?: "throw" }) {
   const config = getAuthConfig();
   if (!config) redirect("/auth/error?reason=setup");
   const store = await cookies();
@@ -27,6 +28,8 @@ export async function requireMember() {
     },
   );
   const access = await verifyMember(client);
+  if (access.status === "unavailable" && options?.unavailable === "throw")
+    throw new MemberAccessUnavailableError();
   if (access.status !== "allowed")
     redirect(`/auth/error?reason=${access.status}`);
   return { client, member: access.member };

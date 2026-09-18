@@ -1,0 +1,12 @@
+begin;
+select plan(6);
+select is((select array_agg(schemaname || '.' || tablename order by tablename)::text from pg_publication_tables where pubname = 'supabase_realtime'), '{public.flower_entries,public.flower_unlocks,public.flowers}', 'only minimal garden state is published');
+select ok((select pubinsert and pubupdate and not pubdelete and not pubtruncate from pg_publication where pubname = 'supabase_realtime'), 'publication excludes unprotected deletes and truncates');
+select ok((select bool_and(c.relrowsecurity) from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname in ('flowers','flower_entries','flower_unlocks')), 'all published tables retain RLS');
+select ok(not has_table_privilege('anon','public.flower_entries','select'), 'anonymous users cannot select entries');
+select ok(not has_table_privilege('authenticated','public.flower_entries','update'), 'subscribers cannot directly edit entries');
+set local role authenticated;
+select is((select count(*)::integer from public.flower_entries),0,'unapproved authenticated role reads no entries');
+reset role;
+select * from finish();
+rollback;

@@ -1,0 +1,579 @@
+.garden {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+.heading {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: end;
+  gap: 1rem;
+  padding: 1.25rem 0 1.5rem;
+}
+.heading h1 {
+  font: 500 clamp(2.3rem, 8vw, 3.8rem) / 1.12 var(--font-display);
+  letter-spacing: -0.055em;
+  margin: 0.6rem 0;
+}
+.quiet {
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+.gardenStats {
+  display: flex;
+  gap: 1.3rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.gardenStats strong {
+  font-size: 1.1rem;
+  color: var(--forest-dark);
+  margin-right: 0.2rem;
+}
+.workspace {
+  display: grid;
+  gap: 1.25rem;
+  align-items: start;
+}
+.almanac {
+  min-width: 0;
+}
+.clock {
+  background: #f1e8ce;
+  border: 1px solid #d7cba8;
+  padding: 1.2rem 1.3rem;
+  box-shadow: 4px 4px 0 #e5ddc6;
+  font-size: 0.8rem;
+}
+.clockLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.65rem;
+  font-weight: 750;
+  color: var(--forest-dark);
+}
+.clockLabel svg {
+  width: 1rem;
+  height: 1rem;
+}
+.clockTime {
+  font: 500 2.4rem/1.2 var(--font-display);
+  letter-spacing: -0.03em;
+  margin: 0.7rem 0 0.1rem;
+  font-variant-numeric: tabular-nums;
+}
+.clockRule {
+  height: 1px;
+  background: #d7cba8;
+  margin: 0.8rem 0;
+}
+.moon {
+  color: var(--forest-dark);
+  margin-top: 0.8rem;
+  font-size: 0.8rem;
+}
+.gardenNote {
+  display: none;
+}
+.beds {
+  min-width: 0;
+}
+.syncRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.65rem;
+}
+.syncState {
+  font-size: 0.66rem;
+  color: var(--forest);
+}
+.refreshButton {
+  min-height: 44px;
+  color: var(--forest-dark);
+  background: transparent;
+  border: 0;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  font-size: 0.75rem;
+  padding: 0.4rem 0.65rem;
+}
+.bed {
+  height: 724px;
+  position: relative;
+  margin-bottom: 1.4rem;
+  background: #e6e8cc;
+  border: 2px solid #adb68b;
+  box-shadow:
+    inset 0 0 0 5px #d5dcba,
+    4px 4px 0 #d6d1b8;
+  overflow: clip;
+}
+.bedTitle {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  right: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #586446;
+  font-size: 0.56rem;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+.bedTitle span:last-child {
+  font-family: var(--font-display);
+  font-style: italic;
+  letter-spacing: 0;
+  font-size: 0.7rem;
+  font-weight: 400;
+}
+.path {
+  position: absolute;
+  top: 46px;
+  bottom: 18px;
+  left: 34%;
+  width: 15%;
+  background: #eee6ce;
+  clip-path: polygon(
+    0 0,
+    80% 0,
+    100% 23%,
+    40% 51%,
+    75% 71%,
+    50% 100%,
+    0 100%,
+    25% 71%,
+    0 51%,
+    45% 24%
+  );
+  opacity: 0.78;
+}
+.bedGrass {
+  position: absolute;
+  bottom: 18px;
+  color: #94a06d;
+  width: 100%;
+  text-align: center;
+  font: bold 1.2rem monospace;
+  letter-spacing: 1rem;
+  pointer-events: none;
+}
+.spot {
+  position: absolute;
+  width: 88px;
+  transform: translateX(-50%);
+}
+.flowerButton,
+.emptyButton {
+  width: 100%;
+  min-height: 116px;
+  border: 0;
+  background: none;
+  color: var(--forest-dark);
+  padding: 3px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: end;
+  text-align: center;
+  font-size: 0.7rem;
+  line-height: 1.3;
+  border-radius: 6px;
+}
+.flowerButton {
+  min-height: 130px;
+}
+.flowerButton:hover,
+.emptyButton:hover {
+  background: #f9f3d880;
+}
+.flowerButton strong {
+  font-size: 0.7rem;
+  line-height: 1.3;
+  min-height: 1.8em;
+}
+.flowerButton > span {
+  font-size: 0.62rem;
+}
+.flowerButton svg {
+  flex-shrink: 0;
+}
+.emptyMark {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 29px;
+  border: 2px dashed #96a275;
+  color: #617443;
+  font-size: 1.4rem;
+  background: #d8dfbe;
+  box-shadow: 3px 3px 0 #cbd3ac;
+  margin-bottom: 9px;
+}
+.emptyButton > span:last-child {
+  font-size: 0.65rem;
+}
+.miniMarkers {
+  display: flex;
+  gap: 5px;
+  padding-top: 5px;
+}
+.miniMarkers i,
+.legend i {
+  width: 7px;
+  height: 7px;
+  border: 1px solid #66734a;
+  background: transparent;
+  display: inline-block;
+}
+.miniMarkers i[data-cared="true"] {
+  background: var(--forest);
+}
+.miniMarkers i:nth-child(2)[data-cared="true"] {
+  background: var(--rust);
+  border-color: var(--rust);
+}
+.bedFooter {
+  font: italic 1.1rem var(--font-display);
+  color: var(--muted);
+  text-align: center;
+  padding: 0.3rem 0 1rem;
+}
+.stack {
+  display: grid;
+  gap: 1.15rem;
+  min-width: 0;
+}
+.stack h3,
+.history h3 {
+  margin: 0;
+  font: 600 1.15rem var(--font-display);
+}
+.seeds {
+  display: grid;
+  gap: 0.6rem;
+}
+.seed {
+  display: flex;
+  width: 100%;
+  text-align: left;
+  align-items: center;
+  gap: 0.85rem;
+  background: var(--paper-light);
+  border: 1px solid var(--line-strong);
+  color: var(--ink);
+  padding: 0.7rem;
+  border-radius: 4px;
+}
+.seed svg {
+  flex-shrink: 0;
+}
+.seed > span {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+.seed strong {
+  font-size: 0.95rem;
+}
+.seed span span {
+  font-size: 0.8rem;
+}
+.seed small {
+  color: var(--muted);
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+.seed[aria-pressed="true"] {
+  background: var(--sage-light);
+  outline: 2px solid var(--forest);
+  outline-offset: 1px;
+}
+.seed:disabled {
+  border-color: var(--line);
+  background: #eee9dd;
+}
+.seed:disabled svg {
+  opacity: 0.6;
+}
+.field {
+  display: grid;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  font-weight: 650;
+}
+.field input,
+.field textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--line-strong);
+  background: var(--paper-light);
+  color: var(--ink);
+  padding: 0.7rem;
+  border-radius: 4px;
+  font-weight: 400;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+.field textarea {
+  resize: vertical;
+}
+.field small {
+  font-weight: 400;
+  color: var(--muted);
+  font-size: 0.73rem;
+}
+.error {
+  color: #843d2b;
+  border-left: 3px solid var(--rust);
+  padding: 0.8rem;
+  background: #f7e4d8;
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+.notice {
+  background: var(--sage-light);
+  padding: 0.9rem;
+  border-left: 3px solid #9aa987;
+  font-size: 0.84rem;
+  overflow-wrap: anywhere;
+}
+.notice p + p {
+  margin-top: 0.6rem;
+}
+.notice button {
+  margin-top: 0.7rem;
+}
+.flowerSummary {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.flowerSummary > div {
+  min-width: 0;
+  flex: 1;
+  font-size: 0.9rem;
+}
+.flowerSummary > svg {
+  flex-shrink: 0;
+}
+.flowerSummary progress {
+  display: block;
+  width: 100%;
+  height: 9px;
+  accent-color: var(--forest);
+  margin: 0.65rem 0;
+}
+.markers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1rem;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+.markers > span[data-cared="true"] {
+  color: var(--forest-dark);
+}
+.markers > span:last-child[data-cared="true"] {
+  color: #843d2b;
+}
+.question {
+  padding: 1.1rem;
+  border: 1px solid #d7cba8;
+  background: #f1e8ce;
+}
+.question p {
+  font: 500 1.4rem/1.45 var(--font-display);
+  margin-top: 0.5rem;
+}
+.entry {
+  padding: 1rem;
+  background: var(--paper-light);
+  border: 1px solid var(--line);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+.entryMeta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.3rem;
+  font-size: 0.73rem;
+  color: var(--muted);
+  margin-bottom: 0.55rem;
+}
+.entryText {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.editRow {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.8rem;
+}
+.editRow small {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+.editRow button {
+  justify-self: start;
+}
+.songLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  text-underline-offset: 4px;
+  color: var(--forest-dark);
+}
+.history {
+  display: grid;
+  gap: 0.8rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--line);
+  margin-top: 0.4rem;
+}
+.moodField {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.moodField legend {
+  font-size: 0.9rem;
+  font-weight: 650;
+  margin-bottom: 0.6rem;
+}
+.moodOptions {
+  display: grid;
+  gap: 0.5rem;
+}
+.moodOption {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 48px;
+  border: 1px solid var(--line-strong);
+  padding: 0.5rem 0.6rem;
+  font-size: 0.82rem;
+  background: var(--paper-light);
+}
+.moodOption:has(input:checked) {
+  outline: 2px solid var(--forest);
+  background: var(--sage-light);
+}
+.swatch {
+  width: 14px;
+  height: 14px;
+  box-shadow: 2px 2px 0 #d1c8b3;
+}
+.blend {
+  border: 1px solid var(--line-strong);
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.8rem;
+}
+.blend > span {
+  display: inline-block;
+  width: 36px;
+  height: 36px;
+}
+.blend > span:first-child {
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% 30%,
+    70% 30%,
+    70% 60%,
+    100% 60%,
+    100% 100%,
+    0 100%
+  );
+  margin-right: -10px;
+  position: relative;
+}
+.blend > p {
+  margin-top: 0.4rem;
+}
+.stack button:disabled {
+  opacity: 0.65;
+}
+@media (min-width: 640px) {
+  .workspace {
+    grid-template-columns: minmax(190px, 0.65fr) minmax(0, 1.5fr);
+    gap: 2rem;
+  }
+  .almanac {
+    position: sticky;
+    top: 1rem;
+  }
+  .gardenNote {
+    display: grid;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding: 0 0.4rem;
+    font-size: 0.86rem;
+    color: var(--muted);
+  }
+  .gardenNote small {
+    font-size: 0.7rem;
+  }
+  .legend {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.75rem;
+  }
+  .legend i {
+    background: var(--forest);
+    margin-right: 0.4rem;
+  }
+  .legend span:last-child i {
+    background: var(--rust);
+    border-color: var(--rust);
+  }
+  .spot {
+    width: 100px;
+  }
+  .flowerButton strong {
+    font-size: 0.78rem;
+  }
+  .flowerButton > span {
+    font-size: 0.7rem;
+  }
+  .bedTitle {
+    font-size: 0.65rem;
+  }
+  .bedTitle span:last-child {
+    font-size: 0.85rem;
+  }
+  .heading {
+    padding-bottom: 2rem;
+  }
+}
+@media (min-width: 1000px) {
+  .workspace {
+    grid-template-columns: 260px minmax(0, 1fr);
+    gap: 3rem;
+  }
+  .clock {
+    padding: 1.4rem;
+  }
+  .heading {
+    padding-top: 1.8rem;
+  }
+  .bed {
+    height: 740px;
+  }
+  .spot {
+    width: 114px;
+  }
+  .flowerButton svg {
+    width: 96px;
+    height: 96px;
+  }
+}
