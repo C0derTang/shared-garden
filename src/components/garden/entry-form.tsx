@@ -8,6 +8,7 @@ import {
   type GardenState,
   type Plant,
 } from "@/lib/garden/model";
+import { SongPlayer } from "@/components/music/song-player";
 import { parseSongLink } from "@/lib/music/song-link";
 import type { Mutate } from "./seed-picker";
 import styles from "./garden.module.css";
@@ -152,10 +153,19 @@ export function EntryForm({
               onChange={(e) => change("url", e.target.value)}
             />
             <small>
-              HTTPS link, up to 512 characters. Playback and your collection are
-              coming soon.
+              HTTPS link, up to 512 characters. Review the player before
+              sharing; listening is optional.
             </small>
           </label>
+          {valid && (
+            <div aria-label="Review your song">
+              <SongPlayer
+                title={draft.title}
+                artist={draft.artist}
+                url={draft.url.trim()}
+              />
+            </div>
+          )}
         </>
       ) : type === "hydrangea" ? (
         <fieldset className={styles.moodField}>

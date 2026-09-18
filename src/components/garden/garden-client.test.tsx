@@ -1,4 +1,7 @@
-vi.mock("@/lib/peony/actions", () => ({ readPeony: vi.fn(), mutatePeony: vi.fn() }));
+vi.mock("@/lib/peony/actions", () => ({
+  readPeony: vi.fn(),
+  mutatePeony: vi.fn(),
+}));
 import {
   act,
   fireEvent,
@@ -431,6 +434,186 @@ it("keeps a queued care draft when an in-flight refresh changes the day, then sa
     payload: { text: "Keep the pending draft" },
   });
 });
+
+it("uses the safe song player for Tulip current entries and history without requiring own care", async () => {
+  const state = gardenFixture();
+  const plant = state.plants[0];
+  plant.flower.type_key = "tulip";
+  plant.entries = [
+    {
+      ...entryFixture(),
+      author_id: 2,
+      can_edit: false,
+      payload: {
+        title: "Public test song",
+        artist: "Test artist",
+        url: "https://open.spotify.com/track/0Lr4kGOYn9l83EjuK6cZFQ",
+      },
+    },
+  ];
+  loadFlowerHistory.mockResolvedValue({
+    entries: [{ ...plant.entries[0], id: 2 }],
+    error: null,
+  });
+  render(
+    <FlowerSheet
+      plant={plant}
+      state={state}
+      item={state.catalog[2]}
+      now={Date.parse(state.server_now)}
+      busy={false}
+      mutate={mutateGarden}
+    />,
+  );
+  expect(
+    screen.getByRole("link", { name: "Our song collection" }),
+  ).toHaveAttribute("href", "/garden/songs");
+  expect(document.querySelector("iframe")).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: /Load Spotify player/ }));
+  expect(document.querySelector("iframe")).toHaveAttribute(
+    "src",
+    "https://open.spotify.com/embed/track/0Lr4kGOYn9l83EjuK6cZFQ",
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Read history" }));
+  await waitFor(() =>
+    expect(
+      screen.getAllByRole("heading", { name: "Public test song" }),
+    ).toHaveLength(2),
+  );
+});
+
+it("retains an observed Tulip history edit when the next garden day clears current entries", async () => {
+  const state = gardenFixture();
+  const plant = state.plants[0];
+  plant.flower.type_key = "tulip";
+  const original = {
+    ...entryFixture(),
+    payload: {
+      title: "Original song",
+      artist: "Artist",
+      url: "https://example.com/song",
+    },
+  };
+  plant.entries = [original];
+  loadFlowerHistory.mockResolvedValue({ entries: [original], error: null });
+  const props = {
+    state,
+    item: state.catalog[2],
+    now: Date.parse(state.server_now),
+    busy: false,
+    mutate: mutateGarden,
+  };
+  const view = render(<FlowerSheet {...props} plant={plant} />);
+  fireEvent.click(screen.getByRole("button", { name: "Read history" }));
+  await waitFor(() =>
+    expect(
+      screen.getAllByRole("heading", { name: "Original song" }),
+    ).toHaveLength(2),
+  );
+  view.rerender(
+    <FlowerSheet
+      {...props}
+      plant={{
+        ...plant,
+        entries: [
+          {
+            ...original,
+            updated_at: "2026-09-18T17:00:01Z",
+            payload: { ...original.payload, title: "Edited song" },
+          },
+        ],
+      }}
+    />,
+  );
+  expect(screen.getAllByRole("heading", { name: "Edited song" })).toHaveLength(
+    2,
+  );
+  view.rerender(
+    <FlowerSheet
+      {...props}
+      state={{ ...state, garden_day: "2026-09-19" }}
+      plant={{ ...plant, entries: [] }}
+    />,
+  );
+  expect(
+    screen.queryByRole("heading", { name: "Edited song" }),
+  ).not.toBeInTheDocument();
+  loadFlowerHistory.mockResolvedValue({
+    entries: [
+      {
+        ...original,
+        updated_at: "2026-09-18T17:00:01Z",
+        payload: { ...original.payload, title: "Edited song" },
+      },
+    ],
+    error: null,
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Read history" }));
+  await screen.findByRole("heading", { name: "Edited song" });
+  expect(loadFlowerHistory).toHaveBeenLastCalledWith(plant.flower.id, null);
+});
+
+it("reconciles an older in-flight Tulip history response with a newer current entry", async () => {
+  const state = gardenFixture();
+  const plant = state.plants[0];
+  plant.flower.type_key = "tulip";
+  const original = {
+    ...entryFixture(),
+    payload: {
+      title: "Before pending read",
+      artist: "Artist",
+      url: "https://example.com/song",
+    },
+  };
+  plant.entries = [original];
+  let resolve!: (value: { entries: (typeof original)[]; error: null }) => void;
+  loadFlowerHistory.mockReturnValue(
+    new Promise((done) => {
+      resolve = done;
+    }),
+  );
+  const props = {
+    state,
+    item: state.catalog[2],
+    now: Date.parse(state.server_now),
+    busy: false,
+    mutate: mutateGarden,
+  };
+  const view = render(<FlowerSheet {...props} plant={plant} />);
+  fireEvent.click(screen.getByRole("button", { name: "Read history" }));
+  const edited = {
+    ...original,
+    updated_at: "2026-09-18T17:00:00.000200Z",
+    payload: { ...original.payload, title: "After pending read" },
+  };
+  view.rerender(
+    <FlowerSheet {...props} plant={{ ...plant, entries: [edited] }} />,
+  );
+  await act(async () => resolve({ entries: [original], error: null }));
+  expect(
+    screen.getAllByRole("heading", { name: "After pending read" }),
+  ).toHaveLength(2);
+  view.rerender(
+    <FlowerSheet
+      {...props}
+      plant={{
+        ...plant,
+        entries: [{ ...original, updated_at: "2026-09-18T17:00:00.000100Z" }],
+      }}
+    />,
+  );
+  expect(
+    within(screen.getByRole("region", { name: "Flower history" })).getByRole(
+      "heading",
+      { name: "After pending read" },
+    ),
+  ).toBeInTheDocument();
+  view.rerender(<FlowerSheet {...props} plant={{ ...plant, entries: [] }} />);
+  expect(
+    screen.getByRole("heading", { name: "After pending read" }),
+  ).toBeInTheDocument();
+});
+
 it("keeps Peony milestone labels and its separate panel alongside fulfilled Dandelions", async () => {
   const state = gardenFixture();
   const peony = state.plants[0];
@@ -451,11 +634,19 @@ it("keeps Peony milestone labels and its separate panel alongside fulfilled Dand
   });
   refreshGarden.mockResolvedValue({ state, error: null });
   render(<GardenClient initial={{ state, error: null }} />);
-  const button = screen.getByRole("button", { name: "Peony, spot 1, 0 of 4 milestones" });
-  expect(screen.getByRole("button", { name: /Dandelion, spot 2, fulfilled wish/ })).toBeInTheDocument();
+  const button = screen.getByRole("button", {
+    name: "Peony, spot 1, 0 of 4 milestones",
+  });
+  expect(
+    screen.getByRole("button", { name: /Dandelion, spot 2, fulfilled wish/ }),
+  ).toBeInTheDocument();
   fireEvent.click(button);
   const sheet = screen.getByRole("dialog");
   expect(within(sheet).queryByText(/not yet today/)).not.toBeInTheDocument();
-  expect(within(sheet).queryByRole("region", { name: "Today's entries" })).not.toBeInTheDocument();
-  expect(within(sheet).queryByRole("region", { name: "Our shared wish" })).not.toBeInTheDocument();
+  expect(
+    within(sheet).queryByRole("region", { name: "Today's entries" }),
+  ).not.toBeInTheDocument();
+  expect(
+    within(sheet).queryByRole("region", { name: "Our shared wish" }),
+  ).not.toBeInTheDocument();
 });
