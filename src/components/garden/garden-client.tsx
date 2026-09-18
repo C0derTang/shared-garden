@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useState } from "react";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { PixelIcon } from "@/components/ui/pixel-icon";
@@ -173,6 +174,7 @@ export function GardenClient({ initial }: { initial: GardenResult }) {
           <p className={styles.quiet}>
             A place for the things we grow together.
           </p>
+          <Link href="/garden/songs">Our song collection</Link>
         </div>
         <div className={styles.gardenStats}>
           <span>

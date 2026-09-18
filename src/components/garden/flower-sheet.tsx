@@ -11,7 +11,8 @@ import {
 } from "@/lib/garden/model";
 import { compareTimestamps } from "@/lib/garden/timestamp";
 import { loadFlowerHistory } from "@/lib/garden/actions";
-import { parseSongLink } from "@/lib/music/song-link";
+import Link from "next/link";
+import { SongPlayer } from "@/components/music/song-player";
 import { FlowerSprite } from "./flower-sprite";
 import { PhotoForm } from "@/components/media/photo-form";
 import { PhotoViewer } from "@/components/media/photo-viewer";
@@ -30,27 +31,14 @@ function EntryContent({ entry, type }: { entry: Entry; type: string }) {
     return (
       <p>{moods.find((m) => m.key === payload.mood)?.label ?? "Mood saved"}</p>
     );
-  if (type === "tulip") {
-    const link = parseSongLink(payload.url ?? "");
+  if (type === "tulip")
     return (
-      <div>
-        <p>
-          <strong>{payload.title}</strong> · {payload.artist}
-        </p>
-        {link.kind !== "invalid" && (
-          <a
-            className={styles.songLink}
-            href={link.originalUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            referrerPolicy="no-referrer"
-          >
-            Open song ↗
-          </a>
-        )}
-      </div>
+      <SongPlayer
+        title={payload.title ?? ""}
+        artist={payload.artist ?? ""}
+        url={payload.url ?? ""}
+      />
     );
-  }
   return (
     <p className={styles.entryText}>
       {payload.text ??
@@ -104,6 +92,28 @@ export function FlowerSheet({
     entries: Entry[];
     more: boolean;
   } | null>(null);
+  const [songVersions, setSongVersions] = useState(
+    () => new Map<number, Entry>(),
+  );
+  // Retain observed replacements before pages load and across older snapshots.
+  // Day-tagged history below still hides all old-day pages until an explicit reread.
+  if (item.type_key === "tulip") {
+    let observed = songVersions;
+    for (const entry of [
+      ...plant.entries,
+      ...(historyPage?.day === state.garden_day ? historyPage.entries : []),
+    ]) {
+      const previous = observed.get(entry.id);
+      if (
+        !previous ||
+        compareTimestamps(entry.updated_at, previous.updated_at) > 0
+      ) {
+        if (observed === songVersions) observed = new Map(songVersions);
+        observed.set(entry.id, entry);
+      }
+    }
+    if (observed !== songVersions) setSongVersions(observed);
+  }
   // Current entries may be replaced by either member from another session.
   // Reconcile at render time so an older history response cannot restore a
   // superseded attachment. At rollover, reread history: the final prior-day
@@ -111,9 +121,10 @@ export function FlowerSheet({
   const history =
     historyPage?.day === state.garden_day
       ? historyPage.entries.map((entry) => {
-          const current = plant.entries.find(
-            (candidate) => candidate.id === entry.id,
-          );
+          const current =
+            item.type_key === "tulip"
+              ? songVersions.get(entry.id)
+              : plant.entries.find((candidate) => candidate.id === entry.id);
           return current &&
             compareTimestamps(current.updated_at, entry.updated_at) >= 0
             ? current
@@ -210,6 +221,9 @@ export function FlowerSheet({
       ) : (
         <>
           <CareMarkers plant={plant} memberId={state.member_id} />
+          {item.type_key === "tulip" && (
+            <Link href="/garden/songs">Our song collection</Link>
+          )}
           <DandelionWish
             flower={flower}
             memberId={state.member_id}
