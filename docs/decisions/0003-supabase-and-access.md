@@ -1,8 +1,9 @@
-# Supabase backend and access
+# Supabase backend, access, and Next.js frontend
 
 Status: approved, incremental decision record.
 
-Source: [Issue #7](https://github.com/C0derTang/shared-garden/issues/7).
+Sources: [Issue #7](https://github.com/C0derTang/shared-garden/issues/7) and
+[Issue #11](https://github.com/C0derTang/shared-garden/issues/11).
 This extends [record 0001](0001-approved-garden-rules.md) and
 [record 0002](0002-progression-and-mobile-garden.md) for Shared Garden's fixed
 two-person private scope. Their other approved rules remain in force.
@@ -22,13 +23,19 @@ Future feature issues must reference these records and follow
 3. **No daily care reminders.** Do not provide daily care reminders or nudges.
    Do not build email, push, notification opt-in, or reminder scheduling for
    that purpose. This does not settle unrelated notification requirements.
+4. **Next.js frontend.** Use Next.js for the Shared Garden website. This choice
+   does not approve a hosting provider.
+5. **New Supabase project.** Create a new Supabase project for Shared Garden.
+   This records provisioning intent, not completed provisioning or approval of
+   resource configuration.
 
 ## Unresolved choices and resource status
 
-The exact frontend and hosting choices remain pending; neither Next.js nor
-Vercel is approved by this record. Supabase project selection and provisioning,
-region, paid plan, account identities, and credentials have not been provided.
-This record does not claim any resources have been created or connected.
+Hosting remains pending; Vercel is not approved by this record. The Supabase
+organization, region, and plan remain unselected and require approval before
+provisioning. Account identities and credentials have not been provided.
+This record does not claim the new project or any other resources have been
+created or connected.
 
 Detailed security architecture, UI design, rollout, and the remaining product
 rules identified in the earlier records remain open. This is a decision record,
