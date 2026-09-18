@@ -79,3 +79,11 @@ synthetic sessions. It verifies selection, review, upload, confirmed save,
 partner visibility without contribution, replacement, original deadline and
 history rendering. This is not a physical iOS/Android camera or real Google
 OAuth test. Those remain release-device checks.
+
+Loaded flower history reconciles each matching entry with the newer authoritative
+current entry, including replacements from the partner or another author tab.
+Rendering uses the new media reference even if an older history request finishes
+later. A garden-day change invalidates the loaded history page, since the final
+prior-day replacement may have left today's snapshot; Read history fetches the
+final references again. A stale prior-day response remains hidden. Newer history
+responses are not replaced by an older current snapshot.
