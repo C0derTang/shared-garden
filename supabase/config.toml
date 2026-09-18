@@ -32,7 +32,7 @@ enabled = true
 file_size_limit = "32MiB"
 
 [realtime]
-enabled = false
+enabled = true
 
 [edge_runtime]
 enabled = false
