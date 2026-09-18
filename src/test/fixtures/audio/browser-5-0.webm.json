@@ -1,0 +1,9 @@
+{
+  "name": "browser-5-0.webm",
+  "requestedSeconds": 5,
+  "actualMillis": 5009,
+  "mime": "audio/webm;codecs=opus",
+  "bytes": 40563,
+  "sampleRate": 48000,
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36"
+}

@@ -1,0 +1,52 @@
+name: Private audio
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  audio-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Prepare dedicated local media project
+        run: |
+          mkdir -p /tmp/shared-garden-issue50/supabase
+          cp supabase/config.toml /tmp/shared-garden-issue50/supabase/
+          cp -R supabase/migrations supabase/tests /tmp/shared-garden-issue50/supabase/
+          python3 - <<'PY'
+          path = '/tmp/shared-garden-issue50/supabase/config.toml'
+          config = open(path).read().replace('shared-garden-clock', 'shared-garden-audio50')
+          config = config.replace('56321', '57721').replace('56322', '57722').replace('56320', '57720')
+          open(path, 'w').write(config)
+          PY
+      - name: Start isolated services with private generated credentials
+        run: |
+          umask 077
+          node_modules/.bin/supabase start --workdir /tmp/shared-garden-issue50 > /tmp/shared-garden-issue50/start.log 2>&1
+          node_modules/.bin/supabase status --workdir /tmp/shared-garden-issue50 -o json > /tmp/shared-garden-issue50/status.json
+          node_modules/.bin/supabase db reset --local --workdir /tmp/shared-garden-issue50
+      - name: Verify native Linux audio decoding and actual private HTTP storage
+        env:
+          LOCAL_AUDIO_STATUS_FILE: /tmp/shared-garden-issue50/status.json
+        run: npx vitest run src/lib/media/audio.test.ts src/lib/media/audio-resource.test.ts src/test/media-local.test.ts
+      - name: Verify assembled executable Linux runtime and complete server size
+        run: node scripts/verify-audio-runtime.mjs
+      - name: Verify observed overlapping media transactions
+        run: python3 supabase/tests/concurrency/media_race.py supabase_db_shared-garden-audio50 --audio
+      - name: Reset fixture state
+        if: always()
+        run: node_modules/.bin/supabase db reset --local --workdir /tmp/shared-garden-issue50
+      - name: Stop local services
+        if: always()
+        run: node_modules/.bin/supabase stop --workdir /tmp/shared-garden-issue50
