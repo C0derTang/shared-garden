@@ -1,0 +1,50 @@
+name: Private media
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  media-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Prepare dedicated local media project
+        run: |
+          mkdir -p /tmp/shared-garden-issue48/supabase
+          cp supabase/config.toml /tmp/shared-garden-issue48/supabase/
+          cp -R supabase/migrations supabase/tests /tmp/shared-garden-issue48/supabase/
+          python3 - <<'PY'
+          path = '/tmp/shared-garden-issue48/supabase/config.toml'
+          config = open(path).read().replace('shared-garden-clock', 'shared-garden-media48')
+          config = config.replace('56321', '57321').replace('56322', '57322').replace('56320', '57320')
+          open(path, 'w').write(config)
+          PY
+      - name: Start isolated services with private generated credentials
+        run: |
+          umask 077
+          node_modules/.bin/supabase start --workdir /tmp/shared-garden-issue48 > /tmp/shared-garden-issue48/start.log 2>&1
+          node_modules/.bin/supabase status --workdir /tmp/shared-garden-issue48 -o json > /tmp/shared-garden-issue48/status.json
+          node_modules/.bin/supabase db reset --local --workdir /tmp/shared-garden-issue48
+      - name: Verify native Linux image decoding and actual private HTTP storage
+        env:
+          LOCAL_MEDIA_STATUS_FILE: /tmp/shared-garden-issue48/status.json
+        run: npx vitest run src/lib/media/image.test.ts src/test/media-local.test.ts
+      - name: Verify observed overlapping media transactions
+        run: python3 supabase/tests/concurrency/media_race.py supabase_db_shared-garden-media48
+      - name: Reset fixture state
+        if: always()
+        run: node_modules/.bin/supabase db reset --local --workdir /tmp/shared-garden-issue48
+      - name: Stop local services
+        if: always()
+        run: node_modules/.bin/supabase stop --workdir /tmp/shared-garden-issue48

@@ -343,19 +343,22 @@ describe("protected destination", () => {
       expect(response.headers.get("cache-control")).toContain("no-store");
     },
   );
-  it("refreshes expired cookies for both downstream rendering and the browser", async () => {
-    const response = await proxy(
-      request("/garden", { headers: { cookie: cookie(true) } }),
-    );
-    expect(response.headers.get("x-middleware-next")).toBe("1");
-    expect(response.cookies.get("sg-auth")?.value).toBeTruthy();
-    expect(response.headers.get("x-middleware-request-cookie")).toContain(
-      response.cookies.get("sg-auth")!.value,
-    );
-    expect(calls[0].url).toBe(
-      `${service}/auth/v1/token?grant_type=refresh_token`,
-    );
-  });
+  it.each(["/garden", "/api/media/finalize"])(
+    "refreshes expired cookies for downstream %s and the browser",
+    async (path) => {
+      const response = await proxy(
+        request(path, { headers: { cookie: cookie(true) } }),
+      );
+      expect(response.headers.get("x-middleware-next")).toBe("1");
+      expect(response.cookies.get("sg-auth")?.value).toBeTruthy();
+      expect(response.headers.get("x-middleware-request-cookie")).toContain(
+        response.cookies.get("sg-auth")!.value,
+      );
+      expect(calls[0].url).toBe(
+        `${service}/auth/v1/token?grant_type=refresh_token`,
+      );
+    },
+  );
   it("carries refreshed cookies even when membership denies", async () => {
     memberRows = [];
     const response = await proxy(
@@ -423,5 +426,25 @@ describe("sign out", () => {
     );
     expect(response.status).toBe(403);
     expect(response.cookies.getAll()).toHaveLength(0);
+  });
+});
+
+describe("private media proxy", () => {
+  it("returns private JSON for anonymous media requests", async () => {
+    const response = await proxy(request("/api/media/read"));
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ error: "signin_required" });
+    expect(response.headers.get("cache-control")).toContain("no-store");
+    expect(response.headers.get("location")).toBeNull();
+  });
+  it("refreshes cookies on denied media requests and returns generic JSON", async () => {
+    memberRows = [];
+    const response = await proxy(
+      request("/api/media/finalize", { headers: { cookie: cookie(true) } }),
+    );
+    expect(response.status).toBe(403);
+    expect(await response.json()).toEqual({ error: "media_not_available" });
+    expect(response.cookies.get("sg-auth")?.value).toBeTruthy();
+    expect(response.headers.get("cache-control")).toContain("private");
   });
 });
