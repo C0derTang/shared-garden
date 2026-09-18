@@ -8,3 +8,8 @@ supabase/.temp/
 supabase/.branches/
 supabase/signing_keys.json
 .DS_Store
+.next/
+out/
+coverage/
+*.tsbuildinfo
+.vercel/

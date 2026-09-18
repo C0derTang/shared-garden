@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 290" fill="none" shape-rendering="crispEdges">
+  <defs>
+    <pattern id="grass" width="36" height="28" patternUnits="userSpaceOnUse"><path d="M4 12h2v-3h2v5H4zm22 12h2v-4h2v6h-4z" fill="#80945a" opacity=".35"/></pattern>
+    <g id="daisy"><path d="M0 0h2v12H0zM-4 6H0v2h-4zm6-3h4v2H2z" fill="#607c42"/><path d="M-2-6h6v3h3v4H4v3h-6V1h-3v-4h3z" fill="#fff8df"/><path d="M0-3h2v4H0z" fill="#dba846"/></g>
+    <g id="rose"><path d="M0 0h2v15H0zm-4 7H0v3h-4zm6-3h5v3H2z" fill="#58733e"/><path d="M-3-8h8v2h3v7H5v3h-8V1h-3v-7h3z" fill="#bf725c"/><path d="M-1-5h5v2H1v3h-3v-5z" fill="#eaa482"/><path d="M-3 1h6v3h-6z" fill="#9d5745"/></g>
+    <g id="yellow"><path d="M0 0h2v13H0zm-4 5H0v3h-4zm6 4h4v2H2z" fill="#607943"/><path d="M-3-7h8v3h3v5H5v3h-8V1h-3v-5h3z" fill="#e6b54a"/><path d="M-1-3h4v4h-4z" fill="#aa7137"/></g>
+    <g id="shrub"><path d="M-14-8h6v-6H8v4h10v6h4V8h-4v4h-32V8h-6V-2h6z" fill="#8b9b62"/><path d="M-12-8h6v-3H8v4h6v3H2v4h-14z" fill="#aeb77d"/><path d="M-14 7h30v5h-30z" fill="#788a50"/></g>
+  </defs>
+  <!-- Decorative illustration only: no live garden state or planting spots. -->
+  <path d="M44 38h28V26h216v12h28v20h14v132H30V58h14z" fill="#f1e9cf"/>
+  <path d="M214 39h26v5h10v22h-10v6h-26v-6h-9V44h9z" fill="#eaca88"/>
+  <path d="M47 70h13V58h25v8h18v12h13v7H47zm227 11h10V69h20v7h13v12h-43z" fill="#fff9e8"/>
+  <path d="M53 146h22v-8h25v-9h25v8h32v8h42v-10h27v-8h41v7h27v13h25v15H42z" fill="#c6cba0"/>
+  <path d="M36 157h29v-7h40v9h47v-8h70v-9h66v12h36v12h12v62h-12v13h-25v11H63v-10H41v-12H26v-60h10z" fill="#b1bd85"/>
+  <path d="M26 189h20v-8h31v13h45v12h59v-14h41v-8h52v10h50v-8h12v42h-12v13h-25v11H63v-10H41v-12H26z" fill="#a0af70"/>
+  <path d="M26 157h310v95H26z" fill="url(#grass)"/>
+  <path d="M191 149h21v28h-13v19h-15v22h-19v20h-10v16h-42v-13h20v-22h20v-21h16v-21h13v-18h9z" fill="#d9c79f"/>
+  <path d="M191 149h21v8h-21zm-8 29h17v5h-17zm-16 29h16v5h-16zm-21 23h15v5h-15zm-23 14h21v5h-21z" fill="#eee0ba"/>
+  <!-- The fence and a little garden gate. -->
+  <path d="M60 137h236v6H60zm0 16h236v5H60z" fill="#aa885d"/>
+  <path d="M62 128h5v43h-5zm24 0h5v43h-5zm25 0h5v43h-5zm25 0h5v43h-5zm25 0h5v43h-5zm70 0h5v43h-5zm25 0h5v43h-5zm25 0h5v43h-5z" fill="#c2a474"/>
+  <path d="M187 123h6v43h-6zm25 0h6v43h-6z" fill="#8d704d"/>
+  <path d="M190 132h26v5h-26zm0 17h26v5h-26zm8-12h4v12h-4zm9 0h4v12h-4z" fill="#c2a474"/>
+  <!-- Left fruit tree. -->
+  <path d="M76 95h11v82H75v-19h4v-38h-3z" fill="#8c6a46"/>
+  <path d="M83 103h4v51h-4zm-7 27h-8v-8h-5v-7h6v8h7z" fill="#a98051"/>
+  <path d="M53 48h15v-8h25v8h14v10h10v16h6v19h-7v14h-13v8H58v-8H44V94h-8V73h7V59h10z" fill="#839b58"/>
+  <path d="M53 51h16v-7h20v8h13v11h-7v8H67v9H44V66h9z" fill="#a6b66f"/>
+  <path d="M42 88h13v9h14v8h29v-7h19v9h-14v8H58v-8H44V94h-2z" fill="#6b8549"/>
+  <path d="M53 78h6v6h-6zm43-5h6v6h-6zM77 56h6v6h-6zm3 38h6v6h-6z" fill="#d8a255"/>
+  <!-- Right warm tree. -->
+  <path d="M282 109h10v75h-12v-7h4v-41h-2z" fill="#8e704b"/>
+  <path d="M290 126h10v-12h4v16h-14z" fill="#a58351"/>
+  <path d="M264 57h13v-8h21v8h16v12h10v19h7v17h-7v12h-15v9h-43v-8h-13v-13h-7V83h7V68h11z" fill="#b3ae69"/>
+  <path d="M265 58h13v-6h18v9h13v12h9v9h-32v8h-31V73h10z" fill="#c8bd7b"/>
+  <path d="M253 99h13v12h21v7h21v-10h16v9h-15v9h-43v-8h-13z" fill="#939c5b"/>
+  <path d="M269 83h5v5h-5zm34-9h5v5h-5zm-14 28h5v5h-5z" fill="#e3c18c"/>
+  <!-- Low shrubs, flowers and a weathered bench. -->
+  <use href="#shrub" x="56" y="165"/><use href="#shrub" x="307" y="174"/>
+  <path d="M112 142h42v6h-42zm0 10h42v5h-42zm-5 9h51v6h-51zm6 6h5v15h-5zm35 0h5v15h-5z" fill="#9c7952"/>
+  <path d="M111 142h43v2h-43zm0 10h43v2h-43zm-4 9h51v2h-51z" fill="#c4a374"/>
+  <path d="M111 135h4v27h-4zm36 0h4v27h-4z" fill="#876b48"/>
+  <use href="#rose" x="90" y="188"/><use href="#daisy" x="109" y="200"/><use href="#yellow" x="71" y="211"/><use href="#rose" x="96" y="230"/>
+  <use href="#yellow" x="234" y="175"/><use href="#daisy" x="252" y="194"/><use href="#rose" x="218" y="207"/><use href="#daisy" x="238" y="229"/><use href="#yellow" x="273" y="223"/>
+  <use href="#daisy" x="58" y="189"/><use href="#rose" x="296" y="201"/>
+  <path d="M183 228h8v4h5v5h-18v-5h5zm100 16h9v5h-13v-3h4z" fill="#c4c3a2"/>
+  <path d="M135 89h4v4h4v4h-4v4h-4v-4h-4v-4h4z" fill="#d3b979"/>
+  <path d="M245 40h3v5h5v3h-5v5h-3v-5h-5v-3h5z" fill="#d2b783"/>
+  <path d="M154 115h4v4h4v4h-4v4h-4v-4h-4v-4h4z" fill="#c5a376"/>
+  <path d="M62 258h39v3H62zm187 3h44v3h-44zm-130 7h109v3H119z" fill="#ded9bc"/>
+</svg>
