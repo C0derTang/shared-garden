@@ -243,7 +243,7 @@ attestation cannot attest audio. No direct private-table capability is added.
 
 For the actual audio integration, create the same disposable project with ID
 `shared-garden-audio50`, API 57721, DB 57722, shadow 57720, app 57729, under
-`/tmp/shared-garden-issue #50`. Run `LOCAL_AUDIO_STATUS_FILE=/tmp/shared-garden-issue #50/status.json
+`/tmp/shared-garden-issue50`. Run `LOCAL_AUDIO_STATUS_FILE=/tmp/shared-garden-issue50/status.json
 npx vitest run src/test/media-local.test.ts`; reset before/after. This uses the
 same full security/replacement/cleanup suite with real synthetic browser audio.
 Run the original photo variant separately against its empty disposable project,

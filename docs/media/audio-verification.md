@@ -2,7 +2,8 @@
 
 Synthetic fixtures only. The implementation decision and supported profiles are
 [0027](../decisions/0027-private-bluebell-audio.md); UI and hosted release work are
-separate. Evidence recorded during issue #50 on 2026-09-18.
+separate. Initial implementation evidence recorded during issue #50 on 2026-09-18.
+The combined-candidate recheck after garden UI integration is recorded below.
 
 - Full web lint/typecheck/test/build; 195 web assertions and 27 content tests passed. Optional real Auth/Storage suites are run
   explicitly, not counted as ordinary unit-test coverage.
@@ -43,3 +44,24 @@ Rerun commands and dedicated disposable project settings are in
 runtime checks. Local status/build/server logs contain disposable credentials
 and are deliberately not public artifacts. No hosted deployment, physical-phone
 microphone, actual Google OAuth exchange or physical Safari playback is claimed.
+
+## Combined garden UI candidate
+
+After merging main `fa44745e9e5c82f06a80a716eac5efe9ca66a40e`, lint,
+typecheck, 227 web assertions plus 27 content tests, and production builds
+passed. Clean database checks passed 1026 assertions across 10 files. The
+actual audio and photo HTTP suites passed again, including exact-five-minute
+private audio playback. The 40 native Linux checks also passed again.
+The new Linux build's entire-server/runtime upper bound is 56,618,193 bytes
+across 1193 files; all three native programs remain traced and executable.
+The 90-second finalize route is below the audited free hosting 300-second
+maximum. Hosted execution remains a release gate.
+
+The combined audio/photo, entry and rollover lock-race suites passed again,
+as did the real Realtime member-delivery, denied outsider/anonymous, live
+revocation and no-read-loop assertions using an isolated local-port copy of
+the existing verifier. No application bypass or source change was needed.
+
+The merged Realtime database CI step is preserved alongside the dedicated
+audio integration, resource and artifact checks. Existing evidence above is
+retained as the pre-integration record rather than silently relabeled.
