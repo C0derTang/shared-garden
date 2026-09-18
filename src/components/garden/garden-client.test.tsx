@@ -430,3 +430,107 @@ it("keeps a queued care draft when an in-flight refresh changes the day, then sa
     payload: { text: "Keep the pending draft" },
   });
 });
+
+it("uses the safe song player for Tulip current entries and history without requiring own care", async () => {
+  const state = gardenFixture();
+  const plant = state.plants[0];
+  plant.flower.type_key = "tulip";
+  plant.entries = [
+    {
+      ...entryFixture(),
+      author_id: 2,
+      can_edit: false,
+      payload: {
+        title: "Public test song",
+        artist: "Test artist",
+        url: "https://open.spotify.com/track/0Lr4kGOYn9l83EjuK6cZFQ",
+      },
+    },
+  ];
+  loadFlowerHistory.mockResolvedValue({
+    entries: [{ ...plant.entries[0], id: 2 }],
+    error: null,
+  });
+  render(
+    <FlowerSheet
+      plant={plant}
+      state={state}
+      item={state.catalog[2]}
+      now={Date.parse(state.server_now)}
+      busy={false}
+      mutate={mutateGarden}
+    />,
+  );
+  expect(
+    screen.getByRole("link", { name: "Our song collection" }),
+  ).toHaveAttribute("href", "/garden/songs");
+  expect(document.querySelector("iframe")).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: /Load Spotify player/ }));
+  expect(document.querySelector("iframe")).toHaveAttribute(
+    "src",
+    "https://open.spotify.com/embed/track/0Lr4kGOYn9l83EjuK6cZFQ",
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Read history" }));
+  await waitFor(() =>
+    expect(
+      screen.getAllByRole("heading", { name: "Public test song" }),
+    ).toHaveLength(2),
+  );
+});
+
+it("retains an observed Tulip history edit when the next garden day clears current entries", async () => {
+  const state = gardenFixture();
+  const plant = state.plants[0];
+  plant.flower.type_key = "tulip";
+  const original = {
+    ...entryFixture(),
+    payload: {
+      title: "Original song",
+      artist: "Artist",
+      url: "https://example.com/song",
+    },
+  };
+  plant.entries = [original];
+  loadFlowerHistory.mockResolvedValue({ entries: [original], error: null });
+  const props = {
+    state,
+    item: state.catalog[2],
+    now: Date.parse(state.server_now),
+    busy: false,
+    mutate: mutateGarden,
+  };
+  const view = render(<FlowerSheet {...props} plant={plant} />);
+  fireEvent.click(screen.getByRole("button", { name: "Read history" }));
+  await waitFor(() =>
+    expect(
+      screen.getAllByRole("heading", { name: "Original song" }),
+    ).toHaveLength(2),
+  );
+  view.rerender(
+    <FlowerSheet
+      {...props}
+      plant={{
+        ...plant,
+        entries: [
+          {
+            ...original,
+            payload: { ...original.payload, title: "Edited song" },
+          },
+        ],
+      }}
+    />,
+  );
+  expect(screen.getAllByRole("heading", { name: "Edited song" })).toHaveLength(
+    2,
+  );
+  view.rerender(
+    <FlowerSheet
+      {...props}
+      state={{ ...state, garden_day: "2026-09-19" }}
+      plant={{ ...plant, entries: [] }}
+    />,
+  );
+  expect(
+    screen.getByRole("heading", { name: "Edited song" }),
+  ).toBeInTheDocument();
+});

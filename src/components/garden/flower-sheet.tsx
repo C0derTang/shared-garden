@@ -10,7 +10,8 @@ import {
   type Plant,
 } from "@/lib/garden/model";
 import { loadFlowerHistory } from "@/lib/garden/actions";
-import { parseSongLink } from "@/lib/music/song-link";
+import Link from "next/link";
+import { SongPlayer } from "@/components/music/song-player";
 import { FlowerSprite } from "./flower-sprite";
 import { EntryForm } from "./entry-form";
 import type { Mutate } from "./seed-picker";
@@ -23,27 +24,14 @@ function EntryContent({ entry, type }: { entry: Entry; type: string }) {
     return (
       <p>{moods.find((m) => m.key === payload.mood)?.label ?? "Mood saved"}</p>
     );
-  if (type === "tulip") {
-    const link = parseSongLink(payload.url ?? "");
+  if (type === "tulip")
     return (
-      <div>
-        <p>
-          <strong>{payload.title}</strong> · {payload.artist}
-        </p>
-        {link.kind !== "invalid" && (
-          <a
-            className={styles.songLink}
-            href={link.originalUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            referrerPolicy="no-referrer"
-          >
-            Open song ↗
-          </a>
-        )}
-      </div>
+      <SongPlayer
+        title={payload.title ?? ""}
+        artist={payload.artist ?? ""}
+        url={payload.url ?? ""}
+      />
     );
-  }
   return (
     <p className={styles.entryText}>
       {payload.text ??
@@ -93,6 +81,21 @@ export function FlowerSheet({
   const [editing, setEditing] = useState<Entry | null>(null);
   const [saved, setSaved] = useState(false);
   const [history, setHistory] = useState<Entry[] | null>(null);
+  const [observedEntries, setObservedEntries] = useState(plant.entries);
+  if (observedEntries !== plant.entries) {
+    setObservedEntries(plant.entries);
+    // Remember replacements in loaded history before rollover clears current entries.
+    if (item.type_key === "tulip")
+      setHistory(
+        (old) =>
+          old?.map(
+            (stored) =>
+              plant.entries.find((current) => current.id === stored.id) ??
+              stored,
+          ) ?? null,
+      );
+  }
+
   const [more, setMore] = useState(false);
   const [historyBusy, setHistoryBusy] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
@@ -165,6 +168,9 @@ export function FlowerSheet({
         </div>
       </div>
       <CareMarkers plant={plant} memberId={state.member_id} />
+      {item.type_key === "tulip" && (
+        <Link href="/garden/songs">Our song collection</Link>
+      )}
       {flower.shared_wish && (
         <div className={styles.notice}>
           <span className="eyebrow">OUR SHARED WISH</span>
@@ -302,22 +308,26 @@ export function FlowerSheet({
         <p className={styles.quiet}>
           Older entries are read-only. Newest first.
         </p>
-        {history?.map((entry) => (
-          <article className={styles.entry} key={entry.id}>
-            <div className={styles.entryMeta}>
-              <strong>
-                {entry.author_id === state.member_id ? "You" : "Your partner"}
-              </strong>
-              <time dateTime={entry.original_posted_at}>
-                {entry.garden_day} · {pacificTime(entry.original_posted_at)}
-              </time>
-            </div>
-            <EntryContent entry={entry} type={item.type_key} />
-            {entry.payload.question_id && (
-              <small>Question {entry.payload.question_id}</small>
-            )}
-          </article>
-        ))}
+        {history?.map((stored) => {
+          const entry =
+            plant.entries.find((current) => current.id === stored.id) ?? stored;
+          return (
+            <article className={styles.entry} key={entry.id}>
+              <div className={styles.entryMeta}>
+                <strong>
+                  {entry.author_id === state.member_id ? "You" : "Your partner"}
+                </strong>
+                <time dateTime={entry.original_posted_at}>
+                  {entry.garden_day} · {pacificTime(entry.original_posted_at)}
+                </time>
+              </div>
+              <EntryContent entry={entry} type={item.type_key} />
+              {entry.payload.question_id && (
+                <small>Question {entry.payload.question_id}</small>
+              )}
+            </article>
+          );
+        })}
         {history?.length === 0 && <p>No earlier entries yet.</p>}
         {historyError && (
           <p role="alert" className={styles.error}>

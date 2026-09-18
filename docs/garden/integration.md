@@ -27,8 +27,11 @@ are recorded in [decision 0011](../decisions/0011-working-garden.md).
   unavailable notice can be removed for a type when that care workflow lands.
   Dandelion wish planting and daily detail entries already work; fulfillment
   requires its future authoritative fact before passing `fulfilled` to artwork.
-- Song playback/collection should compose the separately merged `SongPlayer` in
-  the later music issue. Issue #27 intentionally presents metadata and safe links.
+- Tulip drafts/current/history compose the safe `SongPlayer`. The private
+  `/garden/songs` route and bounded `loadSongs` action retain both members’
+  contributions across all instances and blooms. See
+  [decision 0014](../decisions/0014-tulip-music-collection.md) for paging and refresh
+  behavior; future Memories may link to this collection.
 - Each future Memories/Achievements/Settings page must retain its own membership
   guard. Replace the honest upcoming screen within the existing navigation.
 
