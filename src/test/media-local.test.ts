@@ -72,26 +72,16 @@ it.skipIf(!statusPath)(
       (access_token, i) =>
         `sg-auth=base64-${Buffer.from(JSON.stringify({ access_token, refresh_token: "synthetic-not-issued", token_type: "bearer", expires_at: now + 3600, expires_in: 3600, user: { id: ids[i] } })).toString("base64url")}`,
     );
-    // Node's pooled connection can stall after Storage rejects an upload before
-    // consuming its body. Isolate this harness's SDK requests; preserve the full
-    // upload payload and actual Storage policies rather than retrying denials.
-    const storageFetch: typeof fetch = (input, init) => {
-      const headers = new Headers(init?.headers);
-      headers.set("connection", "close");
-      return fetch(input, { ...init, headers });
-    };
     const clients = tokens.map((token) =>
       createClient(local.API_URL, local.PUBLISHABLE_KEY, {
         auth: { persistSession: false, autoRefreshToken: false },
-        global: { fetch: storageFetch, headers: { Authorization: `Bearer ${token}` } },
+        global: { headers: { Authorization: `Bearer ${token}` } },
       }),
     );
     const anon = createClient(local.API_URL, local.PUBLISHABLE_KEY, {
-      global: { fetch: storageFetch },
       auth: { persistSession: false, autoRefreshToken: false },
     });
     const trusted = createClient(local.API_URL, local.SECRET_KEY, {
-      global: { fetch: storageFetch },
       auth: { persistSession: false, autoRefreshToken: false },
     });
     const log = openSync(
@@ -219,6 +209,11 @@ it.skipIf(!statusPath)(
               },
             })
             .toBuffer();
+      // Match the browser SDK's multipart File upload path. Raw Node Buffer
+      // uploads can leave the local proxy/Storage connection stalled when an
+      // authorization rejection arrives before its request body is consumed.
+      const uploadFile = (bytes: Buffer, mime = inputMime) =>
+        new File([new Uint8Array(bytes)], "synthetic-media", { type: mime });
       const intent = async (
         bytes: Buffer,
         mimeType = inputMime,
@@ -258,7 +253,7 @@ it.skipIf(!statusPath)(
         (
           await clients[1].storage
             .from("garden-staging")
-            .upload(abandoned.staging_path, image, {
+            .upload(abandoned.staging_path, uploadFile(image), {
               contentType: inputMime,
             })
         ).error,
@@ -288,7 +283,7 @@ it.skipIf(!statusPath)(
         (
           await clients[1].storage
             .from("garden-staging")
-            .upload(abandoned.staging_path, image, {
+            .upload(abandoned.staging_path, uploadFile(image), {
               contentType: inputMime,
             })
         ).error,
@@ -297,7 +292,7 @@ it.skipIf(!statusPath)(
         (
           await anon.storage
             .from("garden-staging")
-            .upload(abandoned.staging_path, image, {
+            .upload(abandoned.staging_path, uploadFile(image), {
               contentType: inputMime,
             })
         ).error,
@@ -310,7 +305,7 @@ it.skipIf(!statusPath)(
         (
           await clients[1].storage
             .from("garden-staging")
-            .upload(revoked.staging_path, image, { contentType: inputMime })
+            .upload(revoked.staging_path, uploadFile(image), { contentType: inputMime })
         ).error,
       ).toMatchObject({ status: 400 });
       for (const upsert of [false, true]) {
@@ -330,7 +325,7 @@ it.skipIf(!statusPath)(
         (
           await clients[1].storage
             .from("garden-staging")
-            .upload(revoked.staging_path, image, { contentType: inputMime })
+            .upload(revoked.staging_path, uploadFile(image), { contentType: inputMime })
         ).error,
       ).toMatchObject({ status: 400 });
       expect((await trusted.rpc("media_cleanup_candidates")).data).toEqual([]);
@@ -347,7 +342,7 @@ it.skipIf(!statusPath)(
         (
           await clients[0].storage
             .from("garden-staging")
-            .upload(original.staging_path, Buffer.alloc(12 * 1024 * 1024 + 1), {
+            .upload(original.staging_path, uploadFile(Buffer.alloc(12 * 1024 * 1024 + 1)), {
               contentType: inputMime,
             })
         ).error,
@@ -356,28 +351,28 @@ it.skipIf(!statusPath)(
         (
           await clients[1].storage
             .from("garden-staging")
-            .upload(original.staging_path, image, { contentType: inputMime })
+            .upload(original.staging_path, uploadFile(image), { contentType: inputMime })
         ).error,
       ).toMatchObject({ status: 400 });
       expect(
         (
           await anon.storage
             .from("garden-staging")
-            .upload(original.staging_path, image, { contentType: inputMime })
+            .upload(original.staging_path, uploadFile(image), { contentType: inputMime })
         ).error,
       ).toMatchObject({ status: 400 });
       expect(
         (
           await clients[2].storage
             .from("garden-staging")
-            .upload(original.staging_path, image, { contentType: inputMime })
+            .upload(original.staging_path, uploadFile(image), { contentType: inputMime })
         ).error,
       ).toMatchObject({ status: 400 });
       expect(
         (
           await clients[0].storage
             .from("garden-staging")
-            .upload(original.staging_path, image, {
+            .upload(original.staging_path, uploadFile(image), {
               contentType: inputMime,
               upsert: false,
             })
@@ -387,7 +382,7 @@ it.skipIf(!statusPath)(
         (
           await clients[0].storage
             .from("garden-staging")
-            .upload(original.staging_path, Buffer.from("replacement"), {
+            .upload(original.staging_path, uploadFile(Buffer.from("replacement")), {
               contentType: inputMime,
               upsert: true,
             })
@@ -482,7 +477,7 @@ it.skipIf(!statusPath)(
           (
             await client.storage
               .from("garden-media")
-              .upload(original.final_path, image, {
+              .upload(original.final_path, uploadFile(image), {
                 contentType: inputMime,
                 upsert: true,
               })
@@ -505,7 +500,7 @@ it.skipIf(!statusPath)(
         (
           await clients[0].storage
             .from("garden-staging")
-            .upload(replacement.staging_path, image, {
+            .upload(replacement.staging_path, uploadFile(image), {
               contentType: inputMime,
             })
         ).error,
@@ -524,7 +519,7 @@ it.skipIf(!statusPath)(
         (
           await clients[0].storage
             .from("garden-staging")
-            .upload(late.staging_path, image, { contentType: inputMime })
+            .upload(late.staging_path, uploadFile(image), { contentType: inputMime })
         ).error,
       ).toBeNull();
       sql(
@@ -603,7 +598,7 @@ it.skipIf(!statusPath)(
           (
             await clients[1].storage
               .from("garden-staging")
-              .upload(bad.staging_path, bytes, { contentType: mime })
+              .upload(bad.staging_path, uploadFile(bytes, mime), { contentType: mime })
           ).error,
         ).toBeNull();
         expect(
