@@ -1,0 +1,57 @@
+# Progression and mobile garden
+
+Status: approved, incremental decision record.
+
+Source: [Issue #5](https://github.com/C0derTang/shared-garden/issues/5).
+This extends [record 0001](0001-approved-garden-rules.md) for Shared Garden's
+fixed two-person private scope. Its other approved rules remain in force.
+Future feature issues must reference these records and follow
+[AGENTS.md](../../AGENTS.md) and [CLAUDE.md](../../CLAUDE.md).
+
+## Approved decisions
+
+1. **Peony growth timing.** Peony gains one growth unit immediately when both
+   people complete the next shared milestone. Multiple ordered milestones may
+   count in the same garden day. The four milestones and no-stage-loss rule in
+   record 0001 remain unchanged. Ordinary flowers still apply growth at rollover.
+   This adds no effects on streak settlement or achievements beyond approved
+   rules.
+2. **Unlock progression.** Rose, Cactus, Tulip, and Marigold are initially
+   available. Each additional total bloom unlocks the next type in this order:
+
+   | Total blooms | Newly available type |
+   | --- | --- |
+   | 1 | Daisy |
+   | 2 | Hydrangea |
+   | 3 | Sunflower |
+   | 4 | Snapdragon |
+   | 5 | Moonflower |
+   | 6 | Bluebell |
+   | 7 | Dandelion |
+   | 8 | Forget-me-not |
+   | 9 | Peony |
+
+   All 13 types are available after nine total blooms. Cactus check-ins after
+   its first bloom do not earn additional bloom credit.
+3. **Working visual direction.** Try cozy pixel art with crisp flower sprites,
+   warm lighting, and gentle animations. This is a direction to explore, not
+   approval of every decorative element, layout, or control in generated concept
+   images.
+4. **Planting spots.** Use fixed planting spots arranged naturally around the
+   garden. A user chooses an empty spot to plant. This does not permit free
+   placement or assume a rigid visible grid.
+5. **Garden expansion.** Automatically add new garden beds when existing
+   planting space fills up. Preserve every bloomed flower and its history.
+   Expansion does not raise or remove the active-flower limit. Bed dimensions,
+   navigation, layout, and expansion implementation remain open.
+6. **Phone-first design.** Design for phones first, with a wider garden view on
+   desktop. Exact breakpoints, navigation, offline/PWA behavior, and other
+   interaction choices remain open.
+
+## Unresolved choices
+
+These approvals do not establish a complete product specification or select
+authentication, a technology stack, deployment, or notifications. Login choice
+is still pending. Detailed visual and interaction choices beyond the decisions
+above, and the remaining unresolved rules in record 0001, require further
+approval.

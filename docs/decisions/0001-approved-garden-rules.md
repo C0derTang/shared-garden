@@ -17,9 +17,9 @@ and [CLAUDE.md](../../CLAUDE.md).
    days requires further approval.
 2. **Launch roster.** Include 13 types: Rose, Cactus, Tulip, Marigold, Daisy,
    Sunflower, Moonflower, Bluebell, Forget-me-not, Dandelion, Peony, Hydrangea,
-   and Snapdragon. Introduce types gradually through unlocks. This list does not
-   establish an unlock sequence; thresholds and positions for the added types
-   remain unresolved.
+   and Snapdragon. Introduce types gradually through unlocks. The exact unlock
+   order and thresholds are approved in
+   [record 0002](0002-progression-and-mobile-garden.md).
 3. **Cactus check-ins.** Paired Cactus check-ins count toward the garden-wide
    streak even after bloom, provided both people check in during the same garden
    day. Cactus stays permanently waterable and exempt from stage loss. This
@@ -28,8 +28,8 @@ and [CLAUDE.md](../../CLAUDE.md).
    milestones: both suggest a date idea; both agree on activity and time; both
    confirm the date happened; both share a favorite moment afterward. Each
    completed shared milestone adds one unit. Progress holds between milestones
-   without stage loss. Whether multiple milestones may count in one garden day
-   and when units are applied remain unresolved.
+   without stage loss. Immediate growth and multiple ordered milestones in one
+   garden day are approved in [record 0002](0002-progression-and-mobile-garden.md).
 5. **Shared clock.** Use `America/Los_Angeles`, following Pacific daylight saving
    changes. Rollover is at 4 a.m. local garden time. Each garden day runs from
    4 a.m. through just before the next 4 a.m.; its duration is not invariably
@@ -47,8 +47,12 @@ and [CLAUDE.md](../../CLAUDE.md).
 
 ## Unresolved choices
 
-This record does not choose a technology stack, visual design, layout,
-authentication, hosting, or notification service. The complete flower and
-achievement catalogs, per-flower payloads, exact unlock progression, and
-remaining timing edge cases still require decisions. The unresolved details
-identified above must not be implemented as assumed approvals.
+This record does not choose a technology stack, authentication, hosting, or
+notification service; login choice remains pending.
+[Record 0002](0002-progression-and-mobile-garden.md) approves unlock progression,
+Peony timing, a working visual direction, fixed planting spots, automatic bed
+expansion, and a phone-first garden view. Detailed visual design, layout and
+interaction choices remain open beyond those approvals. The complete flower and
+achievement catalogs, per-flower payloads, and remaining timing edge cases still
+require decisions. The unresolved details identified above must not be
+implemented as assumed approvals.
