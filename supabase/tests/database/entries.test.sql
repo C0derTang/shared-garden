@@ -25,11 +25,16 @@ create function pg_temp.flower(p_type text) returns uuid language sql stable as 
 -- Test-only replacement of clock expressions. ROLLBACK restores all original
 -- production definitions; there is no test-clock seam in the shipped migration.
 create temporary table entry_function_definitions as select oid,pg_get_functiondef(oid) as definition from pg_proc
- where oid in ('public.submit_flower_entry(uuid,jsonb)'::regprocedure,'public.edit_flower_entry(bigint,jsonb)'::regprocedure,
- 'public.current_entry_state(uuid)'::regprocedure,'public.get_daily_daisy_question()'::regprocedure);
+ where oid = 'private.begin_garden_operation()'::regprocedure;
 create function pg_temp.set_entry_clock(p_now timestamptz) returns void language plpgsql as $$
 declare r record;
 begin
+ -- These isolated entry cases intentionally jump backwards across DST dates.
+ -- Reposition derived settlement fixtures without changing their entry evidence.
+ delete from public.flower_day_facts;
+ delete from public.before_noon_snapshots;
+ delete from public.garden_days;
+ update public.garden set last_settled_day=(select garden_day-1 from private.garden_clock_at(p_now)),current_streak=0;
  for r in select definition from entry_function_definitions loop
   execute replace(r.definition,'clock_timestamp()',quote_literal(p_now)||'::timestamptz');
  end loop;

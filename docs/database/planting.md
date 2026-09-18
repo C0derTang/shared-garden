@@ -128,3 +128,10 @@ role, checks signup lifecycle/binding and spoofing/revocation, then rolls back.
 Run these harnesses sequentially because both use the empty local membership
 configuration. Application frontend tests are unrelated to this database-only
 change; real Google account sign-in and hosted setup remain separate checks.
+
+## Settlement integration
+
+[Decision 0010](../decisions/0010-garden-rollover.md) and the
+[rollover contract](rollover.md) add settlement before planting unlock/capacity
+checks. Initialization, automatic and selected planting use the same post-lock
+operation instant. Blooms release unfinished type capacity and retain their spots.

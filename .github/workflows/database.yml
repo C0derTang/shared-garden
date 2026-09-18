@@ -36,9 +36,11 @@ jobs:
           docker exec -i supabase_db_shared-garden-clock \
             psql -U supabase_admin -d postgres -v ON_ERROR_STOP=1 \
             < docs/auth/verify-identity-auth-role.sql
-      - name: Verify overlapping entry transactions
+      - name: Verify overlapping planting, entry, and settlement transactions
         run: |
+          python3 supabase/tests/concurrency/planting_race.py supabase_db_shared-garden-clock
           python3 supabase/tests/concurrency/entries_race.py supabase_db_shared-garden-clock
+          python3 supabase/tests/concurrency/rollover_race.py supabase_db_shared-garden-clock
           npm run db:reset
           npm run db:test
       - name: Stop local Supabase
