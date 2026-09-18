@@ -52,7 +52,7 @@ def signed(member):
         f"'{{\"sub\":\"{uid}\",\"role\":\"authenticated\",\"amr\":[{{\"method\":\"oauth\"}}]}}',true);\n"
 
 
-def overlap(first, second, second_fails=False):
+def overlap(first, second, expected_error=None):
     a = session("planting_race_a", "begin;\n" + signed(1) + first + ";\nselect pg_sleep(2);\ncommit;\n")
     b = None
     try:
@@ -62,8 +62,8 @@ def overlap(first, second, second_fails=False):
         out_a, err_a = a.communicate(timeout=10)
         out_b, err_b = b.communicate(timeout=10)
         assert a.returncode == 0, (out_a, err_a)
-        if second_fails:
-            assert b.returncode != 0 and "Unfinished flower limit reached" in err_b, (out_b, err_b)
+        if expected_error:
+            assert b.returncode != 0 and expected_error in err_b, (out_b, err_b)
         else:
             assert b.returncode == 0, (out_b, err_b)
     finally:
@@ -92,13 +92,46 @@ try:
     print("PASS: overlapping initializations wait and produce one garden, one Cactus, spot 1")
 
     sql("begin;\n" + signed(2) + "select public.plant_flower('rose'); select public.plant_flower('rose'); commit;")
-    overlap("select public.plant_flower('rose')", "select public.plant_flower('rose')", second_fails=True)
+    overlap("select public.plant_flower('rose')", "select public.plant_flower('rose')",
+            expected_error="Unfinished flower limit reached")
     assert sql("select (select count(*) from public.flowers where type_key='rose')||'|'||(select count(*) from public.flowers)||'|'||(select next_spot from public.garden);") == "3|4|5"
     print("PASS: overlapping final-slot attempts admit one Rose and reject the other without consuming a spot")
 
     overlap("select public.plant_flower('tulip')", "select public.plant_flower('marigold')")
     assert sql("select string_agg(spot::text,',' order by spot) from public.flowers;") == "1,2,3,4,5,6"
     print("PASS: overlapping different-type plantings receive distinct increasing spots")
+
+    # Free two Rose type slots through the trusted evaluator while retaining
+    # those plants/spots. Both contenders below have legal unfinished capacity.
+    sql("begin;\n" + signed(1) + "reset role; select private.record_first_bloom(id,planted_day) "
+        "from public.flowers where spot in (2,3); commit;")
+    overlap("select public.plant_flower_at('rose',12)",
+            "select public.plant_flower_at('marigold',12)",
+            expected_error="Planting spot is occupied")
+    assert sql("select (select count(*) from public.flowers)||'|'||next_spot||'|'||spot_capacity from public.garden;") == "7|7|12"
+    assert sql("select count(*) from public.flowers where spot=12;") == "1"
+    print("PASS: same selected-spot contenders wait; exactly one succeeds without consuming extra capacity")
+
+    overlap("select public.plant_flower_at('rose',8)",
+            "select public.plant_flower_at('marigold',9)")
+    assert sql("select string_agg(spot::text,',' order by spot) from public.flowers;") == "1,2,3,4,5,6,8,9,12"
+    assert sql("select next_spot||'|'||spot_capacity from public.garden;") == "7|12"
+    assert sql("select (select planted_at from public.flowers where spot=9) > "
+               "(select planted_at from public.flowers where spot=8) + interval '1 second';") == "t"
+    print("PASS: different selected spots both succeed; waiting planter timestamps after the garden lock")
+
+    # Administrative revocation occurs in the lock holder's uncommitted
+    # transaction. The waiting request initially sees live membership, then must
+    # recheck it after the shared initialization/allocation lock is released.
+    revoke_waiter = ("select public.initialize_garden(); reset role; "
+                     "update private.garden_members set revoked_at=clock_timestamp() where member_id=2")
+    overlap(revoke_waiter, "select public.plant_flower_at('rose',7)",
+            expected_error="Garden access denied")
+    sql("update private.garden_members set revoked_at=null where member_id=2;")
+    overlap(revoke_waiter, "select public.initialize_garden()",
+            expected_error="Garden access denied")
+    assert sql("select (select count(*) from public.flowers)||'|'||next_spot||'|'||spot_capacity from public.garden;") == "9|7|12"
+    print("PASS: initialization and selected allocation share the lock and recheck queued membership")
 finally:
     sql("""
     begin;
