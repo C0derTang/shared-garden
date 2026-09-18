@@ -1,4 +1,4 @@
-# Local database and Auth foundation; no hosted project is linked.
+# Local services only; no hosted project is linked.
 project_id = "shared-garden-clock"
 
 [api]
@@ -28,7 +28,8 @@ enabled = false
 enabled = true
 
 [storage]
-enabled = false
+enabled = true
+file_size_limit = "32MiB"
 
 [realtime]
 enabled = false
