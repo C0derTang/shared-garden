@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { SignInButton } from "@/components/auth/sign-in-button";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { PixelIcon } from "@/components/ui/pixel-icon";
 import type { PublicConfigResult } from "@/lib/config/public";
@@ -34,6 +35,7 @@ export function PublicLanding({
               A quiet place for two people to grow something lovely, one small
               moment at a time.
             </p>
+            {configurationStatus === "ready" && <SignInButton />}
             <BottomSheet
               trigger={
                 <button className="button button-primary">
@@ -117,7 +119,7 @@ export function PublicLanding({
             <strong>Our garden is taking root.</strong>
             <span>
               {configurationStatus === "ready"
-                ? "Private sign-in is coming soon."
+                ? "Private access for the two approved Google accounts."
                 : "Garden setup is incomplete. Private access is not available yet."}
             </span>
           </p>

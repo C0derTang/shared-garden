@@ -540,3 +540,42 @@ p {
     scroll-behavior: auto !important;
   }
 }
+
+.auth-form {
+  margin-bottom: 1rem;
+}
+.auth-card {
+  max-width: 40rem;
+  padding: 1.5rem;
+  background: var(--paper-light);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.auth-card h1 {
+  font: 500 clamp(2rem, 8vw, 2.8rem)/1.15 var(--font-display);
+  letter-spacing: -0.035em;
+  margin: 1.5rem 0 1rem;
+}
+.auth-card p + p {
+  margin-top: 1rem;
+}
+.auth-page {
+  margin: 8vh auto;
+  width: calc(100% - 2rem);
+}
+.auth-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-top: 1.8rem;
+}
+.auth-actions .auth-form {
+  margin: 0;
+}
+.member-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
