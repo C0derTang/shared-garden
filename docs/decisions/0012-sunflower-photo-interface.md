@@ -11,7 +11,7 @@ physical camera behavior vary by OS/browser; the app does not rename unsupported
 bytes or promise a native camera on desktop. Browser preview must load before
 Share photo becomes available. Preview, removal and replacement remain explicit.
 
-Limits match the server: 12 MiB, 24 million pixels, each side at most 12,000 pixels,
+Limits match the server: 12 MiB, 25 million pixels, each side at most 12,000 pixels,
 JPEG/PNG/static WebP. Browser type/byte checks are only early feedback; actual
 server decoding validates format, dimensions and animation. The original File
 is uploaded unchanged directly to private staging with the authenticated browser
@@ -49,7 +49,19 @@ Best-effort bounded cleanup runs when the photo form opens and after a save.
 The existing server cleanup only removes expired unreferenced staging/final
 orphans and never referenced current/history attachments. A failed cleanup is
 retried on a later visit; it does not prevent care or claim complete cleanup.
-No storage policy, production seed, membership configuration or migration changes.
+No storage policy, production seed or membership configuration changes.
+
+The additive `20260918075000_nominal_phone_photo_pixels.sql` migration raises
+only the trusted registry pixel ceiling to 25,000,000, matching native decoding.
+This supersedes only the 24,000,000 ceiling in decision 0025: the standard nominal
+24MP phone image is 5712×4284 (24,470,208 pixels), which the previous exact cap
+rejected. The 12 MiB input, 32 MiB output, 12,000-pixel side limits, metadata
+stripping and static formats remain unchanged. The existing pixel constraint
+name is retained; the later audio migration modifies the separate ready-metadata
+constraint and audio rows have null image dimensions. No photo is resized.
+Native and real HTTP tests verify upright 4284×5712 after EXIF orientation;
+SQL tests accept nominal 24MP and exactly 25,000,000 pixels and reject larger
+images. A 5001×5000 native image is rejected before attachment.
 
 ## Verification boundaries
 

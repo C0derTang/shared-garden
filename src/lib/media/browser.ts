@@ -25,7 +25,7 @@ function mediaMessage(code: string) {
       "photo_size_mismatch",
     ].includes(code)
   )
-    return "This photo could not be accepted. Choose a valid JPEG, PNG or static WebP up to 12 MiB and 24 million pixels, with each side at most 12,000 pixels. Export another photo without cropping or shrinking it.";
+    return "This photo could not be accepted. Choose a valid JPEG, PNG or static WebP up to 12 MiB and 25 million pixels, with each side at most 12,000 pixels. Export another photo without cropping or shrinking it.";
   if (code === "media_processing")
     return "Your photo may still be processing. Check today's entries and wait two minutes before retrying this photo.";
   if (code === "upload_missing")

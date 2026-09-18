@@ -165,7 +165,7 @@ export function PhotoForm({
     >
       <h3>{editing ? "Replace your photo" : "A photo from your day"}</h3>
       <p>
-        JPEG, PNG or static WebP · up to 12 MiB and 24 million pixels · each
+        JPEG, PNG or static WebP · up to 12 MiB and 25 million pixels · each
         side up to 12,000 pixels. Your whole photo stays uncropped. Location
         metadata is removed before sharing.
       </p>

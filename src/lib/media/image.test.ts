@@ -172,3 +172,19 @@ it("does not mistake animation words inside static PNG metadata for chunks", asy
   expect([result.width, result.height]).toEqual([20, 10]);
   expect((await sharp(result.bytes).metadata()).exif).toBeUndefined();
 });
+
+it("preserves native nominal 24MP phone dimensions below the 25M ceiling", async () => {
+  const source = await sharp({
+    create: { width: 5712, height: 4284, channels: 3, background: "#987654" },
+  })
+    .jpeg()
+    .toBuffer();
+  const result = await sanitizePhoto(source, "image/jpeg");
+  const metadata = await sharp(result.bytes).metadata();
+  expect([
+    result.width,
+    result.height,
+    metadata.width,
+    metadata.height,
+  ]).toEqual([5712, 4284, 5712, 4284]);
+});

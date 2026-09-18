@@ -258,3 +258,13 @@ supabase_db_shared-garden-audio50 --audio` runs the same observed lock races for
 Bluebell. `node scripts/verify-audio-runtime.mjs` must run after a Linux amd64
 production build; it asserts traced executable binaries and a complete server
 size upper bound. See [audio verification](audio-verification.md) for evidence.
+
+## Sunflower phone pixel limit
+
+[Decision 0012](../decisions/0012-sunflower-photo-interface.md) raises the photo
+pixel ceiling to 25,000,000 via an additive migration, accepting nominal 24MP
+5712×4284 phone photos without resizing. All other photo constraints remain.
+The actual media harness accepts explicit `LOCAL_MEDIA_MODE=sunflower28` with
+either photo or audio status-file mode on the dedicated 57821 API / 57829 web
+ports and `shared-garden-sunflower28` container. Photo mode exercises native phone
+dimensions, orientation, metadata stripping and over-25M rejection through HTTP.
