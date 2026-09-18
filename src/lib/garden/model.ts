@@ -45,6 +45,8 @@ export type Plant = ClockState & {
     growth_units: number;
     first_bloom_at: string | null;
     first_bloom_day: string | null;
+    fulfilled_at: string | null;
+    fulfilled_by: 1 | 2 | null;
   };
   entries: Entry[];
   daisy_question: {
@@ -82,6 +84,7 @@ export type GardenResult = {
 export type GardenCommand =
   | { kind: "plant"; type: FlowerType; spot: number; wish?: string }
   | { kind: "submit"; flowerId: string; payload: Record<string, string> }
+  | { kind: "fulfillDandelion"; flowerId: string }
   | { kind: "edit"; entryId: number; payload: Record<string, string> };
 
 const types = [
@@ -198,6 +201,12 @@ export function parseGardenState(value: unknown): GardenState {
         (f.growth_units as number) <= (c.growth_target as number) &&
         (f.first_bloom_at === null || timestamp(f.first_bloom_at)) &&
         (f.shared_wish === null || typeof f.shared_wish === "string"),
+    );
+    assert(
+      (f.fulfilled_at === null && f.fulfilled_by === null) ||
+      (f.type_key === "dandelion" && f.first_bloom_at !== null &&
+        timestamp(f.fulfilled_at) && [1, 2].includes(f.fulfilled_by as number) &&
+        Date.parse(f.fulfilled_at as string) >= Date.parse(f.first_bloom_at as string)),
     );
     spots.add(f.spot);
     ids.add(f.id);

@@ -91,3 +91,17 @@ it("preserves the action response on an unavailable membership service without a
   });
   expect(rpc).not.toHaveBeenCalled();
 });
+it("fulfills using only the instance identity and rereads both accepted and rejected results", async () => {
+  for (const error of [null, { code: "22023", message: "PRIVATE_DETAIL" }]) {
+    rpc.mockReset()
+      .mockResolvedValueOnce({ data: {}, error })
+      .mockResolvedValueOnce({ data: gardenFixture(), error: null });
+    const result = await mutateGarden({ kind: "fulfillDandelion", flowerId: "wish" });
+    expect(rpc.mock.calls).toEqual([
+      ["fulfill_dandelion", { p_flower_id: "wish" }],
+      ["current_garden_state"],
+    ]);
+    expect(result.saved).toBe(error === null);
+    expect(JSON.stringify(result)).not.toContain("PRIVATE_DETAIL");
+  }
+});
