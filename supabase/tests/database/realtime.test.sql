@@ -1,8 +1,8 @@
 begin;
 select plan(6);
-select is((select array_agg(schemaname || '.' || tablename order by tablename)::text from pg_publication_tables where pubname = 'supabase_realtime'), '{public.achievement_awards,public.achievement_progress,public.flower_entries,public.flower_unlocks,public.flowers,public.peony_acceptances,public.peony_contributions,public.peony_plans}', 'only minimal garden state is published');
+select is((select array_agg(schemaname || '.' || tablename order by tablename)::text from pg_publication_tables where pubname = 'supabase_realtime'), '{public.achievement_awards,public.achievement_progress,public.flower_entries,public.flower_unlocks,public.flowers,public.peony_acceptances,public.peony_contributions,public.peony_plans,public.private_interaction_signals}', 'only minimal garden state is published');
 select ok((select pubinsert and pubupdate and not pubdelete and not pubtruncate from pg_publication where pubname = 'supabase_realtime'), 'publication excludes unprotected deletes and truncates');
-select ok((select bool_and(c.relrowsecurity) from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname in ('achievement_awards','achievement_progress','flowers','flower_entries','flower_unlocks','peony_contributions','peony_plans','peony_acceptances')), 'all published tables retain RLS');
+select ok((select bool_and(c.relrowsecurity) from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname in ('achievement_awards','achievement_progress','flowers','flower_entries','flower_unlocks','peony_contributions','peony_plans','peony_acceptances','private_interaction_signals')), 'all published tables retain RLS');
 select ok(not has_table_privilege('anon','public.flower_entries','select'), 'anonymous users cannot select entries');
 select ok(not has_table_privilege('authenticated','public.flower_entries','update'), 'subscribers cannot directly edit entries');
 set local role authenticated;

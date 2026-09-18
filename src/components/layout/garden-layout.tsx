@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { PrivateInteraction } from "@/components/private-interaction/private-interaction";
 import {
   GardenNavigation,
   type GardenDestination,
@@ -18,6 +19,7 @@ export function GardenLayout({
     <div className="garden-layout">
       <header className="garden-header">{header}</header>
       <main id="main-content" className="garden-main">
+        <PrivateInteraction ownerControls={current === "settings"} />
         {children}
       </main>
       <GardenNavigation current={current} />
