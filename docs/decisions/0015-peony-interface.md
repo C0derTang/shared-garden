@@ -29,7 +29,7 @@ The scheduling control takes Pacific wall time and round-trips candidate offsets
 through `America/Los_Angeles`. Nonexistent spring hours and invalid dates are
 unsavable. A repeated autumn hour requires selecting its labeled PDT or PST
 occurrence. Displayed agreed time includes full date, seconds and the Pacific
-zone. Unchanged edits retain an existing instant's seconds. Plans may be
+zone. Unchanged time fields retain the original serialized instant, including all six fractional-second digits, even during activity-only edits. JavaScript Date is used only for display and validation; it does not reserialize existing plan instants. Plans may be
 retrospective; the UI imposes no future-date or in-person restriction.
 
 Drafts survive errors and authoritative refresh while the sheet remains open.

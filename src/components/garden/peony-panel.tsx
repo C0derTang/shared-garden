@@ -365,9 +365,8 @@ export function PeonyPanel({
                               local: state.plan
                                 ? pacificLocal(state.plan.starts_at)
                                 : "",
-                              instant: state.plan?.starts_at
-                                ? new Date(state.plan.starts_at).toISOString()
-                                : "",
+                              // Keep PostgreSQL microseconds; Date serialization loses them.
+                              instant: state.plan?.starts_at ?? "",
                             });
                             setSaved(false);
                           }}

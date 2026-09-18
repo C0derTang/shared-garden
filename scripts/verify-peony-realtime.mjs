@@ -151,7 +151,7 @@ try {
     ...args,
     p_expected_version: 0,
     p_activity: "Synthetic remote movie",
-    p_starts_at: "2030-09-20T19:00:00-07:00",
+    p_starts_at: "2030-09-20T02:00:42.123456Z",
   });
   await rpc(clients[0], "accept_peony_plan", { ...args, p_plan_version: 1 });
   await until(
@@ -161,11 +161,23 @@ try {
       ),
     "Acceptance invalidation missing",
   );
+  const beforeNoop = await rpc(clients[0], "current_peony_state", args);
+  const afterNoop = await rpc(clients[0], "set_peony_plan", {
+    ...args,
+    p_expected_version: beforeNoop.plan.version,
+    p_activity: beforeNoop.plan.activity,
+    p_starts_at: beforeNoop.plan.starts_at,
+  });
+  assert.match(beforeNoop.plan.starts_at, /42\.123456/);
+  assert.equal(afterNoop.plan.version, beforeNoop.plan.version);
+  assert.equal(afterNoop.plan.starts_at, beforeNoop.plan.starts_at);
+  assert.deepEqual(afterNoop.plan.acceptances, beforeNoop.plan.acceptances);
+  assert.equal(afterNoop.plan.updated_at, beforeNoop.plan.updated_at);
   await rpc(clients[1], "set_peony_plan", {
     ...args,
     p_expected_version: 1,
     p_activity: "Synthetic remote game",
-    p_starts_at: "2030-09-20T19:00:00-07:00",
+    p_starts_at: beforeNoop.plan.starts_at,
   });
   await until(
     () =>
@@ -174,6 +186,7 @@ try {
   );
   partner = await rpc(clients[0], "current_peony_state", args);
   assert.equal(partner.plan.acceptances.length, 0);
+  assert.equal(partner.plan.starts_at, beforeNoop.plan.starts_at);
   assert.ok(
     (await clients[0].rpc("accept_peony_plan", { ...args, p_plan_version: 1 }))
       .error,

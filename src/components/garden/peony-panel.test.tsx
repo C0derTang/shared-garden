@@ -132,32 +132,40 @@ it("preserves personal text after a rejected save", async () => {
   );
 });
 
-it("preserves an existing plan instant down to its seconds on a no-op edit", async () => {
-  const s = state();
-  s.plan!.starts_at = "2030-09-20T02:00:42Z";
-  read.mockResolvedValue({ state: s, error: null });
-  write.mockResolvedValue({ state: s, saved: true, error: null });
-  const user = userEvent.setup();
-  render(
-    <PeonyPanel
-      flowerId="flower"
-      refreshKey="a"
-      now={Date.parse(s.server_now)}
-      busy={false}
-      mutate={mutate}
-    />,
-  );
-  await user.click(
-    await screen.findByRole("button", { name: "Edit shared plan" }),
-  );
-  await user.click(screen.getByRole("button", { name: "Save shared plan" }));
-  expect(write).toHaveBeenCalledWith("flower", {
-    kind: "plan",
-    version: 1,
-    activity: s.plan!.activity,
-    startsAt: "2030-09-20T02:00:42.000Z",
-  });
-});
+it.each([false, true])(
+  "preserves all six fractional digits when activity changes: %s",
+  async (changeActivity) => {
+    const s = state();
+    s.plan!.starts_at = "2030-09-20T02:00:42.123456+00:00";
+    read.mockResolvedValue({ state: s, error: null });
+    write.mockResolvedValue({ state: s, saved: true, error: null });
+    const user = userEvent.setup();
+    render(
+      <PeonyPanel
+        flowerId="flower"
+        refreshKey="a"
+        now={Date.parse(s.server_now)}
+        busy={false}
+        mutate={mutate}
+      />,
+    );
+    await user.click(
+      await screen.findByRole("button", { name: "Edit shared plan" }),
+    );
+    if (changeActivity)
+      await user.type(
+        screen.getByRole("textbox", { name: "Shared activity" }),
+        " together",
+      );
+    await user.click(screen.getByRole("button", { name: "Save shared plan" }));
+    expect(write).toHaveBeenCalledWith("flower", {
+      kind: "plan",
+      version: 1,
+      activity: s.plan!.activity + (changeActivity ? " together" : ""),
+      startsAt: "2030-09-20T02:00:42.123456+00:00",
+    });
+  },
+);
 it("keeps an expired edit draft copyable but disables saving", async () => {
   const s = state();
   s.stage = 0;
