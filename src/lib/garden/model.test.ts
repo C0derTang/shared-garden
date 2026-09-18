@@ -59,3 +59,16 @@ it("allows only the author's same-day live edit snapshot through its effective d
     ),
   ).toBe(false);
 });
+it("accepts fulfillment only as a complete authoritative bloomed Dandelion fact", () => {
+  const state = gardenFixture();
+  const flower = state.plants[0].flower;
+  flower.fulfilled_at = state.server_now;
+  flower.fulfilled_by = 2;
+  expect(() => parseGardenState(state)).toThrow();
+  flower.type_key = "dandelion";
+  expect(() => parseGardenState(state)).toThrow();
+  flower.first_bloom_at = state.server_now;
+  expect(parseGardenState(state)).toBe(state);
+  flower.fulfilled_by = null;
+  expect(() => parseGardenState(state)).toThrow();
+});
