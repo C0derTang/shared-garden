@@ -50,7 +50,7 @@ it.skipIf(!statusPath)(
       ).trim();
     expect(
       sql(
-        "select (select count(*) from private.garden_members)+(select count(*) from auth.users)+(select count(*) from public.garden)+(select count(*) from storage.objects);",
+        "select (select count(*) from private.garden_members)+(select count(*) from auth.users)+(select count(*) from public.garden)+(select count(*) from storage.objects)+(select count(*) from public.achievement_awards)+(select count(*) from public.achievement_progress);",
       ),
     ).toBe("0");
     const origin = sunflower
@@ -663,12 +663,12 @@ it.skipIf(!statusPath)(
           ).toBeNull();
       }
       sql(
-        `begin; delete from private.media_uploads; delete from public.flower_entries; delete from public.daisy_assignments; delete from public.flower_day_facts; delete from public.before_noon_snapshots; delete from public.peony_activity; delete from public.garden_days; delete from public.flowers; delete from public.flower_unlocks; delete from public.garden; delete from private.garden_members; delete from auth.users where id in (${ids.map((id) => `'${id}'`).join(",")}); commit;`,
+        `begin; delete from public.achievement_awards; delete from public.achievement_progress; delete from private.media_uploads; delete from public.flower_entries; delete from public.daisy_assignments; delete from public.flower_day_facts; delete from public.before_noon_snapshots; delete from public.peony_activity; delete from public.garden_days; delete from public.flowers; delete from public.flower_unlocks; delete from public.garden; delete from private.garden_members; delete from auth.users where id in (${ids.map((id) => `'${id}'`).join(",")}); commit;`,
       );
     }
     expect(
       sql(
-        "select (select count(*) from private.garden_members)+(select count(*) from auth.users)+(select count(*) from public.garden)+(select count(*) from storage.objects);",
+        "select (select count(*) from private.garden_members)+(select count(*) from auth.users)+(select count(*) from public.garden)+(select count(*) from storage.objects)+(select count(*) from public.achievement_awards)+(select count(*) from public.achievement_progress);",
       ),
     ).toBe("0");
   },
