@@ -75,7 +75,7 @@ function GardenSpot({
             className={plant ? styles.flowerButton : styles.emptyButton}
             aria-label={
               plant
-                ? `${item!.display_name}, spot ${spot}, ${plant.flower.fulfilled_at ? "fulfilled wish" : bloom ? "permanent bloom" : `${plant.flower.growth_units} of ${item!.growth_target} growth units`}, ${cared} of 2 cared today`
+                ? `${item!.display_name}, spot ${spot}, ${plant.flower.fulfilled_at ? "fulfilled wish" : bloom ? "permanent bloom" : `${plant.flower.growth_units} of ${item!.growth_target} ${plant.flower.type_key === "peony" ? "milestones" : "growth units"}`}${plant.flower.type_key === "peony" ? "" : `, ${cared} of 2 cared today`}`
                 : `Plant in spot ${spot}`
             }
           >
@@ -94,24 +94,25 @@ function GardenSpot({
                     ? "In bloom"
                     : `${plant.flower.growth_units} / ${item!.growth_target}`}
                 </span>
-                {(!bloom || plant.flower.type_key === "cactus") && (
-                  <span className={styles.miniMarkers} aria-hidden="true">
-                    <i
-                      data-cared={
-                        state.member_id === 1
-                          ? plant.member1_submitted
-                          : plant.member2_submitted
-                      }
-                    />
-                    <i
-                      data-cared={
-                        state.member_id === 1
-                          ? plant.member2_submitted
-                          : plant.member1_submitted
-                      }
-                    />
-                  </span>
-                )}
+                {plant.flower.type_key !== "peony" &&
+                  (!bloom || plant.flower.type_key === "cactus") && (
+                    <span className={styles.miniMarkers} aria-hidden="true">
+                      <i
+                        data-cared={
+                          state.member_id === 1
+                            ? plant.member1_submitted
+                            : plant.member2_submitted
+                        }
+                      />
+                      <i
+                        data-cared={
+                          state.member_id === 1
+                            ? plant.member2_submitted
+                            : plant.member1_submitted
+                        }
+                      />
+                    </span>
+                  )}
               </>
             ) : (
               <>

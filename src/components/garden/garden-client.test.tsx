@@ -1,3 +1,4 @@
+vi.mock("@/lib/peony/actions", () => ({ readPeony: vi.fn(), mutatePeony: vi.fn() }));
 import {
   act,
   fireEvent,
@@ -429,4 +430,32 @@ it("keeps a queued care draft when an in-flight refresh changes the day, then sa
     flowerId: state.plants[0].flower.id,
     payload: { text: "Keep the pending draft" },
   });
+});
+it("keeps Peony milestone labels and its separate panel alongside fulfilled Dandelions", async () => {
+  const state = gardenFixture();
+  const peony = state.plants[0];
+  peony.flower.type_key = "peony";
+  state.plants.push({
+    ...peony,
+    flower: {
+      ...peony.flower,
+      id: "00000000-0000-4000-8000-000000000002",
+      type_key: "dandelion",
+      spot: 2,
+      shared_wish: "See the sunrise",
+      growth_units: 5,
+      first_bloom_at: state.server_now,
+      fulfilled_at: state.server_now,
+      fulfilled_by: 2,
+    },
+  });
+  refreshGarden.mockResolvedValue({ state, error: null });
+  render(<GardenClient initial={{ state, error: null }} />);
+  const button = screen.getByRole("button", { name: "Peony, spot 1, 0 of 4 milestones" });
+  expect(screen.getByRole("button", { name: /Dandelion, spot 2, fulfilled wish/ })).toBeInTheDocument();
+  fireEvent.click(button);
+  const sheet = screen.getByRole("dialog");
+  expect(within(sheet).queryByText(/not yet today/)).not.toBeInTheDocument();
+  expect(within(sheet).queryByRole("region", { name: "Today's entries" })).not.toBeInTheDocument();
+  expect(within(sheet).queryByRole("region", { name: "Our shared wish" })).not.toBeInTheDocument();
 });

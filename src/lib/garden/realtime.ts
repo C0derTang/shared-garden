@@ -18,7 +18,14 @@ export function subscribeGarden(
   const channel = client.channel("shared-garden-state", {
     config: { postgres_changes_options: { wait: true, timeout: 15000 } },
   });
-  for (const table of ["flowers", "flower_entries", "flower_unlocks"]) {
+  for (const table of [
+    "flowers",
+    "flower_entries",
+    "flower_unlocks",
+    "peony_contributions",
+    "peony_plans",
+    "peony_acceptances",
+  ]) {
     for (const event of ["INSERT", "UPDATE"] as const) {
       channel.on(
         "postgres_changes",

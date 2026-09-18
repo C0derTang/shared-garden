@@ -37,3 +37,29 @@ with the shipped production binaries. An initial build rejected an external
 node_modules symlink; a local dependency copy resolved it without source changes.
 No production migration, real Google OAuth exchange, deployment or external
 account changes are claimed. Independent exact-head review remains required.
+
+## Peony integration candidate
+
+Merged reviewed main `d07697999ae13ea9ef6b2c65132571669530ba3c` before independent
+review of this feature. Resolved shared sheet/bed conflicts by keeping Peony's
+separate milestone panel, milestone labels and absent daily-care markers, together
+with Dandelion's fulfillment component, permanent labels and static artwork.
+The merged external-mutation hook remains intact; fulfillment still uses an
+ordinary garden command.
+
+Lint/typecheck passed. Full Linux suite passed 244 assertions plus 27 content
+tests; macOS/Linux production builds and the runtime trace audit passed (new
+entire-server/runtime upper bound 56,690,358 bytes). A subsequently added
+coexistence regression passed with all 13 garden-client tests; the combined
+client/hook/Peony/Dandelion suite passed 29 tests. SQL passed 1041 assertions,
+Dandelion/Peony observed-lock races and Auth-role SQL passed again. A temporary
+local-port adaptation of the merged Peony Realtime harness passed partner
+plan/contribution delivery, stale-version rejection, live revocation/RLS and
+no-read-loop checks. No production verifier was changed for local ports.
+
+An additional browser smoke attempt could not start: the new browser session
+reported no available browser and native access reported a locked Mac. No lock
+was bypassed. Earlier real Dandelion browser evidence above predates this merge;
+combined conflict resolution is covered by the new coexistence regression and
+full tests, not claimed as a repeated manual flow. The attempted synthetic
+fixtures were reset and temporary helper/server processes stopped.
