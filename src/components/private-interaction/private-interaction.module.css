@@ -4,7 +4,6 @@
 .container button, .choices button { min-height: 44px; padding: .7rem 1rem; font: inherit; cursor: pointer; white-space: normal; overflow-wrap: anywhere; }
 .container button:disabled, .choices button:disabled { cursor: default; opacity: .65; }
 .controlButtons { display: flex; gap: .7rem; flex-wrap: wrap; }
-.hiddenTrigger { display: none; }
 .moment { overflow-wrap: anywhere; }
 .message { white-space: pre-wrap; line-height: 1.65; }
 .bloom { display: flex; flex-wrap: wrap; justify-content: center; gap: .35rem; padding: .75rem .4rem; background: #fff1de; border: 2px dashed #b5bd82; animation: bloom-in 700ms ease-out both; }

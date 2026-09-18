@@ -133,14 +133,22 @@ export function PrivateInteraction({ ownerControls }: { ownerControls: boolean }
         <p>{detail.status === "answered" ? "Answered. This moment will not repeat." : detail.armed ? "Armed. Delivery waits for all 26 ordinary achievements." : "Disarmed. Delivery and answering are paused."}</p>
         {detail.status === "pending" && <p>A pending moment is saved. Pausing preserves it.</p>}
         <div className={styles.controlButtons}>
-          <button type="button" disabled={busy} onClick={() => void showPreview()}>Preview privately</button>
+          <BottomSheet
+            open={previewOpen}
+            onOpenChange={(next) => {
+              if (next) void showPreview();
+              else { setPreviewOpen(false); setPreview(null); }
+            }}
+            title="Preview — nothing will be sent"
+            description={preview?.title ?? "Your private garden moment preview."}
+            trigger={<button type="button" disabled={busy}>Preview privately</button>}
+          >
+            {preview && <Moment content={preview} preview busy={false} save={() => {}} />}
+          </BottomSheet>
           <button type="button" disabled={busy || detail.status === "answered"} onClick={() => void mutate(() => controlPrivateInteraction("arm", !detail.armed))}>{detail.armed ? "Disarm delivery" : "Arm delivery"}</button>
         </div>
         {detail.answer && !detail.unread && <p>Saved answer: {detail.answer.label}</p>}
       </>}
     </div>}
-    {preview && <BottomSheet open={previewOpen} onOpenChange={(next) => { setPreviewOpen(next); if (!next) setPreview(null); }} title="Preview — nothing will be sent" description={preview.title} trigger={<button className={styles.hiddenTrigger} type="button">Open preview</button>}>
-      <Moment content={preview} preview busy={false} save={() => {}} />
-    </BottomSheet>}
   </section>;
 }
