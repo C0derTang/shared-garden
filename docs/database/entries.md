@@ -101,3 +101,11 @@ The generator is for this initial migration's authored bank import. Once a
 migration has been applied to a persistent environment, update catalog content
 through a new reviewed migration and retain historical assignment snapshots;
 never rewrite applied migration history.
+
+## Settlement integration
+
+[Decision 0010](../decisions/0010-garden-rollover.md) and the
+[rollover contract](rollover.md) add chronological settlement to every entry RPC
+before eligibility checks, using one post-lock operation instant. Entry creation
+itself still grants no current-day growth. A bloomed Daisy state no longer
+requests a new question; the explicit question RPC retains its request behavior.

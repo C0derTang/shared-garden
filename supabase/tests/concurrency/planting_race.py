@@ -74,7 +74,7 @@ def overlap(first, second, expected_error=None):
 
 
 # The harness must never bootstrap, truncate, or disturb an existing garden.
-assert sql("select (select count(*) from private.garden_members) + (select count(*) from auth.users) + (select count(*) from public.garden) + (select count(*) from public.flowers) + (select count(*) from public.flower_unlocks);") == "0", "Refusing a configured database; use a fresh dedicated local project"
+assert sql("select (select count(*) from public.flower_day_facts) + (select count(*) from public.before_noon_snapshots) + (select count(*) from public.peony_activity) + (select count(*) from public.garden_days) + (select count(*) from private.garden_members) + (select count(*) from auth.users) + (select count(*) from public.garden) + (select count(*) from public.flowers) + (select count(*) from public.flower_unlocks);") == "0", "Refusing a configured database; use a fresh dedicated local project"
 try:
     sql("""
     begin;
@@ -135,6 +135,10 @@ try:
 finally:
     sql("""
     begin;
+    delete from public.flower_day_facts;
+    delete from public.before_noon_snapshots;
+    delete from public.peony_activity;
+    delete from public.garden_days;
     delete from public.flowers;
     delete from public.flower_unlocks;
     delete from public.garden;
@@ -142,5 +146,5 @@ finally:
     delete from auth.users where id in ('11111111-1111-4111-8111-111111111111','22222222-2222-4222-8222-222222222222');
     commit;
     """)
-assert sql("select (select count(*) from private.garden_members) + (select count(*) from auth.users) + (select count(*) from public.garden) + (select count(*) from public.flowers) + (select count(*) from public.flower_unlocks);") == "0"
+assert sql("select (select count(*) from public.flower_day_facts) + (select count(*) from public.before_noon_snapshots) + (select count(*) from public.peony_activity) + (select count(*) from public.garden_days) + (select count(*) from private.garden_members) + (select count(*) from auth.users) + (select count(*) from public.garden) + (select count(*) from public.flowers) + (select count(*) from public.flower_unlocks);") == "0"
 print("PASS: synthetic identity and garden fixtures cleaned up")

@@ -74,7 +74,7 @@ def overlap(first, second, error=None, second_member=2):
 
 
 # Refuse existing state: fixtures are never added to a real/configured garden.
-empty = "select (select count(*) from private.garden_members) + (select count(*) from auth.users) + (select count(*) from public.garden) + (select count(*) from public.flower_entries) + (select count(*) from public.daisy_assignments);"
+empty = "select (select count(*) from public.flower_day_facts) + (select count(*) from public.before_noon_snapshots) + (select count(*) from public.peony_activity) + (select count(*) from public.garden_days) + (select count(*) from private.garden_members) + (select count(*) from auth.users) + (select count(*) from public.garden) + (select count(*) from public.flower_entries) + (select count(*) from public.daisy_assignments);"
 assert sql(empty) == "0", "Refusing a configured database; reset the dedicated local project"
 try:
     sql("""
@@ -119,6 +119,10 @@ finally:
     begin;
     delete from public.flower_entries;
     delete from public.daisy_assignments;
+    delete from public.flower_day_facts;
+    delete from public.before_noon_snapshots;
+    delete from public.peony_activity;
+    delete from public.garden_days;
     delete from public.flowers;
     delete from public.flower_unlocks;
     delete from public.garden;
