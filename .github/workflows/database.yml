@@ -27,8 +27,13 @@ jobs:
           npm run db:start > "$RUNNER_TEMP/supabase-start.log" 2>&1
       - name: Apply migrations to local database
         run: npm run db:reset
-      - name: Test garden clock
+      - name: Test clock and identity boundaries
         run: npm run db:test
+      - name: Verify platform Auth role lifecycle
+        run: |
+          docker exec -i supabase_db_shared-garden-clock \
+            psql -U supabase_admin -d postgres -v ON_ERROR_STOP=1 \
+            < docs/auth/verify-identity-auth-role.sql
       - name: Stop local Supabase
         if: always()
         run: npm run db:stop

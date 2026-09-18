@@ -1,4 +1,4 @@
-# Local database foundation only; no hosted project is linked.
+# Local database and Auth foundation; no hosted project is linked.
 project_id = "shared-garden-clock"
 
 [api]
@@ -25,7 +25,7 @@ enabled = false
 enabled = false
 
 [auth]
-enabled = false
+enabled = true
 
 [storage]
 enabled = false
@@ -38,3 +38,7 @@ enabled = false
 
 [analytics]
 enabled = false
+
+[auth.hook.before_user_created]
+enabled = true
+uri = "pg-functions://postgres/public/before_user_created"
