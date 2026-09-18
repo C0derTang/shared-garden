@@ -518,6 +518,7 @@ it("retains an observed Tulip history edit when the next garden day clears curre
         entries: [
           {
             ...original,
+            updated_at: "2026-09-18T17:00:01Z",
             payload: { ...original.payload, title: "Edited song" },
           },
         ],

@@ -92,17 +92,21 @@ export function FlowerSheet({
   const [editing, setEditing] = useState<Entry | null>(null);
   const [saved, setSaved] = useState(false);
   const [history, setHistory] = useState<Entry[] | null>(null);
-  // Reconcile both arriving history pages and current snapshots. Keep replacements
-  // in the cache so rollover cannot restore an earlier song after current entries clear.
-  if (item.type_key === "tulip" && history) {
-    const reconciled = history.map((stored) => {
-      const current = plant.entries.find((entry) => entry.id === stored.id);
-      return current && entryVersion(current) >= entryVersion(stored)
-        ? current
-        : stored;
-    });
-    if (reconciled.some((entry, index) => entry !== history[index]))
-      setHistory(reconciled);
+  const [songVersions, setSongVersions] = useState(
+    () => new Map<number, Entry>(),
+  );
+  // Remember current replacements even before the first history response arrives.
+  // The cache outlives current-day entries and only advances authoritative versions.
+  if (item.type_key === "tulip") {
+    let observed = songVersions;
+    for (const entry of [...plant.entries, ...(history ?? [])]) {
+      const previous = observed.get(entry.id);
+      if (!previous || entryVersion(entry) > entryVersion(previous)) {
+        if (observed === songVersions) observed = new Map(songVersions);
+        observed.set(entry.id, entry);
+      }
+    }
+    if (observed !== songVersions) setSongVersions(observed);
   }
 
   const [more, setMore] = useState(false);
@@ -326,24 +330,31 @@ export function FlowerSheet({
             <p className={styles.quiet}>
               Older entries are read-only. Newest first.
             </p>
-            {history?.map((entry) => (
-              <article className={styles.entry} key={entry.id}>
-                <div className={styles.entryMeta}>
-                  <strong>
-                    {entry.author_id === state.member_id
-                      ? "You"
-                      : "Your partner"}
-                  </strong>
-                  <time dateTime={entry.original_posted_at}>
-                    {entry.garden_day} · {pacificTime(entry.original_posted_at)}
-                  </time>
-                </div>
-                <EntryContent entry={entry} type={item.type_key} />
-                {entry.payload.question_id && (
-                  <small>Question {entry.payload.question_id}</small>
-                )}
-              </article>
-            ))}
+            {history?.map((stored) => {
+              const entry =
+                item.type_key === "tulip"
+                  ? (songVersions.get(stored.id) ?? stored)
+                  : stored;
+              return (
+                <article className={styles.entry} key={entry.id}>
+                  <div className={styles.entryMeta}>
+                    <strong>
+                      {entry.author_id === state.member_id
+                        ? "You"
+                        : "Your partner"}
+                    </strong>
+                    <time dateTime={entry.original_posted_at}>
+                      {entry.garden_day} ·{" "}
+                      {pacificTime(entry.original_posted_at)}
+                    </time>
+                  </div>
+                  <EntryContent entry={entry} type={item.type_key} />
+                  {entry.payload.question_id && (
+                    <small>Question {entry.payload.question_id}</small>
+                  )}
+                </article>
+              );
+            })}
             {history?.length === 0 && <p>No earlier entries yet.</p>}
             {historyError && (
               <p role="alert" className={styles.error}>

@@ -52,8 +52,11 @@ and any days needed to recover growth remain in history as well.
 The collection is read-only. Current author edits remain in the Tulip sheet,
 using the existing server-authorized 30-minute AND same-garden-day conditions.
 The backend retains original time and author, and rechecks the edit window.
-Loaded flower history remembers observed replacements even after rollover
-removes the corresponding current-day entry.
+The Tulip sheet retains newest observed versions independently of loaded history,
+including edits seen while the first page is still pending. Arriving history pages
+reconcile against those versions even after rollover clears current entries.
+Comparison preserves database microseconds, and an older current snapshot cannot
+replace newer history. The cache lasts only while the sheet is open.
 
 ## Bounded browsing and refresh
 
