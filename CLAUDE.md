@@ -9,9 +9,14 @@ This summary does not replace it.
   independent reviews, manage revisions, merge eligible PRs, and clean up.
 - Each issue states the user outcome, scope/exclusions, approved design
   references, dependencies, acceptance criteria, and appropriate verification.
-  Mark unresolved design choices blocked; ask the user and record the answer in
-  versioned decisions and affected issues. Builders escalate new choices.
-  Routine details consistent with approved design need no repeated approval.
+  [Decision 0004](docs/decisions/0004-finalized-launch-rules.md) authorizes
+  documented conservative design/implementation choices within its launch
+  boundaries during the unattended build. Record these choices in versioned
+  decisions and affected issues. Mark unresolved choices outside that discretion
+  blocked; builders escalate them to the orchestrator. Conflicts, required
+  credentials/account actions, unapproved costs, and material scope/privacy
+  changes still require escalation. Settled/routine details need no repeated
+  approval. This discretion does not waive any workflow gate below.
 - Give each issue a dedicated builder, issue-numbered branch, and isolated
   worktree based on the current default branch. Never edit the default branch or
   share a writable checkout. Parallel builds require independent issues;

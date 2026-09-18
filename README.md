@@ -24,9 +24,11 @@ npm run db:stop
 `db:reset` explicitly targets **only the local database** and discards its local
 data before applying migrations. `db:stop` stops this project's containers and
 preserves local database data. Do not connect these commands to a hosted project.
-No hosted Supabase project is linked or required; no account or hosted secret is
-needed. Avoid publishing local startup/status output, which includes generated
-development keys. Startup failures can be inspected in the ignored local log.
+These local development commands require no hosted project link, account, or
+hosted secret. Hosted CLI access status is recorded separately in
+[decision 0003](docs/decisions/0003-supabase-and-access.md). Avoid publishing local
+startup/status output, which includes generated development keys. Startup failures
+can be inspected in the ignored local log.
 
 The local project ID is `shared-garden-clock`. Ports are 56321 (local Data API),
 56322 (PostgreSQL), and 56320 (reserved for the shadow database). The database,
@@ -66,6 +68,6 @@ feature will define an authenticated API boundary.
 
 This foundation implements no frontend, hosted deployment, accounts/access flow,
 user-data models, growth processing, or reminders. Product scope and approved
-rules remain in the [decision records](docs/decisions/0001-approved-garden-rules.md)
-and [Supabase decision](docs/decisions/0003-supabase-and-access.md). Contributors
-must follow [AGENTS.md](AGENTS.md).
+rules are recorded in the
+[finalized launch rules](docs/decisions/0004-finalized-launch-rules.md) and their
+linked decision history. Contributors must follow [AGENTS.md](AGENTS.md).

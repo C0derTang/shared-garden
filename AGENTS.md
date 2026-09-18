@@ -24,16 +24,25 @@ dispatches builders and independent reviewers, manages corrections, merges
 eligible PRs, and cleans up merged branches and worktrees.
 
 Ask the user about product, interaction, visual, architectural, and other design
-choices before implementing them. Record the answer in a versioned decision
-document and the affected issues, with references between them. Keep the public
-record sanitized. When approved decisions conflict or are incomplete, ask for
-resolution instead of choosing silently. Routine implementation details that
-follow approved design do not require repeated approval.
+choices before implementing them unless the choice is already covered by approved
+discretion. [Decision 0004](docs/decisions/0004-finalized-launch-rules.md) records
+the user's authorization for documented conservative choices within its launch
+boundaries during the unattended build, including exact layouts, sprites, wording,
+schema/index/transaction design, validation limits, and error handling. Record
+approved answers and choices made under that discretion in versioned decisions
+and affected issues, with references between them. Keep the public record
+sanitized. Do not repeatedly ask about settled or routine details.
 
-Builders escalate newly discovered design choices to the orchestrator. Mark the
-affected work blocked in its issue, state the question and dependency, and wait
-for the user's answer before implementing that choice. Continue unrelated,
-approved work while an answer is pending.
+Conflicting approved rules, required credentials/account actions, unapproved
+costs, and material scope/privacy changes still require escalation. Ask for
+resolution of incomplete choices outside the approved discretion instead of
+choosing silently. This discretion does not waive any issue, isolated builder,
+verification, independent review, merge, or cleanup requirement below.
+
+Builders escalate newly discovered design choices outside the approved discretion
+to the orchestrator. Mark the affected work blocked in its issue, state the
+question and dependency, and wait for the user's answer before implementing that
+choice. Continue unrelated, approved work while an answer is pending.
 
 ## 1. Write an issue before assigning a builder
 
@@ -69,8 +78,9 @@ The builder must:
    and an issue-numbered branch from its current remote tip, such as
    `feat/12-garden-clock` or `docs/1-agent-workflow`. Record the base SHA. Never
    edit the default branch or share a writable checkout with another builder.
-3. Implement only the issue's scope. Escalate new design choices rather than
-   making them silently. Preserve unrelated user changes.
+3. Implement only the issue's scope. Document choices within approved discretion
+   and escalate new choices outside it rather than making them silently. Preserve
+   unrelated user changes.
 4. Perform the verification specified by the issue and any other checks needed
    for the change. Inspect the diff for unrelated changes and sensitive content.
    Record commands, outcomes, manual observations, and limitations honestly.
