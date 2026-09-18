@@ -4,7 +4,7 @@ import sharp from "sharp";
 
 export const PHOTO_INPUT_LIMIT = 12 * 1024 * 1024;
 export const PHOTO_OUTPUT_LIMIT = 32 * 1024 * 1024;
-export const PHOTO_PIXEL_LIMIT = 24_000_000;
+export const PHOTO_PIXEL_LIMIT = 25_000_000;
 export const PHOTO_SIDE_LIMIT = 12_000;
 export const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
 export type PhotoType = (typeof PHOTO_TYPES)[number];

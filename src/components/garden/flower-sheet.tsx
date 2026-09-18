@@ -9,9 +9,12 @@ import {
   type GardenState,
   type Plant,
 } from "@/lib/garden/model";
+import { compareTimestamps } from "@/lib/garden/timestamp";
 import { loadFlowerHistory } from "@/lib/garden/actions";
 import { parseSongLink } from "@/lib/music/song-link";
 import { FlowerSprite } from "./flower-sprite";
+import { PhotoForm } from "@/components/media/photo-form";
+import { PhotoViewer } from "@/components/media/photo-viewer";
 import { DandelionWish } from "./dandelion-wish";
 import { PeonyPanel } from "./peony-panel";
 import { EntryForm } from "./entry-form";
@@ -20,6 +23,8 @@ import styles from "./garden.module.css";
 
 function EntryContent({ entry, type }: { entry: Entry; type: string }) {
   const payload = entry.payload;
+  if (type === "sunflower" && payload.media_id)
+    return <PhotoViewer key={payload.media_id} mediaId={payload.media_id} />;
   if (type === "cactus") return <p>Checked in. I’m here.</p>;
   if (type === "hydrangea")
     return (
@@ -94,8 +99,28 @@ export function FlowerSheet({
 }) {
   const [editing, setEditing] = useState<Entry | null>(null);
   const [saved, setSaved] = useState(false);
-  const [history, setHistory] = useState<Entry[] | null>(null);
-  const [more, setMore] = useState(false);
+  const [historyPage, setHistoryPage] = useState<{
+    day: string;
+    entries: Entry[];
+    more: boolean;
+  } | null>(null);
+  // Current entries may be replaced by either member from another session.
+  // Reconcile at render time so an older history response cannot restore a
+  // superseded attachment. At rollover, reread history: the final prior-day
+  // replacement may no longer be present in today's authoritative snapshot.
+  const history =
+    historyPage?.day === state.garden_day
+      ? historyPage.entries.map((entry) => {
+          const current = plant.entries.find(
+            (candidate) => candidate.id === entry.id,
+          );
+          return current &&
+            compareTimestamps(current.updated_at, entry.updated_at) >= 0
+            ? current
+            : entry;
+        })
+      : null;
+  const more = historyPage?.day === state.garden_day && historyPage.more;
   const [historyBusy, setHistoryBusy] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
   const historyLock = useRef(false);
@@ -105,9 +130,7 @@ export function FlowerSheet({
   const own = plant.entries.find(
     (entry) => entry.author_id === state.member_id,
   );
-  const unsupported = ["sunflower", "bluebell", "peony"].includes(
-    item.type_key,
-  );
+  const unsupported = item.type_key === "bluebell";
   const moonClosed = item.type_key === "moonflower" && !state.moonflower_open;
   const pair = [1, 2].map((id) =>
     moods.find(
@@ -127,11 +150,19 @@ export function FlowerSheet({
       );
       setHistoryError(result.error);
       if (!result.error) {
-        setHistory((old) => [
-          ...(old ?? []),
-          ...result.entries.filter((e) => !old?.some((p) => p.id === e.id)),
-        ]);
-        setMore(result.entries.length === 20);
+        setHistoryPage((old) => {
+          const previous = old?.day === state.garden_day ? old.entries : [];
+          return {
+            day: state.garden_day,
+            entries: [
+              ...previous,
+              ...result.entries.filter(
+                (entry) => !previous.some((prior) => prior.id === entry.id),
+              ),
+            ],
+            more: result.entries.length === 20,
+          };
+        });
       }
     } catch {
       setHistoryError("History could not load. Try again when connected.");
@@ -259,7 +290,18 @@ export function FlowerSheet({
               Your care is saved and visible to your partner.
             </p>
           )}
-          {editing ? (
+          {editing && item.type_key === "sunflower" ? (
+            <PhotoForm
+              key={editing.id}
+              {...{ plant, state, now, busy, mutate, editing }}
+              onSaved={() => {
+                setEditing(null);
+                setHistoryPage(null);
+                setSaved(true);
+              }}
+              onCancel={() => setEditing(null)}
+            />
+          ) : editing ? (
             <EntryForm
               key={editing.id}
               {...{ plant, state, item, now, busy, mutate, editing }}
@@ -290,6 +332,11 @@ export function FlowerSheet({
                 ? " Come back tomorrow for another check-in."
                 : " When both of you contribute, growth settles at 4 a.m."}
             </p>
+          ) : item.type_key === "sunflower" ? (
+            <PhotoForm
+              {...{ plant, state, now, busy, mutate }}
+              onSaved={() => setSaved(true)}
+            />
           ) : (
             <EntryForm
               {...{ plant, state, item, now, busy, mutate }}
