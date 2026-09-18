@@ -1,11 +1,15 @@
-import { UpcomingPage } from "@/components/layout/upcoming-page";
+import { GardenLayout } from "@/components/layout/garden-layout";
+import { MemberHeader } from "@/components/layout/member-header";
+import { AchievementsClient } from "@/components/achievements/achievements-client";
+import { requireMember } from "@/lib/auth/server";
+import { readAchievements } from "@/lib/achievements/actions";
 export const dynamic = "force-dynamic";
-export default function AchievementsPage() {
+export default async function AchievementsPage() {
+  await requireMember();
+  const initial = await readAchievements();
   return (
-    <UpcomingPage
-      current="achievements"
-      title="Little milestones"
-      description="Your achievement collection is coming soon. Keep tending your flowers together; their growth and permanent blooms stay in the garden."
-    />
+    <GardenLayout current="achievements" header={<MemberHeader />}>
+      <AchievementsClient initial={initial} />
+    </GardenLayout>
   );
 }
