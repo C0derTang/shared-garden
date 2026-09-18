@@ -1,0 +1,502 @@
+[
+  {
+    "id": "light-001",
+    "category": "light",
+    "prompt": "What small thing made you smile today?"
+  },
+  {
+    "id": "light-002",
+    "category": "light",
+    "prompt": "Which snack would you pack for a tiny picnic?"
+  },
+  {
+    "id": "light-003",
+    "category": "light",
+    "prompt": "What song would you choose for a cheerful morning?"
+  },
+  {
+    "id": "light-004",
+    "category": "light",
+    "prompt": "Which everyday object deserves a more exciting name?"
+  },
+  {
+    "id": "light-005",
+    "category": "light",
+    "prompt": "What scent makes a place feel welcoming to you?"
+  },
+  {
+    "id": "light-006",
+    "category": "light",
+    "prompt": "If you could borrow an animal's ability for a day, which would you pick?"
+  },
+  {
+    "id": "light-007",
+    "category": "light",
+    "prompt": "What color have you been drawn to lately?"
+  },
+  {
+    "id": "light-008",
+    "category": "light",
+    "prompt": "Which fictional place would you visit for an afternoon?"
+  },
+  {
+    "id": "light-009",
+    "category": "light",
+    "prompt": "What is your favorite way to spend ten free minutes?"
+  },
+  {
+    "id": "light-010",
+    "category": "light",
+    "prompt": "What food would you like to learn to make?"
+  },
+  {
+    "id": "light-011",
+    "category": "light",
+    "prompt": "If today's weather had a personality, what would it be like?"
+  },
+  {
+    "id": "light-012",
+    "category": "light",
+    "prompt": "What small discovery would you recommend to me?"
+  },
+  {
+    "id": "light-013",
+    "category": "light",
+    "prompt": "Which sound do you find surprisingly pleasant?"
+  },
+  {
+    "id": "light-014",
+    "category": "light",
+    "prompt": "What would you name a neighborhood cafe?"
+  },
+  {
+    "id": "light-015",
+    "category": "light",
+    "prompt": "Which game could you happily play again?"
+  },
+  {
+    "id": "light-016",
+    "category": "light",
+    "prompt": "What would you put in a pocket-sized museum of everyday life?"
+  },
+  {
+    "id": "light-017",
+    "category": "light",
+    "prompt": "Which season has your favorite light?"
+  },
+  {
+    "id": "light-018",
+    "category": "light",
+    "prompt": "What silly talent would you enjoy mastering?"
+  },
+  {
+    "id": "light-019",
+    "category": "light",
+    "prompt": "What detail do you usually notice first in a new place?"
+  },
+  {
+    "id": "light-020",
+    "category": "light",
+    "prompt": "Which breakfast would you order if every option were available?"
+  },
+  {
+    "id": "light-021",
+    "category": "light",
+    "prompt": "What would a friendly cloud say as it passed overhead?"
+  },
+  {
+    "id": "light-022",
+    "category": "light",
+    "prompt": "What kind of shop could you browse without buying anything?"
+  },
+  {
+    "id": "light-023",
+    "category": "light",
+    "prompt": "Which word is especially fun to say?"
+  },
+  {
+    "id": "light-024",
+    "category": "light",
+    "prompt": "What is one photo you would like to take this week?"
+  },
+  {
+    "id": "light-025",
+    "category": "light",
+    "prompt": "If you designed a holiday, what would people celebrate?"
+  },
+  {
+    "id": "light-026",
+    "category": "light",
+    "prompt": "What is your favorite thing to do on a rainy afternoon?"
+  },
+  {
+    "id": "light-027",
+    "category": "light",
+    "prompt": "Which plant would you like to see up close?"
+  },
+  {
+    "id": "light-028",
+    "category": "light",
+    "prompt": "What would you call a playlist for a slow evening?"
+  },
+  {
+    "id": "light-029",
+    "category": "light",
+    "prompt": "Which small convenience do you appreciate most?"
+  },
+  {
+    "id": "light-030",
+    "category": "light",
+    "prompt": "What would be the funniest prize in a very low-stakes contest?"
+  },
+  {
+    "id": "light-031",
+    "category": "light",
+    "prompt": "What topic could tempt you into watching a short documentary?"
+  },
+  {
+    "id": "light-032",
+    "category": "light",
+    "prompt": "Which shape would you choose for a very unusual window?"
+  },
+  {
+    "id": "light-033",
+    "category": "light",
+    "prompt": "What food combination do you enjoy that might surprise me?"
+  },
+  {
+    "id": "light-034",
+    "category": "light",
+    "prompt": "If your bag could hold one impossibly large object, what would you carry?"
+  },
+  {
+    "id": "light-035",
+    "category": "light",
+    "prompt": "What is a tiny upgrade that would make your desk or reading spot nicer?"
+  },
+  {
+    "id": "light-036",
+    "category": "light",
+    "prompt": "Which animated character would make a good tour guide?"
+  },
+  {
+    "id": "light-037",
+    "category": "light",
+    "prompt": "What would you draw on a blank postcard for me?"
+  },
+  {
+    "id": "light-038",
+    "category": "light",
+    "prompt": "Which outdoor activity sounds inviting right now?"
+  },
+  {
+    "id": "light-039",
+    "category": "light",
+    "prompt": "What would be your signature move in a completely silly dance?"
+  },
+  {
+    "id": "light-040",
+    "category": "light",
+    "prompt": "What object nearby has an interesting texture?"
+  },
+  {
+    "id": "light-041",
+    "category": "light",
+    "prompt": "Which story would you like to experience again for the first time?"
+  },
+  {
+    "id": "light-042",
+    "category": "light",
+    "prompt": "What would you serve a friendly visitor from another planet?"
+  },
+  {
+    "id": "light-043",
+    "category": "light",
+    "prompt": "What is the best thing about the time of day you like most?"
+  },
+  {
+    "id": "light-044",
+    "category": "light",
+    "prompt": "Which two animals would make an entertaining detective team?"
+  },
+  {
+    "id": "light-045",
+    "category": "light",
+    "prompt": "What would you like to find at the end of a short walk?"
+  },
+  {
+    "id": "light-046",
+    "category": "light",
+    "prompt": "What is a small skill you could teach me in five minutes?"
+  },
+  {
+    "id": "light-047",
+    "category": "light",
+    "prompt": "If you could add one harmless sound effect to daily life, what would it be?"
+  },
+  {
+    "id": "light-048",
+    "category": "light",
+    "prompt": "What kind of puzzle do you enjoy figuring out?"
+  },
+  {
+    "id": "light-049",
+    "category": "light",
+    "prompt": "What would you put on a flag for an imaginary island?"
+  },
+  {
+    "id": "light-050",
+    "category": "light",
+    "prompt": "What ordinary moment would make a good opening scene for a movie?"
+  },
+  {
+    "id": "deeper-001",
+    "category": "deeper",
+    "prompt": "What quality do you most appreciate in a friend?"
+  },
+  {
+    "id": "deeper-002",
+    "category": "deeper",
+    "prompt": "What does a restful day look like for you right now?"
+  },
+  {
+    "id": "deeper-003",
+    "category": "deeper",
+    "prompt": "When you feel overwhelmed, what kind of support is easiest to receive?"
+  },
+  {
+    "id": "deeper-004",
+    "category": "deeper",
+    "prompt": "What is a small hope you have for the coming month?"
+  },
+  {
+    "id": "deeper-005",
+    "category": "deeper",
+    "prompt": "What have you learned about yourself recently?"
+  },
+  {
+    "id": "deeper-006",
+    "category": "deeper",
+    "prompt": "What moment from one of our conversations would you like to revisit?"
+  },
+  {
+    "id": "deeper-007",
+    "category": "deeper",
+    "prompt": "What value would you like to make more room for in everyday life?"
+  },
+  {
+    "id": "deeper-008",
+    "category": "deeper",
+    "prompt": "How do you prefer someone to celebrate a small win with you?"
+  },
+  {
+    "id": "deeper-009",
+    "category": "deeper",
+    "prompt": "What helps you feel heard during a conversation?"
+  },
+  {
+    "id": "deeper-010",
+    "category": "deeper",
+    "prompt": "What is something you would like to try without needing to be good at it?"
+  },
+  {
+    "id": "deeper-011",
+    "category": "deeper",
+    "prompt": "What everyday choice has felt especially like you lately?"
+  },
+  {
+    "id": "deeper-012",
+    "category": "deeper",
+    "prompt": "What is a simple way we could make an ordinary day feel shared?"
+  },
+  {
+    "id": "deeper-013",
+    "category": "deeper",
+    "prompt": "What does keeping a promise mean to you in small everyday situations?"
+  },
+  {
+    "id": "deeper-014",
+    "category": "deeper",
+    "prompt": "What helps you decide when to take a break?"
+  },
+  {
+    "id": "deeper-015",
+    "category": "deeper",
+    "prompt": "What kind of encouragement helps when you are learning something new?"
+  },
+  {
+    "id": "deeper-016",
+    "category": "deeper",
+    "prompt": "What would you like your future self to have more time for?"
+  },
+  {
+    "id": "deeper-017",
+    "category": "deeper",
+    "prompt": "What is a personal strength you are starting to appreciate?"
+  },
+  {
+    "id": "deeper-018",
+    "category": "deeper",
+    "prompt": "What is a small thing you have enjoyed learning about me?"
+  },
+  {
+    "id": "deeper-019",
+    "category": "deeper",
+    "prompt": "What does fairness look like to you when two people want different things?"
+  },
+  {
+    "id": "deeper-020",
+    "category": "deeper",
+    "prompt": "What helps you return your attention to the present?"
+  },
+  {
+    "id": "deeper-021",
+    "category": "deeper",
+    "prompt": "How would you like someone to check in when you seem quieter than usual?"
+  },
+  {
+    "id": "deeper-022",
+    "category": "deeper",
+    "prompt": "What kind of tradition might you enjoy creating together?"
+  },
+  {
+    "id": "deeper-023",
+    "category": "deeper",
+    "prompt": "What is an opinion you have become more open-minded about?"
+  },
+  {
+    "id": "deeper-024",
+    "category": "deeper",
+    "prompt": "What detail from a moment we shared still makes you smile?"
+  },
+  {
+    "id": "deeper-025",
+    "category": "deeper",
+    "prompt": "What is something worth doing slowly?"
+  },
+  {
+    "id": "deeper-026",
+    "category": "deeper",
+    "prompt": "What helps you feel at ease in a new group?"
+  },
+  {
+    "id": "deeper-027",
+    "category": "deeper",
+    "prompt": "How do you usually tell that you need company rather than time alone?"
+  },
+  {
+    "id": "deeper-028",
+    "category": "deeper",
+    "prompt": "What is a small act of courage you would like to practice?"
+  },
+  {
+    "id": "deeper-029",
+    "category": "deeper",
+    "prompt": "What part of your personality comes out when you feel comfortable?"
+  },
+  {
+    "id": "deeper-030",
+    "category": "deeper",
+    "prompt": "What would you enjoy explaining to me about something you care about?"
+  },
+  {
+    "id": "deeper-031",
+    "category": "deeper",
+    "prompt": "What does generosity look like to you beyond giving gifts?"
+  },
+  {
+    "id": "deeper-032",
+    "category": "deeper",
+    "prompt": "What helps you feel settled after a busy day?"
+  },
+  {
+    "id": "deeper-033",
+    "category": "deeper",
+    "prompt": "How do you prefer to let someone know you need more time to answer?"
+  },
+  {
+    "id": "deeper-034",
+    "category": "deeper",
+    "prompt": "What is something you hope stays part of your life as things change?"
+  },
+  {
+    "id": "deeper-035",
+    "category": "deeper",
+    "prompt": "What kind of compliment feels most meaningful to you?"
+  },
+  {
+    "id": "deeper-036",
+    "category": "deeper",
+    "prompt": "What have you appreciated about the way we spend time together?"
+  },
+  {
+    "id": "deeper-037",
+    "category": "deeper",
+    "prompt": "What makes an apology feel thoughtful to you?"
+  },
+  {
+    "id": "deeper-038",
+    "category": "deeper",
+    "prompt": "What helps you notice progress that is easy to overlook?"
+  },
+  {
+    "id": "deeper-039",
+    "category": "deeper",
+    "prompt": "What would make asking for a small favor feel easier?"
+  },
+  {
+    "id": "deeper-040",
+    "category": "deeper",
+    "prompt": "What would you like to learn about a place or community different from your own?"
+  },
+  {
+    "id": "deeper-041",
+    "category": "deeper",
+    "prompt": "What is a belief about success you would like to define for yourself?"
+  },
+  {
+    "id": "deeper-042",
+    "category": "deeper",
+    "prompt": "What is one thing we could make more playful in our conversations?"
+  },
+  {
+    "id": "deeper-043",
+    "category": "deeper",
+    "prompt": "What do you admire about someone who handles disagreement well?"
+  },
+  {
+    "id": "deeper-044",
+    "category": "deeper",
+    "prompt": "What is a boundary around your free time that you would like to respect more?"
+  },
+  {
+    "id": "deeper-045",
+    "category": "deeper",
+    "prompt": "How do you like someone to respond when you share an unfinished idea?"
+  },
+  {
+    "id": "deeper-046",
+    "category": "deeper",
+    "prompt": "What is a small experience you would enjoy sharing with me someday?"
+  },
+  {
+    "id": "deeper-047",
+    "category": "deeper",
+    "prompt": "What helps you recognize when a goal no longer fits you?"
+  },
+  {
+    "id": "deeper-048",
+    "category": "deeper",
+    "prompt": "What is a difference between us that you enjoy?"
+  },
+  {
+    "id": "deeper-049",
+    "category": "deeper",
+    "prompt": "What makes a shared decision feel collaborative to you?"
+  },
+  {
+    "id": "deeper-050",
+    "category": "deeper",
+    "prompt": "What would you like to thank yourself for today?"
+  }
+]
