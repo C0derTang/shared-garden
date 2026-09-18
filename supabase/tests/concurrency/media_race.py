@@ -12,7 +12,11 @@ import time
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("container", nargs="?", default="supabase_db_shared-garden-media48")
+parser.add_argument("--audio", action="store_true", help="Exercise the same boundary with Bluebell audio")
 args = parser.parse_args()
+flower_type = "bluebell" if args.audio else "sunflower"
+mime = "audio/webm" if args.audio else "image/png"
+metadata = "samples=28,channels=1" if args.audio else "width=10,height=10"
 if not args.container.startswith("supabase_db_"):
     parser.error("Only a local Supabase Docker database container is supported")
 
@@ -90,17 +94,17 @@ try:
     commit;
     """)
     sql("begin;" + signed(1) + "select public.initialize_garden(); commit;")
-    sql("insert into public.flower_unlocks(type_key) values('sunflower');")
-    sql("begin;" + signed(1) + "select public.plant_flower('sunflower'); commit;")
-    flower = sql("select id from public.flowers where type_key='sunflower';")
+    sql(f"insert into public.flower_unlocks(type_key) values('{flower_type}');")
+    sql("begin;" + signed(1) + f"select public.plant_flower('{flower_type}'); commit;")
+    flower = sql(f"select id from public.flowers where type_key='{flower_type}';")
 
     def intent(replacement="null"):
-        return next(line for line in sql("begin;" + signed(1) + f"select public.create_media_upload(gen_random_uuid(),'{flower}','image/png',100,{replacement})->>'id'; commit;").splitlines() if re.fullmatch(r"[a-f0-9-]{36}", line))
+        return next(line for line in sql("begin;" + signed(1) + f"select public.create_media_upload(gen_random_uuid(),'{flower}','{mime}',100,{replacement})->>'id'; commit;").splitlines() if re.fullmatch(r"[a-f0-9-]{36}", line))
 
     def ready(media):
         # This concurrency-only harness seeds synthetic trusted attestation;
         # actual bytes/Storage/attestation are covered by media-local.test.ts.
-        sql(f"update private.media_uploads set status='ready',width=10,height=10,output_bytes=100,sha256=repeat('a',64) where id='{media}';")
+        sql(f"update private.media_uploads set status='ready',{metadata},output_bytes=100,sha256=repeat('a',64) where id='{media}';")
 
     original = intent()
     claim = f"select public.claim_media_upload('{original}')"
@@ -112,7 +116,7 @@ try:
     overlap(submit, submit, error="Already submitted; edit the original entry", second_member=1)
     assert sql("select count(*) from public.flower_entries;") == "1"
     assert sql(f"select status from private.media_uploads where id='{original}';") == "submitted"
-    print("PASS: overlapping photo commits produce one entry and one consumed attachment")
+    print("PASS: overlapping media commits produce one entry and one consumed attachment")
     entry = sql("select id from public.flower_entries;")
     replacement = intent(entry)
     ready(replacement)

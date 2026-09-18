@@ -1,0 +1,9 @@
+{
+  "name": "browser-300-2.mp4",
+  "requestedSeconds": 300,
+  "actualMillis": 300011.5,
+  "mime": "audio/mp4;codecs=opus",
+  "bytes": 2464554,
+  "sampleRate": 48000,
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36"
+}

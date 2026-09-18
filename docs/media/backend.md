@@ -208,3 +208,53 @@ job includes the additive pgTAP file. Baseline identity/entries/rollover tests
 and races remain required. Tests do not prove hosted deployment, a real Google
 OAuth exchange, camera behavior, physical phone codecs or UI rendering; those
 are separate release/photo-UI checks.
+
+## Bluebell audio extension (issue #50)
+
+[Decision 0027](../decisions/0027-private-bluebell-audio.md) extends these same
+endpoints and permissions. For a Bluebell intent use canonical `audio/webm`,
+byteLength 1..12582912, and its flower ID. Upload directly to `garden-staging`.
+Accept one WebM/Opus 48 kHz mono/stereo stream; MP4 and AAC are unsupported.
+Modern Safari 18.4+ supports the format; detect support and handle recording
+runtime failure without saving empty audio. Browser controls belong to issue #29.
+
+The intent now includes nullable `samples`, `sample_rate` and `channels`;
+photo dimensions remain unchanged. Audio final_path is `<MEDIA_UUID>/audio.wav`.
+It is not readable until entry attachment. Ready audio metadata is trusted only:
+1..14400000 samples, 48000 sample_rate, 1 channel. Finalized playback uses exactly
+these samples in PCM 16 mono WAV (maximum 28,800,044 bytes). Read responses add
+`samples`, `sampleRate`, `channels`, `durationMs` and `mimeType: audio/wav`;
+width/height are null. DurationMs is samples/48 and may be fractional.
+
+The original MIME on the intent describes upload bytes; read MIME describes
+trusted playback bytes. No payload schema change: `{media_id:<UUID>}`. Never
+send client duration or validation facts. A failed recording/replacement retains
+the previous contribution; refetch authoritative state after either outcome.
+`unsupported_audio`, `invalid_audio` and `audio_too_large` are 422 failures;
+`audio_unavailable` 503 means the native runtime could not start. The shared
+size-mismatch error remains `photo_size_mismatch` for compatibility. Other
+existing media errors, idempotency, owner/day/edit windows and cleanup apply.
+
+Audio-only attestation is `attest_audio_upload(p_id,p_lease_id,p_output_bytes,
+p_samples,p_channels,p_sha256)`, executable only by service_role. It checks
+live membership and the canonical stored object's size/MIME, then marks the
+same registry ready. It cannot submit a member's entry. Existing photo
+attestation cannot attest audio. No direct private-table capability is added.
+
+For the actual audio integration, create the same disposable project with ID
+`shared-garden-audio50`, API 57721, DB 57722, shadow 57720, app 57729, under
+`/tmp/shared-garden-issue #50`. Run `LOCAL_AUDIO_STATUS_FILE=/tmp/shared-garden-issue #50/status.json
+npx vitest run src/test/media-local.test.ts`; reset before/after. This uses the
+same full security/replacement/cleanup suite with real synthetic browser audio.
+Run the original photo variant separately against its empty disposable project,
+or use `LOCAL_MEDIA_STATUS_FILE` with the same reset audio50 project for photos.
+Audio native fixture/resource tests are `src/lib/media/audio*.test.ts`. Linux
+production binaries ship in vendor/audio/linux-x64; macOS development requires
+an ignored local source build (see vendor/audio/README.md). Do not silently skip
+native tests on unsupported development platforms.
+
+`python3 supabase/tests/concurrency/media_race.py
+supabase_db_shared-garden-audio50 --audio` runs the same observed lock races for
+Bluebell. `node scripts/verify-audio-runtime.mjs` must run after a Linux amd64
+production build; it asserts traced executable binaries and a complete server
+size upper bound. See [audio verification](audio-verification.md) for evidence.
