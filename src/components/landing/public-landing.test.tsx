@@ -26,7 +26,7 @@ describe("public landing", () => {
     const user = userEvent.setup();
     render(<PublicLanding configurationStatus="ready" />);
     expect(screen.getByRole("status")).toHaveTextContent(
-      /private sign-in is coming soon/i,
+      /two approved google accounts/i,
     );
     await user.click(
       screen.getByRole("button", { name: /take a little look/i }),
@@ -34,8 +34,9 @@ describe("public landing", () => {
     expect(
       screen.getByRole("dialog", { name: /small moments, shared/i }),
     ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /^close$/i }));
     expect(
-      screen.queryByRole("button", { name: /sign in|google/i }),
-    ).not.toBeInTheDocument();
+      screen.getByRole("button", { name: /continue with google/i }),
+    ).toBeInTheDocument();
   });
 });
