@@ -298,3 +298,14 @@ The actual media harness accepts explicit `LOCAL_MEDIA_MODE=sunflower28` with
 either photo or audio status-file mode on the dedicated 57821 API / 57829 web
 ports and `shared-garden-sunflower28` container. Photo mode exercises native phone
 dimensions, orientation, metadata stripping and over-25M rejection through HTTP.
+
+## Bluebell recorder interface verification
+
+The same real HTTP harness accepts `LOCAL_MEDIA_MODE=bluebell29` for the disposable
+`shared-garden-bluebell29` project at `/tmp/shared-garden-bluebell29`, API 58321,
+database 58322, shadow 58320 and app 58329. Set `LOCAL_AUDIO_STATUS_FILE` for audio
+or `LOCAL_MEDIA_STATUS_FILE` for the unchanged photo regression. Reset before
+each mode and after verification. Preserve the CI fixture-only Kong upstream
+request isolation and strict denial assertions; never use hosted settings.
+The UI recorder/player behavior is documented in
+[0013](../decisions/0013-bluebell-voice-interface.md).

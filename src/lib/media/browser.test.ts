@@ -3,7 +3,12 @@ const { upload } = vi.hoisted(() => ({ upload: vi.fn() }));
 vi.mock("@/lib/auth/browser", () => ({
   gardenBrowserClient: () => ({ storage: { from: () => ({ upload }) } }),
 }));
-import { photoInputError, savePhoto, type PhotoAttempt } from "./browser";
+import {
+  photoInputError,
+  savePhoto,
+  saveVoice,
+  type PhotoAttempt,
+} from "./browser";
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.clearAllMocks();
@@ -51,16 +56,14 @@ it("retains original bytes and immutable intent across ambiguous upload/finaliza
   });
 });
 it("refuses finalization when day guard changes during upload", async () => {
-  const request = vi
-    .fn()
-    .mockResolvedValue(
-      json({
-        id: "media",
-        status: "pending",
-        staging_path: "media/source",
-        mime_type: "image/png",
-      }),
-    );
+  const request = vi.fn().mockResolvedValue(
+    json({
+      id: "media",
+      status: "pending",
+      staging_path: "media/source",
+      mime_type: "image/png",
+    }),
+  );
   vi.stubGlobal("fetch", request);
   upload.mockResolvedValue({ error: null });
   const guard = vi
@@ -91,4 +94,56 @@ it("rejects unsupported claimed types and oversized files before upload", () => 
       }),
     ),
   ).toMatch(/12 MiB/);
+});
+it("uploads an actual voice File with canonical MIME and preserves retry identity", async () => {
+  const request = vi
+    .fn()
+    .mockRejectedValueOnce(new Error("lost intent response"))
+    .mockResolvedValueOnce(
+      json({
+        id: "voice",
+        status: "pending",
+        staging_path: "voice/source",
+        mime_type: "audio/webm",
+      }),
+    )
+    .mockRejectedValueOnce(new Error("lost finalize response"))
+    .mockResolvedValueOnce(json({ status: "submitted" }));
+  vi.stubGlobal("fetch", request);
+  upload.mockResolvedValue({ error: null });
+  const file = new File(["voice"], "memo.webm", {
+    type: "audio/webm;codecs=opus",
+  });
+  const attempt = { requestId: "immutable-voice" };
+  await expect(
+    saveVoice(file, "flower", 12, attempt, () => {}),
+  ).rejects.toThrow();
+  await expect(
+    saveVoice(file, "flower", 12, attempt, () => {}),
+  ).rejects.toThrow();
+  await saveVoice(file, "flower", 12, attempt, () => {});
+  expect(
+    request.mock.calls
+      .filter((c) => c[0].endsWith("intents"))
+      .map((c) => JSON.parse(c[1].body)),
+  ).toEqual([
+    {
+      requestId: "immutable-voice",
+      flowerId: "flower",
+      replacementEntryId: 12,
+      mimeType: "audio/webm",
+      byteLength: 5,
+    },
+    {
+      requestId: "immutable-voice",
+      flowerId: "flower",
+      replacementEntryId: 12,
+      mimeType: "audio/webm",
+      byteLength: 5,
+    },
+  ]);
+  expect(upload).toHaveBeenCalledWith("voice/source", file, {
+    contentType: "audio/webm",
+    upsert: false,
+  });
 });

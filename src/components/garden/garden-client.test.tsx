@@ -276,7 +276,7 @@ it("renders the shared Daisy prompt and category, six moods and honest media sta
   plant.flower.type_key = "bluebell";
   view.rerender(<FlowerSheet {...props} item={state.catalog[9]} />);
   expect(
-    screen.getByText(/Voice recording and playback will arrive soon/),
+    screen.getByRole("button", { name: "Record" }),
   ).toBeInTheDocument();
   expect(
     screen.queryByRole("button", { name: "Share care" }),
