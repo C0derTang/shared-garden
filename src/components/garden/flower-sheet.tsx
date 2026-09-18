@@ -12,12 +12,16 @@ import {
 import { loadFlowerHistory } from "@/lib/garden/actions";
 import { parseSongLink } from "@/lib/music/song-link";
 import { FlowerSprite } from "./flower-sprite";
+import { PhotoForm } from "@/components/media/photo-form";
+import { PhotoViewer } from "@/components/media/photo-viewer";
 import { EntryForm } from "./entry-form";
 import type { Mutate } from "./seed-picker";
 import styles from "./garden.module.css";
 
 function EntryContent({ entry, type }: { entry: Entry; type: string }) {
   const payload = entry.payload;
+  if (type === "sunflower" && payload.media_id)
+    return <PhotoViewer key={payload.media_id} mediaId={payload.media_id} />;
   if (type === "cactus") return <p>Checked in. I’m here.</p>;
   if (type === "hydrangea")
     return (
@@ -103,9 +107,7 @@ export function FlowerSheet({
   const own = plant.entries.find(
     (entry) => entry.author_id === state.member_id,
   );
-  const unsupported = ["sunflower", "bluebell", "peony"].includes(
-    item.type_key,
-  );
+  const unsupported = ["bluebell", "peony"].includes(item.type_key);
   const moonClosed = item.type_key === "moonflower" && !state.moonflower_open;
   const pair = [1, 2].map((id) =>
     moods.find(
@@ -248,7 +250,18 @@ export function FlowerSheet({
           Your care is saved and visible to your partner.
         </p>
       )}
-      {editing ? (
+      {editing && item.type_key === "sunflower" ? (
+        <PhotoForm
+          key={editing.id}
+          {...{ plant, state, now, busy, mutate, editing }}
+          onSaved={() => {
+            setEditing(null);
+            setHistory(null);
+            setSaved(true);
+          }}
+          onCancel={() => setEditing(null)}
+        />
+      ) : editing ? (
         <EntryForm
           key={editing.id}
           {...{ plant, state, item, now, busy, mutate, editing }}
@@ -279,6 +292,11 @@ export function FlowerSheet({
             ? " Come back tomorrow for another check-in."
             : " When both of you contribute, growth settles at 4 a.m."}
         </p>
+      ) : item.type_key === "sunflower" ? (
+        <PhotoForm
+          {...{ plant, state, now, busy, mutate }}
+          onSaved={() => setSaved(true)}
+        />
       ) : (
         <EntryForm
           {...{ plant, state, item, now, busy, mutate }}

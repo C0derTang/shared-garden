@@ -8,11 +8,21 @@ import sharp from "sharp";
 import { expect, it } from "vitest";
 
 const statusPath = process.env.LOCAL_MEDIA_STATUS_FILE;
+// Explicit isolated UI verification; arbitrary endpoints/containers are refused.
+const sunflower = process.env.LOCAL_MEDIA_MODE === "sunflower28";
+const apiPort = sunflower ? 57821 : 57321;
+const webPort = sunflower ? 57829 : 57329;
+const container = sunflower
+  ? "supabase_db_shared-garden-sunflower28"
+  : "supabase_db_shared-garden-media48";
+const logPath = sunflower
+  ? "/tmp/shared-garden-issue28/web.log"
+  : "/tmp/shared-garden-issue48/web.log";
 it.skipIf(!statusPath)(
   "enforces private media through actual Auth, Storage and server routes",
   async () => {
     const local = JSON.parse(readFileSync(statusPath!, "utf8"));
-    expect(local.API_URL).toBe("http://127.0.0.1:57321");
+    expect(local.API_URL).toBe(`http://127.0.0.1:${apiPort}`);
     expect(/^sb_publishable_/.test(local.PUBLISHABLE_KEY)).toBe(true);
     expect(/^sb_secret_/.test(local.SECRET_KEY)).toBe(true);
     const sql = (query: string) =>
@@ -21,7 +31,7 @@ it.skipIf(!statusPath)(
         [
           "exec",
           "-i",
-          "supabase_db_shared-garden-media48",
+          container,
           "psql",
           "-U",
           "supabase_admin",
@@ -38,7 +48,7 @@ it.skipIf(!statusPath)(
         "select (select count(*) from private.garden_members)+(select count(*) from auth.users)+(select count(*) from public.garden)+(select count(*) from storage.objects);",
       ),
     ).toBe("0");
-    const origin = "http://127.0.0.1:57329";
+    const origin = `http://127.0.0.1:${webPort}`;
     const ids = [
       "11111111-1111-4111-8111-111111111111",
       "22222222-2222-4222-8222-222222222222",
@@ -65,7 +75,7 @@ it.skipIf(!statusPath)(
     const trusted = createClient(local.API_URL, local.SECRET_KEY, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
-    const log = openSync("/tmp/shared-garden-issue48/web.log", "w", 0o600);
+    const log = openSync(logPath, "w", 0o600);
     const webEnv = {
       ...process.env,
       APP_ORIGIN: origin,
@@ -91,7 +101,7 @@ it.skipIf(!statusPath)(
         "--hostname",
         "127.0.0.1",
         "--port",
-        "57329",
+        String(webPort),
       ],
       {
         env: webEnv,

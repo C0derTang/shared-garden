@@ -1,0 +1,36 @@
+.square {
+  width: 100%;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #eee9d9;
+  border: 2px solid #b0ad89;
+  border-radius: 10px;
+}
+.square img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  min-height: 0;
+  image-orientation: from-image;
+}
+.stack {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.stack input {
+  max-width: 100%;
+}
+.pickers {
+  display: grid;
+  gap: 12px;
+}
+.pickers label {
+  display: grid;
+  gap: 6px;
+}
+.error {
+  color: #862e23;
+}
