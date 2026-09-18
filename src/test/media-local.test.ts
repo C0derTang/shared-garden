@@ -7,12 +7,18 @@ import { createClient } from "@supabase/supabase-js";
 import sharp from "sharp";
 import { expect, it } from "vitest";
 
-const statusPath = process.env.LOCAL_MEDIA_STATUS_FILE;
+const audio = Boolean(process.env.LOCAL_AUDIO_STATUS_FILE);
+const statusPath =
+  process.env.LOCAL_AUDIO_STATUS_FILE ?? process.env.LOCAL_MEDIA_STATUS_FILE;
+const inputMime = audio ? "audio/webm" : "image/jpeg";
 it.skipIf(!statusPath)(
   "enforces private media through actual Auth, Storage and server routes",
   async () => {
     const local = JSON.parse(readFileSync(statusPath!, "utf8"));
-    expect(local.API_URL).toBe("http://127.0.0.1:57321");
+    const projectAudio = local.API_URL === "http://127.0.0.1:57721";
+    expect(local.API_URL).toBe(
+      projectAudio ? "http://127.0.0.1:57721" : "http://127.0.0.1:57321",
+    );
     expect(/^sb_publishable_/.test(local.PUBLISHABLE_KEY)).toBe(true);
     expect(/^sb_secret_/.test(local.SECRET_KEY)).toBe(true);
     const sql = (query: string) =>
@@ -21,7 +27,9 @@ it.skipIf(!statusPath)(
         [
           "exec",
           "-i",
-          "supabase_db_shared-garden-media48",
+          projectAudio
+            ? "supabase_db_shared-garden-audio50"
+            : "supabase_db_shared-garden-media48",
           "psql",
           "-U",
           "supabase_admin",
@@ -38,7 +46,9 @@ it.skipIf(!statusPath)(
         "select (select count(*) from private.garden_members)+(select count(*) from auth.users)+(select count(*) from public.garden)+(select count(*) from storage.objects);",
       ),
     ).toBe("0");
-    const origin = "http://127.0.0.1:57329";
+    const origin = projectAudio
+      ? "http://127.0.0.1:57729"
+      : "http://127.0.0.1:57329";
     const ids = [
       "11111111-1111-4111-8111-111111111111",
       "22222222-2222-4222-8222-222222222222",
@@ -65,7 +75,13 @@ it.skipIf(!statusPath)(
     const trusted = createClient(local.API_URL, local.SECRET_KEY, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
-    const log = openSync("/tmp/shared-garden-issue48/web.log", "w", 0o600);
+    const log = openSync(
+      projectAudio
+        ? "/tmp/shared-garden-issue50/web.log"
+        : "/tmp/shared-garden-issue48/web.log",
+      "w",
+      0o600,
+    );
     const webEnv = {
       ...process.env,
       APP_ORIGIN: origin,
@@ -91,7 +107,7 @@ it.skipIf(!statusPath)(
         "--hostname",
         "127.0.0.1",
         "--port",
-        "57329",
+        projectAudio ? "57729" : "57329",
       ],
       {
         env: webEnv,
@@ -151,29 +167,40 @@ it.skipIf(!statusPath)(
       expect((await post("intents", {}, 2)).status).toBe(403);
       const init = await clients[0].rpc("initialize_garden");
       expect(init.error).toBeNull();
-      sql("insert into public.flower_unlocks(type_key) values('sunflower');");
+      sql(
+        `insert into public.flower_unlocks(type_key) values('${audio ? "bluebell" : "sunflower"}');`,
+      );
       const planted = await clients[0].rpc("plant_flower", {
-        p_type_key: "sunflower",
+        p_type_key: audio ? "bluebell" : "sunflower",
       });
       expect(planted.error).toBeNull();
       const flowerId = planted.data.id;
-      const image = await sharp({
-        create: { width: 640, height: 360, channels: 3, background: "#76985b" },
-      })
-        .jpeg()
-        .withMetadata({ orientation: 6 })
-        .withExifMerge({
-          IFD3: {
-            GPSLatitudeRef: "N",
-            GPSLatitude: "1/1 2/1 3/1",
-            GPSLongitudeRef: "E",
-            GPSLongitude: "4/1 5/1 6/1",
-          },
-        })
-        .toBuffer();
+      const image = audio
+        ? readFileSync(
+            new URL("./fixtures/audio/tone-300.webm", import.meta.url),
+          )
+        : await sharp({
+            create: {
+              width: 640,
+              height: 360,
+              channels: 3,
+              background: "#76985b",
+            },
+          })
+            .jpeg()
+            .withMetadata({ orientation: 6 })
+            .withExifMerge({
+              IFD3: {
+                GPSLatitudeRef: "N",
+                GPSLatitude: "1/1 2/1 3/1",
+                GPSLongitudeRef: "E",
+                GPSLongitude: "4/1 5/1 6/1",
+              },
+            })
+            .toBuffer();
       const intent = async (
         bytes: Buffer,
-        mimeType = "image/jpeg",
+        mimeType = inputMime,
         actor = 0,
         replacementEntryId?: number,
       ) => {
@@ -205,13 +232,13 @@ it.skipIf(!statusPath)(
       }
 
       // Expired or revoked capabilities cannot recreate an object after cleanup.
-      const abandoned = await intent(image, "image/jpeg", 1);
+      const abandoned = await intent(image, inputMime, 1);
       expect(
         (
           await clients[1].storage
             .from("garden-staging")
             .upload(abandoned.staging_path, image, {
-              contentType: "image/jpeg",
+              contentType: inputMime,
             })
         ).error,
       ).toBeNull();
@@ -241,7 +268,7 @@ it.skipIf(!statusPath)(
           await clients[1].storage
             .from("garden-staging")
             .upload(abandoned.staging_path, image, {
-              contentType: "image/jpeg",
+              contentType: inputMime,
             })
         ).error !== null,
       ).toBe(true);
@@ -250,11 +277,11 @@ it.skipIf(!statusPath)(
           await anon.storage
             .from("garden-staging")
             .upload(abandoned.staging_path, image, {
-              contentType: "image/jpeg",
+              contentType: inputMime,
             })
         ).error !== null,
       ).toBe(true);
-      const revoked = await intent(image, "image/jpeg", 1);
+      const revoked = await intent(image, inputMime, 1);
       sql(
         "update private.garden_members set revoked_at=now() where member_id=2;",
       );
@@ -262,7 +289,7 @@ it.skipIf(!statusPath)(
         (
           await clients[1].storage
             .from("garden-staging")
-            .upload(revoked.staging_path, image, { contentType: "image/jpeg" })
+            .upload(revoked.staging_path, image, { contentType: inputMime })
         ).error !== null,
       ).toBe(true);
       for (const upsert of [false, true]) {
@@ -282,7 +309,7 @@ it.skipIf(!statusPath)(
         (
           await clients[1].storage
             .from("garden-staging")
-            .upload(revoked.staging_path, image, { contentType: "image/jpeg" })
+            .upload(revoked.staging_path, image, { contentType: inputMime })
         ).error !== null,
       ).toBe(true);
       expect((await trusted.rpc("media_cleanup_candidates")).data).toEqual([]);
@@ -300,7 +327,7 @@ it.skipIf(!statusPath)(
           await clients[0].storage
             .from("garden-staging")
             .upload(original.staging_path, Buffer.alloc(12 * 1024 * 1024 + 1), {
-              contentType: "image/jpeg",
+              contentType: inputMime,
             })
         ).error !== null,
       ).toBe(true);
@@ -308,21 +335,21 @@ it.skipIf(!statusPath)(
         (
           await clients[1].storage
             .from("garden-staging")
-            .upload(original.staging_path, image, { contentType: "image/jpeg" })
+            .upload(original.staging_path, image, { contentType: inputMime })
         ).error !== null,
       ).toBe(true);
       expect(
         (
           await anon.storage
             .from("garden-staging")
-            .upload(original.staging_path, image, { contentType: "image/jpeg" })
+            .upload(original.staging_path, image, { contentType: inputMime })
         ).error !== null,
       ).toBe(true);
       expect(
         (
           await clients[2].storage
             .from("garden-staging")
-            .upload(original.staging_path, image, { contentType: "image/jpeg" })
+            .upload(original.staging_path, image, { contentType: inputMime })
         ).error !== null,
       ).toBe(true);
       expect(
@@ -330,7 +357,7 @@ it.skipIf(!statusPath)(
           await clients[0].storage
             .from("garden-staging")
             .upload(original.staging_path, image, {
-              contentType: "image/jpeg",
+              contentType: inputMime,
               upsert: false,
             })
         ).error,
@@ -340,7 +367,7 @@ it.skipIf(!statusPath)(
           await clients[0].storage
             .from("garden-staging")
             .upload(original.staging_path, Buffer.from("replacement"), {
-              contentType: "image/jpeg",
+              contentType: inputMime,
               upsert: true,
             })
         ).error !== null,
@@ -385,11 +412,12 @@ it.skipIf(!statusPath)(
       const signed = await post("read", { mediaId: original.id }, 1);
       expect(signed.status).toBe(200);
       expect(signed.cache).toContain("no-store");
-      expect([
-        signed.data.width,
-        signed.data.height,
-        signed.data.expiresIn,
-      ]).toEqual([360, 640, 60]);
+      if (!audio)
+        expect([
+          signed.data.width,
+          signed.data.height,
+          signed.data.expiresIn,
+        ]).toEqual([360, 640, 60]);
       const signedToken = new URL(signed.data.url).searchParams.get("token")!;
       const signedClaims = JSON.parse(
         Buffer.from(signedToken.split(".")[1], "base64url").toString(),
@@ -398,14 +426,22 @@ it.skipIf(!statusPath)(
       const response = await fetch(signed.data.url);
       expect(response.status).toBe(200);
       const stored = Buffer.from(await response.arrayBuffer());
-      const metadata = await sharp(stored).metadata();
-      expect([
-        metadata.width,
-        metadata.height,
-        metadata.exif,
-        metadata.xmp,
-        metadata.orientation,
-      ]).toEqual([360, 640, undefined, undefined, undefined]);
+      if (audio) {
+        expect(signed.data.mimeType).toBe("audio/wav");
+        expect(signed.data.samples).toBe(14400000);
+        expect(signed.data.channels).toBe(1);
+        expect(stored.toString("ascii", 0, 4)).toBe("RIFF");
+        expect(stored.length).toBe(signed.data.samples * 2 + 44);
+      } else {
+        const metadata = await sharp(stored).metadata();
+        expect([
+          metadata.width,
+          metadata.height,
+          metadata.exif,
+          metadata.xmp,
+          metadata.orientation,
+        ]).toEqual([360, 640, undefined, undefined, undefined]);
+      }
       for (const client of [...clients, anon]) {
         expect(
           (
@@ -426,7 +462,7 @@ it.skipIf(!statusPath)(
             await client.storage
               .from("garden-media")
               .upload(original.final_path, image, {
-                contentType: "image/jpeg",
+                contentType: inputMime,
                 upsert: true,
               })
           ).error !== null,
@@ -443,13 +479,13 @@ it.skipIf(!statusPath)(
           })
         ).error?.code,
       ).toBe("42501");
-      const replacement = await intent(image, "image/jpeg", 0, entryId);
+      const replacement = await intent(image, inputMime, 0, entryId);
       expect(
         (
           await clients[0].storage
             .from("garden-staging")
             .upload(replacement.staging_path, image, {
-              contentType: "image/jpeg",
+              contentType: inputMime,
             })
         ).error,
       ).toBeNull();
@@ -462,12 +498,12 @@ it.skipIf(!statusPath)(
         ),
       ).toBe(originalTime);
       expect((await post("read", { mediaId: original.id })).status).toBe(403);
-      const late = await intent(image, "image/jpeg", 0, entryId);
+      const late = await intent(image, inputMime, 0, entryId);
       expect(
         (
           await clients[0].storage
             .from("garden-staging")
-            .upload(late.staging_path, image, { contentType: "image/jpeg" })
+            .upload(late.staging_path, image, { contentType: inputMime })
         ).error,
       ).toBeNull();
       sql(
@@ -482,23 +518,51 @@ it.skipIf(!statusPath)(
         ),
       ).toBe(replacement.id);
       // Invalid upload bytes never become entries, even with a permitted MIME.
-      for (const [bytes, mime, code] of [
-        [Buffer.from("<svg>bad</svg>"), "image/jpeg", "invalid_photo"],
-        [
-          readFileSync(new URL("./fixtures/two-frame.apng", import.meta.url)),
-          "image/png",
-          "unsupported_photo",
-        ],
-        [
-          await sharp({
-            create: { width: 80, height: 40, channels: 3, background: "red" },
-          })
-            .png()
-            .toBuffer(),
-          "image/jpeg",
-          "type_mismatch",
-        ],
-      ] as const) {
+      for (const [bytes, mime, code] of audio
+        ? ([
+            [Buffer.from("invalid"), inputMime, "invalid_audio"],
+            [
+              readFileSync(
+                new URL("./fixtures/audio/tone-301.webm", import.meta.url),
+              ),
+              inputMime,
+              "invalid_audio",
+            ],
+            [
+              readFileSync(
+                new URL(
+                  "./fixtures/audio/forged-padding.webm",
+                  import.meta.url,
+                ),
+              ),
+              inputMime,
+              "invalid_audio",
+            ],
+          ] as const)
+        : ([
+            [Buffer.from("<svg>bad</svg>"), inputMime, "invalid_photo"],
+            [
+              readFileSync(
+                new URL("./fixtures/two-frame.apng", import.meta.url),
+              ),
+              "image/png",
+              "unsupported_photo",
+            ],
+            [
+              await sharp({
+                create: {
+                  width: 80,
+                  height: 40,
+                  channels: 3,
+                  background: "red",
+                },
+              })
+                .png()
+                .toBuffer(),
+              inputMime,
+              "type_mismatch",
+            ],
+          ] as const)) {
         const bad = await intent(bytes, mime, 1);
         expect(
           (

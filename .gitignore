@@ -13,3 +13,6 @@ out/
 coverage/
 *.tsbuildinfo
 .vercel/
+
+# Optional local native development build; production ships Linux only.
+vendor/audio/darwin-*/

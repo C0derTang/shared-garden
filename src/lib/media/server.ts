@@ -5,6 +5,7 @@ import { getAuthConfig } from "@/lib/auth/config";
 import { getServerConfig } from "@/lib/config/server";
 import { checkRpc } from "./http";
 import { MediaError, PHOTO_INPUT_LIMIT, sanitizePhoto } from "./image";
+import { sanitizeAudio } from "./audio";
 
 type Upload = {
   id: string;
@@ -43,7 +44,7 @@ function trustedMediaClient() {
     },
   });
 }
-export async function finalizePhoto(client: SupabaseClient, id: string) {
+export async function finalizeMedia(client: SupabaseClient, id: string) {
   const claim = await client.rpc("claim_media_upload", { p_id: id });
   checkRpc(claim.error);
   const upload = claim.data as Upload;
@@ -61,7 +62,8 @@ export async function finalizePhoto(client: SupabaseClient, id: string) {
       staged.data.size > PHOTO_INPUT_LIMIT
     )
       throw new MediaError("photo_size_mismatch");
-    const photo = await sanitizePhoto(
+    const isAudio = upload.mime_type === "audio/webm";
+    const photo = await (isAudio ? sanitizeAudio : sanitizePhoto)(
       Buffer.from(await staged.data.arrayBuffer()),
       upload.mime_type,
     );
@@ -88,14 +90,18 @@ export async function finalizePhoto(client: SupabaseClient, id: string) {
       )
         throw new MediaError("media_unavailable", 503);
     }
-    const attested = await trusted.rpc("attest_media_upload", {
-      p_id: id,
-      p_lease_id: upload.lease_id,
-      p_output_bytes: photo.bytes.length,
-      p_width: photo.width,
-      p_height: photo.height,
-      p_sha256: photo.sha256,
-    });
+    const attested = await trusted.rpc(
+      isAudio ? "attest_audio_upload" : "attest_media_upload",
+      {
+        p_id: id,
+        p_lease_id: upload.lease_id,
+        p_output_bytes: photo.bytes.length,
+        ...("samples" in photo
+          ? { p_samples: photo.samples, p_channels: photo.channels }
+          : { p_width: photo.width, p_height: photo.height }),
+        p_sha256: photo.sha256,
+      },
+    );
     checkRpc(attested.error);
   }
   const payload = { media_id: id };
@@ -139,6 +145,14 @@ export async function readPhoto(client: SupabaseClient, id: string) {
     width: allowed.data.width,
     height: allowed.data.height,
     mimeType: allowed.data.mime_type,
+    ...(allowed.data.samples
+      ? {
+          samples: allowed.data.samples,
+          sampleRate: allowed.data.sample_rate,
+          channels: allowed.data.channels,
+          durationMs: allowed.data.samples / 48,
+        }
+      : {}),
   };
 }
 export async function cleanupMedia() {
