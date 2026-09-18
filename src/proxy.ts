@@ -48,7 +48,11 @@ export async function proxy(request: NextRequest) {
           )
         : redirectTo(config, `/auth/error?reason=${access.status}`),
     );
-  return auth.finish(NextResponse.next({ request }));
+  const response = auth.finish(NextResponse.next({ request }));
+  // Native same-origin forms must retain their Origin in WebKit. External
+  // navigations still receive no referrer, and private media keeps its policy.
+  if (!mediaApi) response.headers.set("Referrer-Policy", "same-origin");
+  return response;
 }
 
 export const config = {

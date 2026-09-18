@@ -54,3 +54,8 @@ it("does not treat prototype property names as error messages", async () => {
   );
   expect(html).toContain("Sign-in didn");
 });
+
+import SettingsPage from "@/app/settings/page";
+it("guards the separate Settings page even when the proxy is bypassed", async () => {
+  await expect(SettingsPage()).rejects.toThrow("redirect:/auth/error?reason=signin");
+});

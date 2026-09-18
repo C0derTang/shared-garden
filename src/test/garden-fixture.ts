@@ -26,6 +26,7 @@ export function gardenFixture(): GardenState {
   return {
     ...clock,
     member_id: 1,
+    tutorial_facts: { cactus_checked_in: false, rose_noted: false },
     garden: {
       id: 1,
       initialized_at: clock.server_now,

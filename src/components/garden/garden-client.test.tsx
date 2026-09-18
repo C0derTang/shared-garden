@@ -1,3 +1,4 @@
+vi.mock("@/lib/settings/actions", () => ({ readSettings: vi.fn(), saveSetting: vi.fn() }));
 vi.mock("@/lib/peony/actions", () => ({
   readPeony: vi.fn(),
   mutatePeony: vi.fn(),

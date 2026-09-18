@@ -1,0 +1,10 @@
+.page { max-width: 44rem; margin: 0 auto; display: grid; gap: 1.3rem; }
+.guide, .card { padding: clamp(1rem, 3vw, 1.5rem); border: 1px solid var(--line); border-radius: 1rem; background: var(--paper-light); }
+.guide { margin: 0 0 1.4rem; }
+.guide h2, .card h2 { font-size: 1.35rem; margin: .4rem 0 .75rem; }
+.guide p, .card p { line-height: 1.6; }
+.quiet, .guide small { color: var(--muted); font-size: .875rem; line-height: 1.6; }
+.actions { display: flex; gap: .6rem; flex-wrap: wrap; align-items: center; margin: 1rem 0; }
+.close { min-height: 44px; padding: .65rem; border: 0; background: transparent; color: var(--ink); text-decoration: underline; cursor: pointer; }
+.preference { display: flex; align-items: center; gap: .7rem; min-height: 48px; font-weight: 600; }
+.preference input { width: 1.25rem; height: 1.25rem; accent-color: var(--forest); }

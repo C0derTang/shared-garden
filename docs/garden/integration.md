@@ -94,3 +94,35 @@ refreshing the garden afterward. A callback resolves only on a confirmed save;
 commands keep the same server action contract. Do not make separate competing
 garden subscriptions. Peony INSERT/UPDATE notifications enter `subscribeGarden`
 and the existing debounce; plan UPDATE also covers acceptance deletion.
+
+## Adaptive guide and personal settings (#35)
+
+`current_garden_state` now includes caller-derived lifetime `tutorial_facts`
+(`cactus_checked_in`, `rose_noted`). They use real retained entries under the same
+snapshot lock, never client completion flags. `GardenGuide` opens the ordinary
+spot triggers and pauses action links while the shared hook reports a busy or
+uncertain state. Sheets retain their keyed draft lifetime. `SheetScope` keeps one
+active focus trap per authenticated layout and defers a pending private moment
+until the current flower closes, without changing delivery state.
+
+`GardenLayout` loads caller-only settings on the server through `readSettings`
+and wraps content with `MemberPreferences`. Its global server-rendered motion-off
+style also covers portals; keep it around all authenticated routes and preserve
+the single private-interaction mount. `current_member_settings` reads without
+writes, and `save_member_setting` accepts exactly one presentation/preference
+field. Revisions and field-specific updates prevent stale responses and
+unrelated preference overwrites. Personal rows are not public or published.
+See [0019](../decisions/0019-tutorial-and-settings.md) for defaults and concurrency.
+
+The new database and browser-facing boundary checks run in database CI:
+
+```sh
+python3 supabase/tests/concurrency/settings_race.py supabase_db_shared-garden-clock
+node scripts/verify-member-settings.mjs /path/to/local-status.json ci
+```
+
+Without `ci`, the HTTP verifier accepts only disposable tutorial project
+`shared-garden-tutorial35` on loopback port 58521. It refuses populated Auth,
+member, garden or preference fixtures, verifies real REST/RPC isolation, denied
+partner Realtime subscriptions and second-client persistence, then removes its
+fixtures. Never repoint these scripts at a hosted backend.

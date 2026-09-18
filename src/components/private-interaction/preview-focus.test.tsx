@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, expect, it, vi } from "vitest";
 
@@ -10,6 +10,9 @@ const api = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/private-interaction/actions", () => api);
 vi.mock("@/lib/auth/browser", () => ({ gardenBrowserClient: () => null }));
+import { StrictMode } from "react";
+import { SheetScope } from "@/components/ui/sheet-scope";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { PrivateInteraction } from "./private-interaction";
 
 const content = {
@@ -28,7 +31,7 @@ it.each(["Escape", "Close"])(
     });
     api.previewPrivateInteraction.mockResolvedValue({ content, error: null });
     const user = userEvent.setup();
-    render(<PrivateInteraction ownerControls />);
+    render(<SheetScope><PrivateInteraction ownerControls /></SheetScope>);
     const opener = await screen.findByRole("button", { name: "Preview privately" });
     await user.click(opener);
     await screen.findByRole("dialog");
@@ -48,7 +51,7 @@ it.each(["Escape", "Close"])(
   async (dismissal) => {
     api.readPrivateInteraction.mockResolvedValue({ state: { status: "pending", content }, error: null });
     const user = userEvent.setup();
-    render(<PrivateInteraction ownerControls={false} />);
+    render(<SheetScope><PrivateInteraction ownerControls={false} /></SheetScope>);
     await screen.findByRole("dialog");
     if (dismissal === "Escape") await user.keyboard("{Escape}");
     else await user.click(screen.getByRole("button", { name: "Close" }));
@@ -59,3 +62,49 @@ it.each(["Escape", "Close"])(
     expect(await screen.findByRole("dialog")).toHaveAccessibleName(content.title);
   },
 );
+
+it.each(["Escape", "Close"])("defers actual pending delivery behind a focused draft under StrictMode and dismisses with %s", async (dismissal) => {
+  let resolve!: (value: unknown) => void;
+  api.readPrivateInteraction.mockReturnValue(new Promise((done) => { resolve = done; }));
+  const user = userEvent.setup();
+  render(<StrictMode><SheetScope><PrivateInteraction ownerControls={false} /><BottomSheet trigger={<button>Open Rose</button>} title="Rose draft" description="Your note"><input aria-label="Note" /></BottomSheet></SheetScope></StrictMode>);
+  await user.click(screen.getByRole("button", { name: "Open Rose" }));
+  const input = screen.getByRole("textbox");
+  await user.type(input, "An unsaved note");
+  await act(async () => resolve({ state: { status: "pending", content }, error: null }));
+  expect(document.querySelectorAll('[role="dialog"]')).toHaveLength(1);
+  expect(input).toHaveFocus(); expect(input).toHaveValue("An unsaved note");
+  fireEvent.focus(window);
+  await act(async () => {});
+  expect(input).toHaveFocus();
+  expect(api.answerPrivateInteraction).not.toHaveBeenCalled();
+  await user.click(screen.getByRole("button", { name: "Close" }));
+  expect(await screen.findByRole("dialog", { name: content.title })).toBeInTheDocument();
+  if (dismissal === "Escape") await user.keyboard("{Escape}");
+  else await user.click(screen.getByRole("button", { name: "Close" }));
+  const opener = screen.getByRole("button", { name: "Open your garden moment" });
+  await waitFor(() => expect(opener).toHaveFocus());
+  await user.keyboard("{Enter}");
+  expect(await screen.findByRole("dialog")).toHaveAccessibleName(content.title);
+  expect(api.answerPrivateInteraction).not.toHaveBeenCalled();
+  expect(api.controlPrivateInteraction).not.toHaveBeenCalled();
+});
+
+it("withdraws an unavailable queued moment without blocking later flower sheets", async () => {
+  let resolve!: (value: unknown) => void;
+  api.readPrivateInteraction.mockReturnValue(new Promise((done) => { resolve = done; }));
+  const user = userEvent.setup();
+  render(<SheetScope><PrivateInteraction ownerControls={false} /><BottomSheet trigger={<button>Open flower</button>} title="Flower draft" description="Care"><input aria-label="Draft" /></BottomSheet></SheetScope>);
+  await user.click(screen.getByRole("button", { name: "Open flower" }));
+  await act(async () => resolve({ state: { status: "pending", content }, error: null }));
+  expect(screen.getByRole("dialog")).toHaveAccessibleName("Flower draft");
+  api.readPrivateInteraction.mockResolvedValue({ state: { status: "unavailable" }, error: null });
+  fireEvent.focus(window);
+  await act(async () => {});
+  await user.click(screen.getByRole("button", { name: "Close" }));
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Open your garden moment" })).not.toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "Open flower" }));
+  expect(screen.getByRole("dialog")).toHaveAccessibleName("Flower draft");
+  expect(api.answerPrivateInteraction).not.toHaveBeenCalled();
+});

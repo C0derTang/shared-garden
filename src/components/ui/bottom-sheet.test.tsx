@@ -53,3 +53,38 @@ describe("bottom sheet integration", () => {
     expect(screen.getByRole("button", { name: "About" })).toHaveFocus();
   });
 });
+
+import { useState } from "react";
+import { act, fireEvent } from "@testing-library/react";
+import { SheetScope } from "./sheet-scope";
+it("defers a newly pending sheet while a flower draft owns focus, then opens it after Close", async () => {
+  let pending!: () => void;
+  function Example() {
+    const [open, setOpen] = useState(false);
+    pending = () => setOpen(true);
+    return <SheetScope><BottomSheet trigger={<button>Rose</button>} title="Rose note" description="Care"><input aria-label="Draft" /></BottomSheet><BottomSheet open={open} onOpenChange={setOpen} trigger={<button>Moment</button>} title="Pending moment" description="A moment"><button>Choose</button></BottomSheet></SheetScope>;
+  }
+  render(<Example />);
+  const user = userEvent.setup();
+  await user.click(screen.getByRole("button", { name: "Rose" }));
+  fireEvent.change(screen.getByRole("textbox"), { target: { value: "Keep this draft" } });
+  await act(async () => pending());
+  expect(screen.getAllByRole("dialog")).toHaveLength(1);
+  expect(screen.getByRole("textbox")).toHaveValue("Keep this draft");
+  await user.click(screen.getByRole("button", { name: "Close" }));
+  expect(screen.getByRole("dialog", { name: "Pending moment" })).toBeInTheDocument();
+  expect(screen.getAllByRole("dialog")).toHaveLength(1);
+  expect(screen.getByRole("dialog")).toContainElement(document.activeElement as HTMLElement);
+});
+
+it("releases an unmounted sheet and starts a new scope without stale ownership", async () => {
+  const { StrictMode } = await import("react");
+  const view = render(<StrictMode><SheetScope><BottomSheet open trigger={<button>First</button>} title="First sheet" description="First"><p>First draft</p></BottomSheet><BottomSheet open trigger={<button>Second</button>} title="Second sheet" description="Second"><button>Second action</button></BottomSheet></SheetScope></StrictMode>);
+  expect(screen.getByRole("dialog", { name: "First sheet" })).toBeInTheDocument();
+  view.rerender(<StrictMode><SheetScope><BottomSheet key="second" open trigger={<button>Second</button>} title="Second sheet" description="Second"><button>Second action</button></BottomSheet></SheetScope></StrictMode>);
+  expect(screen.getAllByRole("dialog")).toHaveLength(1);
+  expect(screen.getByRole("dialog", { name: "Second sheet" })).toBeInTheDocument();
+  view.unmount();
+  render(<SheetScope><BottomSheet open trigger={<button>New visit</button>} title="New visit" description="New"><p>Ready</p></BottomSheet></SheetScope>);
+  expect(screen.getByRole("dialog", { name: "New visit" })).toBeInTheDocument();
+});
