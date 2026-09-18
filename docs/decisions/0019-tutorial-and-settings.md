@@ -32,6 +32,14 @@ an impossible repeat. Ordinary planting remains available independently. A cap,
 unavailable target or progressed garden always permits an exit. No guide state
 locks seeds, resets history or grants another flower.
 
+Deliberate Close moves keyboard focus to Show garden guide; Show focuses the
+reopened guide heading. A confirmed Skip or Finish moves focus to the Garden
+heading. Pending saves keep the action focusable but unavailable to repeat,
+and unsuccessful saves retain focus. Each handoff is consumed once and only
+applies when focus still belongs to the action or its removed control; a later
+focused draft or other control is left alone. Remote preference and garden
+refreshes do not request focus.
+
 Garden sheets remain keyed by permanent spot and keep their existing local draft
 lifetime. The guide does not select or remount a different sheet when an unrelated
 snapshot changes. Closing a flower sheet retains the existing deliberate discard

@@ -5,6 +5,7 @@
 .guide p, .card p { line-height: 1.6; }
 .quiet, .guide small { color: var(--muted); font-size: .875rem; line-height: 1.6; }
 .actions { display: flex; gap: .6rem; flex-wrap: wrap; align-items: center; margin: 1rem 0; }
+.actions button[aria-disabled="true"] { cursor: default; opacity: .65; }
 .close { min-height: 44px; padding: .65rem; border: 0; background: transparent; color: var(--ink); text-decoration: underline; cursor: pointer; }
 .preference { display: flex; align-items: center; gap: .7rem; min-height: 48px; font-weight: 600; }
 .preference input { width: 1.25rem; height: 1.25rem; accent-color: var(--forest); }

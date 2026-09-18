@@ -91,3 +91,89 @@ it("pauses guide actions after a confirmed save with a lost refresh, then reconc
   await screen.findByRole("button", { name: "Choose a Rose seed" });
   expect(mutateGarden).toHaveBeenCalledTimes(1);
 });
+
+async function activateWithKeyboard(user: ReturnType<typeof userEvent.setup>, button: HTMLElement) {
+  for (let tabs = 0; document.activeElement !== button && tabs < 30; tabs++) await user.tab();
+  expect(button).toHaveFocus();
+  await user.keyboard("{Enter}");
+}
+
+it("hands keyboard focus to the collapsed control and then the reopened guide heading", async () => {
+  show(); const user = userEvent.setup();
+  await activateWithKeyboard(user, screen.getByRole("button", { name: "Close guide for now" }));
+  const reopen = screen.getByRole("button", { name: "Show garden guide" });
+  expect(reopen).toHaveFocus();
+  await user.keyboard("{Enter}");
+  expect(screen.getByRole("heading", { name: "A little hello" })).toHaveFocus();
+  await user.tab();
+  expect(screen.getByRole("button", { name: "Visit Cactus" })).toHaveFocus();
+  expect(saveSetting).not.toHaveBeenCalled();
+  expect(mutateGarden).not.toHaveBeenCalled();
+});
+
+it.each(["Skip", "Finish"] as const)("hands keyboard focus to the garden after confirmed %s", async (action) => {
+  const state = gardenFixture();
+  state.tutorial_facts = { cactus_checked_in: true, rose_noted: true };
+  show(state); const user = userEvent.setup();
+  const guide = action === "Skip" ? "skipped" : "finished";
+  saveSetting.mockResolvedValue({ state: { ...settings.state, revision: 1, guide }, error: null });
+  await activateWithKeyboard(user, screen.getByRole("button", { name: `${action} guide` }));
+  await waitFor(() => expect(screen.queryByRole("region", { name: "Garden guide" })).not.toBeInTheDocument());
+  expect(screen.getByRole("heading", { name: "Our shared garden" })).toHaveFocus();
+  expect(saveSetting).toHaveBeenCalledExactlyOnceWith({ guide });
+  expect(mutateGarden).not.toHaveBeenCalled();
+});
+
+it.each(["Skip", "Finish"])("retains keyboard focus during a delayed unsuccessful %s and permits closing afterward", async (action) => {
+  const state = gardenFixture(); state.tutorial_facts = { cactus_checked_in: true, rose_noted: true };
+  show(state); const user = userEvent.setup();
+  let resolve!: (value: unknown) => void;
+  saveSetting.mockReturnValue(new Promise((done) => { resolve = done; }));
+  const skip = screen.getByRole("button", { name: `${action} guide` });
+  await activateWithKeyboard(user, skip);
+  expect(skip).toHaveFocus();
+  expect(skip).toHaveAttribute("aria-disabled", "true");
+  await user.keyboard("{Enter}");
+  expect(saveSetting).toHaveBeenCalledTimes(1);
+  await act(async () => resolve({ state: null, error: "Not confirmed" }));
+  expect(skip).toHaveFocus();
+  expect(screen.getByRole("alert")).toHaveTextContent("Not confirmed");
+  await activateWithKeyboard(user, screen.getByRole("button", { name: "Close guide for now" }));
+  expect(screen.getByRole("button", { name: "Show garden guide" })).toHaveFocus();
+});
+
+it("hands focus onward when a delayed Skip confirms after the member locally closes the guide", async () => {
+  show(); const user = userEvent.setup();
+  let resolve!: (value: unknown) => void;
+  saveSetting.mockReturnValue(new Promise((done) => { resolve = done; }));
+  await activateWithKeyboard(user, screen.getByRole("button", { name: "Skip guide" }));
+  await activateWithKeyboard(user, screen.getByRole("button", { name: "Close guide for now" }));
+  expect(screen.getByRole("button", { name: "Show garden guide" })).toHaveFocus();
+  await act(async () => resolve({ state: { ...settings.state, revision: 1, guide: "skipped" }, error: null }));
+  expect(screen.getByRole("heading", { name: "Our shared garden" })).toHaveFocus();
+});
+
+it.each(["pending save", "remote refresh"])("does not take focus from a flower draft when a %s hides the guide", async (source) => {
+  const state = gardenFixture();
+  state.plants.push({ ...structuredClone(state.plants[0]), flower: { ...state.plants[0].flower, id: "rose-two", type_key: "rose", spot: 2 } });
+  show(state); const user = userEvent.setup();
+  let resolve!: (value: unknown) => void;
+  if (source === "pending save") {
+    saveSetting.mockReturnValue(new Promise((done) => { resolve = done; }));
+    await activateWithKeyboard(user, screen.getByRole("button", { name: "Skip guide" }));
+  } else {
+    await activateWithKeyboard(user, screen.getByRole("button", { name: "Close guide for now" }));
+    await user.keyboard("{Enter}");
+    expect(screen.getByRole("heading", { name: "A note for your Rose" })).toHaveFocus();
+  }
+  await user.click(screen.getByRole("button", { name: "Visit Rose" }));
+  const draft = screen.getByRole("textbox", { name: "Note about today" });
+  await user.type(draft, "Keep my focused note");
+  const result = { state: { ...settings.state, revision: 1, guide: "skipped" }, error: null };
+  if (source === "pending save") await act(async () => resolve(result));
+  else { readSettings.mockResolvedValue(result); fireEvent.focus(window); }
+  await waitFor(() => expect(screen.queryByRole("region", { name: "Garden guide", hidden: true })).not.toBeInTheDocument());
+  expect(draft).toHaveFocus();
+  expect(draft).toHaveValue("Keep my focused note");
+  expect(mutateGarden).not.toHaveBeenCalled();
+});
