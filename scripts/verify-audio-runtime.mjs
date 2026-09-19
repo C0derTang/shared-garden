@@ -33,6 +33,14 @@ for (const name of ["ffmpeg", "ffprobe", "limit"]) {
   assert(paths.has(executable), `${name} must be traced`);
   assert(fs.statSync(executable).mode & 0o111, `${name} must be executable`);
 }
+// The inspectable smoke template under tools/ is not a route and nothing in
+// src/ imports it. Prove that no build ever pulls it into the served runtime.
+const templates = path.join(root, "tools") + path.sep;
+for (const file of paths)
+  assert(
+    !file.startsWith(templates),
+    `Production runtime must exclude the template file ${file}`,
+  );
 let bytes = 0;
 for (const file of paths) bytes += fs.statSync(file).size;
 assert(
@@ -46,5 +54,5 @@ const version = execFileSync(
 );
 assert(version.startsWith("ffprobe version 9.0.1"));
 console.log(
-  `PASS: traced executable Linux decoder/limiter; entire server + runtime upper bound ${bytes} bytes across ${paths.size} files`,
+  `PASS: traced executable Linux decoder/limiter, no tools/ template file traced; entire server + runtime upper bound ${bytes} bytes across ${paths.size} files`,
 );

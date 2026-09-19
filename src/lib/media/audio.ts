@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
 import { mkdtemp, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { MediaError } from "./image";
+import { MediaError } from "./error";
 
 export const AUDIO_INPUT_LIMIT = 12 * 1024 * 1024;
 const MAX_SAMPLES = 300 * 48000;

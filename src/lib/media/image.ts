@@ -1,6 +1,10 @@
 import "server-only";
 import { createHash } from "node:crypto";
 import sharp from "sharp";
+import { MediaError } from "./error";
+
+// Re-exported so existing importers keep one media error type.
+export { MediaError };
 
 export const PHOTO_INPUT_LIMIT = 12 * 1024 * 1024;
 export const PHOTO_OUTPUT_LIMIT = 32 * 1024 * 1024;
@@ -8,14 +12,6 @@ export const PHOTO_PIXEL_LIMIT = 25_000_000;
 export const PHOTO_SIDE_LIMIT = 12_000;
 export const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
 export type PhotoType = (typeof PHOTO_TYPES)[number];
-export class MediaError extends Error {
-  constructor(
-    public code: string,
-    public status = 422,
-  ) {
-    super(code);
-  }
-}
 
 // libvips may report an APNG as a single PNG with no `pages` metadata. Walk
 // actual chunk boundaries, not substring matches inside compressed pixel data.
