@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useCallback, useRef, useState, type RefCallback } from "react";
+import { GardenGuide } from "@/components/settings/garden-guide";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { PixelIcon } from "@/components/ui/pixel-icon";
 import {
@@ -39,6 +40,7 @@ function GardenSpot({
   now,
   busy,
   mutate,
+  buttonRef,
 }: {
   spot: number;
   plant?: Plant;
@@ -47,6 +49,7 @@ function GardenSpot({
   now: number;
   busy: boolean;
   mutate: Mutate;
+  buttonRef: RefCallback<HTMLButtonElement>;
 }) {
   const [open, setOpen] = useState(false);
   const [picking, setPicking] = useState(!plant);
@@ -73,6 +76,7 @@ function GardenSpot({
         }
         trigger={
           <button
+            ref={buttonRef}
             className={plant ? styles.flowerButton : styles.emptyButton}
             aria-label={
               plant
@@ -142,6 +146,9 @@ function GardenSpot({
   );
 }
 export function GardenClient({ initial }: { initial: GardenResult }) {
+  const spotButtons = useRef(new Map<number, HTMLButtonElement>());
+  const heading = useRef<HTMLHeadingElement>(null);
+  const focusGarden = useCallback(() => heading.current?.focus(), []);
   const { state, now, error, connected, busy, refresh, mutate } =
     useGarden(initial);
   if (!state)
@@ -170,7 +177,7 @@ export function GardenClient({ initial }: { initial: GardenResult }) {
       <div className={styles.heading}>
         <div>
           <p className="eyebrow">A LITTLE CARE, EVERY DAY</p>
-          <h1>Our shared garden</h1>
+          <h1 ref={heading} tabIndex={-1}>Our shared garden</h1>
           <p className={styles.quiet}>
             A place for the things we grow together.
           </p>
@@ -185,6 +192,7 @@ export function GardenClient({ initial }: { initial: GardenResult }) {
           </span>
         </div>
       </div>
+      <GardenGuide state={state} paused={busy || !!error} visit={(spot) => spotButtons.current.get(spot)?.click()} focusGarden={focusGarden} />
       <div className={styles.workspace}>
         <aside className={styles.almanac} aria-label="Garden day">
           <div className={styles.clock}>
@@ -271,6 +279,7 @@ export function GardenClient({ initial }: { initial: GardenResult }) {
                 return (
                   <GardenSpot
                     key={spot}
+                    buttonRef={(button) => { if (button) spotButtons.current.set(spot, button); else spotButtons.current.delete(spot); }}
                     {...{
                       spot,
                       plant,

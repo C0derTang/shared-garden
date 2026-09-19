@@ -62,6 +62,7 @@ export type Plant = ClockState & {
 };
 export type GardenState = ClockState & {
   member_id: 1 | 2;
+  tutorial_facts: { cactus_checked_in: boolean; rose_noted: boolean };
   garden: {
     id: number;
     initialized_at: string;
@@ -156,6 +157,8 @@ export function parseGardenState(value: unknown): GardenState {
   const state = object(value);
   clock(state);
   assert(state.member_id === 1 || state.member_id === 2);
+  const tutorial = object(state.tutorial_facts);
+  assert(typeof tutorial.cactus_checked_in === "boolean" && typeof tutorial.rose_noted === "boolean");
   const garden = object(state.garden);
   assert(
     garden.id === 1 &&

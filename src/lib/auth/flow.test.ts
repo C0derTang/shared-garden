@@ -487,3 +487,19 @@ describe("private media proxy", () => {
     expect(response.headers.get("cache-control")).toContain("private");
   });
 });
+
+it.each(["/garden", "/garden/songs", "/settings", "/memories", "/achievements"])("preserves the native same-origin form Origin on %s without sending external referrers", async (path) => {
+  const response = await proxy(request(path, { headers: { cookie: cookie() } }));
+  expect(response.headers.get("Referrer-Policy")).toBe("same-origin");
+  expect(response.headers.get("Cache-Control")).toContain("no-store");
+});
+it("retains the stricter no-referrer policy for private media responses", async () => {
+  const response = await proxy(request("/api/media/read", { headers: { cookie: cookie() } }));
+  expect(response.headers.get("Referrer-Policy")).toBe("no-referrer");
+});
+it.each([null, "null", "https://evil.example"])("rejects sign-out with missing, null or foreign Origin (%s)", async (supplied) => {
+  const response = await signOut(request("/auth/sign-out", { method: "POST", headers: { cookie: cookie(), ...(supplied === null ? {} : { origin: supplied }) } }));
+  expect(response.status).toBe(403);
+  expect(response.cookies.getAll()).toHaveLength(0);
+  expect(calls.some(({ url }) => url === `${service}/auth/v1/logout?scope=local`)).toBe(false);
+});

@@ -38,6 +38,7 @@ jobs:
             < docs/auth/verify-identity-auth-role.sql
       - name: Verify overlapping planting, entry, and settlement transactions
         run: |
+          python3 supabase/tests/concurrency/settings_race.py supabase_db_shared-garden-clock
           python3 supabase/tests/concurrency/planting_race.py supabase_db_shared-garden-clock
           python3 supabase/tests/concurrency/entries_race.py supabase_db_shared-garden-clock
           python3 supabase/tests/concurrency/rollover_race.py supabase_db_shared-garden-clock
@@ -51,6 +52,7 @@ jobs:
         run: |
           umask 077
           node_modules/.bin/supabase status -o json > "$RUNNER_TEMP/garden-status.json"
+          node scripts/verify-member-settings.mjs "$RUNNER_TEMP/garden-status.json" ci
           node scripts/verify-garden-realtime.mjs "$RUNNER_TEMP/garden-status.json" ci
           node scripts/verify-peony-realtime.mjs "$RUNNER_TEMP/garden-status.json" ci
           npm run db:reset

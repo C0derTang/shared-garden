@@ -1,12 +1,15 @@
 import type { ReactNode } from "react";
+import { MemberPreferences } from "@/components/settings/member-preferences";
+import { SheetScope } from "@/components/ui/sheet-scope";
+import { readSettings } from "@/lib/settings/actions";
 import { PrivateInteraction } from "@/components/private-interaction/private-interaction";
 import {
   GardenNavigation,
   type GardenDestination,
 } from "@/components/layout/garden-navigation";
 
-// Presentational only. Future authenticated routes must authorize before rendering.
-export function GardenLayout({
+// Each destination retains its own guard; the settings read also reauthorizes.
+export async function GardenLayout({
   current,
   children,
   header,
@@ -15,7 +18,10 @@ export function GardenLayout({
   children: ReactNode;
   header: ReactNode;
 }) {
+  const preferences = await readSettings();
   return (
+    <MemberPreferences initial={preferences}>
+    <SheetScope>
     <div className="garden-layout">
       <header className="garden-header">{header}</header>
       <main id="main-content" className="garden-main">
@@ -24,5 +30,7 @@ export function GardenLayout({
       </main>
       <GardenNavigation current={current} />
     </div>
+    </SheetScope>
+    </MemberPreferences>
   );
 }

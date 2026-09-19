@@ -1,11 +1,9 @@
-import { UpcomingPage } from "@/components/layout/upcoming-page";
+import { GardenLayout } from "@/components/layout/garden-layout";
+import { MemberHeader } from "@/components/layout/member-header";
+import { SettingsClient } from "@/components/settings/settings-client";
+import { requireMember } from "@/lib/auth/server";
 export const dynamic = "force-dynamic";
-export default function SettingsPage() {
-  return (
-    <UpcomingPage
-      current="settings"
-      title="Garden settings"
-      description="The reopenable garden introduction is coming soon. Your garden follows Pacific time, with each new day beginning at 4 a.m."
-    />
-  );
+export default async function SettingsPage() {
+  await requireMember();
+  return <GardenLayout current="settings" header={<MemberHeader />}><SettingsClient /></GardenLayout>;
 }

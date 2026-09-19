@@ -1,7 +1,8 @@
 "use client";
 
 import * as Dialog from "@radix-ui/react-dialog";
-import type { ReactElement, ReactNode } from "react";
+import { useEffect, useId, useState, type ReactElement, type ReactNode } from "react";
+import { useSheetScope } from "./sheet-scope";
 
 type BottomSheetProps = {
   trigger: ReactElement;
@@ -20,8 +21,18 @@ export function BottomSheet({
   open,
   onOpenChange,
 }: BottomSheetProps) {
+  const id = useId();
+  const scope = useSheetScope();
+  const [localOpen, setLocalOpen] = useState(false);
+  const requested = open ?? localOpen;
+  const request = scope?.request, release = scope?.release;
+  useEffect(() => {
+    if (requested) request?.(id);
+    return () => release?.(id);
+  }, [id, requested, request, release]);
+  const visible = requested && (!scope || scope.active === id);
   return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+    <Dialog.Root open={visible} onOpenChange={(next) => { setLocalOpen(next); onOpenChange?.(next); }}>
       <Dialog.Trigger asChild>{trigger}</Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="sheet-overlay" />
