@@ -45,7 +45,7 @@ export function GardenStage({ initial, children }: { initial: GardenResult; chil
       const link = (event.target as HTMLElement).closest("a");
       if (pathname === "/garden" && link && panels[link.getAttribute("href") ?? ""]) openedFromGarden.current = true;
     }}>
-      <main id="main-content" className="garden-main"><GardenClient initial={initial} /></main>
+      <main id="main-content" className="garden-main"><GardenClient initial={initial} guideEnabled={!title} /></main>
       <GardenNavigation current={current} />
     </div>
     <Dialog.Root open={panelOpen} onOpenChange={(open) => { if (!open) close(); }}>

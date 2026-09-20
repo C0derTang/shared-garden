@@ -7,7 +7,7 @@
 .tools a, .help summary { min-height: 44px; display: flex; align-items: center; padding: 0 8px; cursor: pointer; }
 .help > div { position: absolute; left: 12px; right: 12px; max-width: 28rem; padding: 1rem; background: var(--paper); border: 1px solid var(--line-strong); box-shadow: 3px 3px #a6b187; font-size: .85rem; }
 .help p + p { margin-top: .65rem; }
-.guide:not(:empty) { position: relative; z-index: 2; padding: 8px 12px; }
+.guide { position: absolute; top: 51px; left: 50%; transform: translateX(-50%); z-index: 3; }
 .guide:empty { display: none; }
 .workspace { max-width: 1200px; margin: auto; }
 .beds { min-width: 0; }
