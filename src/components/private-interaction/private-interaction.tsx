@@ -46,11 +46,15 @@ function OwnerControls({ detail, busy: saving, change, setError }: { detail: Own
     } catch { if (mounted.current) { setPreview(null); setError("Preview could not open. Please try again."); } }
     finally { if (mounted.current) setBusy(false); }
   };
+  const status = detail.status === "answered"
+    ? "Answered · This moment will not repeat."
+    : detail.status === "pending"
+      ? detail.armed ? "Pending · Delivery is armed." : "Pending · Delivery is paused."
+      : detail.armed ? "Armed · Waiting for all 26 achievements." : "Disarmed · Delivery is paused.";
   return <div className={styles.controls}>
       <p className="eyebrow">PRIVATE OWNER CONTROLS</p><h2>Garden moment</h2>
       {detail.status === "unconfigured" ? <p>Your private moment has not been configured.</p> : <>
-        <p>{detail.status === "answered" ? "Answered. This moment will not repeat." : detail.armed ? "Armed. Delivery waits for all 26 ordinary achievements." : "Disarmed. Delivery and answering are paused."}</p>
-        {detail.status === "pending" && <p>A pending moment is saved. Pausing preserves it.</p>}
+        <p className={styles.deliveryStatus} role="status" aria-label="Delivery status">{status}</p>
         <div className={styles.controlButtons}>
           <BottomSheet
             open={previewOpen}
@@ -60,11 +64,11 @@ function OwnerControls({ detail, busy: saving, change, setError }: { detail: Own
             }}
             title="Preview — nothing will be sent"
             description={preview?.title ?? "Your private garden moment preview."}
-            trigger={<button type="button" disabled={busy}>Preview privately</button>}
+            trigger={<button className="button button-secondary" type="button" disabled={busy}>Preview privately</button>}
           >
             {preview && <Moment content={preview} preview busy={false} save={() => {}} />}
           </BottomSheet>
-          <button type="button" disabled={busy || detail.status === "answered"} onClick={() => void change(!detail.armed)}>{detail.armed ? "Disarm delivery" : "Arm delivery"}</button>
+          <button className="button button-secondary" type="button" disabled={busy || detail.status === "answered"} onClick={() => void change(!detail.armed)}>{detail.armed ? "Disarm delivery" : "Arm delivery"}</button>
         </div>
         {detail.answer && !detail.unread && <p>Saved answer: {detail.answer.label}</p>}
       </>}

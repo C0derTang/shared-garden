@@ -1,9 +1,13 @@
 .container { display: grid; gap: 1rem; margin-block-end: 1rem; min-width: 0; }
 .notice, .controls { padding: clamp(1rem, 3vw, 1.5rem); background: #fff7e7; color: #3c4638; border: 2px solid #a4b484; box-shadow: 4px 4px 0 #e6dbc0; overflow-wrap: anywhere; }
+.controls { margin-top: .75rem; padding: .85rem; border-width: 1px; border-radius: .7rem; box-shadow: none; }
 .notice h2, .controls h2 { font-size: 1.2rem; margin-top: 0; }
+.controls h2 { font-size: 1rem; line-height: 1.3; margin: .15rem 0 0; }
+.deliveryStatus { margin-top: .25rem; color: #59634e; font-size: .84rem; line-height: 1.45; }
 .container button, .choices button { min-height: 44px; padding: .7rem 1rem; font: inherit; cursor: pointer; white-space: normal; overflow-wrap: anywhere; }
 .container button:disabled, .choices button:disabled { cursor: default; opacity: .65; }
-.controlButtons { display: flex; gap: .7rem; flex-wrap: wrap; }
+.controlButtons { display: flex; gap: .55rem; flex-wrap: wrap; margin-top: .75rem; }
+.controlButtons button { min-height: 44px; padding: .6rem .8rem; }
 .moment { overflow-wrap: anywhere; }
 .message { white-space: pre-wrap; line-height: 1.65; }
 .bloom { display: flex; flex-wrap: wrap; justify-content: center; gap: .35rem; padding: .75rem .4rem; background: #fff1de; border: 2px dashed #b5bd82; animation: bloom-in 700ms ease-out both; }
