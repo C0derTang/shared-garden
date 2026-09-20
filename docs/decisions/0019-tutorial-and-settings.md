@@ -107,3 +107,21 @@ cached in localStorage or left on the document root.
 Verification evidence and browser limitations are recorded with the issue/PR.
 Only disposable local synthetic fixtures are used. No hosted setup, actual
 private interaction, production content, or tutorial fixture is shipped.
+
+## Unavailable guide step focus (issue #68)
+
+Under decision 0004's conservative accessibility discretion, the step action uses
+`aria-disabled` and an activation guard while garden care is pending or the
+current snapshot is uncertain. Like Skip and Finish, it remains in the tab order
+and retains the existing visible focus outline and unavailable-control styling.
+Enter, Space, and pointer activation do nothing while paused. A background refresh
+failure leaves keyboard focus on the current step; a later confirmed snapshot
+restores the ordinary action. This applies to Cactus, seed selection, growing
+Rose, and blooming Rose actions. The ready and unavailable paths have no step
+action. No refresh or guide-selection logic changes, and the deliberate Close,
+Show, Skip, and Finish focus handoffs remain unchanged.
+
+Source: [issue #68](https://github.com/C0derTang/shared-garden/issues/68).
+Verification uses component keyboard regressions and disposable synthetic browser
+fixtures at phone and desktop widths. Physical-device assistive-technology
+certification is not claimed.
