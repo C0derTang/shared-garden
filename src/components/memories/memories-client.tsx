@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
+import { PixelIcon } from "@/components/ui/pixel-icon";
 import {
   memoryTypes,
   type MemoryFilters,
@@ -11,6 +12,14 @@ import { useMemories } from "@/lib/memories/use-memories";
 import { MemoryCard, flowerName } from "./memory-card";
 import styles from "./memories.module.css";
 const all: MemoryFilters = {};
+function activeFilterLabels(filters: MemoryFilters) {
+  return [
+    filters.type && flowerName(filters.type),
+    filters.spot && `Spot ${filters.spot}`,
+    filters.from && `From ${filters.from}`,
+    filters.to && `Through ${filters.to}`,
+  ].filter((label): label is string => !!label);
+}
 export function MemoriesClient({
   initial,
   memberId,
@@ -21,6 +30,14 @@ export function MemoriesClient({
   const [filters, setFilters] = useState<MemoryFilters>(all);
   const [filterError, setFilterError] = useState("");
   const [revision, setRevision] = useState(0);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const activeFilters = activeFilterLabels(filters);
+  function clearFilters() {
+    setFilters(all);
+    setFilterError("");
+    setFiltersOpen(false);
+    setRevision((n) => n + 1);
+  }
   function apply(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
@@ -39,27 +56,47 @@ export function MemoriesClient({
     }
     setFilterError("");
     setFilters(next);
+    setFiltersOpen(false);
     setRevision((n) => n + 1);
   }
   return (
     <section className={styles.collection} aria-labelledby="memories-title">
       <header className={styles.intro}>
-        <p className={styles.eyebrow}>Our shared story</p>
+        <p className={styles.eyebrow}>Saved together</p>
         <h1 id="memories-title">Our memories</h1>
-        <p>
-          Little moments, saved together. Revisit both of our contributions
-          across every flower and permanent bloom.
-        </p>
-        <Link href="/garden">← Back to our garden</Link>
+        <p>Little moments from every flower.</p>
       </header>
+      <button
+        type="button"
+        className={styles.filterToggle}
+        aria-expanded={filtersOpen}
+        aria-controls="memory-filters"
+        aria-label={
+          activeFilters.length
+            ? `Filters, ${activeFilters.length} active`
+            : "Filters"
+        }
+        onClick={() => setFiltersOpen((open) => !open)}
+      >
+        <span>Filters</span>
+        {activeFilters.length > 0 && (
+          <span className={styles.filterCount} aria-hidden="true">
+            {activeFilters.length} active
+          </span>
+        )}
+        <span aria-hidden="true">{filtersOpen ? "−" : "+"}</span>
+      </button>
       <form
+        id="memory-filters"
+        key={`filters-${revision}`}
         className={styles.filters}
         onSubmit={apply}
         aria-label="Browse memories"
+        hidden={!filtersOpen}
       >
         <label>
           Flower type
-          <select name="type" defaultValue="">
+          <select name="type" defaultValue={filters.type ?? ""}>
             <option value="">All flowers</option>
             {memoryTypes.map((type) => (
               <option value={type} key={type}>
@@ -77,27 +114,24 @@ export function MemoriesClient({
             max="2147483647"
             step="1"
             placeholder="Any spot"
+            defaultValue={filters.spot ?? ""}
           />
         </label>
         <label>
           From garden day
-          <input name="from" type="date" />
+          <input name="from" type="date" defaultValue={filters.from ?? ""} />
         </label>
         <label>
           Through garden day
-          <input name="to" type="date" />
+          <input name="to" type="date" defaultValue={filters.to ?? ""} />
         </label>
         <button className="button button-secondary" type="submit">
           Apply filters
         </button>
         <button
           className="button button-secondary"
-          type="reset"
-          onClick={() => {
-            setFilters(all);
-            setFilterError("");
-            setRevision((n) => n + 1);
-          }}
+          type="button"
+          onClick={clearFilters}
         >
           Clear filters
         </button>
@@ -108,18 +142,33 @@ export function MemoriesClient({
         </p>
       </form>
       {filterError && <p role="alert">{filterError}</p>}
+      {activeFilters.length > 0 && (
+        <div
+          className={styles.activeFilters}
+          role="status"
+          aria-label="Active filters"
+        >
+          <span>{activeFilters.join(" · ")}</span>
+          <button type="button" onClick={clearFilters}>
+            Clear
+          </button>
+        </div>
+      )}
       <MemoryFeed
         key={revision}
         initial={revision === 0 ? initial : undefined}
         filters={filters}
         memberId={memberId}
+        filtered={activeFilters.length > 0}
       />
-      <p className={styles.quiet}>
-        Memories are read-only. To edit your current contribution within its
-        allowed window, open its flower in the{" "}
-        <Link href="/garden">garden</Link>. Original posting times stay the
-        same.
-      </p>
+      <details className={styles.notes}>
+        <summary>About saved memories</summary>
+        <p>
+          Memories are read-only. To edit a current contribution during its
+          allowed window, open the flower in the <Link href="/garden">garden</Link>.
+          Original posting times stay the same.
+        </p>
+      </details>
     </section>
   );
 }
@@ -127,10 +176,12 @@ function MemoryFeed({
   initial,
   filters,
   memberId,
+  filtered,
 }: {
   initial?: MemoryPage;
   filters: MemoryFilters;
   memberId: 1 | 2;
+  filtered: boolean;
 }) {
   const feed = useMemories(initial, filters);
   return (
@@ -141,12 +192,10 @@ function MemoryFeed({
           disabled={feed.busy}
           onClick={feed.refresh}
         >
-          {feed.ready ? "Refresh memories" : "Try again"}
+          {feed.error ? "Try again" : feed.ready ? "Refresh memories" : "Try again"}
         </button>
         <span className={styles.quiet}>
-          {feed.connected
-            ? "Partner updates connected"
-            : "Refresh anytime to check for updates"}
+          {feed.connected ? "Live updates" : "Manual refresh"}
         </span>
       </div>
       {feed.error && <p role="alert">{feed.error}</p>}
@@ -167,16 +216,17 @@ function MemoryFeed({
       )}
       {feed.ready && !feed.items.length && (
         <div className={styles.empty}>
-          <h2>No memories match these filters yet.</h2>
+          <PixelIcon name="book" />
           <p>
-            Your shared moments will appear here as you care for your garden.
-            Try another flower or a wider date range.
+            {filtered
+              ? "No memories match those filters."
+              : "Your first shared memory will appear here."}
           </p>
         </div>
       )}
       <ol className={styles.list}>
         {feed.items.map((item) => (
-          <li key={item.key}>
+          <li key={item.key} className={item.kind === "peony" ? styles.wide : undefined}>
             <MemoryCard item={item} memberId={memberId} />
           </li>
         ))}
