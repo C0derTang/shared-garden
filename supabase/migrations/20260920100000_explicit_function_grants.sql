@@ -1,0 +1,116 @@
+-- Consistent explicit function grant surface (decision 0028, issue #66).
+-- Keep historical migrations intact. This is consistency hardening, not a
+-- reported exploit. Re-establish only the existing intentional callers.
+begin;
+
+revoke all on function
+  private.all_ordinary_achievements_complete(),
+  private.assign_daisy_question(date,timestamptz),
+  private.begin_garden_operation(),
+  private.bind_google_identity(),
+  private.bootstrap_members(text,text),
+  private.bootstrap_private_interaction(smallint,text,text,jsonb),
+  private.capture_noon_snapshot(date),
+  private.complete_peony_milestone(uuid,integer,timestamptz),
+  private.current_member_id(),
+  private.ensure_garden(),
+  private.entry_state_at(uuid,smallint,timestamptz),
+  private.evaluate_achievements(timestamptz),
+  private.garden_clock_at(timestamptz),
+  private.google_account(uuid,boolean),
+  private.guard_media_entry(),
+  private.is_owner(),
+  private.media_upload_json(private.media_uploads),
+  private.peony_state_at(uuid,smallint,timestamptz),
+  private.plant_flower(text,text,numeric,boolean),
+  private.record_first_bloom(uuid,date),
+  private.record_first_bloom_at(uuid,date,timestamptz),
+  private.record_peony_activity(uuid,smallint,timestamptz,timestamptz,timestamptz),
+  private.require_member(),
+  private.require_owner(),
+  private.require_peony_milestone(uuid,integer),
+  private.settle_garden_at(timestamptz),
+  private.valid_interaction_choices(jsonb),
+  private.validate_entry_payload(text,jsonb,date),
+  private.validate_nonmedia_entry_payload(text,jsonb,date),
+  private.validate_peony_payload(integer,jsonb),
+  public.accept_peony_plan(uuid,bigint),
+  public.answer_private_interaction(text),
+  public.attest_audio_upload(uuid,uuid,integer,integer,integer,text),
+  public.attest_media_upload(uuid,uuid,integer,integer,integer,text),
+  public.before_user_created(jsonb),
+  public.claim_media_upload(uuid),
+  public.create_media_upload(uuid,uuid,text,integer,bigint),
+  public.current_achievements(),
+  public.current_entry_state(uuid),
+  public.current_garden_state(),
+  public.current_member(),
+  public.current_member_settings(),
+  public.current_peony_state(uuid),
+  public.current_private_interaction(),
+  public.edit_flower_entry(bigint,jsonb),
+  public.edit_peony_contribution(bigint,jsonb),
+  public.entry_history(uuid,integer,bigint),
+  public.fulfill_dandelion(uuid),
+  public.get_daily_daisy_question(),
+  public.initialize_garden(),
+  public.is_garden_member(),
+  public.media_cleanup_candidates(),
+  public.media_cleanup_done(uuid,boolean,boolean),
+  public.media_read_path(uuid),
+  public.media_upload_allowed(text),
+  public.media_upload_state(uuid),
+  public.memories_page(text,jsonb,text[],text,integer,date,date),
+  public.owner_private_interaction(text,boolean),
+  public.plant_flower(text,text),
+  public.plant_flower_at(text,numeric,text),
+  public.save_member_setting(jsonb),
+  public.set_peony_plan(uuid,bigint,text,text),
+  public.submit_flower_entry(uuid,jsonb),
+  public.submit_peony_contribution(uuid,integer,jsonb)
+from public, anon, authenticated, service_role, supabase_auth_admin;
+
+grant execute on function
+  public.accept_peony_plan(uuid,bigint),
+  public.answer_private_interaction(text),
+  public.claim_media_upload(uuid),
+  public.create_media_upload(uuid,uuid,text,integer,bigint),
+  public.current_achievements(),
+  public.current_entry_state(uuid),
+  public.current_garden_state(),
+  public.current_member(),
+  public.current_member_settings(),
+  public.current_peony_state(uuid),
+  public.current_private_interaction(),
+  public.edit_flower_entry(bigint,jsonb),
+  public.edit_peony_contribution(bigint,jsonb),
+  public.entry_history(uuid,integer,bigint),
+  public.fulfill_dandelion(uuid),
+  public.get_daily_daisy_question(),
+  public.initialize_garden(),
+  public.is_garden_member(),
+  public.media_read_path(uuid),
+  public.media_upload_allowed(text),
+  public.media_upload_state(uuid),
+  public.memories_page(text,jsonb,text[],text,integer,date,date),
+  public.owner_private_interaction(text,boolean),
+  public.plant_flower(text,text),
+  public.plant_flower_at(text,numeric,text),
+  public.save_member_setting(jsonb),
+  public.set_peony_plan(uuid,bigint,text,text),
+  public.submit_flower_entry(uuid,jsonb),
+  public.submit_peony_contribution(uuid,integer,jsonb)
+to authenticated;
+
+grant execute on function
+  public.attest_audio_upload(uuid,uuid,integer,integer,integer,text),
+  public.attest_media_upload(uuid,uuid,integer,integer,integer,text),
+  public.media_cleanup_candidates(),
+  public.media_cleanup_done(uuid,boolean,boolean)
+to service_role;
+
+grant execute on function
+  public.before_user_created(jsonb)
+to supabase_auth_admin;
+
+commit;
