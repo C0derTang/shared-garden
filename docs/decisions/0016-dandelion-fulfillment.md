@@ -31,3 +31,10 @@ fact without interpreting UI state or counting decorative seeds. Those features
 and award evaluation remain separate. The normal mutation coordinator provides
 shared synchronous locks, boundary guards, refresh after accepted/rejected writes,
 and existing partner Realtime invalidation.
+
+For [issue #67](https://github.com/C0derTang/shared-garden/issues/67), the Database
+workflow runs the Dandelion concurrency harness after Peony and immediately
+before the existing reset. Both harnesses remove their core garden/Auth fixtures
+and restore the operation clock; the reset also removes their retained
+achievement state before the achievement harness requires an empty database.
+This adds no job, workflow or timeout change.

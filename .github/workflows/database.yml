@@ -43,6 +43,9 @@ jobs:
           python3 supabase/tests/concurrency/entries_race.py supabase_db_shared-garden-clock
           python3 supabase/tests/concurrency/rollover_race.py supabase_db_shared-garden-clock
           python3 supabase/tests/concurrency/peony_race.py supabase_db_shared-garden-clock
+          # Dandelion clears its core fixtures; this reset also clears the
+          # achievement state left by Peony and Dandelion before award tests.
+          python3 supabase/tests/concurrency/dandelion_race.py supabase_db_shared-garden-clock
           npm run db:reset
           python3 supabase/tests/concurrency/achievements_race.py supabase_db_shared-garden-clock
           python3 supabase/tests/concurrency/private_interaction_race.py supabase_db_shared-garden-clock
