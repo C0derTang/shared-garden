@@ -43,7 +43,7 @@ export function GardenGuide({ state, paused, visit, focusGarden }: { state: Gard
     <h2 ref={heading} tabIndex={-1}>{copy[0]}</h2><p aria-live="polite">{copy[1]}</p>
     <p className={styles.quiet}>Rose, Cactus, Tulip, and Marigold are available from the start. This guide never locks your seeds.</p>
     <div className={styles.actions}>
-      {"spot" in step && <button className="button button-primary" type="button" disabled={paused} onClick={() => visit(step.spot)}>{copy[2]}</button>}
+      {"spot" in step && <button className="button button-primary" type="button" aria-disabled={paused} onClick={() => { if (!paused) visit(step.spot); }}>{copy[2]}</button>}
       {["ready", "blooms", "unavailable"].includes(step.kind) && <button className="button button-primary" type="button" aria-disabled={preferences.busy} onClick={(event) => void dismiss("finished", event.currentTarget)}>Finish guide</button>}
       <button type="button" className="button button-secondary" aria-disabled={preferences.busy} onClick={(event) => void dismiss("skipped", event.currentTarget)}>Skip guide</button>
       <button type="button" className={styles.close} onClick={(event) => { setClosed(true); setFocusRequest({ target: "show", origin: event.currentTarget }); }}>Close guide for now</button>

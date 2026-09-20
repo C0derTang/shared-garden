@@ -83,7 +83,7 @@ it("pauses guide actions after a confirmed save with a lost refresh, then reconc
   mutateGarden.mockResolvedValue({ state: null, saved: true, error: "Saved, but refresh unavailable" });
   await user.click(screen.getByRole("button", { name: "I’m here · Check in" }));
   await user.click(screen.getByRole("button", { name: "Close" }));
-  expect(screen.getByRole("button", { name: "Visit Cactus" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Visit Cactus" })).toHaveAttribute("aria-disabled", "true");
   expect(mutateGarden).toHaveBeenCalledTimes(1);
   const next = structuredClone(state); next.server_now = "2026-09-18T17:00:02Z"; next.tutorial_facts.cactus_checked_in = true;
   refreshGarden.mockResolvedValue({ state: next, error: null });
@@ -176,4 +176,65 @@ it.each(["pending save", "remote refresh"])("does not take focus from a flower d
   expect(draft).toHaveFocus();
   expect(draft).toHaveValue("Keep my focused note");
   expect(mutateGarden).not.toHaveBeenCalled();
+});
+
+it.each([
+  ["cactus", "Visit Cactus"],
+  ["plant", "Choose a Rose seed"],
+  ["rose", "Visit Rose"],
+  ["blooms", "Visit a blooming Rose"],
+])("keeps the %s step reachable and inert after a background refresh fails", async (kind, label) => {
+  const state = gardenFixture();
+  if (kind === "plant") state.tutorial_facts.cactus_checked_in = true;
+  if (kind === "rose" || kind === "blooms") state.plants.push({
+    ...structuredClone(state.plants[0]),
+    flower: { ...state.plants[0].flower, id: "guide-rose", type_key: "rose", spot: 2, first_bloom_at: kind === "blooms" ? state.server_now : null },
+  });
+  show(state); const user = userEvent.setup();
+  const step = screen.getByRole("button", { name: label });
+  for (let tabs = 0; document.activeElement !== step && tabs < 30; tabs++) await user.tab();
+  expect(step).toHaveFocus();
+  let resolve!: (value: unknown) => void;
+  refreshGarden.mockReturnValue(new Promise((done) => { resolve = done; }));
+  fireEvent.focus(window);
+  expect(step).toHaveFocus();
+  await act(async () => resolve({ state: null, error: "Refresh unavailable" }));
+  expect(step).toHaveFocus();
+  expect(step).toHaveAttribute("aria-disabled", "true");
+  expect(step).not.toBeDisabled();
+  await user.keyboard("{Enter} ");
+  await user.click(step);
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: label })).toHaveFocus();
+  expect(mutateGarden).not.toHaveBeenCalled();
+  expect(saveSetting).not.toHaveBeenCalled();
+  await user.tab();
+  await user.tab({ shift: true });
+  expect(step).toHaveFocus();
+  refreshGarden.mockResolvedValue({ state, error: null });
+  fireEvent.focus(window);
+  await waitFor(() => expect(step).toHaveAttribute("aria-disabled", "false"));
+  expect(step).toHaveFocus();
+  await user.keyboard("{Enter}");
+  expect(screen.getByRole("dialog")).toBeInTheDocument();
+});
+
+it("keeps the step reachable and inert while garden care is still saving", async () => {
+  show(); const user = userEvent.setup();
+  await user.click(screen.getByRole("button", { name: "Visit Cactus" }));
+  let resolve!: (value: unknown) => void;
+  mutateGarden.mockReturnValue(new Promise((done) => { resolve = done; }));
+  await user.click(screen.getByRole("button", { name: "I’m here · Check in" }));
+  await user.click(screen.getByRole("button", { name: "Close" }));
+  const step = screen.getByRole("button", { name: "Visit Cactus" });
+  expect(step).toHaveAttribute("aria-disabled", "true");
+  for (let tabs = 0; document.activeElement !== step && tabs < 30; tabs++) await user.tab();
+  expect(step).toHaveFocus();
+  await user.keyboard("{Enter} ");
+  await user.click(step);
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  expect(step).toHaveFocus();
+  expect(mutateGarden).toHaveBeenCalledTimes(1);
+  await act(async () => resolve({ state: null, saved: false, error: "Not confirmed" }));
+  expect(step).toHaveFocus();
 });
