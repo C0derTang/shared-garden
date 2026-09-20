@@ -10,7 +10,7 @@ vi.mock("next/navigation", () => ({
     throw new Error(`redirect:${path}`);
   },
 }));
-import GardenPage from "@/app/garden/page";
+import GardenPage from "@/app/(member)/garden/page";
 
 beforeEach(() => {
   vi.stubEnv("APP_ORIGIN", "https://app.example.test");
@@ -55,7 +55,18 @@ it("does not treat prototype property names as error messages", async () => {
   expect(html).toContain("Sign-in didn");
 });
 
-import SettingsPage from "@/app/settings/page";
+import SettingsPage from "@/app/(member)/settings/page";
 it("guards the separate Settings page even when the proxy is bypassed", async () => {
   await expect(SettingsPage()).rejects.toThrow("redirect:/auth/error?reason=signin");
+});
+
+import MemoriesPage from "@/app/(member)/memories/page";
+import AchievementsPage from "@/app/(member)/achievements/page";
+import SongsPage from "@/app/(member)/garden/songs/page";
+import MemberLayout from "@/app/(member)/layout";
+it.each([MemoriesPage, AchievementsPage, SongsPage])("guards every destination before returning private panel content", async (page) => {
+  await expect(page()).rejects.toThrow("redirect:/auth/error?reason=signin");
+});
+it("guards direct route layout requests before constructing the persistent garden", async () => {
+  await expect(MemberLayout({ children: null })).rejects.toThrow("redirect:/auth/error?reason=signin");
 });

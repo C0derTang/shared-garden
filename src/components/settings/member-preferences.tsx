@@ -3,7 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, ty
 import { readSettings, saveSetting } from "@/lib/settings/actions";
 import type { SettingsResult, SettingChange } from "@/lib/settings/model";
 
-type Preferences = SettingsResult & { busy: boolean; refresh: () => Promise<void>; save: (change: SettingChange) => Promise<boolean> };
+type Preferences = SettingsResult & { guideRequest: number; busy: boolean; refresh: () => Promise<void>; save: (change: SettingChange) => Promise<boolean> };
 const Context = createContext<Preferences | null>(null);
 // Server-rendered and global: this also covers Radix portals before hydration.
 const quietMotion = "*, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }";
@@ -11,6 +11,7 @@ export function MemberPreferences({ initial, children }: { initial: SettingsResu
   const [state, setState] = useState(initial.state);
   const [error, setError] = useState(initial.error);
   const [busy, setBusy] = useState(false);
+  const [guideRequest, setGuideRequest] = useState(0);
   const latest = useRef(initial.state);
   const mounted = useRef(false);
   const saving = useRef(false);
@@ -51,6 +52,7 @@ export function MemberPreferences({ initial, children }: { initial: SettingsResu
     try {
       const result = await saveSetting(change);
       apply(result);
+      if (mounted.current && result.state && "guide" in change && change.guide === "open") setGuideRequest((value) => value + 1);
       return result.state !== null;
     } catch {
       apply({ state: null, error: "This setting was not confirmed. Refresh to check before trying again." });
@@ -76,7 +78,7 @@ export function MemberPreferences({ initial, children }: { initial: SettingsResu
       document.removeEventListener("visibilitychange", focus);
     };
   }, [refresh]);
-  return <Context.Provider value={{ state, error, busy, refresh, save }}>
+  return <Context.Provider value={{ state, error, busy, refresh, save, guideRequest }}>
     {!state?.gentle_motion && <style data-member-motion="off">{quietMotion}</style>}
     {children}
   </Context.Provider>;

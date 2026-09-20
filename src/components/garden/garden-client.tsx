@@ -3,7 +3,6 @@ import Link from "next/link";
 import { useCallback, useRef, useState, type RefCallback } from "react";
 import { GardenGuide } from "@/components/settings/garden-guide";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
-import { PixelIcon } from "@/components/ui/pixel-icon";
 import {
   pacificTime,
   type CatalogItem,
@@ -124,7 +123,6 @@ function GardenSpot({
                 <span className={styles.emptyMark} aria-hidden="true">
                   +
                 </span>
-                <span>Plant here</span>
               </>
             )}
           </button>
@@ -174,85 +172,31 @@ export function GardenClient({ initial }: { initial: GardenResult }) {
   const catalog = new Map(state.catalog.map((item) => [item.type_key, item]));
   return (
     <div className={styles.garden}>
-      <div className={styles.heading}>
-        <div>
-          <p className="eyebrow">A LITTLE CARE, EVERY DAY</p>
-          <h1 ref={heading} tabIndex={-1}>Our shared garden</h1>
-          <p className={styles.quiet}>
-            A place for the things we grow together.
-          </p>
-          <Link href="/garden/songs">Our song collection</Link>
+      <header className={styles.hud}>
+        <h1 ref={heading} tabIndex={-1}>Our shared garden</h1>
+        <div className={styles.clock} aria-label="Garden day">
+          <span>Pacific garden clock · <strong suppressHydrationWarning>{pacificTime(now)}</strong></span>
+          <span>{remaining > 0 ? `${hours}h ${minutes}m until a new day` : "Refreshing the new garden day…"}</span>
         </div>
-        <div className={styles.gardenStats}>
-          <span>
-            <strong>{state.plants.length}</strong> planted
-          </span>
-          <span>
-            <strong>{blooms}</strong> in bloom
-          </span>
-        </div>
+      </header>
+      <div className={styles.tools}>
+        <details className={styles.help}>
+          <summary>Garden help</summary>
+          <div>
+            <p>Tap a flower to care for it, or an empty patch to plant.</p>
+            <p>{state.plants.length} planted · {blooms} in bloom. New beds appear as the garden fills.</p>
+            <p>Garden day · {state.garden_day}. A new day starts at 4 a.m. Pacific.</p>
+            <p>{state.moonflower_open ? "Moonflower is open" : "Moonflower opens at 10 p.m."}</p>
+            <p>Care dots: you on the left, partner on the right. Filled dots mean cared for today.</p>
+            <p>{connected ? "Growing together · live" : "Checking for shared updates"}</p>
+            <button type="button" className={styles.refreshButton} onClick={() => void refresh()} disabled={busy}>Refresh</button>
+          </div>
+        </details>
+        <Link href="/garden/songs" scroll={false} aria-label="Our song collection">Songs</Link>
       </div>
-      <GardenGuide state={state} paused={busy || !!error} visit={(spot) => spotButtons.current.get(spot)?.click()} focusGarden={focusGarden} />
+      <div className={styles.guide}><GardenGuide state={state} paused={busy || !!error} visit={(spot) => spotButtons.current.get(spot)?.click()} focusGarden={focusGarden} /></div>
       <div className={styles.workspace}>
-        <aside className={styles.almanac} aria-label="Garden day">
-          <div className={styles.clock}>
-            <div className={styles.clockLabel}>
-              <PixelIcon name="flower" />
-              <span>Pacific garden clock</span>
-            </div>
-            <p className={styles.clockTime} suppressHydrationWarning>
-              {pacificTime(now)}
-            </p>
-            <p>Garden day · {state.garden_day}</p>
-            <div className={styles.clockRule} />
-            <strong>
-              {remaining > 0
-                ? `${hours}h ${minutes}m until a new day`
-                : "Refreshing the new garden day…"}
-            </strong>
-            <p className={styles.quiet}>Your garden turns the page at 4 a.m.</p>
-            <p className={styles.moon}>
-              {state.moonflower_open
-                ? "☾ Moonflower is open"
-                : "☾ Moonflower opens at 10 p.m."}
-            </p>
-          </div>
-          <div className={styles.gardenNote}>
-            <p className="eyebrow">ROOM TO KEEP GROWING</p>
-            <p>
-              Choose an empty patch to plant a seed. Tap a flower to leave a
-              little care.
-            </p>
-            <p>Blooms stay with you, and new beds appear as this one fills.</p>
-            <div className={styles.legend}>
-              <span>
-                <i />
-                You
-              </span>
-              <span>
-                <i />
-                Partner
-              </span>
-            </div>
-            <small>Filled dots mean care is shared today.</small>
-          </div>
-        </aside>
         <section className={styles.beds} aria-label="Your flower beds">
-          <div className={styles.syncRow}>
-            <span className={styles.syncState}>
-              {connected
-                ? "● Growing together · live"
-                : "○ Checking for shared updates"}
-            </span>
-            <button
-              type="button"
-              className={styles.refreshButton}
-              onClick={() => void refresh()}
-              disabled={busy}
-            >
-              Refresh
-            </button>
-          </div>
           {error && (
             <p role="alert" className={styles.error}>
               {error}
@@ -266,8 +210,6 @@ export function GardenClient({ initial }: { initial: GardenResult }) {
             >
               <div className={styles.bedTitle}>
                 <span>BED {String(bed + 1).padStart(2, "0")}</span>
-                <span aria-hidden="true">✦</span>
-                <span>A little room to bloom</span>
               </div>
               <div className={styles.path} aria-hidden="true" />
               <div className={styles.bedGrass} aria-hidden="true">
@@ -296,7 +238,6 @@ export function GardenClient({ initial }: { initial: GardenResult }) {
               })}
             </section>
           ))}
-          <p className={styles.bedFooter}>Small moments, taking root.</p>
         </section>
       </div>
     </div>
