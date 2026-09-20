@@ -109,3 +109,17 @@ Silicon host, browser evidence used locally minted session cookies against a
 disposable backend rather than a Google exchange, and audio decoding was not
 exercised on the developer machine at all. Nothing here is hosted, Google,
 physical-device or provider-playback evidence.
+
+## Native smoke build dependency correction
+
+[Issue #69](https://github.com/C0derTang/shared-garden/issues/69) corrects an
+omission exposed by a clean hosted build: the generated TypeScript project
+declared only runtime dependencies, so Next's TypeScript check failed in CI
+when `typescript`, `@types/react` and `@types/node` were missing. Under 0004's
+conservative implementation discretion, the generator now copies only these
+three pinned development dependencies from the application manifest. They are
+build requirements; the decoder, authorization, fixed fixture and response are
+unchanged. No product module, hosted setting or deployment link changes.
+The generated manifest regression and a clean Linux build validate this fix;
+hosted execution remains the separate issue #37 gate. See
+[verification.md](../release/verification.md) for exact evidence and limits.

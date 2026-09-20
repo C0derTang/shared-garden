@@ -84,7 +84,7 @@ The `200` body contained exactly the allowed keys and nothing else:
  "elapsedMs":161}
 ```
 
-The artifact's declared dependencies were `next`, `react`, `react-dom` and
+The original artifact's declared dependencies were `next`, `react`, `react-dom` and
 `server-only` only. Its lockfile mentioned `supabase` zero times; `sharp`
 appeared once, as Next's own optional dependency, and not as anything this
 project asks for. The built `/api/smoke` trace held 107 files, none of them a
@@ -95,6 +95,54 @@ programs and the one fixture. The disposable token was generated locally from
 This exercised a Linux amd64 container on a developer machine. It is not
 evidence that any hosted serverless runtime can execute these programs; that
 remains issue #37.
+
+### Clean CI build correction — issue #69
+
+The preceding local run did not establish that the generated manifest could
+build in clean CI. As reported in [issue #69](https://github.com/C0derTang/shared-garden/issues/69),
+a subsequent hosted build compiled but failed Next's TypeScript check because
+the artifact omitted `typescript`, `@types/react` and `@types/node`. The
+correction in [decision 0021](../decisions/0021-release-configuration.md) declares
+those development dependencies at the application's exact versions: `6.0.3`,
+`19.3.0` and `24.13.5`, respectively.
+
+The correction was verified in a fresh `node:24-bookworm` Linux amd64 container
+on the developer host, Node `v24.21.0`, with `CI=true` and no database, hosted
+configuration or application environment values:
+
+- The generator regression failed before the fix because the emitted
+  `devDependencies` was absent, then passed afterwards. It executes the real
+  generator into an empty external directory and checks the exact build
+  dependency names, pinned application versions and narrow runtime dependency
+  list. All 16 native-smoke tests passed on Linux, including bearer denial and
+  the authorized decode. On macOS, 15 passed and decoding was skipped.
+- Fresh application `npm ci`, `npm run lint`, `npm run typecheck`, `npm test`
+  and `npm run build` passed: 53 Vitest files passed, 2 skipped; 407 tests passed,
+  2 skipped, plus the Daisy bank checks. The skipped local Auth and media
+  suites require a disposable backend and were not enabled in this container.
+- `node scripts/verify-audio-runtime.mjs` passed: no template file was traced
+  into the application; the complete server/runtime upper bound was 58,937,193
+  bytes across 1,228 files.
+- The real generator assembled 16 files in a separate empty directory. There,
+  `npm install --no-audit --no-fund` and `npm run build` both passed with
+  `CI=true`. No implicit dependency installation occurred during the build;
+  SHA-256 checks confirmed `package.json` and the generated `package-lock.json`
+  stayed unchanged. Next made its normal suggested/required `tsconfig.json`
+  adjustments, which are separate from installing missing dependencies.
+- The generated route trace contained 107 files, no Supabase or `sharp` module,
+  all three pinned programs and the fixed fixture; its lockfile contained no
+  Supabase package. With the fixture temporarily removed, missing and wrong
+  bearer requests still returned `401 {"error":"unauthorized"}`. After restoring
+  it, an authorized local HTTP request returned `200` with exactly the bounded
+  keys and hashes shown above: 240,000 samples, 48,000 Hz, one channel, 5,000 ms,
+  Linux/x64, Node `v24.21.0`, FFprobe 9.0.1 and 202 ms elapsed. The token was
+  created in memory and never printed or stored.
+
+These are local build/runtime results for the correction, not a successful
+hosted execution. Hosted execution remains issue #37. The four existing CI
+workflow results for the exact PR head are recorded on the issue/PR; no workflow
+is added or changed by this correction. No browser check applies to dependency
+declarations, and no private content or generated deployment file was committed.
 
 ## Database
 

@@ -52,11 +52,18 @@ must never be reused for the application.
 ```sh
 node tools/native-smoke/generate.mjs /absolute/path/outside/this/repository
 cd /absolute/path/outside/this/repository
-npm install
-npm run build
+npm install --include=dev
+CI=true npm run build
 NATIVE_SMOKE_TOKEN=... npm run start
 curl -fsS -H "Authorization: Bearer $NATIVE_SMOKE_TOKEN" http://localhost:3000/api/smoke
 ```
+
+The generated manifest pins `typescript`, `@types/react` and `@types/node`
+to the application's build dependency versions. Keep these development
+dependencies installed during the build: Next's TypeScript check requires them,
+and a clean CI builder refuses to install missing packages implicitly. The
+generator regression test checks the emitted manifest; the clean Linux build
+evidence is recorded in [release verification](../../docs/release/verification.md).
 
 The programs under `vendor/audio/linux-x64` are Linux amd64. On macOS, decoding
 needs a local build of the identical source into `vendor/audio/darwin-<arch>`
