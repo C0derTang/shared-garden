@@ -1,5 +1,7 @@
 // @vitest-environment node
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { beforeEach, afterEach, expect, it, vi } from "vitest";
@@ -23,6 +25,29 @@ const request = (authorization?: string) =>
   handleSmokeRequest(
     new Headers(authorization ? { authorization } : undefined),
   );
+
+it("generates pinned build dependencies for a clean TypeScript install", () => {
+  const target = mkdtempSync(path.join(tmpdir(), "native-smoke-"));
+  try {
+    execFileSync(process.execPath, ["tools/native-smoke/generate.mjs", target]);
+    const generated = JSON.parse(readFileSync(path.join(target, "package.json"), "utf8"));
+    const application = JSON.parse(readFileSync("package.json", "utf8"));
+    expect(Object.keys(generated.devDependencies ?? {}).sort()).toEqual([
+      "@types/node", "@types/react", "typescript",
+    ]);
+    for (const name of ["typescript", "@types/react", "@types/node"]) {
+      expect(generated.devDependencies[name]).toMatch(/^\d+\.\d+\.\d+$/);
+      expect(generated.devDependencies[name]).toBe(application.devDependencies[name]);
+    }
+    expect(Object.keys(generated.dependencies).sort()).toEqual([
+      "next", "react", "react-dom", "server-only",
+    ]);
+    expect(existsSync(path.join(target, "node_modules"))).toBe(false);
+    expect(existsSync(path.join(target, ".vercel"))).toBe(false);
+  } finally {
+    rmSync(target, { recursive: true, force: true });
+  }
+});
 
 beforeEach(() => {
   sanitize.mockClear();

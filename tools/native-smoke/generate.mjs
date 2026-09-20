@@ -46,11 +46,13 @@ const write = (to, contents) => {
   fs.writeFileSync(destination, contents, { mode: 0o644 });
 };
 
-const dependencies = JSON.parse(
+const { dependencies, devDependencies } = JSON.parse(
   fs.readFileSync(path.join(repository, "package.json")),
-).dependencies;
+);
 // Exactly the runtime this probe needs. No @supabase/*, no image library.
 const needed = ["next", "react", "react-dom", "server-only"];
+// Next must find these before building TypeScript in a clean CI environment.
+const buildNeeded = ["typescript", "@types/react", "@types/node"];
 write(
   "package.json",
   JSON.stringify(
@@ -60,6 +62,9 @@ write(
       scripts: { build: "next build", start: "next start" },
       dependencies: Object.fromEntries(
         needed.map((name) => [name, dependencies[name]]),
+      ),
+      devDependencies: Object.fromEntries(
+        buildNeeded.map((name) => [name, devDependencies[name]]),
       ),
       engines: { node: "24.x" },
     },
