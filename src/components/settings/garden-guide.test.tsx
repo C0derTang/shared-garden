@@ -6,13 +6,16 @@ vi.mock("@/lib/settings/actions", () => ({ readSettings, saveSetting }));
 vi.mock("@/lib/garden/actions", () => ({ refreshGarden, mutateGarden, loadFlowerHistory: vi.fn() }));
 vi.mock("@/lib/auth/browser", () => ({ gardenBrowserClient: () => null }));
 import { GardenClient } from "@/components/garden/garden-client";
+import { SheetScope } from "@/components/ui/sheet-scope";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { useState } from "react";
 import { MemberPreferences } from "./member-preferences";
 import { gardenFixture } from "@/test/garden-fixture";
 vi.mock("@/lib/peony/actions", () => ({ readPeony: vi.fn(), mutatePeony: vi.fn() }));
 const settings = { state: { revision: 0, guide: "open" as const, gentle_motion: true }, error: null };
 function show(state = gardenFixture()) {
   refreshGarden.mockResolvedValue({ state, error: null });
-  return render(<MemberPreferences initial={settings}><GardenClient initial={{ state, error: null }} /></MemberPreferences>);
+  return render(<MemberPreferences initial={settings}><SheetScope><GardenClient initial={{ state, error: null }} /></SheetScope></MemberPreferences>);
 }
 beforeEach(() => { vi.clearAllMocks(); readSettings.mockResolvedValue(settings); });
 it("opens the real Cactus sheet without creating care, then advances only from returned facts", async () => {
@@ -71,7 +74,7 @@ it("shows no guide after durable skip and does not force care for permanent Rose
   state.plants.push({ ...structuredClone(state.plants[0]), flower: { ...state.plants[0].flower, type_key: "rose", id: "bloom", spot: 2, first_bloom_at: state.server_now } });
   show(state);
   expect(screen.getByRole("button", { name: "Finish guide" })).toBeInTheDocument();
-  await waitFor(() => expect(screen.queryByRole("region", { name: "Garden guide" })).not.toBeInTheDocument());
+  await waitFor(() => expect(screen.queryByRole("dialog", { name: /A little hello|Make room for a Rose|A note for your Rose|Your Roses are in bloom|You’re finding your rhythm|Grow at your own pace/ })).not.toBeInTheDocument());
   expect(mutateGarden).not.toHaveBeenCalled();
 });
 
@@ -87,7 +90,7 @@ it("pauses guide actions after a confirmed save with a lost refresh, then reconc
   expect(mutateGarden).toHaveBeenCalledTimes(1);
   const next = structuredClone(state); next.server_now = "2026-09-18T17:00:02Z"; next.tutorial_facts.cactus_checked_in = true;
   refreshGarden.mockResolvedValue({ state: next, error: null });
-  fireEvent.click(screen.getByRole("button", { name: "Refresh" }));
+  fireEvent.focus(window);
   await screen.findByRole("button", { name: "Choose a Rose seed" });
   expect(mutateGarden).toHaveBeenCalledTimes(1);
 });
@@ -118,7 +121,7 @@ it.each(["Skip", "Finish"] as const)("hands keyboard focus to the garden after c
   const guide = action === "Skip" ? "skipped" : "finished";
   saveSetting.mockResolvedValue({ state: { ...settings.state, revision: 1, guide }, error: null });
   await activateWithKeyboard(user, screen.getByRole("button", { name: `${action} guide` }));
-  await waitFor(() => expect(screen.queryByRole("region", { name: "Garden guide" })).not.toBeInTheDocument());
+  await waitFor(() => expect(screen.queryByRole("dialog", { name: /A little hello|Make room for a Rose|A note for your Rose|Your Roses are in bloom|You’re finding your rhythm|Grow at your own pace/ })).not.toBeInTheDocument());
   expect(screen.getByRole("heading", { name: "Our shared garden" })).toHaveFocus();
   expect(saveSetting).toHaveBeenCalledExactlyOnceWith({ guide });
   expect(mutateGarden).not.toHaveBeenCalled();
@@ -172,7 +175,7 @@ it.each(["pending save", "remote refresh"])("does not take focus from a flower d
   const result = { state: { ...settings.state, revision: 1, guide: "skipped" }, error: null };
   if (source === "pending save") await act(async () => resolve(result));
   else { readSettings.mockResolvedValue(result); fireEvent.focus(window); }
-  await waitFor(() => expect(screen.queryByRole("region", { name: "Garden guide", hidden: true })).not.toBeInTheDocument());
+  await waitFor(() => expect(screen.queryByRole("dialog", { name: /A little hello|Make room for a Rose|A note for your Rose|Your Roses are in bloom|You’re finding your rhythm|Grow at your own pace/, hidden: true })).not.toBeInTheDocument());
   expect(draft).toHaveFocus();
   expect(draft).toHaveValue("Keep my focused note");
   expect(mutateGarden).not.toHaveBeenCalled();
@@ -204,7 +207,8 @@ it.each([
   expect(step).not.toBeDisabled();
   await user.keyboard("{Enter} ");
   await user.click(step);
-  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  expect(screen.getAllByRole("dialog")).toHaveLength(1);
+  expect(screen.getByRole("dialog")).toContainElement(step);
   expect(screen.getByRole("button", { name: label })).toHaveFocus();
   expect(mutateGarden).not.toHaveBeenCalled();
   expect(saveSetting).not.toHaveBeenCalled();
@@ -232,7 +236,8 @@ it("keeps the step reachable and inert while garden care is still saving", async
   expect(step).toHaveFocus();
   await user.keyboard("{Enter} ");
   await user.click(step);
-  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  expect(screen.getAllByRole("dialog")).toHaveLength(1);
+  expect(screen.getByRole("dialog")).toContainElement(step);
   expect(step).toHaveFocus();
   expect(mutateGarden).toHaveBeenCalledTimes(1);
   await act(async () => resolve({ state: null, saved: false, error: "Not confirmed" }));
@@ -247,7 +252,56 @@ it("reopens a locally closed guide from Settings without requiring a new server 
   saveSetting.mockResolvedValue(settings);
   render(<MemberPreferences initial={settings}><GardenClient initial={{ state, error: null }} /><SettingsClient /></MemberPreferences>);
   await userEvent.click(screen.getByRole("button", { name: "Close guide for now" }));
-  expect(screen.queryByRole("region", { name: "Garden guide" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("dialog", { name: /A little hello|Make room for a Rose|A note for your Rose|Your Roses are in bloom|You’re finding your rhythm|Grow at your own pace/ })).not.toBeInTheDocument();
   await userEvent.click(screen.getByRole("button", { name: "Reopen garden guide" }));
-  expect(await screen.findByRole("region", { name: "Garden guide" })).toBeVisible();
+  expect(await screen.findByRole("dialog", { name: /A little hello|Make room for a Rose|A note for your Rose|Your Roses are in bloom|You’re finding your rhythm|Grow at your own pace/ })).toBeVisible();
+});
+
+
+it("opens a modal guide, yields to real care and resumes only after the action closes", async () => {
+  show(); const user = userEvent.setup();
+  const guide = screen.getByRole("dialog", { name: "A little hello" });
+  expect(guide).toContainElement(document.activeElement as HTMLElement);
+  await user.click(within(guide).getByRole("button", { name: "Visit Cactus" }));
+  expect(screen.queryByRole("dialog", { name: "A little hello" })).not.toBeInTheDocument();
+  expect(screen.getByRole("dialog", { name: "Cactus" })).toContainElement(document.activeElement as HTMLElement);
+  fireEvent.focus(window);
+  await user.click(screen.getByRole("button", { name: "Close" }));
+  expect(await screen.findByRole("dialog", { name: "A little hello" })).toContainElement(document.activeElement as HTMLElement);
+  await user.keyboard("{Escape}");
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Show garden guide" })).toHaveFocus();
+});
+
+it("lets a queued private moment precede the requested flower and the resumed guide", async () => {
+  const state = gardenFixture(); refreshGarden.mockResolvedValue({ state, error: null });
+  let pending!: () => void;
+  function Moment() {
+    const [open, setOpen] = useState(false); pending = () => setOpen(true);
+    return <BottomSheet open={open} onOpenChange={setOpen} title="Pending moment" description="A private moment" trigger={<button>Moment</button>}><input aria-label="Private answer" /></BottomSheet>;
+  }
+  render(<MemberPreferences initial={settings}><SheetScope><GardenClient initial={{ state, error: null }} /><Moment /></SheetScope></MemberPreferences>);
+  const user = userEvent.setup();
+  expect(screen.getByRole("dialog", { name: "A little hello" })).toBeVisible();
+  act(() => pending());
+  await user.click(screen.getByRole("button", { name: "Visit Cactus" }));
+  expect(screen.getByRole("dialog", { name: "Pending moment" })).toBeVisible();
+  expect(screen.queryByRole("dialog", { name: "Cactus" })).not.toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "Close" }));
+  expect(await screen.findByRole("dialog", { name: "Cactus" })).toBeVisible();
+  await user.click(screen.getByRole("button", { name: "Close" }));
+  expect(await screen.findByRole("dialog", { name: "A little hello" })).toBeVisible();
+});
+
+it("opens the newly planted Rose as care after yielding to the unrestricted seed picker", async () => {
+  const state = gardenFixture(); state.tutorial_facts.cactus_checked_in = true;
+  show(state); const user = userEvent.setup();
+  await user.click(screen.getByRole("button", { name: "Choose a Rose seed" }));
+  const next = structuredClone(state); next.server_now = "2026-09-18T17:00:02Z";
+  next.plants.push({ ...structuredClone(state.plants[0]), flower: { ...state.plants[0].flower, id: "new-rose", type_key: "rose", spot: 2 } });
+  mutateGarden.mockResolvedValue({ state: next, saved: true, error: null });
+  await user.click(screen.getByRole("button", { name: /Rose.*Note about today/ }));
+  await user.click(screen.getByRole("button", { name: "Plant Rose" }));
+  await user.click(await screen.findByRole("button", { name: "Visit Rose" }));
+  expect(screen.getByRole("textbox", { name: "Note about today" })).toBeVisible();
 });
