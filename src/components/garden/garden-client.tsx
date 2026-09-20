@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useCallback, useRef, useState, type RefCallback } from "react";
+import { useCallback, useRef, useState } from "react";
 import { GardenGuide } from "@/components/settings/garden-guide";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import {
@@ -39,7 +39,8 @@ function GardenSpot({
   now,
   busy,
   mutate,
-  buttonRef,
+  open,
+  setOpen,
 }: {
   spot: number;
   plant?: Plant;
@@ -48,10 +49,12 @@ function GardenSpot({
   now: number;
   busy: boolean;
   mutate: Mutate;
-  buttonRef: RefCallback<HTMLButtonElement>;
+  open: boolean;
+  setOpen: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
   const [picking, setPicking] = useState(!plant);
+  // Reopening after a successful plant must show the new flower’s care sheet.
+  if (!open && picking !== !plant) setPicking(!plant);
   const [x, y] = positions[(spot - 1) % 12];
   const bloom = !!plant?.flower.first_bloom_at;
   const cared = plant
@@ -75,7 +78,6 @@ function GardenSpot({
         }
         trigger={
           <button
-            ref={buttonRef}
             className={plant ? styles.flowerButton : styles.emptyButton}
             aria-label={
               plant
@@ -143,8 +145,8 @@ function GardenSpot({
     </div>
   );
 }
-export function GardenClient({ initial }: { initial: GardenResult }) {
-  const spotButtons = useRef(new Map<number, HTMLButtonElement>());
+export function GardenClient({ initial, guideEnabled = true }: { initial: GardenResult; guideEnabled?: boolean }) {
+  const [openSpot, setOpenSpot] = useState<number | null>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   const focusGarden = useCallback(() => heading.current?.focus(), []);
   const { state, now, error, connected, busy, refresh, mutate } =
@@ -194,7 +196,7 @@ export function GardenClient({ initial }: { initial: GardenResult }) {
         </details>
         <Link href="/garden/songs" scroll={false} aria-label="Our song collection">Songs</Link>
       </div>
-      <div className={styles.guide}><GardenGuide state={state} paused={busy || !!error} visit={(spot) => spotButtons.current.get(spot)?.click()} focusGarden={focusGarden} /></div>
+      <div className={styles.guide}><GardenGuide state={state} paused={busy || !!error} visit={setOpenSpot} actionOpen={openSpot !== null} enabled={guideEnabled} focusGarden={focusGarden} /></div>
       <div className={styles.workspace}>
         <section className={styles.beds} aria-label="Your flower beds">
           {error && (
@@ -221,7 +223,8 @@ export function GardenClient({ initial }: { initial: GardenResult }) {
                 return (
                   <GardenSpot
                     key={spot}
-                    buttonRef={(button) => { if (button) spotButtons.current.set(spot, button); else spotButtons.current.delete(spot); }}
+                    open={openSpot === spot}
+                    setOpen={(open) => setOpenSpot(open ? spot : null)}
                     {...{
                       spot,
                       plant,
