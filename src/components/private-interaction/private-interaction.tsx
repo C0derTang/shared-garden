@@ -1,11 +1,12 @@
 "use client";
+import { createPortal } from "react-dom";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FlowerSprite } from "@/components/garden/flower-sprite";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { gardenBrowserClient } from "@/lib/auth/browser";
 import { subscribeInteraction } from "@/lib/private-interaction/realtime";
 import { answerPrivateInteraction, controlPrivateInteraction, previewPrivateInteraction, readPrivateInteraction } from "@/lib/private-interaction/actions";
-import type { InteractionContent, InteractionResult, InteractionState } from "@/lib/private-interaction/model";
+import type { OwnerDetail, InteractionContent, InteractionResult, InteractionState } from "@/lib/private-interaction/model";
 import styles from "./private-interaction.module.css";
 
 const celebrationFlowers = ["rose", "cactus", "tulip", "marigold", "daisy", "hydrangea", "sunflower", "snapdragon", "moonflower", "bluebell", "dandelion", "forget-me-not", "peony"] as const;
@@ -29,13 +30,52 @@ function Moment({ content, preview = false, busy, save }: { content: Interaction
   </div>;
 }
 
+function OwnerControls({ detail, busy: saving, change, setError }: { detail: OwnerDetail; busy: boolean; change: (armed: boolean) => Promise<void>; setError: (error: string | null) => void }) {
+  const [preview, setPreview] = useState<InteractionContent | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [loading, setBusy] = useState(false);
+  const busy = saving || loading;
+  const mounted = useRef(false);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+  const showPreview = async () => {
+    setBusy(true);
+    try {
+      const result = await previewPrivateInteraction();
+      if (!mounted.current) return;
+      setPreview(result.content); setError(result.error); setPreviewOpen(!!result.content);
+    } catch { if (mounted.current) { setPreview(null); setError("Preview could not open. Please try again."); } }
+    finally { if (mounted.current) setBusy(false); }
+  };
+  return <div className={styles.controls}>
+      <p className="eyebrow">PRIVATE OWNER CONTROLS</p><h2>Garden moment</h2>
+      {detail.status === "unconfigured" ? <p>Your private moment has not been configured.</p> : <>
+        <p>{detail.status === "answered" ? "Answered. This moment will not repeat." : detail.armed ? "Armed. Delivery waits for all 26 ordinary achievements." : "Disarmed. Delivery and answering are paused."}</p>
+        {detail.status === "pending" && <p>A pending moment is saved. Pausing preserves it.</p>}
+        <div className={styles.controlButtons}>
+          <BottomSheet
+            open={previewOpen}
+            onOpenChange={(next) => {
+              if (next) void showPreview();
+              else { setPreviewOpen(false); setPreview(null); }
+            }}
+            title="Preview — nothing will be sent"
+            description={preview?.title ?? "Your private garden moment preview."}
+            trigger={<button type="button" disabled={busy}>Preview privately</button>}
+          >
+            {preview && <Moment content={preview} preview busy={false} save={() => {}} />}
+          </BottomSheet>
+          <button type="button" disabled={busy || detail.status === "answered"} onClick={() => void change(!detail.armed)}>{detail.armed ? "Disarm delivery" : "Arm delivery"}</button>
+        </div>
+        {detail.answer && !detail.unread && <p>Saved answer: {detail.answer.label}</p>}
+      </>}
+    </div>;
+}
+
 /** Mount only inside the member-guarded garden layout. Each action reauthorizes. */
-export function PrivateInteraction({ ownerControls }: { ownerControls: boolean }) {
+export function PrivateInteraction({ ownerControls, ownerContainer, onMomentCloseAutoFocus }: { ownerControls: boolean; ownerContainer?: HTMLElement | null; onMomentCloseAutoFocus?: (event: Event) => void }) {
   const [state, setState] = useState<InteractionState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
-  const [preview, setPreview] = useState<InteractionContent | null>(null);
-  const [previewOpen, setPreviewOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
   const mounted = useRef(false);
@@ -51,7 +91,6 @@ export function PrivateInteraction({ ownerControls }: { ownerControls: boolean }
     if (result.state?.status === "pending") {
       if (!dismissed.current) setOpen(true);
     } else setOpen(false);
-    if (result.state?.status !== "owner") { setPreview(null); setPreviewOpen(false); }
   }, []);
   const refresh = useCallback(async () => {
     if (reading.current || applying.current) { repeat.current = true; return; }
@@ -100,23 +139,16 @@ export function PrivateInteraction({ ownerControls }: { ownerControls: boolean }
       if (mounted.current) { setBusy(false); if (repeat.current) void refresh(); }
     }
   };
-  const showPreview = async () => {
-    setBusy(true);
-    try {
-      const result = await previewPrivateInteraction();
-      if (!mounted.current) return;
-      setPreview(result.content); setError(result.error); setPreviewOpen(!!result.content);
-    } catch { if (mounted.current) { setPreview(null); setError("Preview could not open. Please try again."); } }
-    finally { if (mounted.current) setBusy(false); }
-  };
   const detail = state?.status === "owner" ? state.detail : null;
   const controls = ownerControls && detail;
   const notification = detail?.unread && detail.answer;
   if (!error && !saved && !controls && !notification && state?.status !== "pending") return null;
+  const ownerContent = controls && <OwnerControls detail={detail} busy={busy} change={(armed) => mutate(() => controlPrivateInteraction("arm", armed))} setError={setError} />;
   return <section className={styles.container} aria-label="Garden moment">
     {error && <div className={styles.notice}><p role="alert">{error}</p><button type="button" onClick={() => void refresh()}>Refresh moment</button></div>}
     {saved && <p role="status" className={styles.notice}>Your answer is saved. Your garden keeps growing.</p>}
     {state?.status === "pending" && <BottomSheet
+      onCloseAutoFocus={onMomentCloseAutoFocus}
       open={open} onOpenChange={(next) => { setOpen(next); if (!next) dismissed.current = true; }}
       title={state.content.title} description="A moment for your shared garden."
       trigger={<button className="button button-primary" type="button">Open your garden moment</button>}>
@@ -127,28 +159,6 @@ export function PrivateInteraction({ ownerControls }: { ownerControls: boolean }
       <p><time dateTime={notification.answered_at}>{new Date(notification.answered_at).toLocaleString("en-US", { timeZone: "America/Los_Angeles" })}</time> · Pacific time</p>
       <button type="button" disabled={busy} onClick={() => void mutate(() => controlPrivateInteraction("acknowledge", undefined))}>Mark as read</button>
     </div>}
-    {controls && <div className={styles.controls}>
-      <p className="eyebrow">PRIVATE OWNER CONTROLS</p><h2>Garden moment</h2>
-      {detail.status === "unconfigured" ? <p>Your private moment has not been configured.</p> : <>
-        <p>{detail.status === "answered" ? "Answered. This moment will not repeat." : detail.armed ? "Armed. Delivery waits for all 26 ordinary achievements." : "Disarmed. Delivery and answering are paused."}</p>
-        {detail.status === "pending" && <p>A pending moment is saved. Pausing preserves it.</p>}
-        <div className={styles.controlButtons}>
-          <BottomSheet
-            open={previewOpen}
-            onOpenChange={(next) => {
-              if (next) void showPreview();
-              else { setPreviewOpen(false); setPreview(null); }
-            }}
-            title="Preview — nothing will be sent"
-            description={preview?.title ?? "Your private garden moment preview."}
-            trigger={<button type="button" disabled={busy}>Preview privately</button>}
-          >
-            {preview && <Moment content={preview} preview busy={false} save={() => {}} />}
-          </BottomSheet>
-          <button type="button" disabled={busy || detail.status === "answered"} onClick={() => void mutate(() => controlPrivateInteraction("arm", !detail.armed))}>{detail.armed ? "Disarm delivery" : "Arm delivery"}</button>
-        </div>
-        {detail.answer && !detail.unread && <p>Saved answer: {detail.answer.label}</p>}
-      </>}
-    </div>}
+    {ownerContainer === undefined ? ownerContent : ownerContainer && ownerContent && createPortal(ownerContent, ownerContainer)}
   </section>;
 }

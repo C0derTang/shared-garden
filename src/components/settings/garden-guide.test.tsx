@@ -238,3 +238,16 @@ it("keeps the step reachable and inert while garden care is still saving", async
   await act(async () => resolve({ state: null, saved: false, error: "Not confirmed" }));
   expect(step).toHaveFocus();
 });
+
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
+import { SettingsClient } from "./settings-client";
+it("reopens a locally closed guide from Settings without requiring a new server revision", async () => {
+  const state = gardenFixture();
+  refreshGarden.mockResolvedValue({ state, error: null });
+  saveSetting.mockResolvedValue(settings);
+  render(<MemberPreferences initial={settings}><GardenClient initial={{ state, error: null }} /><SettingsClient /></MemberPreferences>);
+  await userEvent.click(screen.getByRole("button", { name: "Close guide for now" }));
+  expect(screen.queryByRole("region", { name: "Garden guide" })).not.toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button", { name: "Reopen garden guide" }));
+  expect(await screen.findByRole("region", { name: "Garden guide" })).toBeVisible();
+});

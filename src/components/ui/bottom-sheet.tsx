@@ -11,6 +11,7 @@ type BottomSheetProps = {
   children: ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  onCloseAutoFocus?: (event: Event) => void;
 };
 
 export function BottomSheet({
@@ -20,6 +21,7 @@ export function BottomSheet({
   children,
   open,
   onOpenChange,
+  onCloseAutoFocus,
 }: BottomSheetProps) {
   const id = useId();
   const scope = useSheetScope();
@@ -36,7 +38,7 @@ export function BottomSheet({
       <Dialog.Trigger asChild>{trigger}</Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="sheet-overlay" />
-        <Dialog.Content className="sheet-content">
+        <Dialog.Content className="sheet-content" onCloseAutoFocus={onCloseAutoFocus}>
           <div className="sheet-handle" aria-hidden="true" />
           <Dialog.Title className="sheet-title">{title}</Dialog.Title>
           <Dialog.Description className="sheet-description">

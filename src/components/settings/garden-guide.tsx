@@ -8,7 +8,8 @@ import styles from "./settings.module.css";
 type FocusRequest = { target: "show" | "guide" | "garden"; origin: HTMLButtonElement };
 export function GardenGuide({ state, paused, visit, focusGarden }: { state: GardenState; paused: boolean; visit: (spot: number) => void; focusGarden: () => void }) {
   const preferences = useMemberPreferences();
-  const [closed, setClosed] = useState(false);
+  const [closedRequest, setClosedRequest] = useState<number | null>(null);
+  const closed = closedRequest !== null && closedRequest === preferences?.guideRequest;
   const [focusRequest, setFocusRequest] = useState<FocusRequest | null>(null);
   const handledFocus = useRef<FocusRequest | null>(null);
   const showButton = useRef<HTMLButtonElement>(null);
@@ -28,7 +29,7 @@ export function GardenGuide({ state, paused, visit, focusGarden }: { state: Gard
     if (await preferences.save({ guide })) setFocusRequest({ target: "garden", origin });
   }
   if (!preferences || preferences.state?.guide !== "open") return null;
-  if (closed) return <button ref={showButton} type="button" className="button button-secondary" onClick={(event) => { setClosed(false); setFocusRequest({ target: "guide", origin: event.currentTarget }); }}>Show garden guide</button>;
+  if (closed) return <button ref={showButton} type="button" aria-label="Show garden guide" className="button button-secondary" onClick={(event) => { setClosedRequest(null); setFocusRequest({ target: "guide", origin: event.currentTarget }); }}>Guide</button>;
   const step = guideStep(state);
   const copy = {
     cactus: ["A little hello", "Visit your permanent Cactus for a one-tap check-in. It never loses growth, and you can check in once each garden day, even after it blooms.", "Visit Cactus"],
@@ -46,7 +47,7 @@ export function GardenGuide({ state, paused, visit, focusGarden }: { state: Gard
       {"spot" in step && <button className="button button-primary" type="button" aria-disabled={paused} onClick={() => { if (!paused) visit(step.spot); }}>{copy[2]}</button>}
       {["ready", "blooms", "unavailable"].includes(step.kind) && <button className="button button-primary" type="button" aria-disabled={preferences.busy} onClick={(event) => void dismiss("finished", event.currentTarget)}>Finish guide</button>}
       <button type="button" className="button button-secondary" aria-disabled={preferences.busy} onClick={(event) => void dismiss("skipped", event.currentTarget)}>Skip guide</button>
-      <button type="button" className={styles.close} onClick={(event) => { setClosed(true); setFocusRequest({ target: "show", origin: event.currentTarget }); }}>Close guide for now</button>
+      <button type="button" className={styles.close} onClick={(event) => { setClosedRequest(preferences.guideRequest); setFocusRequest({ target: "show", origin: event.currentTarget }); }}>Close guide for now</button>
     </div>
     {paused && <p role="status">Waiting for a current garden update. Refresh the garden before choosing your next step.</p>}
     <small>You can reopen this guide in Settings. Only care you choose to share counts.</small>

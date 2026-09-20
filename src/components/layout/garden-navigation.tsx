@@ -25,6 +25,7 @@ export function GardenNavigation({ current }: { current: GardenDestination }) {
             key={id}
             href={href}
             prefetch={false}
+            scroll={false}
             aria-current={current === id ? "page" : undefined}
           >
             <PixelIcon name={icon} />
@@ -36,6 +37,7 @@ export function GardenNavigation({ current }: { current: GardenDestination }) {
         <Link
           href="/settings"
           prefetch={false}
+            scroll={false}
           aria-current={current === "settings" ? "page" : undefined}
         >
           <PixelIcon name="settings" />
