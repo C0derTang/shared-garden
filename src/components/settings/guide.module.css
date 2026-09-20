@@ -1,0 +1,10 @@
+.overlay { position: fixed; inset: 0; z-index: 60; background: rgb(0 0 0 / 62%); }
+.guide { position: fixed; z-index: 61; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(26rem, calc(100% - 2rem)); max-height: calc(100dvh - 2rem - env(safe-area-inset-top) - env(safe-area-inset-bottom)); overflow-y: auto; overscroll-behavior: contain; border: 2px solid var(--line); border-radius: 1rem; padding: clamp(1rem, 4vw, 1.5rem); background: var(--paper-light); box-shadow: 0 14px 48px #0005; }
+.guide h2 { margin: .4rem 0 .65rem; font-size: 1.4rem; line-height: 1.25; }
+.guide p { line-height: 1.5; }
+.guide > button { width: 100%; margin-top: .5rem; white-space: normal; }
+.progress, .guide small { color: var(--muted); font-size: .8rem; }
+.progress { margin: 0; }
+.actions { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .2rem .5rem; margin-top: .5rem; }
+.secondary { min-height: 44px; padding: .5rem 0; border: 0; color: var(--ink); background: transparent; text-decoration: underline; cursor: pointer; }
+.guide button[aria-disabled="true"] { opacity: .65; cursor: default; }
