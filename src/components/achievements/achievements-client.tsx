@@ -3,8 +3,25 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { gardenBrowserClient } from "@/lib/auth/browser";
 import { subscribeGarden } from "@/lib/garden/realtime";
 import { readAchievements } from "@/lib/achievements/actions";
+import { PixelIcon } from "@/components/ui/pixel-icon";
 import type { AchievementResult } from "@/lib/achievements/model";
 import styles from "./achievements.module.css";
+
+// Presentation labels only; titles, requirements and awards remain server-owned.
+const badgeLabels: Record<string, string> = {
+  "first-seed": "First seed", "first-bloom": "First bloom",
+  "all-planted": "Every type planted", "all-bloomed": "Every type bloomed",
+  "streak-3": "3-day streak", "streak-7": "7-day streak",
+  "streak-14": "14-day streak", "streak-21": "21-day streak",
+  recovery: "Recovery", "roses-5": "Five Roses", "marigolds-10": "Ten Marigolds",
+  "tulips-3": "Three Tulips", "daisy-20": "20 Daisy questions",
+  "forget-me-nots-3": "Three Forget-me-nots", "wishes-5": "Five wishes",
+  "ten-minutes": "Within 10 minutes", "before-noon": "Before noon",
+  moonflower: "Moonflower", snapdragon: "Snapdragon", bluebell: "Bluebell",
+  "mood-match-3": "Three mood matches", peony: "Peony",
+  "first-wish-blown": "A wish fulfilled", "coexisting-5": "Five blooms together",
+  "blooms-10": "Ten blooms", "blooms-20": "Twenty blooms",
+};
 
 export function AchievementsClient({
   initial,
@@ -15,6 +32,7 @@ export function AchievementsClient({
   const [error, setError] = useState(initial.error);
   const [busy, setBusy] = useState(false);
   const [connected, setConnected] = useState(false);
+  const [expanded, setExpanded] = useState<string | null>(null);
   const mounted = useRef(false);
   const pending = useRef(false);
   const again = useRef(false);
@@ -83,87 +101,52 @@ export function AchievementsClient({
   const earned = state?.achievements.filter((a) => a.earned_at !== null).length;
   return (
     <section className={styles.collection} aria-labelledby="achievements-title">
+      <h1 id="achievements-title" className={styles.screenReader}>Little milestones</h1>
       <header className={styles.intro}>
-        <p className={styles.eyebrow}>Grown together</p>
-        <h1 id="achievements-title">Little milestones</h1>
-        <p>
-          Every small act adds up. Earned achievements stay with your shared
-          garden.
-        </p>
-        {state && (
-          <div className={styles.summary}>
-            <strong aria-live="polite">{earned} of 26 earned</strong>
-            <progress
-              aria-label="Ordinary achievements earned"
-              max={26}
-              value={earned}
-            />
-            <p>
-              {earned === 26
-                ? "All 26 milestones earned. Your garden keeps growing."
-                : "There is no deadline. Keep growing at your own pace."}
-            </p>
-            <p>
-              Current shared streak: {state.current_streak} completed{" "}
-              {state.current_streak === 1 ? "day" : "days"}. Streak cards keep
-              your longest run.
-            </p>
-          </div>
-        )}
+        {state && <div className={styles.summary}>
+          <strong aria-live="polite">{earned} of 26 earned</strong>
+          <span aria-label={`Current shared streak: ${state.current_streak} completed days`}>{state.current_streak}-day streak</span>
+          <progress aria-label="Ordinary achievements earned" max={26} value={earned} />
+          {earned === 26 && <span className={styles.complete}>All milestones earned ✿</span>}
+        </div>}
         <div className={styles.refresh}>
-          <span>
-            {connected
-              ? "Partner updates connected"
-              : "Refresh to check for partner updates"}
-          </span>
-          <button type="button" onClick={() => void refresh()} disabled={busy}>
-            {busy ? "Refreshing…" : "Refresh achievements"}
+          <span aria-label={connected ? "Partner updates connected" : "Refresh to check for partner updates"}>{connected ? "● Live" : "Check for updates"}</span>
+          <button type="button" aria-label="Refresh achievements" onClick={() => void refresh()} disabled={busy}>
+            {busy ? "Refreshing…" : "Refresh"}
           </button>
         </div>
-        {error && (
-          <p role="alert">
-            {error} {state ? "Showing the last saved progress." : ""}
-          </p>
-        )}
+        {error && <p role="alert">{error} {state ? "Showing the last saved progress." : ""}</p>}
       </header>
-      {state && (
-        <ol className={styles.list}>
-          {state.achievements.map((item) => (
-            <li
-              key={item.achievement_id}
-              className={item.earned_at ? styles.earned : styles.growing}
-            >
-              <div className={styles.cardHeading}>
-                <span aria-hidden="true">{item.earned_at ? "✿" : "◇"}</span>
-                <h2>{item.title}</h2>
-              </div>
+      {state && <ol className={styles.list}>
+        {state.achievements.map((item) => {
+          const isEarned = item.earned_at !== null;
+          const isOpen = expanded === item.achievement_id;
+          const status = isEarned ? "Earned" : "Growing";
+          const icon = item.achievement_id.startsWith("streak-") || item.achievement_id === "ten-minutes" ? "heart"
+            : item.achievement_id === "daisy-20" ? "book"
+            : item.achievement_id === "first-seed" || item.achievement_id === "all-planted" || item.achievement_id === "recovery" ? "sprout" : "flower";
+          return <li key={item.achievement_id} className={`${isEarned ? styles.earned : styles.growing} ${isOpen ? styles.expanded : ""}`}>
+            <button type="button" className={styles.badge}
+              aria-label={`${item.title}, ${status}, ${item.progress} of ${item.target} ${item.unit}`}
+              aria-expanded={isOpen} aria-controls={`achievement-detail-${item.achievement_id}`}
+              onClick={() => setExpanded(isOpen ? null : item.achievement_id)}>
+              <span className={styles.emblem} aria-hidden="true"><PixelIcon name={icon} /><span>{isEarned ? "✓" : "◇"}</span></span>
+              <strong>{badgeLabels[item.achievement_id] ?? item.title}</strong>
+              <span className={styles.status}>{status} · {item.progress}/{item.target}</span>
+              <span className={styles.cue}>{isOpen ? "Hide details −" : "Details +"}</span>
+            </button>
+            {isOpen && <div id={`achievement-detail-${item.achievement_id}`} className={styles.detail}>
+              <h2>{item.title}</h2>
               <p>{item.requirement}</p>
-              <div className={styles.status}>
-                <strong>{item.earned_at ? "Earned" : "Growing"}</strong>
-                <span>
-                  {item.progress} / {item.target} {item.unit}
-                </span>
-              </div>
-              <progress
-                aria-label={`${item.title} progress`}
-                max={item.target}
-                value={item.progress}
-              />
-              {item.earned_at && (
-                <p className={styles.date}>
-                  Earned{" "}
-                  <time dateTime={item.earned_at}>
-                    {new Intl.DateTimeFormat("en-US", {
-                      timeZone: "America/Los_Angeles",
-                      dateStyle: "medium",
-                    }).format(new Date(item.earned_at))}
-                  </time>
-                </p>
-              )}
-            </li>
-          ))}
-        </ol>
-      )}
+              <p className={styles.exactProgress}>{status} · {item.progress} / {item.target} {item.unit}</p>
+              <progress aria-label={`${item.title} progress`} max={item.target} value={item.progress} />
+              {item.earned_at && <p className={styles.date}>Earned <time dateTime={item.earned_at}>
+                {new Intl.DateTimeFormat("en-US", { timeZone: "America/Los_Angeles", dateStyle: "medium" }).format(new Date(item.earned_at))}
+              </time></p>}
+            </div>}
+          </li>;
+        })}
+      </ol>}
     </section>
   );
 }
