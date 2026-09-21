@@ -330,6 +330,12 @@ p {
   letter-spacing: 0.025em;
 }
 .sheet-description {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  padding-right: 3rem;
+}
+.sheet-description-hidden {
   position: absolute;
   width: 1px;
   height: 1px;

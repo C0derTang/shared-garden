@@ -7,7 +7,8 @@ sheet contract in [decision 0029](0029-immersive-garden.md).
 
 Shared bottom sheets use a small corner × with a 44-pixel target, crisp border,
 visible focus, and the accessible name Close. The title stays visible while the
-description remains available to assistive technology. The existing modal,
+description remains visible by default. Garden flower sheets alone opt their
+redundant action summary into assistive-technology-only presentation. The existing modal,
 Escape, focus-return, queue, private-notice, scrolling, and dimming behavior is
 unchanged.
 
