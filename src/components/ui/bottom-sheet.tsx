@@ -14,6 +14,7 @@ type BottomSheetProps = {
   onOpenChange?: (open: boolean) => void;
   onCloseAutoFocus?: (event: Event) => void;
   triggerContainer?: HTMLElement | null;
+  hideDescription?: boolean;
 };
 
 export function BottomSheet({
@@ -25,6 +26,7 @@ export function BottomSheet({
   onOpenChange,
   onCloseAutoFocus,
   triggerContainer,
+  hideDescription = false,
 }: BottomSheetProps) {
   const id = useId();
   const scope = useSheetScope();
@@ -51,13 +53,15 @@ export function BottomSheet({
         <Dialog.Content className="sheet-content" onCloseAutoFocus={onCloseAutoFocus}>
           <div className="sheet-handle" aria-hidden="true" />
           <Dialog.Title className="sheet-title">{title}</Dialog.Title>
-          <Dialog.Description className="sheet-description">
+          <Dialog.Description
+            className={`sheet-description${hideDescription ? " sheet-description-hidden" : ""}`}
+          >
             {description}
           </Dialog.Description>
           <div ref={noticeContainerRef} className="sheet-notices" data-private-notice-host="sheet" />
           <div className="sheet-body">{children}</div>
-          <Dialog.Close className="button button-secondary sheet-close">
-            Close
+          <Dialog.Close className="sheet-close" aria-label="Close">
+            <span aria-hidden="true">×</span>
           </Dialog.Close>
         </Dialog.Content>
       </Dialog.Portal>

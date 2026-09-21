@@ -80,6 +80,7 @@ function GardenSpot({
             ? `${item!.action_label}. Your shared progress, today’s care, and memories.`
             : "Every seed has its own small ritual."
         }
+        hideDescription={!!plant}
         trigger={
           <button
             className={plant ? styles.flowerButton : styles.emptyButton}

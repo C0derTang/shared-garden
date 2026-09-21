@@ -52,7 +52,7 @@ it.each([1, 2] as const)(
     const p = setup(author);
     load.mockResolvedValue({ entries: [p.entry], error: null });
     const { rerender } = render(<FlowerSheet {...p} />);
-    fireEvent.click(screen.getByText("Read history"));
+    fireEvent.click(screen.getByRole("button", { name: "Read history" }));
     const history = screen.getByRole("region", { name: "Flower history" });
     await within(history).findByAltText("Shared Sunflower photo");
     const changed = {
@@ -82,7 +82,7 @@ it("does not restore an old reference from an in-flight history page", async () 
       }),
   );
   const { rerender } = render(<FlowerSheet {...p} />);
-  fireEvent.click(screen.getByText("Read history"));
+  fireEvent.click(screen.getByRole("button", { name: "Read history" }));
   rerender(
     <FlowerSheet
       {...p}
@@ -115,7 +115,7 @@ it("invalidates yesterday's history and rejects its in-flight response after rol
       }),
   );
   const { rerender } = render(<FlowerSheet {...p} />);
-  fireEvent.click(screen.getByText("Read history"));
+  fireEvent.click(screen.getByRole("button", { name: "Read history" }));
   rerender(
     <FlowerSheet
       {...p}
@@ -139,7 +139,7 @@ it("invalidates yesterday's history and rejects its in-flight response after rol
     ],
     error: null,
   });
-  fireEvent.click(screen.getByText("Read history"));
+  fireEvent.click(screen.getByRole("button", { name: "Read history" }));
   expect(
     await within(
       screen.getByRole("region", { name: "Flower history" }),
@@ -150,7 +150,7 @@ it("drops already loaded history at rollover before fetching the final prior-day
   const p = setup();
   load.mockResolvedValue({ entries: [p.entry], error: null });
   const { rerender } = render(<FlowerSheet {...p} />);
-  fireEvent.click(screen.getByText("Read history"));
+  fireEvent.click(screen.getByRole("button", { name: "Read history" }));
   const history = screen.getByRole("region", { name: "Flower history" });
   await within(history).findByAltText("Shared Sunflower photo");
   rerender(
@@ -163,7 +163,9 @@ it("drops already loaded history at rollover before fetching the final prior-day
   expect(
     within(history).queryByAltText("Shared Sunflower photo"),
   ).not.toBeInTheDocument();
-  expect(within(history).getByText("Read history")).toBeEnabled();
+  expect(
+    within(history).getByRole("button", { name: "Read history" }),
+  ).toBeEnabled();
 });
 it("keeps a history response newer than the current snapshot", async () => {
   const p = setup();
@@ -178,7 +180,7 @@ it("keeps a history response newer than the current snapshot", async () => {
     error: null,
   });
   render(<FlowerSheet {...p} />);
-  fireEvent.click(screen.getByText("Read history"));
+  fireEvent.click(screen.getByRole("button", { name: "Read history" }));
   expect(
     await within(
       screen.getByRole("region", { name: "Flower history" }),
@@ -194,6 +196,6 @@ it("keeps newer history within the same millisecond across timezone offsets", as
     error: null,
   });
   render(<FlowerSheet {...p} />);
-  fireEvent.click(screen.getByText("Read history"));
+  fireEvent.click(screen.getByRole("button", { name: "Read history" }));
   expect(await within(screen.getByRole("region", { name: "Flower history" })).findByAltText("Shared Sunflower photo")).toHaveAttribute("src", "https://example.test/newest-photo");
 });

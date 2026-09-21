@@ -309,11 +309,11 @@ p {
   z-index: 31;
   background: var(--paper);
   border: 1px solid var(--line-strong);
-  border-radius: 16px 16px 0 0;
-  padding: 1rem 1.5rem max(1.5rem, env(safe-area-inset-bottom));
+  border-radius: 2px 2px 0 0;
+  padding: 1rem 1.25rem max(1.25rem, env(safe-area-inset-bottom));
   max-height: 90dvh;
   overflow-y: auto;
-  box-shadow: 0 -8px 40px rgb(45 42 32 / 12%);
+  box-shadow: 0 -6px 0 rgb(45 42 32 / 16%);
   animation: sheet-in 180ms ease-out;
 }
 .sheet-handle {
@@ -321,23 +321,65 @@ p {
   height: 4px;
   border-radius: 2px;
   background: var(--line-strong);
-  margin: 0 auto 1.5rem;
+  margin: 0 auto 0.65rem;
 }
 .sheet-title {
-  font: 500 2rem/1.2 var(--font-display);
-  margin-bottom: 0.65rem;
-  letter-spacing: -0.035em;
+  padding-right: 3rem;
+  font: 700 1.1rem/1.25 ui-monospace, "SFMono-Regular", Consolas, monospace;
+  margin-bottom: 0.2rem;
+  letter-spacing: 0.025em;
 }
 .sheet-description {
   color: var(--muted);
-  font-size: 0.95rem;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  padding-right: 3rem;
+}
+.sheet-description-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 .sheet-notices:not(:empty) { margin-top: 1rem; }
 .sheet-body {
-  margin: 1.75rem 0;
+  margin: 0.85rem 0 0;
 }
 .sheet-close {
-  width: 100%;
+  position: absolute;
+  top: 0.65rem;
+  right: max(0.65rem, env(safe-area-inset-right));
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--forest-dark);
+  cursor: pointer;
+}
+.sheet-close span {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 2px solid currentColor;
+  border-radius: 2px;
+  background: var(--paper-light);
+  box-shadow: 2px 2px 0 var(--line-strong);
+  font: 700 20px/20px monospace;
+}
+.sheet-close:hover span {
+  background: var(--sage-light);
+}
+.sheet-close:focus-visible {
+  outline: 3px solid var(--ochre);
+  outline-offset: 1px;
 }
 .about-list {
   list-style: none;
@@ -484,12 +526,16 @@ p {
     bottom: 50%;
     transform: translate(-50%, 50%);
     width: min(32rem, calc(100vw - 3rem));
-    border-radius: 12px;
-    padding: 2rem;
+    border-radius: 2px;
+    padding: 1.5rem;
     animation: fade-in 160ms ease-out;
   }
   .sheet-handle {
     display: none;
+  }
+  .sheet-close {
+    top: 0.75rem;
+    right: 0.75rem;
   }
   .garden-navigation a {
     font-size: 0.8rem;

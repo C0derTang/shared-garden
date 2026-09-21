@@ -40,6 +40,9 @@ it("owner preview choices never send a real answer", async () => {
   render(<PrivateInteraction ownerControls />);
   await user.click(await screen.findByRole("button", { name: "Preview privately" }));
   expect(await screen.findByText("Preview — nothing will be sent")).toBeInTheDocument();
+  expect(screen.getByText("Synthetic title")).not.toHaveClass(
+    "sheet-description-hidden",
+  );
   await user.click(screen.getByRole("button", { name: "Option A" }));
   expect(screen.getByText(/Preview selection only/)).toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "Save my answer" })).not.toBeInTheDocument();

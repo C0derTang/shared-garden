@@ -24,8 +24,13 @@ describe("bottom sheet integration", () => {
     await user.keyboard("{Enter}");
     const sheet = screen.getByRole("dialog", { name: "Your rose" });
     expect(sheet).toHaveAccessibleDescription("Care and history");
+    expect(within(sheet).getByText("Care and history")).not.toHaveClass(
+      "sheet-description-hidden",
+    );
     expect(sheet).toContainElement(document.activeElement as HTMLElement);
     const close = within(sheet).getByRole("button", { name: "Close" });
+    expect(close).toHaveTextContent("×");
+    expect(close).not.toHaveTextContent(/^Close$/);
     close.focus();
     await user.tab();
     expect(within(sheet).getByRole("button", { name: "Water" })).toHaveFocus();
@@ -34,6 +39,31 @@ describe("bottom sheet integration", () => {
     await user.keyboard("{Escape}");
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
+  });
+
+  it("hides a redundant description visually only when explicitly requested", async () => {
+    const user = userEvent.setup();
+    render(
+      <BottomSheet
+        trigger={<button>Open compact flower</button>}
+        title="Rose"
+        description="Share a note and review its history."
+        hideDescription
+      >
+        <p>Flower content</p>
+      </BottomSheet>,
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: "Open compact flower" }),
+    );
+    const sheet = screen.getByRole("dialog", { name: "Rose" });
+    expect(sheet).toHaveAccessibleDescription(
+      "Share a note and review its history.",
+    );
+    expect(
+      within(sheet).getByText("Share a note and review its history."),
+    ).toHaveClass("sheet-description-hidden");
   });
 
   it("dismisses using the visible close control", async () => {
