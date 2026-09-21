@@ -30,8 +30,10 @@ content. Publish sanitized requirements and approved decisions only.
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | all environments that should run | inlined into the browser bundle |
 | `APP_ORIGIN` | per environment, one value each | server only |
 | `SUPABASE_SECRET_KEY` | **Production only** | server only |
+| `SPOTIFY_CLIENT_ID` | optional catalog search; authorized runtime only | server only |
+| `SPOTIFY_CLIENT_SECRET` | optional catalog search; authorized runtime only | server only |
 
-`.env.example` carries these four names with empty values. Copy it, never
+`.env.example` carries these names with empty values. Copy it, never
 commit a filled copy, and keep every `.env*.local` file untracked.
 
 ### The canonical origin
@@ -145,3 +147,30 @@ each of which needs its own operator observation.
 
 [verification.md](verification.md) records what was actually run before this
 configuration was proposed, on which platform, and what was not covered.
+
+
+## Optional Spotify catalog search
+
+[Decision 0034](../decisions/0034-tulip-spotify-catalog-search.md) adds catalog-only
+track search in Tulip. Create a Spotify developer application through the
+provider's current setup flow and verify the owner meets its current Premium
+and development-mode requirements. Store `SPOTIFY_CLIENT_ID` and
+`SPOTIFY_CLIENT_SECRET` in the authorized deployment's secret manager, with no
+`NEXT_PUBLIC_` prefix. Use empty placeholders in source; never paste values into
+issues, PRs, browser code, logs or screenshots. Do not copy live credentials into
+previews or local synthetic fixtures.
+
+This flow uses server-side Client Credentials and no Spotify user OAuth,
+redirect callback, scope, personal library or refresh token. A dashboard-required
+callback field is unused by this feature. Search requests use the US market,
+ten tracks per page and at most five pages. Tokens are cached only in server
+memory; changing credentials requires a runtime restart/redeployment to clear
+that cache. Follow the provider's rotation flow if credentials are compromised.
+
+Without both values, members see a setup-unavailable search message and can
+still enter a song manually. Verify unauthenticated catalog requests fail,
+then test an authorized live search and selection without sharing real care.
+Confirm a selected song's explicit Load player and Spotify Play controls produce
+actual in-browser playback/progress (preview is acceptable). Record actual API
+and playback observations separately from automated/synthetic tests. Never
+claim iframe rendering alone proves playback, or promise full-song access.

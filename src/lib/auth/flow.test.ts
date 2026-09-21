@@ -503,3 +503,24 @@ it.each([null, "null", "https://evil.example"])("rejects sign-out with missing, 
   expect(response.cookies.getAll()).toHaveLength(0);
   expect(calls.some(({ url }) => url === `${service}/auth/v1/logout?scope=local`)).toBe(false);
 });
+
+it("refreshes member cookies for catalog searches without redirecting JSON failures", async () => {
+  const response = await proxy(request("/api/music/search?q=song", { headers: { cookie: cookie(true) } }));
+  expect(response.cookies.get("sg-auth")?.value).toBeTruthy();
+  expect(response.headers.get("referrer-policy")).toBe("no-referrer");
+  userStatus = 503;
+  const failed = await proxy(request("/api/music/search?q=song", { headers: { cookie: cookie() } }));
+  expect(failed.status).toBe(503); expect(failed.headers.get("location")).toBeNull(); expect(await failed.json()).toEqual({ error: "unavailable" });
+});
+it("denies anonymous and nonmember catalog requests with private JSON", async () => {
+  const anonymous = await proxy(request("/api/music/search?q=song"));
+  expect(anonymous.status).toBe(401); expect(await anonymous.json()).toEqual({ error: "unavailable" });
+  memberRows = [];
+  const denied = await proxy(request("/api/music/search?q=song", { headers: { cookie: cookie() } }));
+  expect(denied.status).toBe(403); expect(await denied.json()).toEqual({ error: "unavailable" }); expect(denied.headers.get("cache-control")).toContain("no-store");
+});
+it("keeps catalog failures JSON even with a forged action header", async () => {
+  userStatus = 503;
+  const response = await proxy(request("/api/music/search?q=song", { method: "POST", headers: { cookie: cookie(), "next-action": "forged" } }));
+  expect(response.status).toBe(503); expect(await response.json()).toEqual({ error: "unavailable" });
+});

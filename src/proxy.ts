@@ -4,12 +4,13 @@ import { createRequestClient, noStore, redirectTo } from "@/lib/auth/client";
 import { verifyMember } from "@/lib/auth/member";
 
 export async function proxy(request: NextRequest) {
+  const musicApi = request.nextUrl.pathname.startsWith("/api/music/");
   const mediaApi = request.nextUrl.pathname.startsWith("/api/media/");
   const config = getAuthConfig();
   if (!config)
-    return mediaApi
+    return (mediaApi || musicApi)
       ? noStore(
-          NextResponse.json({ error: "media_unavailable" }, { status: 503 }),
+          NextResponse.json({ error: musicApi ? "unavailable" : "media_unavailable" }, { status: 503 }),
         )
       : redirectTo(null, "/auth/error?reason=setup");
   const auth = createRequestClient(request, config);
@@ -19,7 +20,7 @@ export async function proxy(request: NextRequest) {
   if (
     access.status === "unavailable" &&
     request.method === "POST" &&
-    !request.nextUrl.pathname.startsWith("/api/media/") &&
+    !mediaApi && !musicApi &&
     request.headers.has("next-action")
   )
     return auth.finish(
@@ -27,11 +28,11 @@ export async function proxy(request: NextRequest) {
     );
   if (access.status !== "allowed")
     return auth.finish(
-      mediaApi
+      (mediaApi || musicApi)
         ? NextResponse.json(
             {
               error:
-                access.status === "signin"
+                musicApi ? "unavailable" : access.status === "signin"
                   ? "signin_required"
                   : access.status === "denied"
                     ? "media_not_available"
@@ -51,7 +52,7 @@ export async function proxy(request: NextRequest) {
   const response = auth.finish(NextResponse.next({ request }));
   // Native same-origin forms must retain their Origin in WebKit. External
   // navigations still receive no referrer, and private media keeps its policy.
-  if (!mediaApi) response.headers.set("Referrer-Policy", "same-origin");
+  if (!mediaApi && !musicApi) response.headers.set("Referrer-Policy", "same-origin");
   return response;
 }
 
@@ -59,6 +60,7 @@ export const config = {
   matcher: [
     "/garden/:path*",
     "/api/media/:path*",
+    "/api/music/:path*",
     "/memories/:path*",
     "/achievements/:path*",
     "/settings/:path*",

@@ -8,6 +8,7 @@ import {
   type GardenState,
   type Plant,
 } from "@/lib/garden/model";
+import { SpotifyPicker } from "@/components/music/spotify-picker";
 import { SongPlayer } from "@/components/music/song-player";
 import { parseSongLink } from "@/lib/music/song-link";
 import type { Mutate } from "./seed-picker";
@@ -43,6 +44,7 @@ export function EntryForm({
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const lock = useRef(false);
+  const songTitle = useRef<HTMLInputElement>(null);
   const type = item.type_key;
   const expired = editing && !canEditAt(editing, state, now);
   const hasDraft = Object.values(draft).some(
@@ -121,9 +123,15 @@ export function EntryForm({
       {editing && <h3>Edit your entry</h3>}
       {type === "tulip" ? (
         <>
+          <SpotifyPicker onChoose={(track) => {
+            if (!hasDraft && draftDay !== state.garden_day) setDraftDay(state.garden_day);
+            setDraft({ title: track.title, artist: track.artist, url: track.url });
+            songTitle.current?.focus();
+          }} />
           <label className={styles.field}>
             Song title
             <input
+              ref={songTitle}
               aria-label="Song title"
               required
               value={draft.title ?? ""}
