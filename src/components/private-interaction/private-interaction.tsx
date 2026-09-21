@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FlowerSprite } from "@/components/garden/flower-sprite";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { useSheetScope } from "@/components/ui/sheet-scope";
 import { gardenBrowserClient } from "@/lib/auth/browser";
 import { subscribeInteraction } from "@/lib/private-interaction/realtime";
 import { answerPrivateInteraction, controlPrivateInteraction, previewPrivateInteraction, readPrivateInteraction } from "@/lib/private-interaction/actions";
@@ -76,7 +77,8 @@ function OwnerControls({ detail, busy: saving, change, setError }: { detail: Own
 }
 
 /** Mount only inside the member-guarded garden layout. Each action reauthorizes. */
-export function PrivateInteraction({ ownerControls, ownerContainer, onMomentCloseAutoFocus }: { ownerControls: boolean; ownerContainer?: HTMLElement | null; onMomentCloseAutoFocus?: (event: Event) => void }) {
+export function PrivateInteraction({ ownerControls, ownerContainer, noticeContainer, onMomentCloseAutoFocus }: { ownerControls: boolean; ownerContainer?: HTMLElement | null; noticeContainer?: HTMLElement | null; onMomentCloseAutoFocus?: (event: Event) => void }) {
+  const scope = useSheetScope();
   const [state, setState] = useState<InteractionState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
@@ -148,9 +150,23 @@ export function PrivateInteraction({ ownerControls, ownerContainer, onMomentClos
   const notification = detail?.unread && detail.answer;
   if (!error && !saved && !controls && !notification && state?.status !== "pending") return null;
   const ownerContent = controls && <OwnerControls detail={detail} busy={busy} change={(armed) => mutate(() => controlPrivateInteraction("arm", armed))} setError={setError} />;
-  return <section className={styles.container} aria-label="Garden moment">
+  const notices = (error || saved || notification) && <div className={styles.noticeStack}>
     {error && <div className={styles.notice}><p role="alert">{error}</p><button type="button" onClick={() => void refresh()}>Refresh moment</button></div>}
     {saved && <p role="status" className={styles.notice}>Your answer is saved. Your garden keeps growing.</p>}
+    {notification && <div className={styles.notice} role="status">
+      <h2>A new answer is here</h2><p>{notification.label}</p>
+      <p><time dateTime={notification.answered_at}>{new Date(notification.answered_at).toLocaleString("en-US", { timeZone: "America/Los_Angeles" })}</time> · Pacific time</p>
+      <button type="button" disabled={busy} onClick={() => void mutate(() => controlPrivateInteraction("acknowledge", undefined))}>Mark as read</button>
+    </div>}
+  </div>;
+  const activeNoticeContainer = scope?.active ? scope.noticeContainer : noticeContainer;
+  const presentedNotices = notices && (activeNoticeContainer
+    ? createPortal(notices, activeNoticeContainer)
+    : scope?.active || noticeContainer === null
+      ? null
+      : <div className={styles.gardenNoticeHost} data-private-notice-host="garden">{notices}</div>);
+  return <section className={styles.container} aria-label="Garden moment">
+    {presentedNotices}
     {state?.status === "pending" && <BottomSheet
       onCloseAutoFocus={onMomentCloseAutoFocus}
       open={open} onOpenChange={(next) => { setOpen(next); if (!next) dismissed.current = true; }}
@@ -158,11 +174,6 @@ export function PrivateInteraction({ ownerControls, ownerContainer, onMomentClos
       trigger={<button className="button button-primary" type="button">Open your garden moment</button>}>
       {open && <Moment content={state.content} busy={busy} save={(key) => void mutate(() => answerPrivateInteraction(key), true)} />}
     </BottomSheet>}
-    {notification && <div className={styles.notice} role="status">
-      <h2>A new answer is here</h2><p>{notification.label}</p>
-      <p><time dateTime={notification.answered_at}>{new Date(notification.answered_at).toLocaleString("en-US", { timeZone: "America/Los_Angeles" })}</time> · Pacific time</p>
-      <button type="button" disabled={busy} onClick={() => void mutate(() => controlPrivateInteraction("acknowledge", undefined))}>Mark as read</button>
-    </div>}
     {ownerContainer === undefined ? ownerContent : ownerContainer && ownerContent && createPortal(ownerContent, ownerContainer)}
   </section>;
 }

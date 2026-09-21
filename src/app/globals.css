@@ -332,6 +332,7 @@ p {
   color: var(--muted);
   font-size: 0.95rem;
 }
+.sheet-notices:not(:empty) { margin-top: 1rem; }
 .sheet-body {
   margin: 1.75rem 0;
 }
@@ -588,5 +589,6 @@ p {
 .route-panel-header { display: flex; justify-content: space-between; align-items: center; flex: 0 0 auto; padding: 8px 12px; gap: 8px; border-bottom: 1px solid var(--line); }
 .route-panel-header h2 { font: 600 1.3rem var(--font-display); }
 .route-panel-header button { min-height: 44px; padding: .5rem .8rem; }
+.route-panel-notices:not(:empty) { flex: 0 1 auto; min-height: 0; overflow-y: auto; padding: 12px; border-bottom: 1px solid var(--line); }
 .route-panel-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 12px; overflow-wrap: anywhere; }
 @media (min-width: 640px) { .route-panel-body { padding: 24px; } }

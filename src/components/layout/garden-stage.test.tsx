@@ -4,7 +4,12 @@ import { beforeEach, expect, it, vi } from "vitest";
 const route = vi.hoisted(() => ({ pathname: "/settings", back: vi.fn(), replace: vi.fn() }));
 vi.mock("next/navigation", () => ({ usePathname: () => route.pathname, useRouter: () => route }));
 vi.mock("@/lib/auth/browser", () => ({ gardenBrowserClient: () => null }));
-const api = vi.hoisted(() => ({ readPrivateInteraction: vi.fn(), previewPrivateInteraction: vi.fn() }));
+const api = vi.hoisted(() => ({
+  readPrivateInteraction: vi.fn(),
+  previewPrivateInteraction: vi.fn(),
+  controlPrivateInteraction: vi.fn(),
+  answerPrivateInteraction: vi.fn(),
+}));
 vi.mock("@/lib/private-interaction/actions", () => api);
 vi.mock("@/components/garden/garden-client", () => ({ GardenClient: () => <button>Actual garden</button> }));
 import { GardenStage } from "./garden-stage";
@@ -12,7 +17,14 @@ import { SheetScope } from "@/components/ui/sheet-scope";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 const initial = { state: null, error: null };
 function App() { return <SheetScope><BottomSheet title="Garden draft" description="Care" trigger={<button>Open garden draft</button>}><input aria-label="Garden draft text" /></BottomSheet><GardenStage initial={initial}><input aria-label="Panel draft" /><BottomSheet title="Memory detail" description="History" trigger={<button>View memory</button>}><input aria-label="Memory draft" /></BottomSheet></GardenStage></SheetScope>; }
-beforeEach(() => { vi.clearAllMocks(); route.pathname = "/settings"; api.readPrivateInteraction.mockResolvedValue({ state: { status: "owner", detail: { status: "ready", armed: true, unread: false, answer: null } }, error: null }); });
+const owner = (unread = false) => ({ state: { status: "owner", detail: { status: unread ? "answered" : "ready", armed: true, unread, answer: unread ? { key: "yes", label: "Yes", answered_at: "2026-09-20T12:00:00Z" } : null } }, error: null });
+beforeEach(() => {
+  vi.clearAllMocks();
+  for (const mock of Object.values(api)) mock.mockReset();
+  route.pathname = "/settings";
+  api.readPrivateInteraction.mockResolvedValue(owner());
+  api.controlPrivateInteraction.mockResolvedValue(owner());
+});
 it("opens direct routes over the inert actual garden and places owner controls inside Settings", async () => {
   render(<App />);
   const panel = await screen.findByRole("dialog", { name: "Settings" });
@@ -53,6 +65,70 @@ it("abandons a preview when history leaves Settings and does not revive it on re
   route.pathname = "/garden"; view.rerender(<App />);
   route.pathname = "/settings"; view.rerender(<App />);
   expect(screen.queryByRole("dialog", { name: "Preview — nothing will be sent" })).not.toBeInTheDocument();
+});
+it("keeps preview failures and their keyboard retry inside Settings", async () => {
+  const user = userEvent.setup();
+  api.previewPrivateInteraction.mockRejectedValue(new Error("offline"));
+  api.readPrivateInteraction.mockResolvedValueOnce(owner()).mockResolvedValueOnce(owner());
+  render(<App />);
+  const panel = await screen.findByRole("dialog", { name: "Settings" });
+  await user.click(await within(panel).findByRole("button", { name: "Preview privately" }));
+  const alert = await within(panel).findByRole("alert");
+  expect(alert).toHaveTextContent("Preview could not open");
+  const retry = within(panel).getByRole("button", { name: "Refresh moment" });
+  retry.focus();
+  await user.keyboard("{Enter}");
+  expect(api.readPrivateInteraction).toHaveBeenCalledTimes(2);
+  expect(within(panel).queryByRole("alert")).not.toBeInTheDocument();
+});
+it("keeps initial read and arm failures recoverable inside Settings", async () => {
+  const user = userEvent.setup();
+  api.readPrivateInteraction.mockRejectedValueOnce(new Error("offline")).mockResolvedValueOnce(owner());
+  api.controlPrivateInteraction.mockRejectedValueOnce(new Error("offline"));
+  render(<App />);
+  const panel = await screen.findByRole("dialog", { name: "Settings" });
+  await user.click(await within(panel).findByRole("button", { name: "Refresh moment" }));
+  await user.click(await within(panel).findByRole("button", { name: "Disarm delivery" }));
+  expect(await within(panel).findByRole("alert")).toHaveTextContent("not confirmed");
+  expect(screen.getAllByRole("alert")).toHaveLength(1);
+});
+it.each([["/garden", null], ["/memories", "Memories"]] as const)("shows one owner answer immediately on %s", async (path, panelName) => {
+  route.pathname = path;
+  api.readPrivateInteraction.mockResolvedValue(owner(true));
+  render(<App />);
+  const notice = await screen.findByRole("heading", { name: "A new answer is here" });
+  expect(screen.getAllByRole("heading", { name: "A new answer is here" })).toHaveLength(1);
+  if (panelName) {
+    const panel = await screen.findByRole("dialog", { name: panelName });
+    expect(panel).toContainElement(notice);
+    expect(within(panel).getByRole("button", { name: "Mark as read" })).toBeVisible();
+  } else {
+    expect(notice.closest("[inert]")).toBeNull();
+    expect(notice.closest('[data-private-notice-host="garden"]')).not.toBeNull();
+  }
+});
+it("moves one owner answer into a nested sheet and preserves the panel draft", async () => {
+  route.pathname = "/memories";
+  api.readPrivateInteraction.mockResolvedValue(owner(true));
+  api.controlPrivateInteraction.mockResolvedValue(owner(false));
+  const user = userEvent.setup(); render(<App />);
+  await user.type(await screen.findByLabelText("Panel draft"), "Keep me");
+  await user.click(screen.getByRole("button", { name: "View memory" }));
+  const detail = await screen.findByRole("dialog", { name: "Memory detail" });
+  expect(within(detail).getByRole("heading", { name: "A new answer is here" })).toBeVisible();
+  expect(screen.getAllByRole("heading", { name: "A new answer is here" })).toHaveLength(1);
+  await user.type(within(detail).getByLabelText("Memory draft"), "Care");
+  expect(within(detail).getByLabelText("Memory draft")).toHaveFocus();
+  await user.keyboard("{Escape}");
+  const panel = await screen.findByRole("dialog", { name: "Memories" });
+  expect(within(panel).getByRole("heading", { name: "A new answer is here" })).toBeVisible();
+  expect(screen.getAllByRole("heading", { name: "A new answer is here" })).toHaveLength(1);
+  const acknowledge = within(panel).getByRole("button", { name: "Mark as read" });
+  acknowledge.focus();
+  await user.keyboard("{Enter}");
+  expect(api.controlPrivateInteraction).toHaveBeenCalledWith("acknowledge", undefined);
+  expect(screen.queryByRole("heading", { name: "A new answer is here" })).not.toBeInTheDocument();
+  expect(screen.getByLabelText("Panel draft")).toHaveValue("Keep me");
 });
 it.each([["/memories", "Memories"], ["/achievements", "Achievements"], ["/garden/songs", "Our songs"]])("renders direct %s inside its panel without owner controls", async (path, name) => {
   route.pathname = path;

@@ -1,7 +1,7 @@
 "use client";
 
 import * as Dialog from "@radix-ui/react-dialog";
-import { useEffect, useId, useState, type ReactElement, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useState, type ReactElement, type ReactNode } from "react";
 import { useSheetScope } from "./sheet-scope";
 
 type BottomSheetProps = {
@@ -33,6 +33,10 @@ export function BottomSheet({
     return () => release?.(id);
   }, [id, requested, request, release]);
   const visible = requested && (!scope || scope.active === id);
+  const registerNoticeContainer = scope?.registerNoticeContainer;
+  const noticeContainerRef = useCallback((element: HTMLDivElement | null) => {
+    registerNoticeContainer?.(id, element);
+  }, [id, registerNoticeContainer]);
   return (
     <Dialog.Root open={visible} onOpenChange={(next) => { setLocalOpen(next); onOpenChange?.(next); }}>
       <Dialog.Trigger asChild>{trigger}</Dialog.Trigger>
@@ -44,6 +48,7 @@ export function BottomSheet({
           <Dialog.Description className="sheet-description">
             {description}
           </Dialog.Description>
+          <div ref={noticeContainerRef} className="sheet-notices" data-private-notice-host="sheet" />
           <div className="sheet-body">{children}</div>
           <Dialog.Close className="button button-secondary sheet-close">
             Close

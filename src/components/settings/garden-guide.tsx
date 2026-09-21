@@ -1,6 +1,6 @@
 "use client";
 import * as Dialog from "@radix-ui/react-dialog";
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { guideStep } from "@/lib/settings/model";
 import type { GardenState } from "@/lib/garden/model";
 import { useSheetScope } from "@/components/ui/sheet-scope";
@@ -26,6 +26,10 @@ export function GardenGuide({ state, paused, visit, focusGarden, actionOpen = fa
     return () => release?.(id);
   }, [id, requested, request, release]);
   const visible = requested && (!scope || scope.active === id);
+  const registerNoticeContainer = scope?.registerNoticeContainer;
+  const noticeContainerRef = useCallback((element: HTMLDivElement | null) => {
+    registerNoticeContainer?.(id, element);
+  }, [id, registerNoticeContainer]);
   useEffect(() => {
     if (!focusTarget || scope?.active || !enabled || actionOpen) return;
     // Closing a local prompt may restore focus only once the queue is empty.
@@ -61,6 +65,7 @@ export function GardenGuide({ state, paused, visit, focusGarden, actionOpen = fa
         <p className={styles.progress}>Garden guide · {completed}/2 moments shared</p>
         <Dialog.Title ref={heading} tabIndex={-1}>{copy[0]}</Dialog.Title>
         <Dialog.Description aria-live="polite">{copy[1]}</Dialog.Description>
+        <div ref={noticeContainerRef} className={styles.notices} data-private-notice-host="guide" />
         {"spot" in step ? <button className="button button-primary" type="button" aria-disabled={paused} onClick={() => { if (!paused) { setFocusTarget(null); visit(step.spot); } }}>{copy[2]}</button>
           : <button className="button button-primary" type="button" aria-disabled={preferences.busy} onClick={() => void dismiss("finished")}>Finish guide</button>}
         <div className={styles.actions}>
