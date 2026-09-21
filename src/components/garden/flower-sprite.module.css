@@ -4,3 +4,52 @@
   height: auto;
   image-rendering: pixelated;
 }
+
+.idle:not([data-stage="seed"]) {
+  animation: flower-idle-sway var(--flower-idle-duration, 5.6s) ease-in-out
+    var(--flower-idle-delay, 0s) infinite alternate;
+  transform-box: view-box;
+  transform-origin: 50% 94%;
+}
+
+.sprite[data-flower-type="rose"],
+.sprite[data-flower-type="hydrangea"],
+.sprite[data-flower-type="dandelion"] {
+  --flower-idle-delay: -1.4s;
+  --flower-idle-duration: 5.8s;
+}
+
+.sprite[data-flower-type="cactus"],
+.sprite[data-flower-type="sunflower"],
+.sprite[data-flower-type="forget-me-not"] {
+  --flower-idle-delay: -2.8s;
+  --flower-idle-duration: 6.2s;
+}
+
+.sprite[data-flower-type="tulip"],
+.sprite[data-flower-type="snapdragon"],
+.sprite[data-flower-type="peony"] {
+  --flower-idle-delay: -4.2s;
+  --flower-idle-duration: 5.4s;
+}
+
+.sprite[data-flower-type="marigold"],
+.sprite[data-flower-type="moonflower"] {
+  --flower-idle-delay: -0.7s;
+  --flower-idle-duration: 6s;
+}
+
+.sprite[data-flower-type="daisy"],
+.sprite[data-flower-type="bluebell"] {
+  --flower-idle-delay: -3.5s;
+  --flower-idle-duration: 5.6s;
+}
+
+@keyframes flower-idle-sway {
+  from { transform: rotate(-0.8deg); }
+  to { transform: rotate(0.8deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .idle:not([data-stage="seed"]) { animation: none; }
+}

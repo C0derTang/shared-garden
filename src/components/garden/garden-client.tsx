@@ -61,7 +61,11 @@ function GardenSpot({
     ? Number(plant.member1_submitted) + Number(plant.member2_submitted)
     : 0;
   return (
-    <div className={styles.spot} style={{ left: `${x}%`, top: y }}>
+    <div
+      className={styles.spot}
+      data-motion-phase={spot % 4}
+      style={{ left: `${x}%`, top: y }}
+    >
       <BottomSheet
         open={open}
         onOpenChange={(next) => {
@@ -93,6 +97,7 @@ function GardenSpot({
                   growthUnits={plant.flower.growth_units}
                   growthTarget={item!.growth_target}
                   bloomed={bloom}
+                  idle
                   size={64}
                 />
                 <strong>{item!.display_name}</strong>
