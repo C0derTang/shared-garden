@@ -62,7 +62,7 @@ it("lets the partner listen before contributing and reconciles replaced current/
   expect(
     await screen.findByLabelText("Shared Bluebell voice memo"),
   ).toHaveAttribute("src", "https://example.test/old-voice");
-  fireEvent.click(screen.getByText("Read history"));
+  fireEvent.click(screen.getByRole("button", { name: "Read history" }));
   const region = screen.getByRole("region", { name: "Flower history" });
   fireEvent.click(await within(region).findByText("Load voice memo"));
   await within(region).findByLabelText("Shared Bluebell voice memo");

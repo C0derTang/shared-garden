@@ -56,8 +56,8 @@ export function BottomSheet({
           </Dialog.Description>
           <div ref={noticeContainerRef} className="sheet-notices" data-private-notice-host="sheet" />
           <div className="sheet-body">{children}</div>
-          <Dialog.Close className="button button-secondary sheet-close">
-            Close
+          <Dialog.Close className="sheet-close" aria-label="Close">
+            <span aria-hidden="true">×</span>
           </Dialog.Close>
         </Dialog.Content>
       </Dialog.Portal>

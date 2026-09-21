@@ -23,6 +23,7 @@ import { PeonyPanel } from "./peony-panel";
 import { EntryForm } from "./entry-form";
 import type { Mutate } from "./seed-picker";
 import styles from "./garden.module.css";
+import sheetStyles from "./flower-sheet.module.css";
 
 function EntryContent({ entry, type }: { entry: Entry; type: string }) {
   const payload = entry.payload;
@@ -189,8 +190,8 @@ export function FlowerSheet({
     }
   }
   return (
-    <div className={styles.stack}>
-      <div className={styles.flowerSummary}>
+    <div className={`${styles.stack} ${sheetStyles.sheet}`}>
+      <div className={`${styles.flowerSummary} ${sheetStyles.summary}`}>
         <FlowerSprite
           {...(item.type_key === "dandelion"
             ? { type: "dandelion" as const, fulfilled: !!flower.fulfilled_at }
@@ -198,24 +199,40 @@ export function FlowerSheet({
           growthUnits={flower.growth_units}
           growthTarget={item.growth_target}
           bloomed={bloomed}
-          size={96}
+          size={64}
         />
         <div>
-          <strong>
-            {bloomed
-              ? "A permanent bloom"
-              : `${flower.growth_units} of ${item.growth_target} ${item.type_key === "peony" ? "milestones" : "growth units"}`}
-          </strong>
+          {!bloomed && (
+            <strong>
+              {flower.growth_units} of {item.growth_target}{" "}
+              {item.type_key === "peony" ? "milestones" : "growth units"}
+            </strong>
+          )}
           <progress
             value={flower.growth_units}
             max={item.growth_target}
             aria-label={`${item.display_name} progress`}
           />
-          <p className={styles.quiet}>
-            Spot {flower.spot} · Planted {flower.planted_day}
-          </p>
         </div>
       </div>
+      <details className={sheetStyles.details}>
+        <summary>Details</summary>
+        <div>
+          <p>
+            <strong>{bloomed ? "Permanent bloom" : "Growing"}</strong>
+            {" · "}Spot {flower.spot} · Planted {flower.planted_day}
+          </p>
+          {item.type_key !== "peony" && (
+            <p className={styles.quiet}>
+              {ordinaryDone
+                ? "No daily care is needed."
+                : item.type_key === "cactus"
+                  ? "Cactus never loses growth, and you can keep checking in after it blooms."
+                  : "Both people’s care on the same garden day adds one growth unit at rollover. A missed pair loses one unit, down to zero."}
+            </p>
+          )}
+        </div>
+      </details>
       {item.type_key === "peony" ? (
         <PeonyPanel
           flowerId={flower.id}
@@ -226,7 +243,9 @@ export function FlowerSheet({
         />
       ) : (
         <>
-          <CareMarkers plant={plant} memberId={state.member_id} />
+          {!ordinaryDone && (
+            <CareMarkers plant={plant} memberId={state.member_id} />
+          )}
           {item.type_key === "tulip" && (
             <Link href="/garden/songs">Our song collection</Link>
           )}
@@ -259,52 +278,51 @@ export function FlowerSheet({
               </p>
             </div>
           )}
-          <section className={styles.stack} aria-label="Today's entries">
-            <h3>Today, together</h3>
-            {plant.entries.length === 0 && (
-              <p className={styles.quiet}>A little space for today’s care.</p>
-            )}
-            {plant.entries.map((entry) => (
-              <article className={styles.entry} key={entry.id}>
-                <div className={styles.entryMeta}>
-                  <strong>
-                    {entry.author_id === state.member_id
-                      ? "You"
-                      : "Your partner"}
-                  </strong>
-                  <time dateTime={entry.original_posted_at}>
-                    {pacificTime(entry.original_posted_at)}
-                  </time>
-                </div>
-                <EntryContent entry={entry} type={item.type_key} />
-                {canEditAt(entry, state, now) ? (
-                  <div className={styles.editRow}>
-                    <small>
-                      Edit {entry.edit_deadline_inclusive ? "until" : "before"}{" "}
-                      {pacificTime(entry.edit_deadline!)} · Original time stays
-                      the same.
-                    </small>
-                    <button
-                      className="button button-secondary"
-                      onClick={() => {
-                        setEditing(entry);
-                        setSaved(false);
-                      }}
-                    >
-                      Edit your entry
-                    </button>
+          {plant.entries.length > 0 && (
+            <section className={styles.stack} aria-label="Today's entries">
+              <h3>Today</h3>
+              {plant.entries.map((entry) => (
+                <article className={styles.entry} key={entry.id}>
+                  <div className={styles.entryMeta}>
+                    <strong>
+                      {entry.author_id === state.member_id
+                        ? "You"
+                        : "Your partner"}
+                    </strong>
+                    <time dateTime={entry.original_posted_at}>
+                      {pacificTime(entry.original_posted_at)}
+                    </time>
                   </div>
-                ) : (
-                  <small className={styles.quiet}>
-                    Read-only
-                    {entry.author_id === state.member_id
-                      ? " · Edit window ended"
-                      : " · Your partner’s entry"}
-                  </small>
-                )}
-              </article>
-            ))}
-          </section>
+                  <EntryContent entry={entry} type={item.type_key} />
+                  {canEditAt(entry, state, now) ? (
+                    <div className={styles.editRow}>
+                      <small>
+                        Edit {entry.edit_deadline_inclusive ? "until" : "before"}{" "}
+                        {pacificTime(entry.edit_deadline!)} · Original time stays
+                        the same.
+                      </small>
+                      <button
+                        className="button button-secondary"
+                        onClick={() => {
+                          setEditing(entry);
+                          setSaved(false);
+                        }}
+                      >
+                        Edit your entry
+                      </button>
+                    </div>
+                  ) : (
+                    <small className={styles.quiet}>
+                      Read-only
+                      {entry.author_id === state.member_id
+                        ? " · Edit window ended"
+                        : " · Your partner’s entry"}
+                    </small>
+                  )}
+                </article>
+              ))}
+            </section>
+          )}
           {saved && (
             <p role="status" className={styles.notice}>
               Your care is saved and visible to your partner.
@@ -331,11 +349,7 @@ export function FlowerSheet({
               }}
               onCancel={() => setEditing(null)}
             />
-          ) : ordinaryDone ? (
-            <p className={styles.notice}>
-              This bloom is here to stay. No more daily care is needed.
-            </p>
-          ) : own ? (
+          ) : ordinaryDone ? null : own ? (
             <p className={styles.quiet}>
               Your care for this garden day is already here.
               {item.type_key === "cactus"
@@ -358,18 +372,10 @@ export function FlowerSheet({
               onSaved={() => setSaved(true)}
             />
           )}
-          {!ordinaryDone && (
-            <p className={styles.quiet}>
-              {item.type_key === "cactus"
-                ? "Cactus never loses growth, and you can keep checking in after it blooms."
-                : "Both people’s care on the same garden day adds one growth unit at rollover. A missed pair loses one unit, down to zero."}
-            </p>
-          )}
-          <section className={styles.history} aria-label="Flower history">
-            <h3>Memories in this flower</h3>
-            <p className={styles.quiet}>
-              Older entries are read-only. Newest first.
-            </p>
+          <section
+            className={`${styles.history} ${sheetStyles.history}`}
+            aria-label="Flower history"
+          >
             {history?.map((entry) => (
               <article className={styles.entry} key={entry.id}>
                 <div className={styles.entryMeta}>
@@ -396,15 +402,22 @@ export function FlowerSheet({
             )}
             {(history === null || more) && (
               <button
-                className="button button-secondary"
+                className={sheetStyles.compactButton}
                 disabled={historyBusy}
                 onClick={() => void readHistory()}
+                aria-label={
+                  historyBusy
+                    ? "Loading history"
+                    : history === null
+                      ? "Read history"
+                      : "Older entries"
+                }
               >
                 {historyBusy
-                  ? "Loading history…"
+                  ? "Loading…"
                   : history === null
-                    ? "Read history"
-                    : "Older entries"}
+                    ? "History"
+                    : "Older"}
               </button>
             )}
           </section>

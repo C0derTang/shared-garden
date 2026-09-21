@@ -26,6 +26,8 @@ describe("bottom sheet integration", () => {
     expect(sheet).toHaveAccessibleDescription("Care and history");
     expect(sheet).toContainElement(document.activeElement as HTMLElement);
     const close = within(sheet).getByRole("button", { name: "Close" });
+    expect(close).toHaveTextContent("×");
+    expect(close).not.toHaveTextContent(/^Close$/);
     close.focus();
     await user.tab();
     expect(within(sheet).getByRole("button", { name: "Water" })).toHaveFocus();

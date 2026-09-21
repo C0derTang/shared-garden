@@ -651,3 +651,36 @@ it("keeps Peony milestone labels and its separate panel alongside fulfilled Dand
     within(sheet).queryByRole("region", { name: "Our shared wish" }),
   ).not.toBeInTheDocument();
 });
+
+it("keeps a permanent ordinary bloom compact while disclosing its retained details", async () => {
+  const user = userEvent.setup();
+  const state = gardenFixture();
+  const plant = state.plants[0];
+  plant.flower.type_key = "sunflower";
+  plant.flower.growth_units = state.catalog[2].growth_target;
+  plant.flower.first_bloom_at = state.server_now;
+  plant.entries = [];
+  plant.member1_submitted = false;
+  plant.member2_submitted = false;
+
+  render(
+    <FlowerSheet
+      plant={plant}
+      state={state}
+      item={state.catalog[2]}
+      now={Date.parse(state.server_now)}
+      busy={false}
+      mutate={mutateGarden}
+    />,
+  );
+
+  expect(screen.queryByRole("region", { name: "Today's entries" })).not.toBeInTheDocument();
+  expect(screen.queryByText(/No more daily care is needed/)).not.toBeInTheDocument();
+  expect(screen.queryByText(/not yet today/)).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Read history" })).toHaveTextContent("History");
+
+  await user.click(screen.getByText("Details"));
+  expect(screen.getByText(/Permanent bloom/)).toBeInTheDocument();
+  expect(screen.getByText(/Spot 1/)).toBeInTheDocument();
+  expect(screen.getByText(/No daily care is needed/)).toBeInTheDocument();
+});
