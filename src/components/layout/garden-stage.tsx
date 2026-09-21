@@ -22,6 +22,7 @@ export function GardenStage({ initial, children }: { initial: GardenResult; chil
   if (!title && admittedPath !== null) setAdmittedPath(null);
   const panelOpen = !!title && admittedPath === pathname;
   const [ownerContainer, setOwnerContainer] = useState<HTMLDivElement | null>(null);
+  const [noticeContainer, setNoticeContainer] = useState<HTMLDivElement | null>(null);
   const backdrop = useRef<HTMLDivElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const openedFromGarden = useRef(false);
@@ -56,6 +57,7 @@ export function GardenStage({ initial, children }: { initial: GardenResult; chil
             <Dialog.Title>{title}</Dialog.Title>
             <Dialog.Close className="button button-secondary" aria-label="Close panel">Close</Dialog.Close>
           </header>
+          <div ref={setNoticeContainer} className="route-panel-notices" data-private-notice-host="panel" />
           <div className="route-panel-body" key={pathname}>
             {children}
             {pathname === "/settings" && <div ref={setOwnerContainer} />}
@@ -63,7 +65,7 @@ export function GardenStage({ initial, children }: { initial: GardenResult; chil
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
-    <PrivateInteraction ownerControls={pathname === "/settings"} ownerContainer={ownerContainer} onMomentCloseAutoFocus={(event) => {
+    <PrivateInteraction ownerControls={pathname === "/settings"} ownerContainer={ownerContainer} noticeContainer={title ? noticeContainer : undefined} onMomentCloseAutoFocus={(event) => {
       // The pending trigger lives outside this parent modal. Resume focus inside
       // the route panel instead of restoring its inaccessible background trigger.
       if (panel.current?.isConnected) { event.preventDefault(); panel.current.querySelector<HTMLButtonElement>("button")?.focus(); }

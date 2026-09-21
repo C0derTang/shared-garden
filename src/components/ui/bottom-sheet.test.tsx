@@ -55,8 +55,9 @@ describe("bottom sheet integration", () => {
 });
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { act, fireEvent } from "@testing-library/react";
-import { SheetScope } from "./sheet-scope";
+import { SheetScope, useSheetScope } from "./sheet-scope";
 it("defers a newly pending sheet while a flower draft owns focus, then opens it after Close", async () => {
   let pending!: () => void;
   function Example() {
@@ -87,4 +88,27 @@ it("releases an unmounted sheet and starts a new scope without stale ownership",
   view.unmount();
   render(<SheetScope><BottomSheet open trigger={<button>New visit</button>} title="New visit" description="New"><p>Ready</p></BottomSheet></SheetScope>);
   expect(screen.getByRole("dialog", { name: "New visit" })).toBeInTheDocument();
+});
+
+it("moves one notice to the next queued sheet when the active sheet closes", async () => {
+  function Notice() {
+    const scope = useSheetScope();
+    return scope?.noticeContainer ? createPortal(<p role="status">Shared notice</p>, scope.noticeContainer) : null;
+  }
+  function Example() {
+    const [first, setFirst] = useState(true);
+    return <SheetScope>
+      <Notice />
+      <BottomSheet open={first} onOpenChange={setFirst} trigger={<button>First</button>} title="First sheet" description="First"><input aria-label="First draft" /></BottomSheet>
+      <BottomSheet open trigger={<button>Second</button>} title="Second sheet" description="Second"><input aria-label="Second draft" /></BottomSheet>
+    </SheetScope>;
+  }
+  const user = userEvent.setup(); render(<Example />);
+  const first = await screen.findByRole("dialog", { name: "First sheet" });
+  expect(within(first).getByRole("status")).toHaveTextContent("Shared notice");
+  expect(screen.getAllByRole("status")).toHaveLength(1);
+  await user.keyboard("{Escape}");
+  const second = await screen.findByRole("dialog", { name: "Second sheet" });
+  expect(within(second).getByRole("status")).toHaveTextContent("Shared notice");
+  expect(screen.getAllByRole("status")).toHaveLength(1);
 });

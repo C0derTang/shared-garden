@@ -83,3 +83,15 @@ it("shows a decorative full-bloom collection through the sprite presentation sea
   const dialog = await screen.findByRole("dialog");
   expect(dialog.querySelectorAll('svg[data-stage="bloom"]')).toHaveLength(13);
 });
+
+it.each([
+  [{ status: "ready", armed: true, unread: false, answer: null }, /Armed.*26 achievements/],
+  [{ status: "ready", armed: false, unread: false, answer: null }, /Disarmed.*paused/],
+  [{ status: "pending", armed: true, unread: false, answer: null }, /Pending.*armed/],
+  [{ status: "pending", armed: false, unread: false, answer: null }, /Pending.*paused/],
+  [{ status: "answered", armed: true, unread: false, answer: null }, /Answered.*will not repeat/],
+] as const)("summarizes owner state %# accurately in the compact control", async (detail, expected) => {
+  api.readPrivateInteraction.mockResolvedValue(result({ status: "owner", detail }));
+  render(<PrivateInteraction ownerControls />);
+  expect(await screen.findByRole("status", { name: "Delivery status" })).toHaveTextContent(expected);
+});

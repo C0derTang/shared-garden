@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
 const { readSettings, saveSetting, push } = vi.hoisted(() => ({ readSettings: vi.fn(), saveSetting: vi.fn(), push: vi.fn() }));
 vi.mock("@/lib/settings/actions", () => ({ readSettings, saveSetting }));
@@ -28,4 +28,22 @@ it("has separate signout POST, fixed clock copy, and own optional motion control
   fireEvent.click(screen.getByRole("checkbox"));
   await waitFor(() => expect(screen.getByRole("checkbox")).toBeChecked());
   expect(saveSetting).toHaveBeenCalledExactlyOnceWith({ gentle_motion: true });
+});
+it("groups short controls as settings rows and keeps garden-day detail collapsed until requested", async () => {
+  render(<MemberPreferences initial={initial}><SettingsClient /></MemberPreferences>);
+  const settings = screen.getByRole("region", { name: "Personal settings" });
+  expect(within(settings).getByRole("heading", { name: "Garden guide" })).toBeVisible();
+  expect(within(settings).getByRole("heading", { name: "Gentle motion" })).toBeVisible();
+  const gardenDay = within(settings).getByText("Garden day · 4 a.m. Pacific").closest("details");
+  expect(gardenDay).not.toHaveAttribute("open");
+  expect(within(settings).getByRole("button", { name: "Sign out" })).toBeVisible();
+});
+it("keeps the confirmed motion value after a failed save and offers refresh", async () => {
+  render(<MemberPreferences initial={initial}><SettingsClient /></MemberPreferences>);
+  saveSetting.mockResolvedValueOnce({ state: null, error: "Motion was not confirmed" });
+  fireEvent.click(screen.getByRole("checkbox", { name: "Allow gentle motion" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("Motion was not confirmed");
+  expect(screen.getByRole("checkbox", { name: "Allow gentle motion" })).not.toBeChecked();
+  fireEvent.click(screen.getByRole("button", { name: "Refresh settings" }));
+  await waitFor(() => expect(readSettings).toHaveBeenCalledTimes(2));
 });
