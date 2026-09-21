@@ -3,8 +3,10 @@ import {
   fireEvent,
   render,
   screen,
+  within,
   waitFor,
 } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, expect, it, vi } from "vitest";
 import { memoryFixture } from "@/test/memory-fixture";
 import type { MemoryItem, MemoryPage } from "@/lib/memories/model";
@@ -31,6 +33,94 @@ beforeEach(() => {
     url: "https://example.test/private",
     durationMs: 5000,
   });
+});
+
+it("opens compact filters from the keyboard and keeps active filters evident and clearable", async () => {
+  const user = userEvent.setup();
+  render(<MemoriesClient initial={page([memoryFixture()])} memberId={1} />);
+
+  const toggle = screen.getByRole("button", { name: "Filters" });
+  expect(toggle).toHaveAttribute("aria-expanded", "false");
+  expect(
+    screen.queryByRole("form", { name: "Browse memories" }),
+  ).not.toBeInTheDocument();
+
+  await user.tab();
+  expect(toggle).toHaveFocus();
+  await user.keyboard("{Enter}");
+  expect(toggle).toHaveAttribute("aria-expanded", "true");
+
+  fireEvent.change(screen.getByLabelText("Flower type"), {
+    target: { value: "daisy" },
+  });
+  await user.click(screen.getByRole("button", { name: "Apply filters" }));
+
+  await screen.findByText("No memories match those filters.");
+  expect(
+    screen.getByRole("button", { name: "Filters, 1 active" }),
+  ).toHaveAttribute("aria-expanded", "false");
+  const active = screen.getByRole("status", { name: "Active filters" });
+  expect(within(active).getByText("Daisy")).toBeInTheDocument();
+  await user.click(within(active).getByRole("button", { name: "Clear" }));
+  await waitFor(() =>
+    expect(load.mock.calls.at(-1)?.[0]).toEqual({
+      kind: "latest",
+      filters: {},
+    }),
+  );
+  expect(screen.getByRole("button", { name: "Filters" })).toHaveAttribute(
+    "aria-expanded",
+    "false",
+  );
+  expect(
+    screen.queryByRole("status", { name: "Active filters" }),
+  ).not.toBeInTheDocument();
+});
+
+it("shows a brief text preview and reveals the complete memory on request", async () => {
+  const user = userEvent.setup();
+  const longText = `${"A long shared memory with gentle details. ".repeat(8)}The complete ending.`;
+  const item = {
+    ...memoryFixture(),
+    entry: { ...memoryFixture().entry!, payload: { text: longText } },
+  };
+  render(<MemoriesClient initial={page([item])} memberId={1} />);
+
+  expect(screen.queryByText(longText)).not.toBeInTheDocument();
+  const expand = screen.getByRole("button", { name: "Read full memory" });
+  expect(expand).toHaveAttribute("aria-expanded", "false");
+  await user.click(expand);
+  expect(screen.getByText(longText)).toBeVisible();
+  expect(
+    screen.getByRole("button", { name: "Show less" }),
+  ).toHaveAttribute("aria-expanded", "true");
+});
+
+it("removes loaded voice media when applying a filter", async () => {
+  const user = userEvent.setup();
+  const voice = {
+    ...memoryFixture(),
+    flower: { ...memoryFixture().flower, type_key: "bluebell" },
+    entry: {
+      ...memoryFixture().entry!,
+      payload: { media_id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" },
+    },
+  } as MemoryItem;
+  render(<MemoriesClient initial={page([voice])} memberId={1} />);
+
+  await user.click(screen.getByRole("button", { name: "Load voice memo" }));
+  expect(
+    await screen.findByLabelText("Shared Bluebell voice memo"),
+  ).toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "Filters" }));
+  fireEvent.change(screen.getByLabelText("Flower type"), {
+    target: { value: "rose" },
+  });
+  await user.click(screen.getByRole("button", { name: "Apply filters" }));
+  await screen.findByText("No memories match those filters.");
+  expect(
+    screen.queryByLabelText("Shared Bluebell voice memo"),
+  ).not.toBeInTheDocument();
 });
 it("preserves older cursor and loaded cards while staging more than one page of newer arrivals", async () => {
   const first = memoryFixture("20");
@@ -88,11 +178,12 @@ it("rejects an old filter response and keeps real empty/error states distinct", 
     <MemoriesClient initial={page([memoryFixture()], true)} memberId={1} />,
   );
   fireEvent.click(screen.getByRole("button", { name: "Older memories" }));
+  fireEvent.click(screen.getByRole("button", { name: "Filters" }));
   fireEvent.change(screen.getByLabelText("Flower type"), {
     target: { value: "daisy" },
   });
   fireEvent.click(screen.getByRole("button", { name: "Apply filters" }));
-  await screen.findByText("No memories match these filters yet.");
+  await screen.findByText("No memories match those filters.");
   await act(async () => {
     finish(page([memoryFixture("2")]));
   });
@@ -193,7 +284,11 @@ it("replaces a loaded Peony's cleared acceptances while keeping personal origina
     },
   } as MemoryItem;
   render(<MemoriesClient initial={page([peony])} memberId={1} />);
-  expect(screen.getByText(/accepted/)).toBeInTheDocument();
+  expect(screen.queryByText(/accepted/)).not.toBeInTheDocument();
+  fireEvent.click(
+    screen.getByRole("button", { name: "Open date history, 0 of 4 complete" }),
+  );
+  expect(screen.getByText(/accepted/)).toBeVisible();
   const updated = {
     ...peony,
     read_at: "2026-09-18T18:00:00.000002Z",
