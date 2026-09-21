@@ -45,6 +45,7 @@ export type FlowerSpriteProps = FlowerProgress &
   Readonly<{
     presentation?: "actual" | "full-bloom";
     decorative?: boolean;
+    idle?: boolean;
     size?: 32 | 64 | 96 | 128;
     className?: string;
   }>;
@@ -568,6 +569,7 @@ export function FlowerSprite(props: FlowerSpriteProps) {
     type,
     presentation = "actual",
     decorative = true,
+    idle = false,
     size = 64,
     className,
   } = props;
@@ -593,13 +595,16 @@ export function FlowerSprite(props: FlowerSpriteProps) {
       viewBox="0 0 32 32"
       width={size}
       height={size}
-      className={[styles.sprite, className].filter(Boolean).join(" ")}
+      className={[styles.sprite, idle && styles.idle, className]
+        .filter(Boolean)
+        .join(" ")}
       shapeRendering="crispEdges"
       focusable="false"
       aria-hidden={decorative ? true : undefined}
       role={decorative ? undefined : "img"}
       aria-label={decorative ? undefined : label}
       data-stage={stage}
+      data-flower-type={type}
     >
       <path fill="#d5c6a6" d="M10 29h13v2H10z" />
       {stage === "seed" && (
