@@ -23,6 +23,10 @@
   width: 88px;
   transform: translateX(-50%);
 }
+.spot[data-motion-phase="0"] .flowerButton svg { --flower-idle-delay: -1.1s; }
+.spot[data-motion-phase="1"] .flowerButton svg { --flower-idle-delay: -2.3s; }
+.spot[data-motion-phase="2"] .flowerButton svg { --flower-idle-delay: -3.7s; }
+.spot[data-motion-phase="3"] .flowerButton svg { --flower-idle-delay: -4.9s; }
 .flowerButton,
 .emptyButton {
   width: 100%;
