@@ -37,13 +37,14 @@ arming, answer acknowledgement, and durable pending and answered semantics are
 unchanged. Private message text, answer labels, identities, and configuration
 remain runtime-only and are not represented in this public decision.
 
-Private interaction errors, confirmations, and owner answer notifications use
-one shared presentation instance. It appears in the currently active guide or
-moment sheet, otherwise directly below an open route-panel header, and otherwise
-in a fixed, safe-area-aware Garden notice region. Moving the presentation does
-not move focus, duplicate notification state, or change acknowledgement and
-retry behavior. This keeps recovery and acknowledgement controls inside the
-active modal accessibility tree and keeps Garden notices within the viewport.
+Private interaction errors, confirmations, owner answer notifications, and a
+recipient's dismissed-moment reopen action use the same active presentation
+region. It appears in the currently active guide or moment sheet, otherwise
+directly below an open route-panel header, and otherwise in a fixed,
+safe-area-aware Garden region. Moving the presentation does not move focus,
+duplicate notification state, or change acknowledgement, retry, and sheet-queue
+behavior. This keeps recovery, acknowledgement, and reopen controls inside the
+active modal accessibility tree and within the Garden viewport.
 
 ## Verification boundary
 

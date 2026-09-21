@@ -84,6 +84,7 @@ export function PrivateInteraction({ ownerControls, ownerContainer, noticeContai
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [dismissedOnce, setDismissedOnce] = useState(false);
   const mounted = useRef(false);
   const dismissed = useRef(false);
   const reading = useRef(false);
@@ -164,13 +165,16 @@ export function PrivateInteraction({ ownerControls, ownerContainer, noticeContai
     ? createPortal(notices, activeNoticeContainer)
     : scope?.active || noticeContainer === null
       ? null
-      : <div className={styles.gardenNoticeHost} data-private-notice-host="garden">{notices}</div>);
-  return <section className={styles.container} aria-label="Garden moment">
+      : notices);
+  const gardenPresentation = !scope?.active && noticeContainer === undefined && (!!notices || (state?.status === "pending" && !open));
+  const pendingTriggerContainer = activeNoticeContainer ?? (scope?.active || noticeContainer === null ? null : undefined);
+  return <section className={`${styles.container}${gardenPresentation ? ` ${styles.gardenNoticeHost}` : ""}`} data-private-notice-host={gardenPresentation ? "garden" : undefined} aria-label="Garden moment">
     {presentedNotices}
     {state?.status === "pending" && <BottomSheet
       onCloseAutoFocus={onMomentCloseAutoFocus}
-      open={open} onOpenChange={(next) => { setOpen(next); if (!next) dismissed.current = true; }}
+      open={open} onOpenChange={(next) => { setOpen(next); if (!next) { dismissed.current = true; setDismissedOnce(true); } }}
       title={state.content.title} description="A moment for your shared garden."
+      triggerContainer={dismissedOnce ? pendingTriggerContainer : undefined}
       trigger={<button className="button button-primary" type="button">Open your garden moment</button>}>
       {open && <Moment content={state.content} busy={busy} save={(key) => void mutate(() => answerPrivateInteraction(key), true)} />}
     </BottomSheet>}

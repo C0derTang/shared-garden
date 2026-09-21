@@ -56,6 +56,24 @@ it("keeps one private lifecycle while routes change and delivers pending moments
   expect(screen.getByRole("dialog", { name: "Memories" })).toBeVisible();
   expect(screen.getByRole("button", { name: "Close panel" })).toHaveFocus();
 });
+it.each([["/garden", null], ["/settings", "Settings"]] as const)("keeps a dismissed recipient moment reachable and reopenable on %s", async (path, panelName) => {
+  route.pathname = path;
+  api.readPrivateInteraction.mockResolvedValue({ state: { status: "pending", content: { title: "Fixture moment", message: "Synthetic", choices: [{ key: "a", label: "Yes" }, { key: "b", label: "Later" }] } }, error: null });
+  const user = userEvent.setup(); render(<App />);
+  await screen.findByRole("dialog", { name: "Fixture moment" });
+  await user.keyboard("{Escape}");
+  const reopen = screen.getByRole("button", { name: "Open your garden moment" });
+  if (panelName) {
+    const panel = screen.getByRole("dialog", { name: panelName });
+    expect(panel).toContainElement(reopen);
+  } else {
+    expect(reopen.closest('[data-private-notice-host="garden"]')).not.toBeNull();
+    expect(reopen).toHaveFocus();
+  }
+  reopen.focus();
+  await user.keyboard("{Enter}");
+  expect(await screen.findByRole("dialog", { name: "Fixture moment" })).toBeVisible();
+});
 it("abandons a preview when history leaves Settings and does not revive it on return", async () => {
   const user = userEvent.setup();
   api.previewPrivateInteraction.mockResolvedValue({ content: { title: "Preview fixture", message: "Synthetic", choices: [{ key: "a", label: "Yes" }] }, error: null });

@@ -2,6 +2,7 @@
 
 import * as Dialog from "@radix-ui/react-dialog";
 import { useCallback, useEffect, useId, useState, type ReactElement, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { useSheetScope } from "./sheet-scope";
 
 type BottomSheetProps = {
@@ -12,6 +13,7 @@ type BottomSheetProps = {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   onCloseAutoFocus?: (event: Event) => void;
+  triggerContainer?: HTMLElement | null;
 };
 
 export function BottomSheet({
@@ -22,6 +24,7 @@ export function BottomSheet({
   open,
   onOpenChange,
   onCloseAutoFocus,
+  triggerContainer,
 }: BottomSheetProps) {
   const id = useId();
   const scope = useSheetScope();
@@ -37,9 +40,12 @@ export function BottomSheet({
   const noticeContainerRef = useCallback((element: HTMLDivElement | null) => {
     registerNoticeContainer?.(id, element);
   }, [id, registerNoticeContainer]);
+  const triggerNode = <Dialog.Trigger asChild>{trigger}</Dialog.Trigger>;
   return (
     <Dialog.Root open={visible} onOpenChange={(next) => { setLocalOpen(next); onOpenChange?.(next); }}>
-      <Dialog.Trigger asChild>{trigger}</Dialog.Trigger>
+      {visible || triggerContainer === undefined
+        ? triggerNode
+        : triggerContainer && createPortal(triggerNode, triggerContainer)}
       <Dialog.Portal>
         <Dialog.Overlay className="sheet-overlay" />
         <Dialog.Content className="sheet-content" onCloseAutoFocus={onCloseAutoFocus}>
