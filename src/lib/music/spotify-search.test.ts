@@ -302,3 +302,40 @@ it("forwards client cancellation while a provider request is in flight", async (
   controller.abort();
   expect((await pending).status).toBe(503);
 });
+
+it.each(["bearer", "BEARER", "bEaReR"])(
+  "accepts the documented case-insensitive token type %s",
+  async (tokenType) => {
+    fetcher
+      .mockReset()
+      .mockResolvedValueOnce(
+        Response.json({
+          access_token: "PRIVATE_TOKEN",
+          token_type: tokenType,
+          expires_in: 3600,
+        }),
+      )
+      .mockResolvedValueOnce(result());
+    const response = await request();
+    expect(response.status).toBe(200);
+    expect((await response.json()).tracks[0].title).toBe("Song");
+  },
+);
+it.each(["Basic", "bearer ", "", null, 1, {}, ["bearer"]])(
+  "rejects other or malformed token types %j",
+  async (tokenType) => {
+    fetcher
+      .mockReset()
+      .mockResolvedValueOnce(
+        Response.json({
+          access_token: "PRIVATE_TOKEN",
+          token_type: tokenType,
+          expires_in: 3600,
+        }),
+      );
+    const response = await request();
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: "unavailable" });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  },
+);

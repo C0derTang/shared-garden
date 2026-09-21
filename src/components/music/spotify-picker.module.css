@@ -90,9 +90,16 @@
   width: 64px;
   height: 64px;
   object-fit: contain;
+  border-radius: 4px;
   display: block;
 }
 .open {
   text-decoration: underline;
   font-size: 0.85rem;
+}
+
+@media (min-width: 1024px) {
+  .art img {
+    border-radius: 8px;
+  }
 }

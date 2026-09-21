@@ -54,6 +54,8 @@ also have a 12-second deadline. Provider bodies and internal errors are never
 returned to the client.
 
 An in-memory server token expires 30 seconds before Spotify's reported expiry.
+The provider token type must be a string equal to bearer without case sensitivity,
+including the documented lowercase response; other or malformed types fail closed.
 A provider 401 invalidates that token and retries once. Access failures, network
 errors and malformed token/results become generic errors. A 429 respects a
 bounded numeric Retry-After (1–86,400 seconds); absent or malformed headers use a
@@ -78,7 +80,10 @@ icon, with adequate clear space on the light sheet. The source asset is from the
 [official icon download](https://developer.spotify.com/images/guidelines/design/2024-spotify-logo-icon.zip)
 (`Primary_Logo_Black_RGB.svg`), retained as `public/spotify-icon.svg` unchanged.
 Each result's complete metadata/artwork links back to Spotify. Album artwork is
-shown uncropped, without overlays, filters or image transformations. No preview
+shown uncropped, without overlays, filters or image transformations. Per Spotify's
+required artwork treatment, CSS rounds corners to 4px on small/medium viewports
+and 8px on large viewports (conservatively, at 1,024px and wider); the original
+image content and contain sizing remain unchanged. No preview
 audio is downloaded or rehosted.
 
 Primary documentation checked 2026-09-20:

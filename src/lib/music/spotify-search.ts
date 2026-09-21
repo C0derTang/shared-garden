@@ -101,7 +101,8 @@ async function token(signal: AbortSignal, clientId: string, secret: string) {
   if (
     typeof body.access_token !== "string" ||
     !/^[\x21-\x7e]{1,4096}$/.test(body.access_token) ||
-    body.token_type !== "Bearer" ||
+    typeof body.token_type !== "string" ||
+    body.token_type.toLowerCase() !== "bearer" ||
     typeof body.expires_in !== "number" ||
     !Number.isInteger(body.expires_in) ||
     body.expires_in < 60 ||
