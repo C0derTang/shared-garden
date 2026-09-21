@@ -1,4 +1,4 @@
-# Claude instructions for Shared Garden
+# Claude instructions for cc’s garden
 
 Read and follow [AGENTS.md](AGENTS.md) before any planning, implementation, or
 review. It is the canonical detailed operating procedure for this repository.

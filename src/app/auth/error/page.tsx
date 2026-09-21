@@ -51,7 +51,7 @@ export default async function AuthErrorPage({
   return (
     <main id="main-content" className="auth-card auth-page">
       <span className="wordmark">
-        <PixelIcon name="sprout" /> Shared Garden
+        <PixelIcon name="sprout" /> cc’s garden
       </span>
       <h1>{title}</h1>
       <p>{description}</p>

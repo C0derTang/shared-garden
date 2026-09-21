@@ -1,5 +1,5 @@
 {
-  "name": "shared-garden",
+  "name": "ccsgarden",
   "private": true,
   "scripts": {
     "dev": "next dev",

@@ -1,4 +1,4 @@
-# Shared Garden agent operating procedure
+# cc’s garden agent operating procedure
 
 This file is the canonical procedure for all agents working in this repository.
 Read it before planning, implementing, or reviewing work. [CLAUDE.md](CLAUDE.md)
@@ -6,7 +6,7 @@ directs Claude sessions here and provides a concise summary of the same rules.
 
 ## Project boundaries and public information
 
-Shared Garden is a fixed two-person private application. Preserve that scope and
+cc’s garden is a fixed two-person private application. Preserve that scope and
 the user's approved rules. Proposed or conflicting rules are not finalized.
 This procedure does not select a technology stack, product rules, visual style,
 hosting service, authentication design, notification channel, or launch scope.

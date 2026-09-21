@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Shared Garden — a little world for two",
+  title: "cc’s garden — a little world for two",
   description:
     "A shared garden for two people, grown through small daily acts of care.",
   robots: { index: false, follow: false },

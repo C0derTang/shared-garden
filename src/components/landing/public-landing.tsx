@@ -14,7 +14,7 @@ export function PublicLanding({
       <header className="public-header">
         <span className="wordmark">
           <PixelIcon name="sprout" />
-          Shared Garden
+          cc’s garden
         </span>
         <span className="header-note">a little world for two</span>
       </header>
@@ -126,7 +126,7 @@ export function PublicLanding({
         </div>
       </main>
       <footer className="public-footer">
-        <span>Shared Garden</span>
+        <span>cc’s garden</span>
         <span>
           Made for the two of you. <PixelIcon name="heart" />
         </span>

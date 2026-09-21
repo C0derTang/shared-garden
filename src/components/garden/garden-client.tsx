@@ -155,7 +155,7 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
     return (
       <section className="auth-card">
         <h1>Your garden is taking a moment</h1>
-        <p role="alert">{error ?? "Loading your shared garden…"}</p>
+        <p role="alert">{error ?? "Loading cc’s garden…"}</p>
         <button
           className="button button-primary"
           onClick={() => void refresh()}
@@ -175,7 +175,7 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
   return (
     <div className={styles.garden}>
       <header className={styles.hud}>
-        <h1 ref={heading} tabIndex={-1}>Our shared garden</h1>
+        <h1 ref={heading} tabIndex={-1}>cc’s garden</h1>
         <div className={styles.clock} aria-label="Garden day">
           <span>Pacific garden clock · <strong suppressHydrationWarning>{pacificTime(now)}</strong></span>
           <span>{remaining > 0 ? `${hours}h ${minutes}m until a new day` : "Refreshing the new garden day…"}</span>
