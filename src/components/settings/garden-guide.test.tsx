@@ -122,7 +122,7 @@ it.each(["Skip", "Finish"] as const)("hands keyboard focus to the garden after c
   saveSetting.mockResolvedValue({ state: { ...settings.state, revision: 1, guide }, error: null });
   await activateWithKeyboard(user, screen.getByRole("button", { name: `${action} guide` }));
   await waitFor(() => expect(screen.queryByRole("dialog", { name: /A little hello|Make room for a Rose|A note for your Rose|Your Roses are in bloom|You’re finding your rhythm|Grow at your own pace/ })).not.toBeInTheDocument());
-  expect(screen.getByRole("heading", { name: "Our shared garden" })).toHaveFocus();
+  expect(screen.getByRole("heading", { name: "cc’s garden" })).toHaveFocus();
   expect(saveSetting).toHaveBeenCalledExactlyOnceWith({ guide });
   expect(mutateGarden).not.toHaveBeenCalled();
 });
@@ -153,7 +153,7 @@ it("hands focus onward when a delayed Skip confirms after the member locally clo
   await activateWithKeyboard(user, screen.getByRole("button", { name: "Close guide for now" }));
   expect(screen.getByRole("button", { name: "Show garden guide" })).toHaveFocus();
   await act(async () => resolve({ state: { ...settings.state, revision: 1, guide: "skipped" }, error: null }));
-  expect(screen.getByRole("heading", { name: "Our shared garden" })).toHaveFocus();
+  expect(screen.getByRole("heading", { name: "cc’s garden" })).toHaveFocus();
 });
 
 it.each(["pending save", "remote refresh"])("does not take focus from a flower draft when a %s hides the guide", async (source) => {

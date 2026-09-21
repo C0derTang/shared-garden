@@ -7,7 +7,7 @@ Sources: [Issue #7](https://github.com/C0derTang/shared-garden/issues/7),
 [Issue #11](https://github.com/C0derTang/shared-garden/issues/11), and
 [Issue #13](https://github.com/C0derTang/shared-garden/issues/13).
 This extends [record 0001](0001-approved-garden-rules.md) and
-[record 0002](0002-progression-and-mobile-garden.md) for Shared Garden's fixed
+[record 0002](0002-progression-and-mobile-garden.md) for cc’s garden’s fixed
 two-person private scope. Their other approved rules remain in force.
 Future feature issues must reference these records and follow
 [AGENTS.md](../../AGENTS.md) and [CLAUDE.md](../../CLAUDE.md).
@@ -27,11 +27,11 @@ Future feature issues must reference these records and follow
    that purpose. Unrelated notification requirements were initially open;
    [record 0004](0004-finalized-launch-rules.md) now specifies the in-app admin
    notification for the final interaction and excludes email and push.
-4. **Next.js frontend and Vercel hosting.** Use Next.js for the Shared Garden
+4. **Next.js frontend and Vercel hosting.** Use Next.js for the cc’s garden
    website and Vercel as its hosting provider. Hosting selection does not mean
    that a Vercel deployment exists.
 5. **Dedicated hosted Supabase setup.** Use a new, dedicated organization and
-   project for Shared Garden. Both have been provisioned, with the organization
+   project for cc’s garden. Both have been provisioned, with the organization
    on the Free plan at creation and the project in West US (Oregon), `us-west-2`.
 6. **Access defaults.** Enable the Data API, disable automatic exposure of new
    tables, and enable automatic row-level security (RLS). Application grants and

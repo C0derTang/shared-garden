@@ -6,7 +6,7 @@ within the boundaries below.
 Source: [Issue #15](https://github.com/C0derTang/shared-garden/issues/15).
 This extends [record 0001](0001-approved-garden-rules.md),
 [record 0002](0002-progression-and-mobile-garden.md), and
-[record 0003](0003-supabase-and-access.md) for Shared Garden's fixed two-person
+[record 0003](0003-supabase-and-access.md) for cc’s garden’s fixed two-person
 private scope. It supersedes their open-choice summaries where this record
 settles a rule and removes the previously assumed overall active-flower cap.
 All per-type limits remain. Earlier records retain their decision history;

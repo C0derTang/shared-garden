@@ -4,7 +4,7 @@ Status: approved historical decision record, extended and partially superseded
 by [record 0004](0004-finalized-launch-rules.md).
 
 Source: [Issue #3](https://github.com/C0derTang/shared-garden/issues/3).
-This records approved rules for Shared Garden's fixed two-person private scope;
+This records approved rules for cc’s garden’s fixed two-person private scope;
 the complete launch rules and achievement catalog are now recorded in
 [record 0004](0004-finalized-launch-rules.md).
 Future feature issues must reference this record and follow [AGENTS.md](../../AGENTS.md)

@@ -1,4 +1,4 @@
--- Post-migration release audit for Shared Garden.
+-- Post-migration release audit for cc’s garden.
 --
 -- Read-only. It opens an explicit read-only transaction and rolls it back. It
 -- reads catalog metadata and aggregate counts only: it calls no application

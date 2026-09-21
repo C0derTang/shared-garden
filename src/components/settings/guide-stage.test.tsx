@@ -25,7 +25,7 @@ beforeEach(() => {
 it("releases the guide for history navigation and reopens it from Settings after a successful save", async () => {
   const user = userEvent.setup(); const view = render(<App />);
   expect(screen.getByRole("dialog", { name: "A little hello" })).toBeVisible();
-  expect(screen.getByText("Our shared garden").closest("[inert]")).not.toBeNull();
+  expect(screen.getByText("cc’s garden").closest("[inert]")).not.toBeNull();
   route.pathname = "/settings"; view.rerender(<App />);
   expect(await screen.findByRole("dialog", { name: "Settings" })).toBeVisible();
   expect(screen.queryByRole("dialog", { name: "A little hello" })).not.toBeInTheDocument();

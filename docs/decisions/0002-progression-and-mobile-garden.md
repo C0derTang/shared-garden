@@ -4,7 +4,7 @@ Status: approved historical decision record, extended and partially superseded
 by [record 0004](0004-finalized-launch-rules.md).
 
 Source: [Issue #5](https://github.com/C0derTang/shared-garden/issues/5).
-This extends [record 0001](0001-approved-garden-rules.md) for Shared Garden's
+This extends [record 0001](0001-approved-garden-rules.md) for cc’s garden’s
 fixed two-person private scope. Its other approved rules remain in force.
 Future feature issues must reference these records and follow
 [AGENTS.md](../../AGENTS.md) and [CLAUDE.md](../../CLAUDE.md).
