@@ -42,7 +42,10 @@ it("renders real fixed beds, permanent flowers, clock and selectable empty posit
   expect(screen.getAllByRole("button", { name: /Plant in spot/ })).toHaveLength(
     11,
   );
-  expect(screen.getByText(/Pacific garden clock/)).toBeInTheDocument();
+  expect(screen.getByText(/Pacific ·/)).toBeInTheDocument();
+  expect(screen.getByText(/New day in/)).toBeInTheDocument();
+  expect(screen.getByText("Cactus")).toHaveAttribute("aria-hidden", "true");
+  expect(screen.queryByText(/BED 01/)).not.toBeInTheDocument();
   await user.click(screen.getByRole("button", { name: "Plant in spot 9" }));
   const sheet = screen.getByRole("dialog");
   expect(within(sheet).getByText(/Spot 9/)).toBeInTheDocument();

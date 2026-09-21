@@ -14,7 +14,6 @@
 .refreshButton { min-height: 44px; background: transparent; border: 0; color: var(--forest-dark); text-decoration: underline; padding: .5rem; }
 .bed { height: max(730px, calc(100dvh - 50px)); position: relative; background-color: #dce3bc; background-image: radial-gradient(#aeba86 1px, transparent 1px), radial-gradient(#c3cea0 2px, transparent 2px); background-size: 41px 37px, 71px 59px; background-position: 5px 12px, 22px 17px; overflow: clip; }
 .bed + .bed { border-top: 4px solid #bbc797; }
-.bedTitle { position: absolute; top: 48px; left: 12px; color: #566443; font-size: .6rem; letter-spacing: .1em; }
 .path { position: absolute; inset: 0 auto 0 32%; width: 20%; background: #ece2c4; opacity: .8; clip-path: polygon(0 0, 80% 0, 100% 23%, 40% 51%, 75% 71%, 50% 100%, 0 100%, 25% 71%, 0 51%, 45% 24%); }
 .bedGrass { position: absolute; bottom: 28px; color: #94a06d; width: 100%; text-align: center; font: bold 1.2rem monospace; letter-spacing: 1rem; pointer-events: none; }
 .quiet { color: var(--muted); font-size: .84rem; }
@@ -58,6 +57,9 @@
 }
 .flowerButton > span {
   font-size: 0.62rem;
+}
+.surfaceLabel {
+  visibility: hidden;
 }
 .flowerButton svg {
   flex-shrink: 0;
