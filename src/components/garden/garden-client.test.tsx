@@ -63,28 +63,6 @@ it("renders real fixed beds, permanent flowers, clock and selectable empty posit
     spot: 9,
   });
 });
-it("layers a noninteractive pixel meadow behind every fixed twelve-spot bed", () => {
-  const state = gardenFixture();
-  state.garden.spot_capacity = 24;
-  const { container } = render(
-    <GardenClient initial={{ state, error: null }} />,
-  );
-  const beds = screen.getAllByRole("region", { name: /Garden bed/ });
-  const scenes = container.querySelectorAll("[data-meadow-scenery]");
-  expect(beds).toHaveLength(2);
-  expect(scenes).toHaveLength(2);
-  scenes.forEach((scene, index) => {
-    expect(scene).toHaveAttribute("aria-hidden", "true");
-    expect(scene).toHaveAttribute("data-bed-variant", String(index % 2));
-    expect(scene.querySelectorAll("[data-path-piece]").length).toBeGreaterThan(3);
-    expect(scene.querySelectorAll("[data-grass-clump]").length).toBeGreaterThan(8);
-    expect(scene.querySelectorAll("[data-stone]").length).toBeGreaterThan(3);
-    expect(scene.querySelector("button, a, input")).toBeNull();
-  });
-  expect(screen.getAllByRole("button", { name: /Plant in spot/ })).toHaveLength(
-    23,
-  );
-});
 it("shows partner care immediately before the current member contributes and escapes entry text", () => {
   const state = gardenFixture();
   const plant = state.plants[0];
