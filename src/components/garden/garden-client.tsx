@@ -100,8 +100,10 @@ function GardenSpot({
                   idle
                   size={64}
                 />
-                <strong>{item!.display_name}</strong>
-                <span>
+                <strong className={styles.surfaceLabel} aria-hidden="true">
+                  {item!.display_name}
+                </strong>
+                <span className={styles.surfaceLabel} aria-hidden="true">
                   {plant.flower.fulfilled_at ? "Wish fulfilled" : bloom
                     ? "In bloom"
                     : `${plant.flower.growth_units} / ${item!.growth_target}`}
@@ -183,20 +185,20 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
       <header className={styles.hud}>
         <h1 ref={heading} tabIndex={-1}>cc’s garden</h1>
         <div className={styles.clock} aria-label="Garden day">
-          <span>Pacific garden clock · <strong suppressHydrationWarning>{pacificTime(now)}</strong></span>
-          <span>{remaining > 0 ? `${hours}h ${minutes}m until a new day` : "Refreshing the new garden day…"}</span>
+          <span>Pacific · <strong suppressHydrationWarning>{pacificTime(now)}</strong></span>
+          <span>{remaining > 0 ? `New day in ${hours}h ${minutes}m` : "Refreshing day…"}</span>
         </div>
       </header>
       <div className={styles.tools}>
         <details className={styles.help}>
-          <summary>Garden help</summary>
+          <summary>Help</summary>
           <div>
-            <p>Tap a flower to care for it, or an empty patch to plant.</p>
-            <p>{state.plants.length} planted · {blooms} in bloom. New beds appear as the garden fills.</p>
-            <p>Garden day · {state.garden_day}. A new day starts at 4 a.m. Pacific.</p>
-            <p>{state.moonflower_open ? "Moonflower is open" : "Moonflower opens at 10 p.m."}</p>
-            <p>Care dots: you on the left, partner on the right. Filled dots mean cared for today.</p>
-            <p>{connected ? "Growing together · live" : "Checking for shared updates"}</p>
+            <p>Tap a flower to care. Tap + to plant.</p>
+            <p>{state.plants.length} planted · {blooms} blooms · beds grow as needed.</p>
+            <p>Garden day {state.garden_day} · starts 4 a.m. Pacific.</p>
+            <p>{state.moonflower_open ? "Moonflower · open until 4 a.m." : "Moonflower · 10 p.m.–4 a.m. Pacific"}</p>
+            <p>Dots · you left, partner right; filled means cared today.</p>
+            <p>{connected ? "Live updates on" : "Checking updates…"}</p>
             <button type="button" className={styles.refreshButton} onClick={() => void refresh()} disabled={busy}>Refresh</button>
           </div>
         </details>
@@ -216,9 +218,6 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
               className={styles.bed}
               aria-label={`Garden bed ${bed + 1}`}
             >
-              <div className={styles.bedTitle}>
-                <span>BED {String(bed + 1).padStart(2, "0")}</span>
-              </div>
               <div className={styles.path} aria-hidden="true" />
               <div className={styles.bedGrass} aria-hidden="true">
                 ┐ └ &nbsp; ┘ ┌ &nbsp; └ ┘
