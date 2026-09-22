@@ -1,4 +1,4 @@
-.garden { position: relative; min-height: 100dvh; background: #dce3bc; padding: 50px 0 76px; }
+.garden { position: relative; min-height: 100dvh; background: #759452; padding: 50px 0 76px; }
 .hud { position: absolute; z-index: 2; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: max(8px, env(safe-area-inset-top)) 12px 6px; background: #f1e8ce; border-bottom: 1px solid #c4cda3; }
 .hud h1 { font: 600 1rem/1.15 var(--font-display); max-width: 7rem; }
 .clock { display: grid; text-align: right; font-size: .67rem; line-height: 1.5; font-variant-numeric: tabular-nums; }
@@ -12,13 +12,26 @@
 .workspace { max-width: 1200px; margin: auto; }
 .beds { min-width: 0; }
 .refreshButton { min-height: 44px; background: transparent; border: 0; color: var(--forest-dark); text-decoration: underline; padding: .5rem; }
-.bed { height: max(730px, calc(100dvh - 50px)); position: relative; background-color: #dce3bc; background-image: radial-gradient(#aeba86 1px, transparent 1px), radial-gradient(#c3cea0 2px, transparent 2px); background-size: 41px 37px, 71px 59px; background-position: 5px 12px, 22px 17px; overflow: clip; }
-.bed + .bed { border-top: 4px solid #bbc797; }
-.path { position: absolute; inset: 0 auto 0 32%; width: 20%; background: #ece2c4; opacity: .8; clip-path: polygon(0 0, 80% 0, 100% 23%, 40% 51%, 75% 71%, 50% 100%, 0 100%, 25% 71%, 0 51%, 45% 24%); }
-.bedGrass { position: absolute; bottom: 28px; color: #94a06d; width: 100%; text-align: center; font: bold 1.2rem monospace; letter-spacing: 1rem; pointer-events: none; }
+.bed { height: max(730px, calc(100dvh - 50px)); position: relative; background-color: #7f9d58; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48' shape-rendering='crispEdges'%3E%3Cpath fill='%2389a960' d='M3 7h5v3H3zM31 4h3v5h-3zM18 27h6v3h-6zM40 34h5v4h-5zM7 42h3v3H7z'/%3E%3Cpath fill='%236f8d4b' d='M15 12h4v3h-4zM38 17h3v4h-3zM2 29h6v3H2zM28 40h4v3h-4z'/%3E%3C/svg%3E"); background-size: 48px 48px; overflow: clip; }
+.bed + .bed { border-top: 4px solid #668447; }
+.meadowScenery { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.meadowPatch { position: absolute; width: 28px; height: 12px; transform: translateX(-50%); background: #91ae63; box-shadow: 12px 8px #75934f, -6px 13px #89a65d; clip-path: polygon(0 25%, 20% 25%, 20% 0, 75% 0, 75% 20%, 100% 20%, 100% 80%, 78% 80%, 78% 100%, 12% 100%, 12% 75%, 0 75%); }
+.pathRibbon { position: absolute; inset: 0; }
+.pathRibbon i { position: absolute; width: clamp(32px, 9vw, 56px); height: 17.2%; transform: translateX(-50%); background: #d7c790; box-shadow: inset 5px 0 #c3ad73, inset -4px 0 #eadcac; clip-path: polygon(7% 0, 92% 0, 92% 7%, 100% 7%, 100% 91%, 91% 91%, 91% 100%, 8% 100%, 8% 93%, 0 93%, 0 8%, 7% 8%); }
+.pathRibbon i:nth-child(1) { top: 0; }
+.pathRibbon i:nth-child(2) { top: 16.6%; }
+.pathRibbon i:nth-child(3) { top: 33.2%; }
+.pathRibbon i:nth-child(4) { top: 49.8%; }
+.pathRibbon i:nth-child(5) { top: 66.4%; }
+.pathRibbon i:nth-child(6) { top: 83%; }
+.grassClump { position: absolute; width: 12px; height: 5px; background: #587b3e; box-shadow: 8px 3px #6b8c47; }
+.grassClump::before { content: ""; position: absolute; left: 2px; bottom: 4px; width: 3px; height: 8px; background: #527438; box-shadow: 5px 2px #527438, 10px -1px #6f9149; }
+.grassClump::after { content: ""; position: absolute; left: 0; top: 2px; width: 4px; height: 3px; background: #9ab86a; box-shadow: 7px -1px #9ab86a; }
+.stone { position: absolute; width: 18px; height: 12px; transform: translateX(-50%); background: #8c8b72; box-shadow: inset 4px 3px #b1ae8d, 3px 3px #617348; clip-path: polygon(20% 0, 78% 0, 78% 16%, 94% 16%, 94% 76%, 78% 76%, 78% 100%, 17% 100%, 17% 84%, 0 84%, 0 25%, 20% 25%); }
 .quiet { color: var(--muted); font-size: .84rem; }
 .spot {
   position: absolute;
+  z-index: 1;
   width: 88px;
   transform: translateX(-50%);
 }

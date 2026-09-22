@@ -31,6 +31,62 @@ const positions = [
   [48, 539],
   [81, 512],
 ];
+const grassClumps = [
+  [7, 8], [25, 13], [72, 9], [91, 16], [42, 20], [12, 28],
+  [66, 25], [87, 33], [29, 38], [55, 43], [6, 49], [72, 53],
+  [94, 59], [21, 63], [44, 68], [62, 72], [10, 78], [83, 81],
+  [34, 86], [56, 90], [15, 94], [74, 96], [96, 47], [3, 70],
+];
+const stones = [[11, 22], [73, 20], [91, 35], [25, 61], [80, 72], [14, 84]];
+const meadowPixels = [[5, 18], [31, 6], [63, 16], [84, 27], [18, 42], [69, 39], [91, 53], [35, 58], [7, 67], [58, 76], [86, 88], [28, 93]];
+const pathLayouts = [
+  [2, -7, -14, -8, 9, 0],
+  [0, 9, 15, 7, -10, 2],
+];
+function MeadowScenery({ bed }: { bed: number }) {
+  const variant = bed % 2;
+  return (
+    <div
+      className={styles.meadowScenery}
+      data-meadow-scenery=""
+      data-bed-variant={variant}
+      aria-hidden="true"
+    >
+      <div className={styles.pathRibbon}>
+        {pathLayouts[variant].map((offset, index) => (
+          <i
+            key={index}
+            data-path-piece=""
+            style={{ left: "50%", marginLeft: offset }}
+          />
+        ))}
+      </div>
+      {meadowPixels.map(([left, top], index) => (
+        <i
+          key={`pixel-${index}`}
+          className={styles.meadowPatch}
+          style={{ left: `${variant ? 100 - left : left}%`, top: `${top}%` }}
+        />
+      ))}
+      {grassClumps.map(([left, top], index) => (
+        <i
+          key={`grass-${index}`}
+          className={styles.grassClump}
+          data-grass-clump=""
+          style={{ left: `${left}%`, top: `${top}%` }}
+        />
+      ))}
+      {stones.map(([left, top], index) => (
+        <i
+          key={`stone-${index}`}
+          className={styles.stone}
+          data-stone=""
+          style={{ left: `${variant ? 100 - left : left}%`, top: `${top}%` }}
+        />
+      ))}
+    </div>
+  );
+}
 function GardenSpot({
   spot,
   plant,
@@ -218,10 +274,7 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
               className={styles.bed}
               aria-label={`Garden bed ${bed + 1}`}
             >
-              <div className={styles.path} aria-hidden="true" />
-              <div className={styles.bedGrass} aria-hidden="true">
-                ┐ └ &nbsp; ┘ ┌ &nbsp; └ ┘
-              </div>
+              <MeadowScenery bed={bed} />
               {Array.from({ length: 12 }, (_, index) => {
                 const spot = bed * 12 + index + 1;
                 const plant = slots.get(spot);
