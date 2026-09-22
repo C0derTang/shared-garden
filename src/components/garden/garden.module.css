@@ -386,7 +386,8 @@
 }
 
 .emptyButton { min-height: 130px; opacity: .94; }
-.emptyButton:hover .emptyMark { filter: brightness(1.18); }
+.spot:has(.emptyButton:hover)::before { filter: brightness(1.08); }
+.spot:has(.emptyButton:hover)::after { filter: brightness(1.12); }
 @media (min-width: 640px) {
  .hud { padding-left: max(20px, calc((100vw - 1160px)/2)); padding-right: max(20px, calc((100vw - 1160px)/2)); }
  .hud h1 { max-width: none; font-size: 1.25rem; }
