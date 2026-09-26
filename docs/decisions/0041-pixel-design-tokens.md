@@ -10,6 +10,10 @@ follow the intent of the immersive garden and panel contract in
 pixel outline in [decision 0040](0040-cozy-pixel-garden-beds.md). This is the
 shared foundation for the UI polish issues #102 to #108.
 
+Its visual values are superseded by the Harvest Handheld reskin in
+[decision 0049](0049-harvest-handheld-reskin.md); its accessibility guarantees
+still apply.
+
 ## Tokens
 
 `src/app/tokens.css` defines these names. Later UI work uses them instead of

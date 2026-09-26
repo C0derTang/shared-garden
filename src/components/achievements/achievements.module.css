@@ -13,7 +13,7 @@
 .list li.earned { border: 2px solid #698054; background: #f0f5e5; }
 .list li.growing { border-style: dashed; }
 .badge { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 100%; min-height: 108px; height: 100%; padding: 10px 8px; background: transparent; border: 0; border-radius: var(--radius-pixel); color: inherit; cursor: pointer; overflow-wrap: anywhere; font: inherit; text-align: center; }
-.badge strong { font-size: var(--text-sm); line-height: 1.3; }
+.badge strong { font: 700 var(--text-sm)/1.3 var(--font-pixel); }
 .emblem { position: relative; display: grid; place-items: center; flex: 0 0 auto; width: 36px; height: 32px; color: #526e39; background: #e3e8d0; border: 1px solid #a9b58d; box-shadow: 2px 2px #c8d3ba; }
 .emblem svg { width: 24px; height: 24px; }
 .emblem > span { position: absolute; right: -6px; bottom: -4px; background: #fffaf0; border: 1px solid #9aa980; font-size: var(--text-xs); line-height: 1; padding: 1px 2px; }
