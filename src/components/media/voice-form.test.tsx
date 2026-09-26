@@ -156,3 +156,22 @@ it("prevents late finalization after dismissal", async () => {
   await act(async () => finish());
   expect(p.onSaved).not.toHaveBeenCalled();
 });
+it("focuses a review heading nested under the sheet or the replacement heading", () => {
+  const p = props();
+  recorder.phase = "recording";
+  const { rerender } = render(<VoiceForm {...p} />);
+  expect(screen.getByRole("status")).toHaveTextContent("Recording.");
+  recorder.phase = "review";
+  rerender(<VoiceForm {...p} />);
+  expect(
+    screen.getByRole("heading", { level: 3, name: "Review your voice memo" }),
+  ).toHaveFocus();
+  cleanup();
+  render(<VoiceForm {...p} editing={entryFixture()} />);
+  expect(
+    screen.getByRole("heading", { level: 3, name: "Replace your voice memo" }),
+  ).toBeVisible();
+  expect(
+    screen.getByRole("heading", { level: 4, name: "Review your voice memo" }),
+  ).toBeVisible();
+});

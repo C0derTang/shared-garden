@@ -58,6 +58,8 @@ export function VoiceForm({
   const expired = !!editing && !canEditAt(editing, state, now);
   const boundary = now >= Date.parse(state.next_rollover_at);
   const newDay = day !== state.garden_day;
+  // Nest under the replacement heading when present, else under the sheet title.
+  const ReviewHeading = editing ? "h4" : "h3";
   const active = ["recording", "paused", "stopping"].includes(recorder.phase);
   useEffect(() => {
     alive.current = true;
@@ -181,16 +183,13 @@ export function VoiceForm({
       aria-busy={pending}
       onSubmit={(event) => void submit(event)}
     >
-      <h3>{editing ? "Replace your voice memo" : "A voice from your day"}</h3>
-      <p>
-        Record up to five minutes. Review before sharing. Your partner can
-        listen immediately; listening never changes growth.
+      {editing && <h3>Replace your voice memo</h3>}
+      <p className={styles.hint}>
+        Up to five minutes · WebM/Opus up to 12 MiB. The microphone turns on
+        only after you choose Record. Review before sharing; listening never
+        changes growth.
       </p>
-      <p>
-        Recording starts only when you choose Record and allow microphone
-        access. WebM/Opus · up to 12 MiB.
-      </p>
-      <p role="status">
+      <p className={styles.hint} role="status">
         {recorder.phase === "requesting"
           ? "Waiting for microphone permission…"
           : recorder.phase === "recording"
@@ -267,9 +266,13 @@ export function VoiceForm({
       </div>
       {recorder.file && recorder.preview && (
         <>
-          <h4 ref={reviewHeading} tabIndex={-1}>
+          <ReviewHeading
+            ref={reviewHeading}
+            className={styles.review}
+            tabIndex={-1}
+          >
             Review your voice memo
-          </h4>
+          </ReviewHeading>
           <VoicePlayer
             key={recorder.preview}
             source={recorder.preview}

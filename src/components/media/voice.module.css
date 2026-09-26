@@ -24,3 +24,13 @@
 .error {
   color: var(--danger);
 }
+.hint {
+  color: var(--muted);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+}
+/* Same compact look whether it is an h3 (sharing) or h4 (replacing). */
+.stack .review {
+  margin: 0;
+  font: 700 var(--text-md) / 1.4 var(--font-body);
+}
