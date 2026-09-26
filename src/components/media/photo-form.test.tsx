@@ -116,3 +116,28 @@ it("requires a new selection after server validation rejects immutable bytes", a
   expect(screen.getByText("Share photo")).toBeDisabled();
   expect(p.onSaved).not.toHaveBeenCalled();
 });
+
+it("keeps both pickers as labelled file inputs and names the chosen photo", () => {
+  render(<PhotoForm {...props()} />);
+  const chooseInput = screen.getByLabelText("Choose photo");
+  const takeInput = screen.getByLabelText("Take photo");
+  for (const input of [chooseInput, takeInput]) {
+    expect(input).toHaveAttribute("type", "file");
+    expect(input).toHaveAttribute("accept", "image/jpeg,image/png,image/webp");
+    expect(input).toBeEnabled();
+  }
+  expect(chooseInput).not.toHaveAttribute("capture");
+  expect(takeInput).toHaveAttribute("capture", "environment");
+  expect(
+    screen.getByText(/HEIC\? Export or choose a supported photo/),
+  ).toBeVisible();
+  expect(screen.queryByText(/^Selected:/)).not.toBeInTheDocument();
+  choose();
+  expect(screen.getByText("Selected: photo.png")).toBeVisible();
+});
+
+it("disables both pickers while the garden is busy", () => {
+  render(<PhotoForm {...props()} busy />);
+  expect(screen.getByLabelText("Choose photo")).toBeDisabled();
+  expect(screen.getByLabelText("Take photo")).toBeDisabled();
+});

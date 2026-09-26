@@ -163,37 +163,46 @@ export function PhotoForm({
       aria-busy={pending}
       onSubmit={(e) => void submit(e)}
     >
-      <h3>{editing ? "Replace your photo" : "A photo from your day"}</h3>
-      <p>
-        JPEG, PNG or static WebP · up to 12 MiB and 25 million pixels · each
-        side up to 12,000 pixels. Your whole photo stays uncropped. Location
-        metadata is removed before sharing.
-      </p>
-      <p>
-        If your camera returns HEIC, choose or export a supported photo without
-        resizing it.
+      {editing && <h3>Replace your photo</h3>}
+      <p className={styles.hint}>
+        JPEG, PNG or static WebP · up to 12 MiB, 25 million pixels and 12,000
+        pixels a side · never cropped; location removed. HEIC? Export or choose
+        a supported photo.
       </p>
       <div className={styles.pickers}>
-        <label>
-          Choose photo
+        <label
+          className={`button button-secondary ${styles.picker}`}
+          data-disabled={pending || busy || undefined}
+        >
           <input
+            className={styles.fileInput}
             type="file"
             accept={photoAccept}
             onChange={choose}
             disabled={pending || busy}
           />
+          Choose photo
         </label>
-        <label>
-          Take photo
+        <label
+          className={`button button-secondary ${styles.picker}`}
+          data-disabled={pending || busy || undefined}
+        >
           <input
+            className={styles.fileInput}
             type="file"
             accept={photoAccept}
             capture="environment"
             onChange={choose}
             disabled={pending || busy}
           />
+          Take photo
         </label>
       </div>
+      {file && (
+        <p className={`${styles.hint} ${styles.fileName}`}>
+          Selected: {file.name}
+        </p>
+      )}
       {file && preview && (
         <>
           <p>Review your photo. It has not been shared yet.</p>
