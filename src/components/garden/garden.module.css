@@ -1,18 +1,28 @@
-.garden { position: relative; min-height: 100dvh; background: #789756; padding: 50px 0 76px; }
+/* The grass texture spans the whole stage, so no flat bands flank the 1200px bed cap (decision 0042). */
+.garden { position: relative; min-height: 100dvh; background-color: #82a15d; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48' shape-rendering='crispEdges'%3E%3Cpath fill='%238dab65' d='M3 7h5v3H3zM31 4h3v5h-3zM18 27h6v3h-6zM40 34h5v4h-5zM7 42h3v3H7z'/%3E%3Cpath fill='%23739250' d='M15 12h4v3h-4zM38 17h3v4h-3zM2 29h6v3H2zM28 40h4v3h-4z'/%3E%3C/svg%3E"); background-size: 48px 48px; padding: 50px 0 76px; }
 .hud { position: absolute; z-index: 2; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: max(8px, env(safe-area-inset-top)) 12px 6px; background: #f1e8ce; border-bottom: 1px solid #c4cda3; }
 .hud h1 { font: 600 1rem/1.15 var(--font-display); max-width: 7rem; }
 .clock { display: grid; text-align: right; font-size: .67rem; line-height: 1.5; font-variant-numeric: tabular-nums; }
 .clock strong { font-size: .85rem; }
-.tools { position: absolute; z-index: 3; top: 51px; left: 0; right: 0; display: flex; justify-content: space-between; align-items: start; padding: 0 12px; font-size: .72rem; }
-.tools a, .help summary { min-height: 44px; display: flex; align-items: center; padding: 0 8px; cursor: pointer; }
-.help > div { position: absolute; left: 12px; right: 12px; max-width: 28rem; padding: 1rem; background: var(--paper); border: 1px solid var(--line-strong); box-shadow: 3px 3px #a6b187; font-size: .85rem; }
+.tools { position: absolute; z-index: 3; top: 54px; left: 0; right: 0; display: flex; justify-content: space-between; align-items: start; padding: 0 12px; }
+/* One legible pixel chip for Help, Songs and Guide on the grass (decision 0042). */
+.chip, .guide > button { min-height: 44px; display: flex; align-items: center; padding: 0 12px; border: var(--border-pixel) solid var(--frame-border); border-radius: var(--radius-pixel); background: var(--paper-light); color: var(--forest-dark); box-shadow: var(--shadow-pixel); font: 700 var(--text-sm)/1 var(--font-pixel); text-decoration: none; cursor: pointer; }
+.chip:hover, .guide > button:hover { background: var(--sage-light); }
+.chip:active, .guide > button:active { translate: 2px 2px; transform: none; box-shadow: var(--shadow-pixel-pressed); }
+.help summary { list-style: none; }
+.help summary::-webkit-details-marker { display: none; }
+.help > div { position: absolute; left: 12px; right: 12px; max-width: 28rem; margin-top: 8px; padding: 1rem; background: var(--paper); border: var(--border-pixel) solid var(--frame-border); border-radius: var(--radius-pixel); box-shadow: var(--shadow-frame); font-size: var(--text-sm); }
 .help p + p { margin-top: .65rem; }
-.guide { position: absolute; top: 51px; left: 50%; transform: translateX(-50%); z-index: 3; }
+.guide { position: absolute; top: 54px; left: 50%; transform: translateX(-50%); z-index: 3; }
 .guide:empty { display: none; }
+.fallback { display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); }
+.fallbackCard { width: 100%; max-width: 28rem; padding: 1.25rem; background: var(--paper-light); border: var(--border-pixel) solid var(--frame-border); border-radius: var(--radius-pixel); box-shadow: var(--shadow-frame); overflow-wrap: anywhere; }
+.fallbackCard h1 { font: 600 var(--text-lg)/1.2 var(--font-display); margin-bottom: .75rem; }
+.fallbackCard .button { margin-top: 1rem; }
 .workspace { max-width: 1200px; margin: auto; }
 .beds { min-width: 0; }
 .refreshButton { min-height: 44px; background: transparent; border: 0; color: var(--forest-dark); text-decoration: underline; padding: .5rem; }
-.bed { height: max(730px, calc(100dvh - 50px)); position: relative; background-color: #82a15d; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48' shape-rendering='crispEdges'%3E%3Cpath fill='%238dab65' d='M3 7h5v3H3zM31 4h3v5h-3zM18 27h6v3h-6zM40 34h5v4h-5zM7 42h3v3H7z'/%3E%3Cpath fill='%23739250' d='M15 12h4v3h-4zM38 17h3v4h-3zM2 29h6v3H2zM28 40h4v3h-4z'/%3E%3C/svg%3E"); background-size: 48px 48px; overflow: clip; }
+.bed { height: max(730px, calc(100dvh - 50px)); position: relative; overflow: clip; }
 .bed + .bed { border-top: 4px solid #668447; }
 .gardenScenery { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .meadowPatch { position: absolute; width: 28px; height: 12px; transform: translateX(-50%); background: #91ae63; box-shadow: 12px 8px #75934f, -6px 13px #89a65d; clip-path: polygon(0 25%, 20% 25%, 20% 0, 75% 0, 75% 20%, 100% 20%, 100% 80%, 78% 80%, 78% 100%, 12% 100%, 12% 75%, 0 75%); }
@@ -74,14 +84,21 @@
   text-align: center;
   font-size: 0.7rem;
   line-height: 1.3;
-  border-radius: 6px;
+  border-radius: var(--radius-pixel);
 }
 .flowerButton {
   min-height: 130px;
 }
 .flowerButton:hover { filter: brightness(1.05); }
+/* The shared two-tone ring, drawn inside the target so its size and the bed
+   geometry stay fixed: a dark outer outline with the light halo inside it.
+   Forced colors keep the outline and drop the halo (decision 0042). */
 .flowerButton:focus-visible,
-.emptyButton:focus-visible { outline: 3px solid #f7e3a3; outline-offset: -3px; background: #f9f3d829; box-shadow: none; }
+.emptyButton:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: calc(-1 * var(--focus-ring-width));
+  box-shadow: inset 0 0 0 calc(var(--focus-ring-width) + var(--focus-ring-offset)) var(--focus-ring-halo);
+}
 .flowerButton strong {
   font-size: 0.7rem;
   line-height: 1.3;
@@ -106,10 +123,16 @@
 .emptyButton > span:last-child {
   font-size: 0.65rem;
 }
+/* A small paper tag keeps the care dots readable on grass (decision 0042).
+   The negative margin keeps the old 12px block so sprites do not move. */
 .miniMarkers {
   display: flex;
-  gap: 5px;
-  padding-top: 5px;
+  gap: 4px;
+  margin-top: -2px;
+  padding: 2px;
+  border: 1px solid var(--ink);
+  background: var(--paper-light);
+  box-shadow: 2px 2px 0 rgb(0 0 0 / 28%);
 }
 .miniMarkers i,
 .legend i {
@@ -119,12 +142,16 @@
   background: transparent;
   display: inline-block;
 }
+.miniMarkers i {
+  width: 8px;
+  height: 8px;
+  border-color: var(--ink);
+}
 .miniMarkers i[data-cared="true"] {
   background: var(--forest);
 }
 .miniMarkers i:nth-child(2)[data-cared="true"] {
   background: var(--rust);
-  border-color: var(--rust);
 }
 .stack {
   display: grid;
@@ -401,5 +428,4 @@
  .flowerButton strong { font-size: .8rem; }
 }
 
-.garden .guide:has(> button) { position: absolute; top: 51px; left: 50%; transform: translateX(-50%); z-index: 3; padding: 0; }
-.guide > button { min-height: 44px; padding: 0 10px; font-size: .72rem; background: #f5efdeb0; }
+.garden .guide:has(> button) { position: absolute; top: 54px; left: 50%; transform: translateX(-50%); z-index: 3; padding: 0; }

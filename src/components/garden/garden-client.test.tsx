@@ -687,3 +687,54 @@ it("keeps a permanent ordinary bloom compact while disclosing its retained detai
   expect(screen.getByText(/Spot 1/)).toBeInTheDocument();
   expect(screen.getByText(/No daily care is needed/)).toBeInTheDocument();
 });
+it("closes the non-modal Help on Escape with focus on its summary and on an outside pointer down", async () => {
+  const user = userEvent.setup();
+  render(<GardenClient initial={{ state: gardenFixture(), error: null }} />);
+  const summary = screen.getByText("Help", { selector: "summary" });
+  const help = summary.closest("details")!;
+  await user.click(summary);
+  expect(help).toHaveAttribute("open");
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  await user.click(within(help).getByRole("button", { name: "Refresh" }));
+  expect(help).toHaveAttribute("open");
+  await user.keyboard("{Escape}");
+  expect(help).not.toHaveAttribute("open");
+  expect(summary).toHaveFocus();
+  await user.click(summary);
+  expect(help).toHaveAttribute("open");
+  fireEvent.pointerDown(screen.getByRole("heading", { name: "cc’s garden" }));
+  expect(help).not.toHaveAttribute("open");
+  expect(screen.getByRole("link", { name: "Songs" })).toHaveAttribute(
+    "href",
+    "/garden/songs",
+  );
+});
+it("leaves Escape to a focused sheet while Help is open", async () => {
+  const user = userEvent.setup();
+  render(<GardenClient initial={{ state: gardenFixture(), error: null }} />);
+  const summary = screen.getByText("Help", { selector: "summary" });
+  await user.click(summary);
+  const help = summary.closest("details")!;
+  const outside = screen.getByRole("button", { name: "Plant in spot 9" });
+  act(() => outside.focus());
+  await user.keyboard("{Escape}");
+  expect(help).toHaveAttribute("open");
+  expect(outside).toHaveFocus();
+});
+it("shows a loading status without retry, and an alert with Try again only on error", async () => {
+  refreshGarden.mockReturnValue(new Promise(() => {}));
+  const { unmount } = render(<GardenClient initial={{ state: null, error: null }} />);
+  expect(screen.getByRole("status")).toHaveTextContent("Loading cc’s garden…");
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Try again" })).not.toBeInTheDocument();
+  unmount();
+  refreshGarden.mockReset();
+  refreshGarden.mockResolvedValue({ state: null, error: "The garden is unavailable." });
+  render(<GardenClient initial={{ state: null, error: "The garden is unavailable." }} />);
+  expect(screen.getByRole("alert")).toHaveTextContent("The garden is unavailable.");
+  expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  await waitFor(() => expect(refreshGarden).toHaveBeenCalledTimes(1));
+  refreshGarden.mockResolvedValue({ state: gardenFixture(), error: null });
+  await userEvent.setup().click(screen.getByRole("button", { name: "Try again" }));
+  expect(await screen.findByRole("heading", { name: "cc’s garden" })).toBeInTheDocument();
+});
