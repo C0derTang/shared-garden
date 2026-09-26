@@ -29,7 +29,7 @@ it("opens direct routes over the inert actual garden and places owner controls i
   render(<App />);
   const panel = await screen.findByRole("dialog", { name: "Settings" });
   expect(screen.getByText("Actual garden").closest("[inert]")).not.toBeNull();
-  expect(await within(panel).findByText("PRIVATE OWNER CONTROLS")).toBeVisible();
+  expect(await within(panel).findByText("Private owner controls")).toBeVisible();
   await userEvent.click(within(panel).getByRole("button", { name: "Close panel" }));
   expect(route.replace).toHaveBeenCalledWith("/garden", { scroll: false });
 });
@@ -152,7 +152,7 @@ it.each([["/memories", "Memories"], ["/achievements", "Achievements"], ["/garden
   route.pathname = path;
   render(<App />);
   expect(await screen.findByRole("dialog", { name })).toBeVisible();
-  expect(screen.queryByText("PRIVATE OWNER CONTROLS")).not.toBeInTheDocument();
+  expect(screen.queryByText("Private owner controls")).not.toBeInTheDocument();
   await userEvent.keyboard("{Escape}");
   expect(route.replace).toHaveBeenCalledWith("/garden", { scroll: false });
 });

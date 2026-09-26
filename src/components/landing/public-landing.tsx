@@ -38,7 +38,9 @@ export function PublicLanding({
             {configurationStatus === "ready" && <SignInButton />}
             <BottomSheet
               trigger={
-                <button className="button button-primary">
+                <button
+                  className={`button ${configurationStatus === "ready" ? "button-secondary" : "button-primary"}`}
+                >
                   Take a little look <PixelIcon name="arrow" />
                 </button>
               }
