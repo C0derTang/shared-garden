@@ -90,3 +90,57 @@ it("keeps newer progress, open details and server ordering through an older refr
   expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   expect(screen.getByText("3-day streak")).toBeVisible();
 });
+it("scrolls a newly opened badge into view within its panel while focus stays on the badge", async () => {
+  const user = userEvent.setup();
+  const scroll = vi.fn();
+  Element.prototype.scrollIntoView = scroll;
+  let reduce = false;
+  vi.stubGlobal("matchMedia", (query: string) => ({ matches: reduce && query === "(prefers-reduced-motion: reduce)", media: query }));
+  try {
+    render(<AchievementsClient initial={{ state: fixture(), error: null }} />);
+    const badge = screen.getByRole("button", { name: "Milestone 25, Growing, 1 of 3 blooms" });
+    expect(badge).toHaveAttribute("aria-controls", "achievement-detail-synthetic-24");
+    expect(within(badge).queryByText(/Details/)).not.toBeInTheDocument();
+    badge.focus();
+    await user.keyboard("{Enter}");
+    expect(badge).toHaveAttribute("aria-expanded", "true");
+    expect(document.getElementById("achievement-detail-synthetic-24")).toHaveTextContent("Requirement 25");
+    expect(scroll).toHaveBeenCalledTimes(1);
+    expect(scroll.mock.contexts[0]).toBe(badge.closest("li"));
+    expect(scroll).toHaveBeenLastCalledWith({ block: "nearest", behavior: "smooth" });
+    expect(badge).toHaveFocus();
+    await user.keyboard(" ");
+    expect(badge).toHaveAttribute("aria-expanded", "false");
+    expect(scroll).toHaveBeenCalledTimes(1);
+    expect(badge).toHaveFocus();
+    reduce = true;
+    const other = screen.getByRole("button", { name: "Milestone 3, Growing, 1 of 3 blooms" });
+    await user.click(other);
+    expect(scroll.mock.contexts[1]).toBe(other.closest("li"));
+    expect(scroll).toHaveBeenLastCalledWith({ block: "nearest", behavior: "auto" });
+  } finally {
+    vi.unstubAllGlobals();
+    delete (Element.prototype as Partial<Element>).scrollIntoView;
+  }
+});
+it("does not scroll again when a refresh keeps the open badge", async () => {
+  const scroll = vi.fn();
+  Element.prototype.scrollIntoView = scroll;
+  try {
+    const state = fixture();
+    render(<AchievementsClient initial={{ state, error: null }} />);
+    await userEvent.click(screen.getByRole("button", { name: "Milestone 2, Growing, 1 of 3 blooms" }));
+    expect(scroll).toHaveBeenCalledTimes(1);
+    vi.mocked(readAchievements).mockResolvedValueOnce({ state: { ...state, server_now: "2026-01-04T20:00:00Z" }, error: null });
+    await userEvent.click(screen.getByRole("button", { name: "Refresh achievements" }));
+    expect(screen.getByRole("button", { name: "Milestone 2, Growing, 1 of 3 blooms" })).toHaveAttribute("aria-expanded", "true");
+    expect(scroll).toHaveBeenCalledTimes(1);
+  } finally {
+    delete (Element.prototype as Partial<Element>).scrollIntoView;
+  }
+});
+it("labels the offline connection state as a status, not an action", () => {
+  render(<AchievementsClient initial={{ state: fixture(), error: null }} />);
+  expect(screen.getByText("Not live")).toHaveAttribute("aria-label", "Refresh to check for partner updates");
+  expect(screen.queryByText("Check for updates")).not.toBeInTheDocument();
+});

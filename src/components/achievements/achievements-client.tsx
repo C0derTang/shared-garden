@@ -33,6 +33,7 @@ export function AchievementsClient({
   const [busy, setBusy] = useState(false);
   const [connected, setConnected] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const openItem = useRef<HTMLLIElement>(null);
   const mounted = useRef(false);
   const pending = useRef(false);
   const again = useRef(false);
@@ -98,6 +99,14 @@ export function AchievementsClient({
       document.removeEventListener("visibilitychange", resume);
     };
   }, [refresh]);
+  // Keep newly opened details on screen inside the scrolling route panel body.
+  // Only a change of the open badge scrolls; refreshes leave the position alone.
+  useEffect(() => {
+    if (!expanded) return;
+    const reduce = typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    openItem.current?.scrollIntoView?.({ block: "nearest", behavior: reduce ? "auto" : "smooth" });
+  }, [expanded]);
   const earned = state?.achievements.filter((a) => a.earned_at !== null).length;
   return (
     <section className={styles.collection} aria-labelledby="achievements-title">
@@ -110,7 +119,7 @@ export function AchievementsClient({
           {earned === 26 && <span className={styles.complete}>All milestones earned ✿</span>}
         </div>}
         <div className={styles.refresh}>
-          <span aria-label={connected ? "Partner updates connected" : "Refresh to check for partner updates"}>{connected ? "● Live" : "Check for updates"}</span>
+          <span aria-label={connected ? "Partner updates connected" : "Refresh to check for partner updates"}>{connected ? "● Live" : "Not live"}</span>
           <button type="button" aria-label="Refresh achievements" onClick={() => void refresh()} disabled={busy}>
             {busy ? "Refreshing…" : "Refresh"}
           </button>
@@ -125,7 +134,7 @@ export function AchievementsClient({
           const icon = item.achievement_id.startsWith("streak-") || item.achievement_id === "ten-minutes" ? "heart"
             : item.achievement_id === "daisy-20" ? "book"
             : item.achievement_id === "first-seed" || item.achievement_id === "all-planted" || item.achievement_id === "recovery" ? "sprout" : "flower";
-          return <li key={item.achievement_id} className={`${isEarned ? styles.earned : styles.growing} ${isOpen ? styles.expanded : ""}`}>
+          return <li key={item.achievement_id} ref={isOpen ? openItem : undefined} className={`${isEarned ? styles.earned : styles.growing} ${isOpen ? styles.expanded : ""}`}>
             <button type="button" className={styles.badge}
               aria-label={`${item.title}, ${status}, ${item.progress} of ${item.target} ${item.unit}`}
               aria-expanded={isOpen} aria-controls={`achievement-detail-${item.achievement_id}`}
@@ -133,7 +142,9 @@ export function AchievementsClient({
               <span className={styles.emblem} aria-hidden="true"><PixelIcon name={icon} /><span>{isEarned ? "✓" : "◇"}</span></span>
               <strong>{badgeLabels[item.achievement_id] ?? item.title}</strong>
               <span className={styles.status}>{status} · {item.progress}/{item.target}</span>
-              <span className={styles.cue}>{isOpen ? "Hide details −" : "Details +"}</span>
+              <span className={styles.meter} aria-hidden="true">
+                <span style={{ width: `${Math.min(100, item.target > 0 ? (item.progress / item.target) * 100 : 0)}%` }} />
+              </span>
             </button>
             {isOpen && <div id={`achievement-detail-${item.achievement_id}`} className={styles.detail}>
               <h2>{item.title}</h2>
