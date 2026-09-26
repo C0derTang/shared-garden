@@ -170,6 +170,81 @@ it("requires a shared wish before planting a Dandelion and retains it on failure
   });
   expect(screen.getByRole("textbox")).toHaveValue("See a new place");
 });
+it("scrolls a focused wish field fully clear of the sticky Plant bar", () => {
+  const state = gardenFixture();
+  state.unlocks.push({ type_key: "dandelion", unlocked_at: state.server_now });
+  const original = Element.prototype.scrollIntoView;
+  const scrollIntoView = vi.fn();
+  Element.prototype.scrollIntoView = scrollIntoView;
+  try {
+    render(
+      <SeedPicker
+        state={state}
+        spot={12}
+        busy={false}
+        mutate={mutateGarden}
+        onPlanted={() => {}}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Dandelion/ }));
+    const wish = screen.getByRole("textbox", { name: "One shared wish" });
+    fireEvent.focus(wish);
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: "nearest" });
+    expect(scrollIntoView.mock.contexts.at(-1)).toBe(wish);
+  } finally {
+    Element.prototype.scrollIntoView = original;
+  }
+});
+it("lists available seeds first and tucks locked seeds into a keyboard disclosure with their reasons", async () => {
+  const user = userEvent.setup();
+  render(
+    <SeedPicker
+      state={gardenFixture()}
+      spot={9}
+      busy={false}
+      mutate={mutateGarden}
+      onPlanted={() => {}}
+    />,
+  );
+  const disclosure = screen.getByText("Still to unlock (10)").closest("details")!;
+  expect(disclosure).not.toHaveAttribute("open");
+  const available = Array.from(
+    document.querySelectorAll<HTMLButtonElement>("[aria-pressed]"),
+  ).filter((b) => !disclosure.contains(b));
+  expect(available.map((b) => b.querySelector("strong")?.textContent)).toEqual(
+    ["Rose", "Tulip", "Marigold"],
+  );
+  available.forEach((b) => expect(b).toBeEnabled());
+  const locked = within(disclosure).getAllByRole("button", { hidden: true });
+  expect(locked.map((b) => b.querySelector("strong")?.textContent)).toEqual([
+    "Cactus",
+    "Daisy",
+    "Hydrangea",
+    "Sunflower",
+    "Snapdragon",
+    "Moonflower",
+    "Bluebell",
+    "Dandelion",
+    "Forget-me-not",
+    "Peony",
+  ]);
+  locked.forEach((b) => expect(b).toBeDisabled());
+  expect(locked[0]).toHaveTextContent(
+    "Your one permanent Cactus is already here.",
+  );
+  expect(locked[1]).toHaveTextContent("Unlocks after 1 total bloom.");
+
+  const summary = within(disclosure).getByText("Still to unlock (10)");
+  for (let i = 0; i < 6 && document.activeElement !== summary; i++)
+    await user.tab();
+  // The native summary is in the tab order; browsers open it with Enter/Space.
+  expect(summary).toHaveFocus();
+  await user.click(summary);
+  expect(disclosure).toHaveAttribute("open");
+  expect(
+    screen.getByRole("button", { name: "Choose a seed" }),
+  ).toBeDisabled();
+});
 it("shows author edit deadline, makes expired entries read-only, and pages readonly history", async () => {
   const state = gardenFixture();
   const plant = state.plants[0];

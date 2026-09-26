@@ -1,0 +1,143 @@
+/* Compact seed picker (decision 0043). */
+.picker {
+  /* Space kept clear of the sticky Plant bar: its button, padding and the
+     sheet's bottom padding (about 86-100px), plus a small gap. */
+  --plant-bar-clearance: 7rem;
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.seeds {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.seed {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.3rem 0.6rem 0.3rem 0.35rem;
+  border: var(--border-pixel) solid var(--control-border);
+  border-radius: var(--radius-pixel);
+  background: var(--paper-light);
+  color: var(--ink);
+  text-align: left;
+}
+
+/* Every focusable control above the Plant bar scrolls fully clear of it. */
+.seed,
+.locked summary,
+.picker textarea {
+  scroll-margin-block: 0.5rem var(--plant-bar-clearance);
+}
+
+.seed svg {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+}
+
+.text {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0.45rem;
+  font-size: var(--text-sm);
+}
+
+.title strong {
+  font-size: var(--text-md);
+}
+
+.text small {
+  color: var(--muted);
+  font-size: var(--text-xs);
+  line-height: 1.45;
+}
+
+.seed[aria-pressed="true"] {
+  background: var(--sage-light);
+  border-color: var(--forest-dark);
+  box-shadow: inset 0 0 0 1px var(--forest-dark);
+}
+
+/* Temporarily unavailable while planting or after the spot is taken. */
+.seed:disabled svg {
+  opacity: 0.6;
+}
+
+/* Locked seeds keep full-contrast text; only the sprite is quieted. */
+.seed[data-locked] {
+  border-color: var(--line);
+  background: var(--paper-deep);
+}
+
+.seed[data-locked] svg {
+  filter: grayscale(1);
+  opacity: 0.5;
+}
+
+.locked {
+  border-block: 1px solid var(--line);
+  font-size: var(--text-sm);
+}
+
+.locked summary {
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 44px;
+  color: var(--forest-dark);
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.locked summary::before {
+  content: "+";
+  width: 1.15rem;
+  font: 700 var(--text-sm) / 1 var(--font-pixel);
+}
+
+.locked[open] summary::before {
+  content: "−";
+}
+
+.locked > .seeds {
+  padding-bottom: 0.6rem;
+}
+
+/* Only the Plant button is sticky, so the bar keeps one fixed height. */
+.footer {
+  position: sticky;
+  bottom: calc(-1 * max(1.25rem, env(safe-area-inset-bottom)));
+  z-index: 1;
+  margin-bottom: calc(-1 * max(1.25rem, env(safe-area-inset-bottom)));
+  padding: 0.6rem 0 max(1.25rem, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.plant {
+  width: 100%;
+}
+
+.plant:disabled {
+  opacity: 0.65;
+}
+
+@media (min-width: 640px) {
+  .footer {
+    bottom: -1.5rem;
+    margin-bottom: -1.5rem;
+    padding-bottom: 1.5rem;
+  }
+}
