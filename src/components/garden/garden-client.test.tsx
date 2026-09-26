@@ -170,6 +170,31 @@ it("requires a shared wish before planting a Dandelion and retains it on failure
   });
   expect(screen.getByRole("textbox")).toHaveValue("See a new place");
 });
+it("scrolls a focused wish field fully clear of the sticky Plant bar", () => {
+  const state = gardenFixture();
+  state.unlocks.push({ type_key: "dandelion", unlocked_at: state.server_now });
+  const original = Element.prototype.scrollIntoView;
+  const scrollIntoView = vi.fn();
+  Element.prototype.scrollIntoView = scrollIntoView;
+  try {
+    render(
+      <SeedPicker
+        state={state}
+        spot={12}
+        busy={false}
+        mutate={mutateGarden}
+        onPlanted={() => {}}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Dandelion/ }));
+    const wish = screen.getByRole("textbox", { name: "One shared wish" });
+    fireEvent.focus(wish);
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: "nearest" });
+    expect(scrollIntoView.mock.contexts.at(-1)).toBe(wish);
+  } finally {
+    Element.prototype.scrollIntoView = original;
+  }
+});
 it("lists available seeds first and tucks locked seeds into a keyboard disclosure with their reasons", async () => {
   const user = userEvent.setup();
   render(

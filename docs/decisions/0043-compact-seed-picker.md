@@ -36,18 +36,24 @@ summary row with a pixel plus or minus mark. The summary is in the keyboard
 order and opens with Enter or Space.
 
 A locked tile stays a disabled button with its exact availability reason. Its
-text is not faded. The name uses `--ink` (8.95:1) and the action and reason use
-`--muted` (4.77:1) on the `--paper-deep` tile fill. Only the sprite is greyed.
-Which seeds are available, and why, is unchanged.
+text is not faded. The name and action label use `--ink` (8.95:1) and the
+growth and reason line uses `--muted` (4.77:1) on the `--paper-deep` tile fill.
+Only the sprite is greyed. Which seeds are available, and why, is unchanged.
 
 ## Plant bar
 
-The Plant button sits in a footer that sticks to the bottom of the scrolling
-sheet, so it is always reachable. When Dandelion is selected, its wish field
-appears inside that footer directly above the button. The spot-taken status and
-planting errors appear there too, next to the action they affect. The footer
-has an opaque paper background and a thin top rule. Seed tiles reserve scroll
-margin so a keyboard-focused tile is not hidden behind it.
+Only the Plant button is sticky. It sits in a bar pinned to the bottom of the
+scrolling sheet, so it is always reachable, and the bar keeps one fixed height
+of about 86 to 90 pixels. The bar has an opaque paper background and a thin top
+rule. When Dandelion is selected, its wish field appears in the normal flow
+directly above the bar. The spot-taken status and planting errors appear there
+too, next to the action they affect.
+
+Every seed tile, the "Still to unlock" summary and the wish field reserve a
+7rem bottom scroll margin, so keyboard focus always scrolls them fully clear of
+the bar (WCAG 2.4.11). Browsers reveal a text caret without honoring scroll
+margin, so the wish field also scrolls itself to the nearest clear position
+when it gains focus. Focus itself does not move.
 
 The seed picker styles live in `seed-picker.module.css`. The seed rules and the
 seed-specific disabled rules are removed from `garden.module.css`.

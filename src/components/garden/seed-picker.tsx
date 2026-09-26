@@ -86,8 +86,8 @@ export function SeedPicker({
           </span>
           <small>
             {seed.growth_target}{" "}
-            {seed.type_key === "peony" ? "milestones" : "growth units"} to
-            bloom · {reason}
+            {seed.type_key === "peony" ? "milestones" : "growth units"} to bloom
+            · {reason}
           </small>
         </span>
       </button>
@@ -121,32 +121,37 @@ export function SeedPicker({
           </div>
         </details>
       )}
+      {selected === "dandelion" && (
+        <label className={styles.field}>
+          One shared wish
+          <textarea
+            aria-label="One shared wish"
+            value={wish}
+            onChange={(e) => setWish(e.target.value)}
+            // Caret reveal ignores scroll margin; bring the whole field clear
+            // of the sticky Plant bar.
+            onFocus={(e) =>
+              e.currentTarget.scrollIntoView?.({ block: "nearest" })
+            }
+            rows={3}
+            aria-describedby="wish-limit"
+          />
+          <small id="wish-limit">
+            1–500 characters. Each day, add a detail to this wish.
+          </small>
+        </label>
+      )}
+      {occupied && (
+        <p role="status">
+          Someone planted here. Close this sheet to see the flower.
+        </p>
+      )}
+      {error && (
+        <p className={styles.error} role="alert">
+          {error}
+        </p>
+      )}
       <div className={seedStyles.footer}>
-        {selected === "dandelion" && (
-          <label className={styles.field}>
-            One shared wish
-            <textarea
-              aria-label="One shared wish"
-              value={wish}
-              onChange={(e) => setWish(e.target.value)}
-              rows={3}
-              aria-describedby="wish-limit"
-            />
-            <small id="wish-limit">
-              1–500 characters. Each day, add a detail to this wish.
-            </small>
-          </label>
-        )}
-        {occupied && (
-          <p role="status">
-            Someone planted here. Close this sheet to see the flower.
-          </p>
-        )}
-        {error && (
-          <p className={styles.error} role="alert">
-            {error}
-          </p>
-        )}
         <button
           className={`button button-primary ${seedStyles.plant}`}
           disabled={!canPlant || busy || pending}

@@ -1,5 +1,8 @@
 /* Compact seed picker (decision 0043). */
 .picker {
+  /* Space kept clear of the sticky Plant bar: its button, padding and the
+     sheet's bottom padding (about 86-100px), plus a small gap. */
+  --plant-bar-clearance: 7rem;
   display: grid;
   gap: 0.75rem;
   min-width: 0;
@@ -22,8 +25,13 @@
   background: var(--paper-light);
   color: var(--ink);
   text-align: left;
-  /* Keeps a keyboard-focused tile clear of the sticky Plant bar. */
-  scroll-margin-block: 0.5rem 6rem;
+}
+
+/* Every focusable control above the Plant bar scrolls fully clear of it. */
+.seed,
+.locked summary,
+.picker textarea {
+  scroll-margin-block: 0.5rem var(--plant-bar-clearance);
 }
 
 .seed svg {
@@ -107,13 +115,11 @@
   padding-bottom: 0.6rem;
 }
 
-/* The Plant action stays reachable at the bottom of the scrolling sheet. */
+/* Only the Plant button is sticky, so the bar keeps one fixed height. */
 .footer {
   position: sticky;
   bottom: calc(-1 * max(1.25rem, env(safe-area-inset-bottom)));
   z-index: 1;
-  display: grid;
-  gap: 0.6rem;
   margin-bottom: calc(-1 * max(1.25rem, env(safe-area-inset-bottom)));
   padding: 0.6rem 0 max(1.25rem, env(safe-area-inset-bottom));
   border-top: 1px solid var(--line);
