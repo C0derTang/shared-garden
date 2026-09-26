@@ -13,6 +13,7 @@ import {
 import { useGarden } from "@/lib/garden/use-garden";
 import { FlowerSprite } from "./flower-sprite";
 import { FlowerSheet } from "./flower-sheet";
+import { HelpDisclosure } from "./help-disclosure";
 import { SeedPicker, type Mutate } from "./seed-picker";
 import styles from "./garden.module.css";
 
@@ -188,16 +189,25 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
     useGarden(initial);
   if (!state)
     return (
-      <section className="auth-card">
-        <h1>Your garden is taking a moment</h1>
-        <p role="alert">{error ?? "Loading cc’s garden…"}</p>
-        <button
-          className="button button-primary"
-          onClick={() => void refresh()}
-        >
-          Try again
-        </button>
-      </section>
+      <div className={`${styles.garden} ${styles.fallback}`}>
+        <section className={styles.fallbackCard} aria-labelledby="garden-fallback-title">
+          <h1 id="garden-fallback-title">Your garden is taking a moment</h1>
+          {error ? (
+            <>
+              <p role="alert">{error}</p>
+              <button
+                type="button"
+                className="button button-primary"
+                onClick={() => void refresh()}
+              >
+                Try again
+              </button>
+            </>
+          ) : (
+            <p role="status">Loading cc’s garden…</p>
+          )}
+        </section>
+      </div>
     );
   const remaining = Math.max(0, Date.parse(state.next_rollover_at) - now);
   const hours = Math.floor(remaining / 3600000),
@@ -217,8 +227,7 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
         </div>
       </header>
       <div className={styles.tools}>
-        <details className={styles.help}>
-          <summary>Help</summary>
+        <HelpDisclosure className={styles.help} summaryClassName={styles.chip}>
           <div>
             <p>Tap a flower to care. Tap bare soil to plant.</p>
             <p>{state.plants.length} planted · {blooms} blooms · beds grow as needed.</p>
@@ -228,8 +237,8 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
             <p>{connected ? "Live updates on" : "Checking updates…"}</p>
             <button type="button" className={styles.refreshButton} onClick={() => void refresh()} disabled={busy}>Refresh</button>
           </div>
-        </details>
-        <Link href="/garden/songs" scroll={false} aria-label="Our song collection">Songs</Link>
+        </HelpDisclosure>
+        <Link href="/garden/songs" scroll={false} className={styles.chip}>Songs</Link>
       </div>
       <div className={styles.guide}><GardenGuide state={state} paused={busy || !!error} visit={setOpenSpot} actionOpen={openSpot !== null} enabled={guideEnabled} focusGarden={focusGarden} /></div>
       <div className={styles.workspace}>
