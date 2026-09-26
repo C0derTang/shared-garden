@@ -21,7 +21,7 @@ function Moment({ content, preview = false, busy, save }: { content: Interaction
     </div>
     <p className={styles.message}>{content.message}</p>
     <div className={styles.choices} aria-label="Choose your answer">
-      {content.choices.map((item) => <button key={item.key} type="button" aria-pressed={selected === item.key} disabled={busy} onClick={() => setSelected(item.key)}>{item.label}</button>)}
+      {content.choices.map((item) => <button key={item.key} className={`button button-secondary ${styles.choice}`} type="button" aria-pressed={selected === item.key} disabled={busy} onClick={() => setSelected(item.key)}>{item.label}</button>)}
     </div>
     <p aria-live="polite">{preview ? (choice ? "Preview selection only. Nothing was sent." : "Try a choice to see how it looks.") : (choice ? `Your choice: ${choice.label}` : "Take your time. You can close this and return whenever you like.")}</p>
     {!preview && <>
@@ -53,7 +53,7 @@ function OwnerControls({ detail, busy: saving, change, setError }: { detail: Own
       ? detail.armed ? "Pending · Delivery is armed." : "Pending · Delivery is paused."
       : detail.armed ? "Armed · Waiting for all 26 achievements." : "Disarmed · Delivery is paused.";
   return <div className={styles.controls}>
-      <p className="eyebrow">PRIVATE OWNER CONTROLS</p><h2>Garden moment</h2>
+      <h2>Garden moment</h2><p className={styles.ownerNote}>Private owner controls</p>
       {detail.status === "unconfigured" ? <p>Your private moment has not been configured.</p> : <>
         <p className={styles.deliveryStatus} role="status" aria-label="Delivery status">{status}</p>
         <div className={styles.controlButtons}>
@@ -152,12 +152,12 @@ export function PrivateInteraction({ ownerControls, ownerContainer, noticeContai
   if (!error && !saved && !controls && !notification && state?.status !== "pending") return null;
   const ownerContent = controls && <OwnerControls detail={detail} busy={busy} change={(armed) => mutate(() => controlPrivateInteraction("arm", armed))} setError={setError} />;
   const notices = (error || saved || notification) && <div className={styles.noticeStack}>
-    {error && <div className={styles.notice}><p role="alert">{error}</p><button type="button" onClick={() => void refresh()}>Refresh moment</button></div>}
+    {error && <div className={styles.notice}><p role="alert">{error}</p><button className="button button-secondary" type="button" onClick={() => void refresh()}>Refresh moment</button></div>}
     {saved && <p role="status" className={styles.notice}>Your answer is saved. Your garden keeps growing.</p>}
     {notification && <div className={styles.notice} role="status">
       <h2>A new answer is here</h2><p>{notification.label}</p>
       <p><time dateTime={notification.answered_at}>{new Date(notification.answered_at).toLocaleString("en-US", { timeZone: "America/Los_Angeles" })}</time> · Pacific time</p>
-      <button type="button" disabled={busy} onClick={() => void mutate(() => controlPrivateInteraction("acknowledge", undefined))}>Mark as read</button>
+      <button className="button button-primary" type="button" disabled={busy} onClick={() => void mutate(() => controlPrivateInteraction("acknowledge", undefined))}>Mark as read</button>
     </div>}
   </div>;
   const activeNoticeContainer = scope?.active ? scope.noticeContainer : noticeContainer;
