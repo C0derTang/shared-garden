@@ -447,3 +447,40 @@ it("collects forty-five arrivals in bounded pages without skipping lookahead or 
     }),
   );
 });
+
+it("nests the collection, card and milestone headings under the panel title", () => {
+  const base = memoryFixture();
+  const peony = {
+    ...base,
+    kind: "peony",
+    key: `peony:${base.flower.id}`,
+    flower: { ...base.flower, type_key: "peony" },
+    entry: null,
+    peony: { contributions: [], plan: null, completed: [] },
+  } as MemoryItem;
+  render(<MemoriesClient initial={page([base, peony])} memberId={1} />);
+  // The route panel supplies the h2 title, so the collection starts at h3.
+  expect(
+    screen.getByRole("heading", { name: "Our memories" }),
+  ).toHaveProperty("tagName", "H3");
+  expect(
+    screen.getAllByRole("heading", { level: 4 }).map((h) => h.textContent),
+  ).toEqual(["Rose · Spot 2", "Peony · Spot 2"]);
+  expect(screen.queryByRole("heading", { level: 1 })).not.toBeInTheDocument();
+  expect(screen.queryByRole("heading", { level: 2 })).not.toBeInTheDocument();
+  fireEvent.click(
+    screen.getByRole("button", { name: "Open date history, 0 of 4 complete" }),
+  );
+  expect(screen.getAllByRole("heading", { level: 5 })).toHaveLength(4);
+  expect(
+    screen.getByRole("heading", { level: 3, name: "Our memories" }),
+  ).toBeInTheDocument();
+});
+
+it("keeps filters, refresh and the update state together in one toolbar", () => {
+  render(<MemoriesClient initial={page([memoryFixture()])} memberId={1} />);
+  const toggle = screen.getByRole("button", { name: "Filters" });
+  const refresh = screen.getByRole("button", { name: "Refresh memories" });
+  expect(refresh.parentElement).toBe(toggle.parentElement);
+  expect(toggle.parentElement).toHaveTextContent("Manual refresh");
+});

@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import { PixelIcon } from "@/components/ui/pixel-icon";
 import {
   memoryTypes,
@@ -59,33 +59,30 @@ export function MemoriesClient({
     setFiltersOpen(false);
     setRevision((n) => n + 1);
   }
-  return (
-    <section className={styles.collection} aria-labelledby="memories-title">
-      <header className={styles.intro}>
-        <p className={styles.eyebrow}>Saved together</p>
-        <h1 id="memories-title">Our memories</h1>
-        <p>Little moments from every flower.</p>
-      </header>
-      <button
-        type="button"
-        className={styles.filterToggle}
-        aria-expanded={filtersOpen}
-        aria-controls="memory-filters"
-        aria-label={
-          activeFilters.length
-            ? `Filters, ${activeFilters.length} active`
-            : "Filters"
-        }
-        onClick={() => setFiltersOpen((open) => !open)}
-      >
-        <span>Filters</span>
-        {activeFilters.length > 0 && (
-          <span className={styles.filterCount} aria-hidden="true">
-            {activeFilters.length} active
-          </span>
-        )}
-        <span aria-hidden="true">{filtersOpen ? "−" : "+"}</span>
-      </button>
+  const filterToggle = (
+    <button
+      type="button"
+      className={styles.filterToggle}
+      aria-expanded={filtersOpen}
+      aria-controls="memory-filters"
+      aria-label={
+        activeFilters.length
+          ? `Filters, ${activeFilters.length} active`
+          : "Filters"
+      }
+      onClick={() => setFiltersOpen((open) => !open)}
+    >
+      <span>Filters</span>
+      {activeFilters.length > 0 && (
+        <span className={styles.filterCount} aria-hidden="true">
+          {activeFilters.length}
+        </span>
+      )}
+      <span aria-hidden="true">{filtersOpen ? "−" : "+"}</span>
+    </button>
+  );
+  const filterPanel = (
+    <>
       <form
         id="memory-filters"
         key={`filters-${revision}`}
@@ -154,12 +151,23 @@ export function MemoriesClient({
           </button>
         </div>
       )}
+    </>
+  );
+  // The route panel title is the h2, so this collection starts at h3.
+  return (
+    <section className={styles.collection} aria-labelledby="memories-title">
+      <header className={styles.intro}>
+        <h3 id="memories-title">Our memories</h3>
+        <p>Little moments from every flower.</p>
+      </header>
       <MemoryFeed
         key={revision}
         initial={revision === 0 ? initial : undefined}
         filters={filters}
         memberId={memberId}
         filtered={activeFilters.length > 0}
+        filterToggle={filterToggle}
+        filterPanel={filterPanel}
       />
       <details className={styles.notes}>
         <summary>About saved memories</summary>
@@ -177,29 +185,40 @@ function MemoryFeed({
   filters,
   memberId,
   filtered,
+  filterToggle,
+  filterPanel,
 }: {
   initial?: MemoryPage;
   filters: MemoryFilters;
   memberId: 1 | 2;
   filtered: boolean;
+  filterToggle: ReactNode;
+  filterPanel: ReactNode;
 }) {
   const feed = useMemories(initial, filters);
+  const retry = !!feed.error || !feed.ready;
   return (
     <>
       <div className={styles.controls}>
+        {filterToggle}
         <button
           className="button button-secondary"
           disabled={feed.busy}
           onClick={feed.refresh}
+          aria-label={retry ? undefined : "Refresh memories"}
         >
-          {feed.error ? "Try again" : feed.ready ? "Refresh memories" : "Try again"}
+          {retry ? "Try again" : "Refresh"}
         </button>
-        <span className={styles.quiet}>
-          {feed.connected ? "Live updates" : "Manual refresh"}
+        <span className={styles.liveState}>
+          {feed.connected ? "Live" : "Manual"}
+          <span className={styles.visuallyHidden}>
+            {feed.connected ? " updates" : " refresh"}
+          </span>
         </span>
       </div>
+      {filterPanel}
       {feed.error && <p role="alert">{feed.error}</p>}
-      <p role="status" className={styles.quiet}>
+      <p role="status" className={`${styles.quiet} ${styles.feedStatus}`}>
         {feed.busy ? "Loading memories…" : feed.notice}
         {feed.newerMore &&
           " More newer memories are available; refresh again to collect them."}

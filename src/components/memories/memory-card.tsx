@@ -35,8 +35,11 @@ function Posted({ at, day }: { at: string; day?: string }) {
 }
 function LazyPhoto({ mediaId }: { mediaId: string }) {
   const [open, setOpen] = useState(false);
+  // Only the placeholder is capped; a loaded photo keeps the full card width.
   return (
-    <div className={`${styles.media} ${styles.photoMedia}`}>
+    <div
+      className={`${styles.media} ${styles.photoMedia} ${open ? "" : styles.photoClosed}`}
+    >
       {open ? (
         <PhotoViewer mediaId={mediaId} />
       ) : (
@@ -146,9 +149,9 @@ function PeonyHistory({
         );
         return (
           <section key={milestone} className={styles.milestone}>
-            <h3>
+            <h5>
               {milestone}. {milestoneNames[milestone]}
-            </h3>
+            </h5>
             {milestone === 2 ? (
               peony.plan ? (
                 <>
@@ -244,9 +247,9 @@ export function MemoryCard({
                 ? "Date keepsake"
                 : "Saved moment"}
           </p>
-          <h2 id={`memory-${item.key}`}>
+          <h4 id={`memory-${item.key}`} className={styles.cardTitle}>
             {flowerName(f.type_key)} <span>· Spot {f.spot}</span>
-          </h2>
+          </h4>
           {f.first_bloom_at && (
             <p className={styles.bloom}>
               Permanent bloom · Garden day {f.first_bloom_day}
