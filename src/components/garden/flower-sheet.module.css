@@ -28,7 +28,7 @@
 .details summary::before {
   content: "+";
   width: 1.15rem;
-  font: 700 0.85rem/1 monospace;
+  font: 700 0.85rem/1 var(--font-pixel);
 }
 
 .details[open] summary::before {
@@ -56,24 +56,19 @@
 .compactButton {
   min-width: 6.5rem;
   min-height: 44px;
-  border: 2px solid var(--forest-dark);
-  border-radius: 2px;
+  border: var(--border-pixel) solid var(--frame-border);
+  border-radius: var(--radius-pixel);
   padding: 0.35rem 0.75rem;
   background: var(--paper-light);
   color: var(--forest-dark);
-  box-shadow: 3px 3px 0 var(--line-strong);
-  font: 700 0.72rem/1 monospace;
+  box-shadow: var(--shadow-pixel);
+  font: 700 var(--text-xs)/1 var(--font-pixel);
   cursor: pointer;
 }
 
 .compactButton:active {
   translate: 2px 2px;
-  box-shadow: 1px 1px 0 var(--line-strong);
-}
-
-.compactButton:focus-visible {
-  outline: 3px solid var(--ochre);
-  outline-offset: 3px;
+  box-shadow: var(--shadow-pixel-pressed);
 }
 
 @media (min-width: 640px) {

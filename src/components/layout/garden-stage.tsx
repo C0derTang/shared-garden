@@ -55,7 +55,7 @@ export function GardenStage({ initial, children }: { initial: GardenResult; chil
         <Dialog.Content ref={panel} className="route-panel" aria-describedby={undefined} onCloseAutoFocus={(event) => event.preventDefault()} onInteractOutside={(event) => event.preventDefault()}>
           <header className="route-panel-header">
             <Dialog.Title>{title}</Dialog.Title>
-            <Dialog.Close className="button button-secondary" aria-label="Close panel">Close</Dialog.Close>
+            <Dialog.Close className="pixel-button" aria-label="Close panel">Close</Dialog.Close>
           </header>
           <div ref={setNoticeContainer} className="route-panel-notices" data-private-notice-host="panel" />
           <div className="route-panel-body" key={pathname}>

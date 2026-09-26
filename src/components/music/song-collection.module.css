@@ -7,7 +7,7 @@
   overflow-wrap: anywhere;
 }
 .collection h1 {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-weight: 500;
 }
 .collection p {
