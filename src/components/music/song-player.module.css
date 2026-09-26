@@ -5,7 +5,7 @@
   max-width: 100%;
   padding: 1rem;
   border: 1px solid var(--line-strong);
-  border-radius: 1rem;
+  border-radius: var(--radius-pixel);
   background: var(--paper-light);
   color: var(--ink);
   overflow-wrap: anywhere;
@@ -41,7 +41,7 @@
   max-width: 100%;
   padding: 0.6rem 1rem;
   border: 1px solid var(--forest-dark);
-  border-radius: 0.5rem;
+  border-radius: var(--radius-pixel);
   background: var(--forest);
   color: var(--paper-light);
   font-weight: 650;
@@ -63,6 +63,7 @@
   max-width: 100%;
   margin-top: 0.85rem;
   border: 0;
+  /* Documented exception (decision 0041): matches Spotify's rounded embed. */
   border-radius: 12px;
   background: var(--paper-deep);
 }
@@ -78,10 +79,4 @@
 
 .newTab {
   white-space: nowrap;
-}
-
-.toggle:focus-visible,
-.link:focus-visible {
-  outline: 3px solid var(--focus);
-  outline-offset: 4px;
 }

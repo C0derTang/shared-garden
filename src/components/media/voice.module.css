@@ -22,5 +22,5 @@
   font-size: 1.5rem;
 }
 .error {
-  color: #862e23;
+  color: var(--danger);
 }

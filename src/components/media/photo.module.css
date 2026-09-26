@@ -6,7 +6,7 @@
   overflow: hidden;
   background: #eee9d9;
   border: 2px solid #b0ad89;
-  border-radius: 10px;
+  border-radius: var(--radius-pixel);
 }
 .square img {
   width: 100%;
@@ -32,5 +32,5 @@
   gap: 6px;
 }
 .error {
-  color: #862e23;
+  color: var(--danger);
 }

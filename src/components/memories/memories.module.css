@@ -29,8 +29,8 @@
   justify-content: space-between;
   gap: 0.65rem;
   padding: 0.55rem 0.75rem;
-  border: 1px solid var(--line-strong);
-  border-radius: 0.65rem;
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-pixel);
   background: var(--paper-light);
   color: var(--forest-dark);
   font: 700 0.9rem var(--font-body);
@@ -39,9 +39,9 @@
 .filterCount {
   margin-left: auto;
   padding: 0.2rem 0.45rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pixel);
   background: var(--sage-light);
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
 }
 .filters {
   display: grid;
@@ -50,7 +50,7 @@
   margin-top: 0.55rem;
   padding: 0.75rem;
   border: 1px solid var(--line-strong);
-  border-radius: 0.65rem;
+  border-radius: var(--radius-pixel);
   background: var(--paper-deep);
 }
 .filters[hidden] { display: none; }
@@ -69,8 +69,8 @@
   min-width: 0;
   min-height: 44px;
   padding: 0.45rem;
-  border: 1px solid var(--line-strong);
-  border-radius: 0.4rem;
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-pixel);
   background: var(--paper-light);
   color: var(--ink);
   font: inherit;
@@ -90,7 +90,7 @@
   gap: 0.6rem;
   margin-top: 0.55rem;
   padding: 0.45rem 0.55rem 0.45rem 0.7rem;
-  border-radius: 0.55rem;
+  border-radius: var(--radius-pixel);
   background: var(--sage-light);
   color: var(--forest-dark);
   font-size: 0.78rem;
@@ -100,7 +100,7 @@
   min-height: 36px;
   padding: 0.25rem 0.55rem;
   border: 1px solid var(--forest);
-  border-radius: 0.4rem;
+  border-radius: var(--radius-pixel);
   background: var(--paper-light);
   color: var(--forest-dark);
   font: 700 0.75rem var(--font-body);
@@ -130,7 +130,7 @@
   overflow: hidden;
   overflow-wrap: anywhere;
   border: 1px solid color-mix(in srgb, var(--memory-accent) 38%, var(--line));
-  border-radius: 0.9rem;
+  border-radius: var(--radius-pixel);
   background: var(--paper-light);
   box-shadow: 0 3px 0 rgb(55 62 46 / 9%);
 }
@@ -178,7 +178,7 @@
 }
 .day { flex-basis: 100%; }
 .bloom,
-.complete { margin: 0.25rem 0 0; color: var(--forest); font-size: 0.74rem; }
+.complete { margin: 0.25rem 0 0; color: var(--forest); font-size: var(--text-xs); }
 .content { min-width: 0; margin-top: 0.7rem; }
 .wish,
 .question {
@@ -212,7 +212,7 @@
   align-content: center;
   gap: 0.5rem;
   border: 1px dashed var(--memory-accent);
-  border-radius: 0.65rem;
+  border-radius: var(--radius-pixel);
   background: var(--memory-wash);
   color: var(--memory-accent);
   font-size: 0.8rem;
@@ -236,8 +236,8 @@
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.55rem 0.7rem;
-  border: 1px solid var(--line-strong);
-  border-radius: 0.55rem;
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-pixel);
   background: var(--memory-wash);
   color: var(--forest-dark);
   font: 700 0.82rem var(--font-body);
@@ -246,7 +246,7 @@
   padding: 0.2rem 0.7rem 0.1rem;
   border-inline: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
-  border-radius: 0 0 0.55rem 0.55rem;
+  border-radius: 0 0 var(--radius-pixel) var(--radius-pixel);
 }
 .milestone { padding-top: 0.55rem; border-top: 1px solid var(--line); }
 .milestone h3 { margin: 0; font-size: 0.9rem; }
@@ -258,7 +258,7 @@
   margin: 0.75rem 0;
   padding: 0.75rem;
   border: 1px dashed var(--line-strong);
-  border-radius: 0.7rem;
+  border-radius: var(--radius-pixel);
   background: var(--paper-deep);
   color: var(--muted);
 }
@@ -274,11 +274,6 @@
   cursor: pointer;
 }
 .notes p { margin: 0 0 0.5rem; line-height: 1.5; }
-.filterToggle:focus-visible,
-.activeFilters button:focus-visible,
-.textToggle:focus-visible,
-.historyToggle:focus-visible,
-.notes summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 @media (max-width: 359px) {
   .filters { grid-template-columns: 1fr; }
   .filterHelp { grid-column: auto; }

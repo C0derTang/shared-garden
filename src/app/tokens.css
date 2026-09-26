@@ -11,10 +11,40 @@
   --ochre: #947023;
   --line: #dfdacb;
   --line-strong: #b3b39d;
-  --focus: #a64f37;
   --font-body:
     ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
   --font-display:
     "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+
+  /* Pixel design tokens (decision 0041). */
+  --font-pixel:
+    ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
+  --radius-pixel: 2px;
+  --border-pixel: 2px;
+  /* Readable edge for inputs, selects and secondary buttons: 4.12:1 on paper. */
+  --control-border: #7a7862;
+  /* Dark outline for dialog frames and pixel buttons. */
+  --frame-border: var(--forest-dark);
+  /* Hard offset shadows only; never blurred. */
+  --shadow-pixel: 3px 3px 0 var(--line-strong);
+  --shadow-pixel-pressed: 1px 1px 0 var(--line-strong);
+  --shadow-frame: 4px 4px 0 rgb(0 0 0 / 28%);
+  /* Bottom-anchored phone sheets show the same hard shadow on their top edge. */
+  --shadow-frame-edge: 0 -4px 0 rgb(0 0 0 / 28%);
+  /* Two-tone focus ring: a light halo inside a dark outline. */
+  --focus-ring-color: var(--ink);
+  --focus-ring-halo: var(--paper-light);
+  --focus-ring-width: 3px;
+  --focus-ring-offset: 2px;
+  --focus-ring: 0 0 0 var(--focus-ring-offset) var(--focus-ring-halo);
+  --danger: #862e23;
+  --danger-wash: #f7e4d8;
+  /* Type scale; 0.75rem is the floor for visible text. */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-title: 1.1rem;
+  --text-lg: 1.35rem;
 }

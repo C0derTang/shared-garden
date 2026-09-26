@@ -1,5 +1,5 @@
 .page { max-width: 44rem; margin: 0 auto; min-width: 0; }
-.settings { border: 1px solid var(--line); border-radius: .7rem; background: color-mix(in srgb, var(--paper-light) 94%, transparent); overflow: hidden; }
+.settings { border: 1px solid var(--line); border-radius: var(--radius-pixel); background: color-mix(in srgb, var(--paper-light) 94%, transparent); overflow: hidden; }
 .row { min-width: 0; padding: .85rem; border-bottom: 1px solid var(--line); }
 .actionRow, .motionRow, .accountRow { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: .75rem; }
 .copy { min-width: 0; }
@@ -12,12 +12,12 @@
 .details summary::before { content: "+"; width: 1.2rem; color: var(--forest); font-size: 1.1rem; line-height: 1; }
 .details[open] summary::before { content: "−"; }
 .details p { padding: 0 .85rem .85rem 2.6rem; color: var(--muted); font-size: .84rem; line-height: 1.5; }
-.alert { display: grid; gap: .65rem; padding: .85rem; border-bottom: 1px solid var(--line); background: #fff3df; }
+.alert { display: grid; gap: .65rem; padding: .85rem; border-bottom: 1px solid var(--line); background: var(--danger-wash); }
 .alert p { line-height: 1.45; }
 .alert button { justify-self: start; }
 .accountRow { border-bottom: 0; }
 .accountRow form { margin: 0; }
-.guide, .card { padding: clamp(1rem, 3vw, 1.5rem); border: 1px solid var(--line); border-radius: 1rem; background: var(--paper-light); }
+.guide, .card { padding: clamp(1rem, 3vw, 1.5rem); border: 1px solid var(--line); border-radius: var(--radius-pixel); background: var(--paper-light); }
 .guide { margin: 0 0 1.4rem; }
 .guide h2, .card h2 { font-size: 1.35rem; margin: .4rem 0 .75rem; }
 .guide p, .card p { line-height: 1.6; }

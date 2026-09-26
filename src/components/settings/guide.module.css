@@ -1,6 +1,6 @@
 .overlay { position: fixed; inset: 0; z-index: 60; background: rgb(0 0 0 / 62%); }
-.guide { position: fixed; z-index: 61; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(26rem, calc(100% - 2rem)); max-height: calc(100dvh - 2rem - env(safe-area-inset-top) - env(safe-area-inset-bottom)); overflow-y: auto; overscroll-behavior: contain; border: 2px solid var(--line); border-radius: 1rem; padding: clamp(1rem, 4vw, 1.5rem); background: var(--paper-light); box-shadow: 0 14px 48px #0005; }
-.guide h2 { margin: .4rem 0 .65rem; font-size: 1.4rem; line-height: 1.25; }
+.guide { position: fixed; z-index: 61; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(26rem, calc(100% - 2rem)); max-height: calc(100dvh - 2rem - env(safe-area-inset-top) - env(safe-area-inset-bottom)); overflow-y: auto; overscroll-behavior: contain; border: var(--border-pixel) solid var(--frame-border); border-radius: var(--radius-pixel); padding: clamp(1rem, 4vw, 1.5rem); background: var(--paper-light); box-shadow: var(--shadow-frame); }
+.guide h2 { margin: .4rem 0 .65rem; font: 700 var(--text-title)/1.25 var(--font-pixel); letter-spacing: .025em; }
 .guide p { line-height: 1.5; }
 .guide > button { width: 100%; margin-top: .5rem; white-space: normal; }
 .progress, .guide small { color: var(--muted); font-size: .8rem; }
