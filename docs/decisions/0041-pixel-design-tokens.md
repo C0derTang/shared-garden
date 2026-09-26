@@ -63,7 +63,8 @@ For comparison, the previous rust ring was 1.68:1 on meadow and the previous
 
 The garden-surface spot ring, care dots and Help/Songs chips still keep their own
 styles. [Issue #102](https://github.com/C0derTang/shared-garden/issues/102) owns
-those styles.
+those styles. Spot buttons opt out of the halo (`box-shadow: none`) and are
+excluded from the radius and text-size rules here until #102.
 
 ## Frames and panel header
 
@@ -93,6 +94,8 @@ private-moment controls use `--radius-pixel`. The songs heading uses
 - The Spotify embed frame keeps 12px corners to match Spotify's own rounded
   player.
 - The circular memory flower frame and the round mood swatches stay circular.
+- Garden spot buttons keep their 6px focus-background radius and existing text
+  sizes until [issue #102](https://github.com/C0derTang/shared-garden/issues/102).
 - Scenery, soil and flower art colors, the Hydrangea mood palette, the
   per-species memory hues, the landing hero serif and the wordmark are
   unchanged.

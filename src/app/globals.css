@@ -34,7 +34,9 @@ a {
 button:disabled {
   cursor: default;
 }
-/* One app-wide two-tone focus ring (decision 0041). */
+/* One app-wide two-tone focus ring (decision 0041). A component
+   `.x:focus-visible` rule has the same (0,2,0) specificity and wins only
+   because this layout stylesheet loads before CSS modules. */
 :root :focus-visible {
   outline: var(--focus-ring-width) solid var(--focus-ring-color);
   outline-offset: var(--focus-ring-offset);
