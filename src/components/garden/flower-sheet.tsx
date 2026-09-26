@@ -32,10 +32,22 @@ function EntryContent({ entry, type }: { entry: Entry; type: string }) {
   if (type === "bluebell" && payload.media_id)
     return <VoiceViewer key={payload.media_id} mediaId={payload.media_id} />;
   if (type === "cactus") return <p>Checked in. I’m here.</p>;
-  if (type === "hydrangea")
-    return (
-      <p>{moods.find((m) => m.key === payload.mood)?.label ?? "Mood saved"}</p>
+  if (type === "hydrangea") {
+    const mood = moods.find((m) => m.key === payload.mood);
+    return mood ? (
+      <p className={sheetStyles.savedMood}>
+        <span
+          className={sheetStyles.savedSwatch}
+          style={{ backgroundColor: mood.color }}
+          aria-hidden="true"
+          data-mood-swatch={mood.key}
+        />
+        {mood.label}
+      </p>
+    ) : (
+      <p>Mood saved</p>
     );
+  }
   if (type === "tulip")
     return (
       <SongPlayer
@@ -389,9 +401,6 @@ export function FlowerSheet({
                   </time>
                 </div>
                 <EntryContent entry={entry} type={item.type_key} />
-                {entry.payload.question_id && (
-                  <small>Question {entry.payload.question_id}</small>
-                )}
               </article>
             ))}
             {history?.length === 0 && <p>No earlier entries yet.</p>}

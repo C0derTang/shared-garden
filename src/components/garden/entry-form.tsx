@@ -13,6 +13,7 @@ import { SongPlayer } from "@/components/music/song-player";
 import { parseSongLink } from "@/lib/music/song-link";
 import type { Mutate } from "./seed-picker";
 import styles from "./garden.module.css";
+import sheetStyles from "./flower-sheet.module.css";
 
 export function EntryForm({
   plant,
@@ -176,11 +177,11 @@ export function EntryForm({
           )}
         </>
       ) : type === "hydrangea" ? (
-        <fieldset className={styles.moodField}>
+        <fieldset className={sheetStyles.moodField}>
           <legend>How are you feeling?</legend>
-          <div className={styles.moodOptions}>
+          <div className={sheetStyles.moodOptions}>
             {moods.map((mood) => (
-              <label className={styles.moodOption} key={mood.key}>
+              <label className={sheetStyles.moodOption} key={mood.key}>
                 <input
                   type="radio"
                   name="mood"
@@ -189,10 +190,11 @@ export function EntryForm({
                   onChange={() => change("mood", mood.key)}
                 />
                 <span
-                  className={styles.swatch}
+                  className={sheetStyles.moodSwatch}
                   style={{ backgroundColor: mood.color }}
+                  aria-hidden="true"
                 />
-                {mood.label}
+                <span>{mood.label}</span>
               </label>
             ))}
           </div>

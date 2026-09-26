@@ -30,9 +30,9 @@ export function DandelionWish({ flower, memberId, busy, mutate }: {
       {" "}Seeds scattered. Your wish and its memories stay here.
     </p> : flower.first_bloom_at ? confirming ? <div className={styles.stack}>
       <p>Has your shared wish come true? Blowing the seeds marks it fulfilled permanently. This flower stays as a permanent keepsake with all its memories. Seeds are decorative and create no new plants. This cannot be undone.</p>
-      <button className="button" disabled={busy} onClick={()=>void fulfill()}>Confirm and blow seeds</button>
+      <button className="button button-primary" disabled={busy} onClick={()=>void fulfill()}>Confirm and blow seeds</button>
       <button className="button button-secondary" disabled={busy} onClick={()=>setConfirming(false)}>Keep waiting</button>
-    </div> : <button className="button" disabled={busy} onClick={()=>setConfirming(true)}>Fulfill our wish</button> : <p>Your wish can be fulfilled after this Dandelion blooms.</p>}
+    </div> : <button className="button button-secondary" disabled={busy} onClick={()=>setConfirming(true)}>Fulfill our wish</button> : <p>Your wish can be fulfilled after this Dandelion blooms.</p>}
     {error && <p role="alert">{error}</p>}
   </section>;
 }
