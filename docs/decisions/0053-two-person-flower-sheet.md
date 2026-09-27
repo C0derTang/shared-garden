@@ -93,9 +93,9 @@ sheet closes, the next opens with the usual focus handling, and closing it
 returns focus to that flower on the garden. A saved edit shows the same notice
 without a next step.
 
-The due check is a small local helper in `flower-cards.ts`. Issue #119 adds a
-shared pure due-rule module. Once both land, this helper should be replaced by
-that module, which applies the same rule.
+The due check uses the shared pure due rule in `due-today.ts` from
+[decision 0051](0051-today-card-and-flower-cues.md), the same rule as the Today
+card. The Next step keeps its own spot order, wrapping around.
 
 ## History and controls
 

@@ -257,10 +257,21 @@ p {
   min-width: 0;
 }
 /* Hotbar navigation: one wooden bar of parchment inventory slots; the
-   current slot gets a gold selection box with a berry rim (decision 0049). */
+   current slot gets a gold selection box with a berry rim (decision 0049).
+   Its height is a shared custom property, so anything that must clear the
+   hotbar (the Today card, decision 0051) follows it. A slot holds a 6px frame
+   and 4px/5px padding on each side (or a 2px border and 8px/9px padding when
+   current), the 22px icon, a 2px gap and one label line at 1.1: 45px plus the
+   line, and never under 54px. The frame adds 12px above and below. */
+:root {
+  --hotbar-label-size: var(--text-xs);
+  --hotbar-slot-height: max(54px, calc(45px + 1.1 * var(--hotbar-label-size)));
+  --hotbar-bottom: max(8px, env(safe-area-inset-bottom));
+  --hotbar-height: calc(24px + var(--hotbar-slot-height));
+}
 .garden-navigation {
   position: fixed;
-  bottom: max(8px, env(safe-area-inset-bottom));
+  bottom: var(--hotbar-bottom);
   left: 50%;
   z-index: 20;
   display: flex;
@@ -286,7 +297,7 @@ p {
   display: flex;
   flex: 1 1 auto;
   min-width: 56px;
-  min-height: 54px;
+  min-height: var(--hotbar-slot-height);
   align-items: center;
   justify-content: center;
   flex-direction: column;
@@ -302,7 +313,7 @@ p {
   background: var(--paper-light);
   background-clip: padding-box;
   color: var(--ink);
-  font: 600 var(--text-xs)/1.1 var(--font-pixel);
+  font: 600 var(--hotbar-label-size)/1.1 var(--font-pixel);
   text-decoration: none;
   white-space: nowrap;
 }
@@ -360,6 +371,10 @@ p {
 /* Below 360px the framed bar cannot hold "Achievements", so the hotbar
    becomes a full-width shelf with only its top wood edge. */
 @media (max-width: 359px) {
+  :root {
+    --hotbar-bottom: 0px;
+    --hotbar-height: calc(12px + max(4px, env(safe-area-inset-bottom)) + var(--hotbar-slot-height));
+  }
   .garden-navigation {
     left: 0;
     bottom: 0;
@@ -410,8 +425,10 @@ p {
     top: 0.35rem;
     right: 0.5rem;
   }
+  :root {
+    --hotbar-label-size: var(--text-sm);
+  }
   .garden-navigation a {
-    font-size: var(--text-sm);
     padding-inline: 12px;
   }
 }
@@ -443,6 +460,11 @@ p {
 .route-panel-overlay { position: fixed; inset: 0; z-index: 24; background: rgb(28 16 6 / 62%); }
 .route-panel { position: fixed; z-index: 25; top: 50%; transform: translateY(-50%); max-height: min(88dvh, calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 24px)); left: max(10px, env(safe-area-inset-left)); right: max(10px, env(safe-area-inset-right)); max-width: 900px; margin-inline: auto; display: flex; flex-direction: column; box-shadow: var(--shadow-frame); }
 .route-panel-header { display: flex; justify-content: space-between; align-items: center; flex: 0 0 auto; padding: 4px 4px 10px; gap: 8px; border-bottom: 2px dashed var(--line-strong); }
+/* Route-panel titles are fixed single words or short phrases, so they never
+   break mid-word ("Achievement / s"). Below 360px the plaque steps down to the
+   body type size so "Achievements" fits beside Close. */
+.route-panel-header h2 { overflow-wrap: normal; }
+@media (max-width: 359px) { .route-panel-header h2 { padding-inline: 8px; font-size: var(--text-md); } }
 /* Route-panel Close keeps its visible word and "Close panel" name (decision
    0029); the red × stamp sits in front of the word. */
 .route-panel-header > .pixel-button { gap: 8px; padding-left: 6px; }

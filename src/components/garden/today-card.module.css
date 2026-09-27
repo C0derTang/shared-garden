@@ -1,0 +1,288 @@
+/* Today card and flower-state cues (decision 0051), in the Harvest Handheld
+   skin (decision 0049). */
+
+/* The plaque floats 10px above the hotbar, whose height and offset are the
+   shared --hotbar-height and --hotbar-bottom (globals.css), leaving room for
+   its own hard shadow. */
+.card {
+  --today-hotbar-top: calc(var(--hotbar-bottom) + var(--hotbar-height));
+  position: fixed;
+  z-index: 19;
+  left: 50%;
+  bottom: calc(var(--today-hotbar-top) + 10px);
+  display: flex;
+  flex-direction: column;
+  width: min(30rem, calc(100vw - 16px));
+  max-height: calc(100dvh - var(--today-hotbar-top) - 140px);
+  transform: translateX(-50%);
+  border: var(--border-pixel) solid var(--frame-border);
+  background: var(--paper);
+  box-shadow: inset 2px 2px 0 var(--paper-light), inset -2px -2px 0 var(--paper-deep), 0 4px 0 rgb(30 16 6 / 35%);
+  color: var(--ink);
+}
+.card[data-state="done"] { background: var(--sage-light); }
+
+/* Tiny brass nails in the plaque's top corners. */
+.card::before,
+.card::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  width: 4px;
+  height: 4px;
+  background: var(--ochre);
+  box-shadow: 1px 1px 0 var(--wood-dark);
+  pointer-events: none;
+}
+.card::before { left: 4px; }
+.card::after { right: 4px; }
+
+/* The in-flow spacer lets the last plots scroll clear of the plaque; it adds
+   the plaque's collapsed height plus its title tab and gap. */
+.spacer { box-sizing: content-box; padding-bottom: 32px; }
+
+.bar {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 10px 10px;
+}
+
+/* "Today" is a small carved wooden tab that overlaps the plaque's top edge. */
+.title {
+  position: absolute;
+  z-index: 1;
+  top: -14px;
+  left: 12px;
+  padding: 2px 8px 3px;
+  border: var(--border-pixel) solid var(--wood-dark);
+  background: var(--wood-deep);
+  box-shadow: inset 2px 2px 0 var(--wood-light), inset -2px -2px 0 var(--wood-dark);
+  color: var(--paper-light);
+  font: 700 var(--text-sm)/1.1 var(--font-pixel);
+  letter-spacing: 0.04em;
+  text-shadow: 0 2px 0 var(--wood-dark);
+}
+
+.toggle,
+.primary,
+.row {
+  min-height: 44px;
+  border: var(--border-pixel) solid var(--frame-border);
+  border-radius: var(--radius-pixel);
+  cursor: pointer;
+}
+
+.toggle {
+  flex: 1 1 9rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  background: var(--paper-light);
+  color: var(--ink);
+  box-shadow: var(--bevel), var(--shadow-pixel);
+  text-align: left;
+}
+.toggle:hover { background: var(--paper-deep); }
+
+.counts { display: grid; flex: 1; gap: 2px; min-width: 0; }
+.count {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: 600 var(--text-xs)/1.3 var(--font-pixel);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+/* The same you-green and partner-berry squares as the care dots. */
+.count > i {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--ink);
+  background: var(--forest);
+}
+.count[data-who="partner"] > i { background: var(--rust); }
+.count[data-who="later"] > i { background: var(--paper-light); }
+
+/* A pixel chevron: down when the list is hidden, up when it is shown. */
+.chevron {
+  flex: none;
+  width: 10px;
+  height: 6px;
+  background: var(--wood-deep);
+  clip-path: polygon(0 0, 20% 0, 20% 33%, 40% 33%, 40% 67%, 60% 67%, 60% 33%, 80% 33%, 80% 0, 100% 0, 100% 33%, 80% 33%, 80% 67%, 60% 67%, 60% 100%, 40% 100%, 40% 67%, 20% 67%, 20% 33%, 0 33%);
+}
+.toggle[aria-expanded="true"] .chevron { rotate: 180deg; }
+
+.primary {
+  flex: 0 1 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 6px 14px;
+  background: var(--forest);
+  color: var(--paper-light);
+  box-shadow: var(--bevel), var(--shadow-pixel);
+  font: 700 var(--text-md)/1.15 var(--font-pixel);
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+.primary:hover { background: var(--forest-dark); }
+.arrow { flex: none; }
+
+.toggle:active,
+.primary:active,
+.row:active {
+  translate: 0 var(--press-depth);
+  box-shadow: var(--bevel-pressed), var(--shadow-pixel-pressed);
+}
+
+.done {
+  flex: 1 1 10rem;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--forest-dark);
+  font: 700 var(--text-md)/1.2 var(--font-pixel);
+}
+.done > span { margin-left: 6px; color: var(--rust); }
+
+/* The list of flowers still due opens above the bar and scrolls inside the
+   plaque, so it never grows past the header. */
+.list {
+  display: grid;
+  gap: 6px;
+  min-height: 0;
+  margin: 0;
+  padding: 18px 10px 10px;
+  overflow-y: auto;
+  list-style: none;
+  border-bottom: 2px dashed var(--line-strong);
+}
+.row {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 4px 8px;
+  background: var(--paper-light);
+  color: var(--ink);
+  box-shadow: var(--bevel), 0 2px 0 var(--wood-dark);
+  text-align: left;
+}
+.row:hover { background: var(--paper-deep); }
+.row:not([data-due]) { background: var(--paper); }
+.rowSprite { width: 32px; height: 32px; }
+.rowText { display: grid; min-width: 0; }
+.rowText strong { font: 700 var(--text-sm)/1.2 var(--font-pixel); }
+.rowText > span { color: var(--muted); font-size: var(--text-xs); line-height: 1.3; }
+
+.dots {
+  display: flex;
+  gap: 4px;
+  padding: 2px;
+  border: 1px solid var(--ink);
+  background: var(--paper-light);
+}
+.dots i { width: 8px; height: 8px; border: 1px solid var(--ink); }
+.dots i[data-cared="true"] { background: var(--forest); }
+.dots i:nth-child(2)[data-cared="true"] { background: var(--rust); }
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 379px) {
+  .primary { padding-inline: 10px; font-size: var(--text-sm); }
+}
+
+/* ---- Flower cues on the garden surface ---- */
+
+/* Your partner cared and you have not: your dot's outline pulses gently.
+   Reduced motion (or gentle motion off) leaves a steady outline. */
+.nudge {
+  outline: 2px solid var(--forest);
+  outline-offset: 1px;
+  animation: today-nudge 1.2s ease-in-out infinite alternate;
+}
+@keyframes today-nudge {
+  to { outline-color: rgb(63 122 52 / 15%); }
+}
+
+/* Both cared and this unit blooms it: a gold pixel sparkle beside the tag. */
+.sparkle,
+.risk {
+  position: absolute;
+  bottom: 3px;
+  pointer-events: none;
+  image-rendering: pixelated;
+}
+.sparkle {
+  left: calc(50% + 17px);
+  width: 18px;
+  height: 18px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 9' shape-rendering='crispEdges'%3E%3Cpath fill='%234a2a12' d='M4 0h1v1H4zM3 1h1v2H3zM5 1h1v2H5zM1 3h2v1H1zM6 3h2v1H6zM0 4h1v1H0zM8 4h1v1H8zM1 5h2v1H1zM6 5h2v1H6zM3 6h1v2H3zM5 6h1v2H5zM4 8h1v1H4z'/%3E%3Cpath fill='%23f2c14e' d='M4 1h1v2H4zM3 3h1v1H3zM5 3h1v1H5zM1 4h2v1H1zM6 4h2v1H6zM3 5h1v1H3zM5 5h1v1H5zM4 6h1v2H4z'/%3E%3Cpath fill='%23fdf4dc' d='M4 3h1v1H4zM3 4h3v1H3zM4 5h1v1H4z'/%3E%3C/svg%3E") center / contain no-repeat;
+  animation: today-twinkle 1.8s steps(2, jump-none) infinite alternate;
+}
+/* A second, smaller star above the first. */
+.sparkle::after {
+  content: "";
+  position: absolute;
+  left: 13px;
+  top: -10px;
+  width: 9px;
+  height: 9px;
+  background: inherit;
+  background-size: contain;
+}
+@keyframes today-twinkle {
+  to { scale: 0.78; }
+}
+
+/* Neither cared and it has growth to lose: a small empty water drop. */
+.risk {
+  left: calc(50% - 33px);
+  width: 14px;
+  height: 18px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 9' shape-rendering='crispEdges'%3E%3Cpath fill='%234a2a12' d='M3 0h1v1H3zM2 1h1v2H2zM4 1h1v2H4zM1 3h1v1H1zM5 3h1v1H5zM0 4h1v3H0zM6 4h1v3H6zM1 7h1v1H1zM5 7h1v1H5zM2 8h3v1H2z'/%3E%3Cpath fill='%23fdf4dc' d='M3 1h1v2H3zM2 3h3v1H2zM1 4h5v1H1zM2 5h4v1H2zM1 6h5v1H1zM2 7h3v1H2z'/%3E%3Cpath fill='%23c9a870' d='M1 5h1v1H1z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+@media (min-width: 640px) {
+  .sparkle { left: calc(50% + 18px); }
+}
+
+/* The one-line cue under the flower sheet heading. */
+.sheetCue {
+  margin-top: 0.4rem;
+  color: var(--ink);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+}
+.sheetCue[data-cue="partner-cared"] { color: var(--forest-dark); }
+.sheetCue > span { margin-left: 4px; color: var(--rust); }
+
+@media (forced-colors: active) {
+  .count > i,
+  .count[data-who="partner"] > i,
+  .dots i[data-cared="true"],
+  .dots i:nth-child(2)[data-cared="true"] { forced-color-adjust: none; background: CanvasText; border-color: CanvasText; }
+  .count[data-who="later"] > i,
+  .dots i:not([data-cared="true"]) { forced-color-adjust: none; background: Canvas; border-color: CanvasText; }
+  .chevron { forced-color-adjust: none; background: ButtonText; }
+  .nudge { outline-color: Highlight; animation: none; }
+}

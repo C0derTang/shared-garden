@@ -1,13 +1,14 @@
 /* A small parchment note docked just above the hotbar when a requested flower
    cannot open (decision 0055). The host stays rendered while empty, with no
    box, so its live region exists before any text arrives. */
-.host { position: fixed; z-index: 19; left: 12px; right: 12px; bottom: calc(max(8px, env(safe-area-inset-bottom)) + var(--hotbar-clearance, 96px)); display: flex; justify-content: center; pointer-events: none; }
+.host { position: fixed; z-index: 20; left: 12px; right: 12px; bottom: calc(var(--hotbar-bottom) + var(--hotbar-height) + 12px); display: flex; justify-content: center; pointer-events: none; }
 .notice { pointer-events: auto; display: flex; align-items: center; gap: 10px; max-width: 26rem; padding: 6px 6px 6px 12px; border: 8px solid var(--paper-light); border-image: var(--frame-slot) 3 fill / 6px stretch; background: var(--paper-light); background-clip: padding-box; box-shadow: var(--shadow-pixel); color: var(--ink); font-size: var(--text-sm); line-height: 1.4; overflow-wrap: anywhere; }
 .notice span { flex: 1 1 auto; min-width: 0; }
 .notice button { flex: none; }
-/* Below 360px the hotbar becomes a full-width shelf flush with the bottom. */
+/* Below 360px the hotbar becomes a full-width shelf flush with the bottom;
+   --hotbar-height and --hotbar-bottom (globals.css) already follow it. */
 @media (max-width: 359px) {
-  .host { left: 8px; right: 8px; bottom: calc(max(4px, env(safe-area-inset-bottom)) + var(--hotbar-clearance, 88px)); }
+  .host { left: 8px; right: 8px; }
 }
 @media (forced-colors: active) {
   .notice { border-image-source: none; }

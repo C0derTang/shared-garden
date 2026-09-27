@@ -22,6 +22,8 @@ import { DandelionWish } from "./dandelion-wish";
 import { PeonyPanel } from "./peony-panel";
 import { EntryForm } from "./entry-form";
 import { flowerCards, nextDueFlower, type FlowerCard } from "./flower-cards";
+import { careStatus } from "./due-today";
+import { SheetCue } from "./today-card";
 import type { Mutate } from "./seed-picker";
 import styles from "./garden.module.css";
 import sheetStyles from "./flower-sheet.module.css";
@@ -64,7 +66,16 @@ function EntryContent({ entry, type }: { entry: Entry; type: string }) {
     </p>
   );
 }
-function GrowthSummary({ plant, item }: { plant: Plant; item: CatalogItem }) {
+function GrowthSummary({
+  plant,
+  item,
+  children,
+}: {
+  plant: Plant;
+  item: CatalogItem;
+  /** The one-line flower cue (decision 0051). */
+  children?: ReactNode;
+}) {
   const flower = plant.flower;
   const bloomed = flower.first_bloom_at !== null;
   const type = item.type_key;
@@ -126,6 +137,7 @@ function GrowthSummary({ plant, item }: { plant: Plant; item: CatalogItem }) {
             <i key={index} data-filled={index < filled} />
           ))}
         </div>
+        {children}
       </div>
     </div>
   );
@@ -366,7 +378,9 @@ export function FlowerSheet({
   }
   return (
     <div className={`${styles.stack} ${sheetStyles.sheet}`}>
-      <GrowthSummary plant={plant} item={item} />
+      <GrowthSummary plant={plant} item={item}>
+        <SheetCue status={careStatus(plant, item, state)} />
+      </GrowthSummary>
       <details className={sheetStyles.details}>
         <summary>Details</summary>
         <div>
