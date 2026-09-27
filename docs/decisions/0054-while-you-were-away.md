@@ -40,6 +40,33 @@ bloom at the 4 a.m. rollover or live partner care also shows the card. New
 lines merge into an open card without repeating a line. After it's dismissed,
 the card comes back only with news that arrived later.
 
+## Your own actions are never news
+
+The card is for what happened while you weren't looking, so the viewer's own
+actions never show it or its confetti. In the database, blooms and unlocks
+come from settlement, and badges are awarded during settlement and during care,
+planting and wish actions. Settlement runs lazily at the start of any garden
+operation after 4 a.m., including a read or your own save. A final Peony
+milestone also records a bloom, and its unlocks, during a member's action. So
+blooms, unlocks and badges can all arrive in the state that answers your own
+action.
+
+- **Your action's result:** `GardenClient` wraps the garden's `mutate`
+  (`useOwnActions`) and records the state each save returns, in the same batch
+  that renders it. Blooms, unlocks and badges in that state only move the
+  snapshot.
+- **While a flower or seed sheet is open:** every garden action starts from one
+  of these sheets. While one is open, blooms, unlocks and badges that appear
+  only move the snapshot. Nothing appears behind the sheet.
+- **Badge reads:** a read scheduled by one of those states or while a sheet is
+  open only moves the badge baseline. The hotbar dot still marks the badge as
+  unviewed, because it belongs to both of you.
+- **Partner care** is never the viewer's own. Care that arrives while a sheet
+  is open is held, and the card shows it once the sheet closes.
+
+This errs toward silence. A partner-caused bloom, such as a Peony milestone,
+that lands while your sheet is open is absorbed instead of celebrated.
+
 ## Snapshot
 
 The comparison uses a snapshot in this browser's `localStorage`, keyed
@@ -108,7 +135,9 @@ shared red × stamp close in its 44px target (`sheet-close`).
   6.13:1 on the `--paper-deep` hover face), partner care `--rust` (5.20:1),
   unlock and badge `--wood-deep` (6.77:1). `--rust` is only 4.00:1 on the
   hover face, so a hovered partner-care row uses the darker `--danger` berry.
-  The badge slot is `--gold`, and its decorative icon is `--wood-deep`.
+- **Badge slot:** a plain `--gold` tile with a 2px `--wood-dark` edge and the
+  bevel, in place of the slot frame, whose fill would hide the gold. Its
+  decorative icon is `--wood-deep` (4.43:1).
 - **Flower chips:** pressable parchment buttons at least 44px tall, with a
   32px sprite and the flower name in Pixelify `--text-xs`.
 - **Forced colors:** the frames set `border-image-source: none`.
@@ -121,8 +150,9 @@ the rest of the garden.
 
 The card drops in over 280ms in four steps. On each new batch of news, 20
 square pixel confetti bits in gold, berry, green and parchment pop out of the
-plaque and fall away in ten stepped frames over one second. The confetti is not rendered when the gentle-motion setting is off, or
-while that setting has not loaded. Both effects are hidden under
+plaque and fall away in ten stepped frames over one second. The confetti is
+rendered only when the gentle-motion setting is confirmed on. It stays off
+while that setting is loading or unavailable. Both effects are hidden under
 `prefers-reduced-motion`. The member's motion-off style from decision 0019
 also stops them.
 
@@ -141,9 +171,11 @@ sheet's trigger.
 ## Verification boundary
 
 Tests cover the diff for blooms, unlocks, partner care for either member,
-rollover and badges. They also cover the first visit showing nothing, storage
+rollover and badges. They also cover your own action's bloom, unlock and badge
+being absorbed while partner care still shows (through the real garden client
+and check-in), and partner care held while a sheet is open. They also cover the first visit showing nothing, storage
 read and write failures, stored content, dismissal and focus, live merging,
-no repeat on reload, confetti under gentle motion, and the hotbar dot.
+no repeat on reload, confetti only when gentle motion is confirmed on, and the hotbar dot.
 Verification uses the actual components with disposable synthetic data at
 320, 390 and 1280 pixels. It never reads or mutates production data. There is
 no backend, schema, dependency, route or product-rule change.

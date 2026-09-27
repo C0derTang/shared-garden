@@ -1,10 +1,11 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { useMemberPreferences } from "@/components/settings/member-preferences";
 import { PixelIcon } from "@/components/ui/pixel-icon";
 import type { AchievementResult } from "@/lib/achievements/model";
-import type { CatalogItem, GardenState, Plant } from "@/lib/garden/model";
+import type { CatalogItem, GardenResult, GardenState, Plant } from "@/lib/garden/model";
+import type { GardenMutation } from "@/lib/garden/use-garden";
 import {
   badgeSignature,
   publishBadges,
@@ -13,6 +14,7 @@ import {
   diffSnapshot,
   hasNews,
   mergeNews,
+  noNews,
   nameList,
   snapshotKey,
   takeSnapshot,
@@ -49,6 +51,23 @@ type Line = {
   href?: string;
 };
 
+/**
+ * Wraps the garden's mutate so the card can tell the viewer's own actions
+ * apart. The result state is recorded in the same batch that renders it.
+ */
+export function useOwnActions(mutate: (command: GardenMutation) => Promise<GardenResult>) {
+  const [result, setResult] = useState<GardenState | null>(null);
+  const ownMutate = useCallback(
+    async (command: GardenMutation) => {
+      const outcome = await mutate(command);
+      if (outcome.state) setResult(outcome.state);
+      return outcome;
+    },
+    [mutate],
+  );
+  return { mutate: ownMutate, result };
+}
+
 // Loaded on demand so the hotbar and garden modules stay free of the server
 // action's module graph until the first read.
 const readAchievements = () =>
@@ -65,38 +84,55 @@ export function SinceLastVisit({
   state,
   openSpot,
   focusGarden,
+  quiet = false,
+  ownResult = null,
   loadAchievements = readAchievements,
 }: {
   state: GardenState;
   openSpot: (spot: number) => void;
   focusGarden: () => void;
+  /** A flower or seed sheet is open: the viewer may be acting. */
+  quiet?: boolean;
+  /** The latest state returned by the viewer's own action. */
+  ownResult?: GardenState | null;
   loadAchievements?: () => Promise<AchievementResult>;
 }) {
   const titleId = useId();
   const card = useRef<HTMLElement>(null);
   const disabled = useRef(false);
   const badgesLoaded = useRef(false);
-  const [badges, setBadges] = useState<EarnedBadge[] | null>(null);
+  const [badges, setBadges] = useState<{ list: EarnedBadge[]; silent: boolean } | null>(null);
+  const held = useRef<VisitNews>(noNews);
+  // Whether the rendered state may come from the viewer's own action. Kept in
+  // a ref so the achievements read can capture it when it is scheduled.
+  const silentNow = quiet || state === ownResult;
+  const silentRef = useRef(silentNow);
+  useEffect(() => {
+    silentRef.current = silentNow;
+  }, [silentNow]);
   const [news, setNews] = useState<VisitNews | null>(null);
   const [burst, setBurst] = useState(0);
   const preferences = useMemberPreferences();
-  const gentleMotion = preferences ? preferences.state?.gentle_motion === true : true;
+  const gentleMotion = preferences?.state?.gentle_motion === true;
   const signature = badgeSignature(state);
 
   // Achievements are not part of the garden state, so read them once on load
   // and again only after a garden change that could have earned one.
   useEffect(() => {
     let live = true;
+    // A read scheduled by the viewer's own action only moves the baseline.
+    const silent = silentRef.current;
     const timer = window.setTimeout(() => {
       loadAchievements()
         .then((result) => {
           if (!live || !result.state) return;
           badgesLoaded.current = true;
-          setBadges(
-            result.state.achievements
+          setBadges({
+            list: result.state.achievements
               .filter((a) => a.earned_at !== null)
               .map((a) => ({ id: a.achievement_id, title: a.title })),
-          );
+            silent,
+          });
         })
         .catch(() => {});
     }, badgesLoaded.current ? 1500 : 0);
@@ -108,23 +144,40 @@ export function SinceLastVisit({
 
   // Compare the current garden with this browser's snapshot, then advance
   // the snapshot at once so a reload or second tab never celebrates twice.
+  // Blooms, unlocks and badges that arrive with the viewer's own action (a
+  // state returned by it, or any change while a flower or seed sheet is open)
+  // only move the snapshot. Partner care is never the viewer's own; while a
+  // sheet is open it waits and appears once the sheet closes.
   useEffect(() => {
     if (disabled.current) return;
     const key = snapshotKey(state);
     const stored = readStoredSnapshot(key);
-    const next = stored.ok ? takeSnapshot(state, badges, stored.snapshot) : null;
+    const earned = badges?.list ?? null;
+    const next = stored.ok ? takeSnapshot(state, earned, stored.snapshot) : null;
     if (!stored.ok || !next || !writeStoredSnapshot(key, next)) {
       disabled.current = true;
       return;
     }
     publishBadges({ key, unread: unreadBadges(next) });
-    const found = diffSnapshot(stored.snapshot, state, badges);
-    if (!hasNews(found)) return;
+    const found = diffSnapshot(stored.snapshot, state, earned);
+    const silent = quiet || state === ownResult;
+    const shown: VisitNews = {
+      blooms: silent ? [] : found.blooms,
+      unlocks: silent ? [] : found.unlocks,
+      partnerCare: found.partnerCare,
+      badges: silent || badges?.silent ? [] : found.badges,
+    };
+    if (quiet) {
+      held.current = mergeNews(held.current, shown);
+      return;
+    }
+    const all = mergeNews(held.current, shown);
+    held.current = noNews;
+    if (!hasNews(all)) return;
     // The card is non-modal and never takes focus; it only appears.
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- news comes from browser storage, an external system
-    setNews((old) => (old ? mergeNews(old, found) : found));
+    setNews((old) => (old ? mergeNews(old, all) : all));
     setBurst((count) => count + 1);
-  }, [state, badges]);
+  }, [state, badges, quiet, ownResult]);
 
   const catalog = new Map(state.catalog.map((item) => [item.type_key, item]));
   const current = new Map(state.plants.map((plant) => [plant.flower.id, plant]));

@@ -96,7 +96,13 @@
 .iconUnlock { color: var(--wood-deep); }
 .iconCare { color: var(--rust); }
 .iconBadge { color: var(--ochre); }
-.row[data-kind="badge"] .slot { background: var(--gold); border-color: var(--gold); }
+/* The badge slot is a plain gold tile: the slot frame's fill would hide the gold. */
+.row[data-kind="badge"] .slot {
+  border: var(--border-pixel) solid var(--wood-dark);
+  border-image-source: none;
+  background: var(--gold);
+  box-shadow: inset 2px 2px 0 rgb(255 255 255 / 45%), inset -2px -2px 0 rgb(74 42 18 / 22%);
+}
 .row[data-kind="badge"] .iconBadge { color: var(--wood-deep); }
 .text {
   display: grid;

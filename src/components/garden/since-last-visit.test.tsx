@@ -157,6 +157,12 @@ describe("While you were away", () => {
   it("pops pixel confetti only when gentle motion is on", async () => {
     await visit(garden());
     const bloom = (s: GardenState) => { s.plants[1].flower.first_bloom_at = "2026-09-19T11:00:00Z"; };
+    // Unavailable preferences keep it off, like the member's motion-off style.
+    const unknown = renderCard(garden(bloom));
+    expect((await screen.findByRole("region", { name: "While you were away" })).querySelector("i")).toBeNull();
+    unknown.unmount();
+    localStorage.clear();
+    await visit(garden());
     preferences.current = { state: { gentle_motion: false } };
     const quiet = renderCard(garden(bloom));
     const card = await screen.findByRole("region", { name: "While you were away" });
@@ -168,6 +174,40 @@ describe("While you were away", () => {
     renderCard(garden(bloom));
     const lively = await screen.findByRole("region", { name: "While you were away" });
     expect(lively.querySelectorAll("i").length).toBeGreaterThan(0);
+  });
+
+  it("moves the snapshot silently for a state returned by your own action", async () => {
+    await visit(garden());
+    const own = garden((s) => {
+      s.plants[1].flower.first_bloom_at = "2026-09-19T11:00:00Z";
+      s.unlocks.push({ type_key: "daisy", unlocked_at: "2026-09-19T11:00:00Z" });
+    });
+    const openSpot = vi.fn(), focusGarden = vi.fn();
+    const loadAchievements = vi.fn(async () => achievements([firstSeed]));
+    render(<SinceLastVisit state={own} ownResult={own} openSpot={openSpot} focusGarden={focusGarden} loadAchievements={loadAchievements} />);
+    await waitFor(() => expect(loadAchievements).toHaveBeenCalled());
+    await act(async () => {});
+    expect(screen.queryByRole("region", { name: "While you were away" })).not.toBeInTheDocument();
+    expect(document.querySelector("[data-since-last-visit] i")).toBeNull();
+    expect(JSON.parse(localStorage.getItem(key)!).blooms).toContain("rose-1");
+  });
+
+  it("holds partner care while a sheet is open, absorbs blooms, then shows the care after it closes", async () => {
+    await visit(garden());
+    const openSpot = vi.fn(), focusGarden = vi.fn();
+    const loadAchievements = vi.fn(async () => achievements([firstSeed]));
+    const changed = garden((s) => {
+      s.plants[1].flower.first_bloom_at = "2026-09-19T11:00:00Z";
+      s.plants[2].member2_submitted = true;
+    });
+    const view = render(<SinceLastVisit state={changed} quiet openSpot={openSpot} focusGarden={focusGarden} loadAchievements={loadAchievements} />);
+    await act(async () => {});
+    expect(screen.queryByRole("region", { name: "While you were away" })).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("");
+    view.rerender(<SinceLastVisit state={changed} quiet={false} openSpot={openSpot} focusGarden={focusGarden} loadAchievements={loadAchievements} />);
+    const card = await screen.findByRole("region", { name: "While you were away" });
+    expect(within(card).getByText("Your partner cared for Tulip")).toBeInTheDocument();
+    expect(within(card).queryByText(/bloomed/)).not.toBeInTheDocument();
   });
 
   it("clears the hotbar dot once the Achievements panel is open", async () => {
