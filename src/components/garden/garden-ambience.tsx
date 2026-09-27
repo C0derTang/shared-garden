@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useSyncExternalStore, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type RefObject } from "react";
 import { useMemberPreferences } from "@/components/settings/member-preferences";
 import styles from "./garden-ambience.module.css";
 
@@ -64,17 +64,107 @@ export function useGardenLight(now: number, moonflowerOpen: boolean | undefined)
   );
 }
 
-// The sun crosses the sky from 4 a.m. to 10 p.m.; the moon from 10 p.m. to 4 a.m.
-function celestialPosition({ phase, minute }: GardenLight) {
+// The sun crosses the sky from 4 a.m. to 10 p.m., matching the clock's sun
+// icon, and the moon crosses it through Moonflower hours.
+export function celestialProgress({ phase, minute }: GardenLight) {
   const progress =
     phase === "night"
-      ? ((minute >= 1320 ? minute - 1320 : minute + 120) / 360)
+      ? (minute >= 1320 ? minute - 1320 : minute + 120) / 360
       : (minute - 240) / 1080;
-  const t = Math.min(1, Math.max(0, progress));
-  return {
-    "--celestial-x": `${Math.round(6 + t * 88)}%`,
-    "--celestial-rise": `${Math.round(Math.sin(Math.PI * t) * 12)}px`,
-  } as CSSProperties;
+  return Math.min(1, Math.max(0, progress));
+}
+
+type Box = { left: number; top: number; right: number; bottom: number };
+/** Where the sun or moon's centre may travel: one height and free spans. */
+export type SkyTrack = { y: number; segments: [number, number][] };
+// The visible disc core, the clearance kept around it, and the shortest
+// track worth using before trying the lower band.
+const core = 20;
+const clearance = 8;
+const minimumTrack = 96;
+const controlLip = 3;
+
+/**
+ * Finds a track for the sun or moon in open sky (decision 0050). The first
+ * choice is the row of the Help and Songs signs, between the controls. If the
+ * controls leave too little room there (a narrow phone with the Guide button),
+ * the track drops to a band just below the row and above the flowers. The disc
+ * core keeps `clearance` from every control and flower, and never goes under
+ * the header.
+ */
+export function skyTrack(width: number, headerBottom: number, row: { top: number; bottom: number }, obstacles: Box[]): SkyTrack | null {
+  const bands = [(row.top + row.bottom) / 2, row.bottom + controlLip + clearance + core / 2];
+  let best: SkyTrack | null = null;
+  let bestLength = 0;
+  for (const y of bands) {
+    if (y - core / 2 < headerBottom) continue;
+    let free: [number, number][] = [[clearance + core / 2, width - clearance - core / 2]];
+    for (const o of obstacles) {
+      if (o.bottom + clearance <= y - core / 2 || o.top - clearance >= y + core / 2) continue;
+      const from = o.left - clearance - core / 2;
+      const to = o.right + clearance + core / 2;
+      free = free.flatMap(([l, r]) => ([[l, Math.min(r, from)], [Math.max(l, to), r]] as [number, number][]).filter(([a, b]) => b > a));
+    }
+    const length = free.reduce((sum, [l, r]) => sum + r - l, 0);
+    if (length >= minimumTrack) return { y, segments: free };
+    if (length > bestLength) {
+      best = { y, segments: free };
+      bestLength = length;
+    }
+  }
+  return best;
+}
+
+/** The point `t` (0–1) of the way along a track's free spans. */
+export function alongTrack({ y, segments }: SkyTrack, t: number) {
+  const total = segments.reduce((sum, [l, r]) => sum + r - l, 0);
+  let left = t * total;
+  for (const [l, r] of segments) {
+    if (left <= r - l) return { x: l + left, y };
+    left -= r - l;
+  }
+  const last = segments[segments.length - 1];
+  return { x: last[1], y };
+}
+
+// Measures the garden's controls and first flowers, relative to the garden.
+function useSkyTrack(ref: RefObject<HTMLDivElement | null>) {
+  const [track, setTrack] = useState<SkyTrack | null>(null);
+  useEffect(() => {
+    const layer = ref.current;
+    const garden = layer?.parentElement;
+    if (!layer || !garden || typeof ResizeObserver === "undefined") return;
+    const controls: Element[] = [];
+    let header: Element | null = null;
+    for (const child of garden.children) {
+      if (child === layer) continue;
+      if (child.tagName === "HEADER") header = child;
+      else if (!child.querySelector("section")) controls.push(child, ...child.children);
+    }
+    const measure = () => {
+      const origin = garden.getBoundingClientRect();
+      const box = (r: DOMRect): Box => ({ left: r.left - origin.left, right: r.right - origin.left, top: r.top - origin.top, bottom: r.bottom - origin.top });
+      const shown = (element: Element) => {
+        const r = element.getBoundingClientRect();
+        return r.width > 0 && r.height > 0 ? box(r) : null;
+      };
+      // A full-width row stands for its children; only its controls block.
+      const blocking = controls
+        .filter((element) => element.getBoundingClientRect().width < origin.width * 0.9)
+        .map(shown)
+        .filter((b): b is Box => !!b);
+      const flowers = [...garden.querySelectorAll("section svg")].map(shown).filter((b): b is Box => !!b);
+      const headerBottom = header ? header.getBoundingClientRect().bottom - origin.top + 4 : 0;
+      const row = blocking.length
+        ? { top: Math.min(...blocking.map((b) => b.top)), bottom: Math.min(...blocking.map((b) => b.bottom)) }
+        : { top: headerBottom, bottom: headerBottom + 44 };
+      setTrack(skyTrack(origin.width, headerBottom, row, [...blocking, ...flowers]));
+    };
+    const observer = new ResizeObserver(measure);
+    for (const element of [garden, ...controls]) observer.observe(element);
+    return () => observer.disconnect();
+  }, [ref]);
+  return track;
 }
 
 // Fixed, hand-placed positions keep the layer deterministic and cheap.
@@ -89,16 +179,20 @@ const petals = [[8, 0], [26, -6], [47, -11], [63, -3], [81, -8], [92, -14]];
  */
 export function GardenAmbience({ light }: { light: GardenLight | null }) {
   const preferences = useMemberPreferences();
+  const layer = useRef<HTMLDivElement>(null);
+  const track = useSkyTrack(layer);
   const reducedMotion = useSyncExternalStore(subscribeReducedMotion, prefersReducedMotion, () => true);
   // Motion follows the member's gentle-motion setting and the device setting.
   const gentleMotion = preferences ? preferences.state?.gentle_motion === true : true;
   const still = reducedMotion || !gentleMotion;
-  if (!light) return <div className={styles.ambience} aria-hidden="true" />;
+  if (!light) return <div ref={layer} className={styles.ambience} aria-hidden="true" />;
   const { phase } = light;
   const glowCount = phase === "night" ? fireflies.length : phase === "dusk" ? 4 : 0;
+  const celestial = track && track.segments.length > 0 ? alongTrack(track, celestialProgress(light)) : null;
   const showPetals = !still && (phase === "dawn" || phase === "day" || phase === "golden");
   return (
     <div
+      ref={layer}
       className={styles.ambience}
       data-phase={phase}
       data-motion={still ? "still" : "live"}
@@ -112,7 +206,13 @@ export function GardenAmbience({ light }: { light: GardenLight | null }) {
             stars.map(([left, top], index) => (
               <i key={index} className={styles.star} style={{ left: `${left}%`, top: `${top}%`, animationDelay: `${-index * 0.7}s` }} />
             ))}
-          <i className={styles.celestial} style={celestialPosition(light)} />
+          {celestial && (
+            <i
+              className={styles.celestial}
+              data-celestial={phase === "night" ? "moon" : "sun"}
+              style={{ left: celestial.x, top: celestial.y }}
+            />
+          )}
         </div>
       </div>
       {(glowCount > 0 || showPetals) && (

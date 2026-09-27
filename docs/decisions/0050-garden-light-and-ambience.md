@@ -23,7 +23,7 @@ clock's moon icon and the Moonflower window (10 p.m. to 4 a.m.) in decision
 | Dawn | 4:00–7:59 a.m. | Rose and peach sky, pale low sun, faint rose light |
 | Day | 8:00 a.m.–4:59 p.m. | Clear blue sky, sun, the unchanged daytime grass |
 | Golden | 5:00–7:59 p.m. | Amber sky, warm sun, warm light |
-| Dusk | 8:00–9:59 p.m. | Violet sky over a sunset band, an early moon |
+| Dusk | 8:00–9:59 p.m. | Violet sky over a sunset band, a low red sun |
 | Night | Moonflower hours | Navy sky, stars, moon, moonlit ground |
 
 Around the night edges, before the next garden read confirms the flag change,
@@ -40,9 +40,7 @@ flowers. It holds:
 
 - a banded pixel sky across the top of the meadow, in four hard-edged bands
   that fade into the grass;
-- a pixel sun or moon that crosses the sky with the clock. The sun travels from
-  4 a.m. to 10 p.m. and the moon through Moonflower hours. It stays in the band
-  behind the Help and Songs signs, above the first plots;
+- a pixel sun or moon that crosses the sky with the clock (see Sun and moon);
 - a colour tint on the ground. Dawn and golden hour use tints with the same
   luminance as the day grass, so contrast barely moves. Day has no tint;
 - a viewport vignette at dusk and night only. At dawn, day and golden hour it
@@ -60,7 +58,29 @@ border. Spot, Help, Songs and Guide focus rings gain a 2px `--paper-light` band
 outside the ink outline. The flower art, tag, dots and the ring's ink and halo
 are unchanged.
 
-## Motion
+## Sun and moon
+
+The disc follows the clock's icon logic: the sun from 4 a.m. to 10 p.m.
+(including dusk, as a low red sun) and the moon through Moonflower hours. It
+moves left to right with the time of day. It is a 16-unit pixel disc at 2px
+per art pixel, with a 20px core inside a 32px halo.
+
+The disc stays in open sky. Its core keeps at least 8px from the Help, Songs
+and Guide controls and from the flowers, and it never goes under the header.
+The layer measures the real positions of those controls and of the flowers
+whenever the garden or a control resizes, including when the Guide collapses
+or expands:
+
+1. The first choice is the row of the signs, with the track running through
+   the free spans between the controls. The disc skips over a control, such as
+   the centred Guide button, rather than passing under it.
+2. If that row leaves under 96px of travel, the track drops to a band just
+   below the signs (8px under their lips) and above the flowers. This happens
+   on a narrow phone, or with the Guide button between the signs. It skips any
+   flower that reaches into the band.
+3. If neither band has room (for example, under an expanded Guide card), the
+   disc is the longest available track, or is left out.
+
 
 Only `transform` and `opacity` animate, in stepped pixel timing. Petals fall
 with a flip, fireflies wander and blink, stars twinkle, and a new phase fades
@@ -103,8 +123,10 @@ ring's own colours are untouched, so contrast within them stays as in decision
 ## Verification boundary
 
 Verification uses the actual garden components with disposable synthetic data
-and a stubbed garden clock for each phase, at 320, 390 and 1280 pixels. It
-checks keyboard focus at night, reduced motion and the gentle-motion setting,
+and a stubbed garden clock for each phase, at 320, 390 and 1280 pixels. A
+24-hour sweep every 30 minutes at 320, 390, 768, 1280 and 1440 pixels, with and
+without the collapsed Guide button, checks the disc's clearance from the
+controls, the flowers and the header. It also checks keyboard focus at night, reduced motion and the gentle-motion setting,
 running animations, console hydration warnings and horizontal overflow. Lint,
 typecheck, tests and a production build also run. It never reads or writes
 production data.

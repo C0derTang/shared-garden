@@ -5,7 +5,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 const { readSettings } = vi.hoisted(() => ({ readSettings: vi.fn() }));
 vi.mock("@/lib/settings/actions", () => ({ readSettings, saveSetting: vi.fn() }));
 import { MemberPreferences } from "@/components/settings/member-preferences";
-import { GardenAmbience, gardenPhase, useGardenLight } from "./garden-ambience";
+import { alongTrack, celestialProgress, GardenAmbience, gardenPhase, skyTrack, useGardenLight } from "./garden-ambience";
 
 // Pacific daylight time is UTC-7 on these September dates.
 const at = (pacific: string) => Date.parse(`2026-09-18T${pacific}:00-07:00`);
@@ -103,4 +103,54 @@ it("stops all ambience motion under the device reduced-motion setting", () => {
   view.rerender(<Ambience now={at("23:30")} moonflower gentle />);
   expect(layer()).toHaveAttribute("data-motion", "still");
   expect(document.querySelectorAll("[data-firefly]").length).toBeGreaterThan(0);
+});
+
+// Measured 320 and 390px layouts: header bottom (with its shadow) 72, signs 66–110.
+const help = (right: number) => ({ left: 12, top: 66, right, bottom: 110 });
+const songs = (left: number, right: number) => ({ left, top: 66, right, bottom: 110 });
+const clears = (track: NonNullable<ReturnType<typeof skyTrack>>, boxes: { left: number; top: number; right: number; bottom: number }[]) => {
+  for (let t = 0; t <= 1; t += 0.01) {
+    const { x, y } = alongTrack(track, t);
+    for (const b of boxes) {
+      const gap = Math.max(b.left - (x + 10), x - 10 - b.right, b.top - (y + 10), y - 10 - b.bottom);
+      expect(gap).toBeGreaterThanOrEqual(8);
+    }
+    expect(y - 10).toBeGreaterThanOrEqual(72);
+  }
+};
+
+it("keeps the sun and moon in open sky between the signs, clear of every control", () => {
+  const boxes = [help(94), songs(281, 378)];
+  const track = skyTrack(390, 72, { top: 66, bottom: 110 }, boxes)!;
+  expect(track.y).toBe(88);
+  expect(track.segments).toEqual([[112, 263]]);
+  clears(track, boxes);
+  // A centred Guide button splits the row; the disc skips over it.
+  const wide = [help(142), { left: 596, top: 66, right: 684, bottom: 110 }, songs(1123, 1220)];
+  const split = skyTrack(1280, 72, { top: 66, bottom: 110 }, wide)!;
+  expect(split.y).toBe(88);
+  expect(split.segments).toHaveLength(3);
+  clears(split, wide);
+});
+
+it("drops below the signs, around the flowers, when a narrow row has no room", () => {
+  const guide = { left: 120, top: 66, right: 200, bottom: 110 };
+  const tulip = { left: 230, top: 145, right: 295, bottom: 209 };
+  const boxes = [help(94), guide, songs(211, 308), tulip, { left: 26, top: 148, right: 90, bottom: 212 }];
+  const track = skyTrack(320, 72, { top: 66, bottom: 110 }, boxes)!;
+  expect(track.y).toBe(131);
+  expect(track.segments).toEqual([[108, 212]]);
+  clears(track, boxes);
+});
+
+it("moves the sun from 4 a.m. to 10 p.m. and the moon through Moonflower hours", () => {
+  expect(celestialProgress({ phase: "dawn", minute: 240 })).toBe(0);
+  expect(celestialProgress({ phase: "day", minute: 780 })).toBe(0.5);
+  expect(celestialProgress({ phase: "dusk", minute: 1319 })).toBeCloseTo(1, 2);
+  expect(celestialProgress({ phase: "night", minute: 1320 })).toBe(0);
+  expect(celestialProgress({ phase: "night", minute: 60 })).toBe(0.5);
+  const track = { y: 88, segments: [[10, 20], [40, 50]] as [number, number][] };
+  expect(alongTrack(track, 0)).toEqual({ x: 10, y: 88 });
+  expect(alongTrack(track, 0.75)).toEqual({ x: 45, y: 88 });
+  expect(alongTrack(track, 1)).toEqual({ x: 50, y: 88 });
 });

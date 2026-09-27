@@ -10,6 +10,7 @@
   --sun-day: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Cpath fill='%23fff3b8' fill-opacity='.28' d='M5 0h6v1H5zM3 1h10v1H3zM2 2h12v1H2zM1 3h14v1H1zM1 4h14v1H1zM0 5h16v1H0zM0 6h16v1H0zM0 7h16v1H0zM0 8h16v1H0zM0 9h16v1H0zM0 10h16v1H0zM1 11h14v1H1zM1 12h14v1H1zM2 13h12v1H2zM3 14h10v1H3zM5 15h6v1H5z'/%3E%3Cpath fill='%23fff3b8' fill-opacity='.4' d='M7 1h2v1H7zM4 2h8v1H4zM3 3h10v1H3zM2 4h12v1H2zM2 5h12v1H2zM2 6h12v1H2zM1 7h14v1H1zM1 8h14v1H1zM2 9h12v1H2zM2 10h12v1H2zM2 11h12v1H2zM3 12h10v1H3zM4 13h8v1H4zM7 14h2v1H7z'/%3E%3Cpath fill='%23fff1a8' d='M6 3h4v1H6zM4 4h8v1H4zM4 5h8v1H4zM3 6h10v1H3zM3 7h10v1H3zM3 8h10v1H3zM3 9h10v1H3zM4 10h8v1H4zM4 11h8v1H4zM6 12h4v1H6z'/%3E%3Cpath fill='%23fffbe0' d='M6 5h3v1H6zM5 6h1v2H5z'/%3E%3C/svg%3E");
   --sun-dawn: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Cpath fill='%23ffb8b0' fill-opacity='.28' d='M5 0h6v1H5zM3 1h10v1H3zM2 2h12v1H2zM1 3h14v1H1zM1 4h14v1H1zM0 5h16v1H0zM0 6h16v1H0zM0 7h16v1H0zM0 8h16v1H0zM0 9h16v1H0zM0 10h16v1H0zM1 11h14v1H1zM1 12h14v1H1zM2 13h12v1H2zM3 14h10v1H3zM5 15h6v1H5z'/%3E%3Cpath fill='%23ffb8b0' fill-opacity='.4' d='M7 1h2v1H7zM4 2h8v1H4zM3 3h10v1H3zM2 4h12v1H2zM2 5h12v1H2zM2 6h12v1H2zM1 7h14v1H1zM1 8h14v1H1zM2 9h12v1H2zM2 10h12v1H2zM2 11h12v1H2zM3 12h10v1H3zM4 13h8v1H4zM7 14h2v1H7z'/%3E%3Cpath fill='%23ffd2a0' d='M6 3h4v1H6zM4 4h8v1H4zM4 5h8v1H4zM3 6h10v1H3zM3 7h10v1H3zM3 8h10v1H3zM3 9h10v1H3zM4 10h8v1H4zM4 11h8v1H4zM6 12h4v1H6z'/%3E%3Cpath fill='%23fff0d8' d='M6 5h3v1H6zM5 6h1v2H5z'/%3E%3C/svg%3E");
   --sun-golden: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Cpath fill='%23ff9e48' fill-opacity='.28' d='M5 0h6v1H5zM3 1h10v1H3zM2 2h12v1H2zM1 3h14v1H1zM1 4h14v1H1zM0 5h16v1H0zM0 6h16v1H0zM0 7h16v1H0zM0 8h16v1H0zM0 9h16v1H0zM0 10h16v1H0zM1 11h14v1H1zM1 12h14v1H1zM2 13h12v1H2zM3 14h10v1H3zM5 15h6v1H5z'/%3E%3Cpath fill='%23ff9e48' fill-opacity='.4' d='M7 1h2v1H7zM4 2h8v1H4zM3 3h10v1H3zM2 4h12v1H2zM2 5h12v1H2zM2 6h12v1H2zM1 7h14v1H1zM1 8h14v1H1zM2 9h12v1H2zM2 10h12v1H2zM2 11h12v1H2zM3 12h10v1H3zM4 13h8v1H4zM7 14h2v1H7z'/%3E%3Cpath fill='%23ffbf5a' d='M6 3h4v1H6zM4 4h8v1H4zM4 5h8v1H4zM3 6h10v1H3zM3 7h10v1H3zM3 8h10v1H3zM3 9h10v1H3zM4 10h8v1H4zM4 11h8v1H4zM6 12h4v1H6z'/%3E%3Cpath fill='%23ffe3a0' d='M6 5h3v1H6zM5 6h1v2H5z'/%3E%3C/svg%3E");
+  --sun-dusk: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Cpath fill='%23e8645a' fill-opacity='.28' d='M5 0h6v1H5zM3 1h10v1H3zM2 2h12v1H2zM1 3h14v1H1zM1 4h14v1H1zM0 5h16v1H0zM0 6h16v1H0zM0 7h16v1H0zM0 8h16v1H0zM0 9h16v1H0zM0 10h16v1H0zM1 11h14v1H1zM1 12h14v1H1zM2 13h12v1H2zM3 14h10v1H3zM5 15h6v1H5z'/%3E%3Cpath fill='%23e8645a' fill-opacity='.4' d='M7 1h2v1H7zM4 2h8v1H4zM3 3h10v1H3zM2 4h12v1H2zM2 5h12v1H2zM2 6h12v1H2zM1 7h14v1H1zM1 8h14v1H1zM2 9h12v1H2zM2 10h12v1H2zM2 11h12v1H2zM3 12h10v1H3zM4 13h8v1H4zM7 14h2v1H7z'/%3E%3Cpath fill='%23ff9a58' d='M6 3h4v1H6zM4 4h8v1H4zM4 5h8v1H4zM3 6h10v1H3zM3 7h10v1H3zM3 8h10v1H3zM3 9h10v1H3zM4 10h8v1H4zM4 11h8v1H4zM6 12h4v1H6z'/%3E%3Cpath fill='%23ffc690' d='M6 5h3v1H6zM5 6h1v2H5z'/%3E%3C/svg%3E");
   --moon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Cpath fill='%23c8d2ff' fill-opacity='.16' d='M5 0h6v1H5zM3 1h10v1H3zM2 2h12v1H2zM1 3h14v1H1zM1 4h14v1H1zM0 5h16v1H0zM0 6h16v1H0zM0 7h16v1H0zM0 8h16v1H0zM0 9h16v1H0zM0 10h16v1H0zM1 11h14v1H1zM1 12h14v1H1zM2 13h12v1H2zM3 14h10v1H3zM5 15h6v1H5z'/%3E%3Cpath fill='%23c8d2ff' fill-opacity='.24' d='M7 1h2v1H7zM4 2h8v1H4zM3 3h10v1H3zM2 4h12v1H2zM2 5h12v1H2zM2 6h12v1H2zM1 7h14v1H1zM1 8h14v1H1zM2 9h12v1H2zM2 10h12v1H2zM2 11h12v1H2zM3 12h10v1H3zM4 13h8v1H4zM7 14h2v1H7z'/%3E%3Cpath fill='%23eef0ff' d='M6 3h4v1H6zM4 4h8v1H4zM4 5h8v1H4zM3 6h10v1H3zM3 7h10v1H3zM3 8h10v1H3zM3 9h10v1H3zM4 10h8v1H4zM4 11h8v1H4zM6 12h4v1H6z'/%3E%3Cpath fill='%23c3c9ec' d='M9 5h2v2H9zM6 9h2v1H6zM10 9h1v2h-1zM11 7h1v4h-1zM10 11h1v1h-1z'/%3E%3C/svg%3E");
 }
 .light {
@@ -25,13 +26,13 @@
   overflow: hidden;
   background: linear-gradient(180deg, var(--sky-1) 0 96px, var(--sky-2) 96px 144px, var(--sky-3) 144px 192px, var(--sky-4) 192px 234px, transparent 234px);
 }
+/* The sun or moon: a 16-unit pixel disc at 2px per art pixel. Its centre is
+   placed on a measured track in open sky (decision 0050). */
 .celestial {
   position: absolute;
-  top: calc(74px - var(--celestial-rise, 0px));
-  left: var(--celestial-x, 80%);
-  width: 48px;
-  height: 48px;
-  translate: -50% 0;
+  width: 32px;
+  height: 32px;
+  translate: -50% -50%;
   background: var(--sun-day) center / 100% 100% no-repeat;
   image-rendering: pixelated;
 }
@@ -106,14 +107,14 @@
   --vignette: transparent;
   --petal: #ffd48a; --petal-hi: #ffe9b8;
 }
-.ambience[data-phase="golden"] .celestial { background-image: var(--sun-golden); width: 56px; height: 56px; }
-/* Dusk: violet sky over a sunset band, the first fireflies and an early moon. */
+.ambience[data-phase="golden"] .celestial { background-image: var(--sun-golden); }
+/* Dusk: violet sky over a sunset band, a low red sun and the first fireflies. */
 .ambience[data-phase="dusk"] {
   --sky-1: #4f427e; --sky-2: rgb(122 80 128 / 80%); --sky-3: rgb(196 112 118 / 50%); --sky-4: rgb(222 148 118 / 22%);
   --tint: rgb(56 40 104 / 50%);
   --vignette: rgb(20 12 42 / 38%);
 }
-.ambience[data-phase="dusk"] .celestial { background-image: var(--moon); opacity: .7; }
+.ambience[data-phase="dusk"] .celestial { background-image: var(--sun-dusk); }
 /* Night, during Moonflower hours: navy sky, stars, moon and fireflies. */
 .ambience[data-phase="night"] {
   --sky-1: #111a3a; --sky-2: rgb(20 30 66 / 82%); --sky-3: rgb(22 34 70 / 52%); --sky-4: rgb(22 34 70 / 22%);
