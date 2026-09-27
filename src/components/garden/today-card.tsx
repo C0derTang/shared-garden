@@ -41,15 +41,25 @@ export function TodayCard({ state, visit }: { state: GardenState; visit: VisitFr
   const listed = expanded && plan.rows.length > 0;
   // The in-flow spacer matches the collapsed plaque, so the garden can always
   // scroll its last plots clear of the card and the hotbar.
+  // The same height is shared with the garden as --today-bar-height, so the
+  // "While you were away" card keeps clear of the plaque when large text
+  // makes it taller (issue #135).
   useLayoutEffect(() => {
     const element = bar.current;
+    const host = card.current?.parentElement;
     if (!element) return;
-    const measure = () => setClearance(element.offsetHeight);
+    const measure = () => {
+      setClearance(element.offsetHeight);
+      host?.style.setProperty("--today-bar-height", `${element.offsetHeight}px`);
+    };
     measure();
-    if (typeof ResizeObserver === "undefined") return;
-    const observer = new ResizeObserver(measure);
-    observer.observe(element);
-    return () => observer.disconnect();
+    const observer =
+      typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure);
+    observer?.observe(element);
+    return () => {
+      observer?.disconnect();
+      host?.style.removeProperty("--today-bar-height");
+    };
   }, []);
   function open(spot: number, from: string) {
     visit(spot, () => {

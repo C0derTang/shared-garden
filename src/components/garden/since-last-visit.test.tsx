@@ -256,6 +256,28 @@ describe("While you were away", () => {
     });
   });
 
+  it("fades the bottom of the lines while more of them are below", async () => {
+    // jsdom has no layout: the list reports 300px of lines in a 200px box.
+    const box = { scrollHeight: 300, clientHeight: 200 };
+    vi.spyOn(HTMLElement.prototype, "scrollHeight", "get").mockImplementation(function (this: HTMLElement) { return this.tagName === "UL" ? box.scrollHeight : 0; });
+    vi.spyOn(HTMLElement.prototype, "clientHeight", "get").mockImplementation(function (this: HTMLElement) { return this.tagName === "UL" ? box.clientHeight : 0; });
+    await visit(garden());
+    renderCard(garden((s) => {
+      s.plants[1].flower.first_bloom_at = "2026-09-19T11:00:00Z";
+      s.plants[1].member2_submitted = true;
+    }));
+    const card = await screen.findByRole("region", { name: "While you were away" });
+    const lines = card.querySelector("ul")!;
+    await waitFor(() => expect(lines).toHaveAttribute("data-more", "true"));
+    // Scrolled to the last line, the fade goes away.
+    lines.scrollTop = 100;
+    act(() => { lines.dispatchEvent(new Event("scroll")); });
+    expect(lines).not.toHaveAttribute("data-more");
+    lines.scrollTop = 40;
+    act(() => { lines.dispatchEvent(new Event("scroll")); });
+    expect(lines).toHaveAttribute("data-more", "true");
+  });
+
   it("dismisses, returns focus to the garden, and does not celebrate the same news again", async () => {
     const user = userEvent.setup();
     await visit(garden());

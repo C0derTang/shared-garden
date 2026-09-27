@@ -7,7 +7,9 @@ import { useSheetScope } from "./sheet-scope";
 
 type BottomSheetProps = {
   trigger: ReactElement;
-  title: string;
+  /** Text, or text with a decorative `aria-hidden` glyph. The dialog's name is
+      the title's accessible text. */
+  title: ReactNode;
   description: string;
   children: ReactNode;
   open?: boolean;

@@ -86,14 +86,21 @@ and planting errors still appear directly above the bar.
 
 After a successful plant the sheet doesn't close. The same sheet becomes the
 new flower's sheet with its care form, titled "<Flower> planted ✿" (for
-example "Rose planted ✿"). Focus moves to that title, which becomes
+example "Rose planted ✿"). The ✿ is decorative and hidden from screen
+readers, so the sheet and its heading are named "Rose planted"
+([issue #135](https://github.com/C0derTang/shared-garden/issues/135)). Focus
+moves to that title, which becomes
 programmatically focusable (`tabindex="-1"`). Screen readers then announce
 the new sheet, and the next Tab reaches the flower's controls. Closing the
 sheet clears the planted title. Reopening the flower shows its usual sheet
 titled with its name.
 
 A rejected plant keeps the picker open with the chosen seed, the wish draft
-and the error, as before. If the save succeeds but the refreshed garden does
+and the error, as before. The error sits just above the sticky Plant bar, so
+it scrolls to the nearest position where it is fully visible and clear of the
+bar, using the same 7rem scroll margin as the slots (issue #135). On a
+320px phone it could otherwise stay hidden below the visible part of the
+sheet. If the save succeeds but the refreshed garden does
 not include the flower yet, the picker stays until it arrives. If another
 member plants the spot first, the existing "Someone planted here" status is
 unchanged. The selected spot comes from decision 0023 and is still the spot

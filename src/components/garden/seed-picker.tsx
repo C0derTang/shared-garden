@@ -1,5 +1,5 @@
 "use client";
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { FlowerSprite, type FlowerType } from "./flower-sprite";
 import {
   seedAvailability,
@@ -57,6 +57,12 @@ export function SeedPicker({
   const [pending, setPending] = useState(false);
   const lock = useRef(false);
   const root = useRef<HTMLDivElement>(null);
+  const errorNotice = useRef<HTMLParagraphElement>(null);
+  // A rejected plant's reason sits just above the sticky Plant bar, where a
+  // short phone sheet can leave it hidden, so it scrolls clear of the bar.
+  useEffect(() => {
+    if (error) errorNotice.current?.scrollIntoView?.({ block: "nearest" });
+  }, [error]);
   const bagId = useId();
   const item = state.catalog.find((c) => c.type_key === selected);
   const occupied = state.plants.some((p) => p.flower.spot === spot);
@@ -250,7 +256,11 @@ export function SeedPicker({
         </p>
       )}
       {error && (
-        <p className={styles.error} role="alert">
+        <p
+          ref={errorNotice}
+          className={`${styles.error} ${seedStyles.error}`}
+          role="alert"
+        >
           {error}
         </p>
       )}

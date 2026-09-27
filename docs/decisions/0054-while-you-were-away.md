@@ -152,7 +152,10 @@ dot uses `Highlight` with a `CanvasText` edge.
 
 The card is a `--frame-wood` 9-slice on a `--paper` body. It is centered
 below the Help and Songs signs, `min(25rem, 100% − 24px)` wide, 124px from the
-top on phones and 128px from 640px up. It uses the shared title plaque
+top on phones and 128px from 640px up. With large text the signs follow the
+taller header (decision 0049), and the card keeps the same 58px (62px from
+640px up) below their line
+([issue #135](https://github.com/C0derTang/shared-garden/issues/135)). It uses the shared title plaque
 (`sheet-title`) at `--text-md` (`--text-sm` below 360px, so it stays on one
 line), with a small gold pixel sparkle, and the
 shared red × stamp close in its 44px target (`sheet-close`).
@@ -183,8 +186,15 @@ the hotbar. Its height is capped at `100dvh` minus its top offset, the shared
 `--hotbar-bottom` and `--hotbar-height`, and a Today-card clearance: 108px, or
 160px below 360px, where the Today card wraps to 125px. The clearance covers
 the Today card's height, its 14px title tab, its 10px gap and a 10px margin.
-The cap never goes below 200px. When the lines don't fit, they scroll inside
-the card, with padding that keeps row lips and focus rings in view. The spot
+The Today card shares its measured bar height as `--today-bar-height`, so the
+clearance grows with it when large text makes it taller (issue #135). The cap
+never goes below 200px, so on a 320×640 screen with 20px root text or more
+the Today card can still cover the card's lower edge. When the lines don't
+fit, they scroll inside the card, with padding that keeps row lips and focus
+rings in view. While more lines are below, the bottom 28px of the list fades
+into the parchment (a mask down to 15% opacity) to show there is more to
+scroll. The fade goes once the last line is reached. A 28px scroll padding
+keeps a focused row clear of it, and forced colors drop it (issue #135). The spot
 notice (`z-index` 20) and the Today card sit above the card. An expanded Today
 list can cover it, because the member opened that list.
 

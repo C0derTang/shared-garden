@@ -385,6 +385,32 @@ p {
     box-shadow: none;
   }
 }
+/* With large text the four labels cannot share one shelf, so the slots wrap
+   into two rows of two: Garden and Memories, then Achievements and Settings
+   (issue #135). The two landmarks stay separate: the Garden nav spans both
+   rows on a subgrid and leaves its fourth cell to the Settings nav. The
+   navigation measures the fit and publishes its taller height as
+   --hotbar-height. Slot padding, frames and the focus ring are unchanged, so
+   the clearance rule still holds. */
+.garden-navigation[data-rows="2"] {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: auto auto;
+}
+.garden-navigation[data-rows="2"] .garden-primary-nav {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-row: 1 / span 2;
+  grid-template-columns: subgrid;
+  grid-template-rows: subgrid;
+}
+.garden-navigation[data-rows="2"] .garden-settings-nav {
+  grid-column: 2;
+  grid-row: 2;
+}
+.garden-navigation[data-rows="2"] .garden-settings-nav a {
+  flex: 1;
+}
 @keyframes fade-in {
   from {
     opacity: 0;

@@ -141,9 +141,13 @@ garden link now has a 44px target.
 ## Pixel font ligatures
 
 Pixelify Sans substitutes "fi" and "ff" ligatures that read as other letters,
-so "first" can look like "Arst". Every `font` shorthand resets the ligature
-setting, so these four panels force `font-variant-ligatures: none` on all of
-their contents. A global fix belongs with the shared tokens.
+so "first" can look like "Arst". The global fix now sits in the shared
+Pixelify `@font-face` rules
+([decision 0049](0049-harvest-handheld-reskin.md), issue #132), so the four
+panel-local `font-variant-ligatures: none !important` overrides that first
+fixed these panels were removed
+([issue #135](https://github.com/C0derTang/shared-garden/issues/135)). A
+ligature sweep of the four panels found no ligated pixel text without them.
 
 ## Measured contrast
 

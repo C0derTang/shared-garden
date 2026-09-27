@@ -145,26 +145,32 @@ function GrowthSummary({
 function CareCard({
   card,
   dailyCare,
+  closed = false,
   children,
 }: {
   card: FlowerCard;
   dailyCare: boolean;
+  /** A Moonflower outside its hours: your turn waits for 10 p.m. */
+  closed?: boolean;
   children: ReactNode;
 }) {
   const id = useId();
   const you = card.who === "you";
+  const opens = you && closed && !card.cared;
   const status = card.cared
     ? "Cared today"
-    : you
-      ? "Your turn"
-      : "Not yet today";
+    : opens
+      ? "Opens 10 p.m."
+      : you
+        ? "Your turn"
+        : "Not yet today";
   return (
     <article
       className={sheetStyles.card}
       data-who={card.who}
       aria-labelledby={id}
     >
-      <header className={sheetStyles.cardHead}>
+      <header className={sheetStyles.cardHead} data-care={dailyCare || undefined}>
         {dailyCare && (
           <span
             className={sheetStyles.cardDot}
@@ -176,7 +182,7 @@ function CareCard({
         {dailyCare && (
           <span
             className={sheetStyles.cardStatus}
-            data-tone={card.cared ? "cared" : you ? "turn" : "waiting"}
+            data-tone={card.cared ? "cared" : you && !opens ? "turn" : "waiting"}
           >
             {status}
           </span>
@@ -309,8 +315,14 @@ export function FlowerSheet({
     }
   }
   // After a new share, carry focus to the next step so the round keeps flowing.
+  // Focus alone scrolls only until the button touches the sheet's edge, so it
+  // then scrolls the button's whole focus ring and lip into view (its scroll
+  // margin covers them).
   useEffect(() => {
-    if (saved === "share") nextAction.current?.focus();
+    const button = nextAction.current;
+    if (saved !== "share" || !button) return;
+    button.focus({ preventScroll: true });
+    button.scrollIntoView?.({ block: "nearest", inline: "nearest" });
   }, [saved]);
   const next = saved === "share" ? nextDueFlower(state, flower.spot) : null;
   const nextItem = next
@@ -449,7 +461,12 @@ export function FlowerSheet({
                 data-layout={sideBySide ? "pair" : "stack"}
               >
                 {cards.map((card) => (
-                  <CareCard key={card.who} card={card} dailyCare={!ordinaryDone}>
+                  <CareCard
+                    key={card.who}
+                    card={card}
+                    dailyCare={!ordinaryDone}
+                    closed={moonClosed}
+                  >
                     {card.entries.map(todayEntry)}
                     {card.who === "partner" ? (
                       card.entries.length === 0 && (

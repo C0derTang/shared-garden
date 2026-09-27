@@ -63,9 +63,13 @@ it("goes straight from planting to the new flower's first care in the same sheet
   mutateGarden.mockResolvedValue({ state: planted, saved: true, error: null });
   await user.click(within(sheet).getByRole("button", { name: "Plant Rose" }));
 
-  const care = await screen.findByRole("dialog", { name: "Rose planted ✿" });
+  // The flower glyph is decorative, so it stays out of the dialog's name.
+  const care = await screen.findByRole("dialog", { name: "Rose planted" });
   expect(mutateGarden).toHaveBeenCalledWith({ kind: "plant", type: "rose", spot: 9 });
-  expect(within(care).getByRole("heading", { name: "Rose planted ✿" })).toHaveFocus();
+  const heading = within(care).getByRole("heading", { name: "Rose planted" });
+  expect(heading).toHaveFocus();
+  expect(heading).toHaveTextContent("Rose planted ✿");
+  expect(within(heading).getByText("✿")).toHaveAttribute("aria-hidden", "true");
   expect(within(care).getByRole("textbox", { name: "Note about today" })).toBeInTheDocument();
   expect(within(care).getByRole("button", { name: "Share care" })).toBeInTheDocument();
   expect(within(care).queryByRole("button", { name: /^Plant / })).not.toBeInTheDocument();
@@ -88,6 +92,31 @@ it("keeps the picker open with the error when planting is rejected", async () =>
   expect(await screen.findByRole("alert")).toHaveTextContent("Spot no longer available.");
   expect(screen.getByRole("dialog", { name: "Plant something together" })).toBeInTheDocument();
   expect(screen.getByRole("button", { name: /^Marigold/ })).toHaveAttribute("aria-pressed", "true");
+});
+
+it("scrolls a rejected plant's reason into view, clear of the sticky Plant bar", async () => {
+  const original = Element.prototype.scrollIntoView;
+  const scrollIntoView = vi.fn();
+  Element.prototype.scrollIntoView = scrollIntoView;
+  try {
+    const user = userEvent.setup();
+    const mutate = vi.fn().mockResolvedValue({ state: gardenFixture(), saved: false, error: "Spot no longer available." });
+    render(<SeedPicker state={gardenFixture()} spot={9} busy={false} mutate={mutate} onPlanted={() => {}} />);
+    await user.click(screen.getByRole("button", { name: /^Marigold/ }));
+    scrollIntoView.mockClear();
+    await user.click(screen.getByRole("button", { name: "Plant Marigold" }));
+    const alert = await screen.findByRole("alert");
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: "nearest" });
+    expect(scrollIntoView.mock.contexts.at(-1)).toBe(alert);
+
+    // A second rejection scrolls to it again.
+    scrollIntoView.mockClear();
+    await user.click(screen.getByRole("button", { name: "Plant Marigold" }));
+    await screen.findByRole("alert");
+    expect(scrollIntoView.mock.contexts.at(-1)).toBe(screen.getByRole("alert"));
+  } finally {
+    Element.prototype.scrollIntoView = original;
+  }
 });
 
 it("gives each seed slot its full name and describes the chosen seed in the item card", async () => {

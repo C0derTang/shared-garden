@@ -3,11 +3,15 @@
    layer, so the Help card and the guide always open over it. */
 .card {
   /* Room kept for the collapsed Today card above the hotbar (decision 0051):
-     its height (73px, 125px when it wraps below 360px), its 14px title tab,
-     its 10px gap and a 10px margin. The lines scroll inside the card instead
-     of running under it. */
-  --since-today-clearance: 108px;
-  --since-top: 124px;
+     its measured bar (--today-bar-height, 69px at the default size) and 2px
+     borders, its 14px title tab, its 10px gap and a 10px margin, never under
+     108px. It follows the card when it wraps below 360px or grows with large
+     text (issue #135). The lines scroll inside the card instead of running
+     under it. */
+  --since-today-clearance: max(108px, var(--today-bar-height, 0px) + 39px);
+  /* 58px below the tools line (62px from 640px up), which follows the header
+     sign down with large text: 124px and 128px at the default size. */
+  --since-top: calc(max(66px, var(--hud-height, 0px) - 2px) + 58px);
   position: absolute;
   z-index: 2;
   top: var(--since-top);
@@ -58,6 +62,13 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   list-style: none;
+}
+/* When lines overflow, the bottom of the list fades into the parchment until
+   the last line is reached, so there is visibly more to scroll. Focus
+   scrolling keeps a focused row clear of the fade. */
+.lines[data-more] {
+  scroll-padding-bottom: 28px;
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), rgb(0 0 0 / 15%));
 }
 /* Each line is a tactile parchment row that presses onto its lip. */
 .row {
@@ -229,13 +240,15 @@
 }
 
 @media (max-width: 359px) {
-  .card { --since-today-clearance: 160px; }
+  .card { --since-today-clearance: max(160px, var(--today-bar-height, 0px) + 39px); }
   .card .title { font-size: var(--text-sm); }
 }
 @media (min-width: 640px) {
-  .card { --since-top: 128px; }
+  .card { --since-top: calc(max(66px, var(--hud-height, 0px) - 2px) + 62px); }
 }
 @media (forced-colors: active) {
   .card, .slot { border-image-source: none; }
+  /* System colours keep full contrast, so the fade is dropped. */
+  .lines[data-more] { mask-image: none; }
   .newBadge { forced-color-adjust: none; background: Highlight; border-color: CanvasText; }
 }

@@ -133,17 +133,51 @@ function withMarigold(props: ReturnType<typeof sheet>) {
 }
 
 it("offers the next due flower after a share and moves focus to it", async () => {
-  const props = withMarigold(sheet("rose", false, false));
-  const onVisit = vi.fn();
-  mutateGarden.mockResolvedValue({ saved: true, state: props.state, error: null });
-  render(<FlowerSheet {...props} onVisit={onVisit} onClose={vi.fn()} />);
-  fireEvent.change(screen.getByRole("textbox"), { target: { value: "Thanks for today" } });
-  fireEvent.click(screen.getByRole("button", { name: "Share care" }));
-  const next = await screen.findByRole("button", { name: "Next: Marigold" });
-  expect(screen.getByRole("status")).toHaveTextContent("Saved · your partner can see it now.");
-  await waitFor(() => expect(next).toHaveFocus());
-  fireEvent.click(next);
-  expect(onVisit).toHaveBeenCalledExactlyOnceWith(4);
+  const original = Element.prototype.scrollIntoView;
+  const scrollIntoView = vi.fn();
+  Element.prototype.scrollIntoView = scrollIntoView;
+  try {
+    const props = withMarigold(sheet("rose", false, false));
+    const onVisit = vi.fn();
+    mutateGarden.mockResolvedValue({ saved: true, state: props.state, error: null });
+    render(<FlowerSheet {...props} onVisit={onVisit} onClose={vi.fn()} />);
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "Thanks for today" } });
+    fireEvent.click(screen.getByRole("button", { name: "Share care" }));
+    const next = await screen.findByRole("button", { name: "Next: Marigold" });
+    expect(screen.getByRole("status")).toHaveTextContent("Saved · your partner can see it now.");
+    await waitFor(() => expect(next).toHaveFocus());
+    // Focus alone can stop with the ring cut off at the sheet's edge, so the
+    // whole button is scrolled into view as well.
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: "nearest", inline: "nearest" });
+    expect(scrollIntoView.mock.contexts.at(-1)).toBe(next);
+    fireEvent.click(next);
+    expect(onVisit).toHaveBeenCalledExactlyOnceWith(4);
+  } finally {
+    Element.prototype.scrollIntoView = original;
+  }
+});
+
+it("tells you a closed Moonflower opens at 10 p.m. instead of calling it your turn", () => {
+  const closed = sheet("moonflower", false, false);
+  closed.state.moonflower_open = false;
+  const view = render(<FlowerSheet {...closed} />);
+  const you = screen.getByRole("article", { name: "You" });
+  expect(you).toHaveTextContent("Opens 10 p.m.");
+  expect(you).not.toHaveTextContent("Your turn");
+  expect(within(you).getByText("Opens 10 p.m.")).toHaveAttribute("data-tone", "waiting");
+  // The draft form stays, with its notice.
+  expect(you).toHaveTextContent("Moonflower opens from 10 p.m. to 4 a.m. Pacific.");
+  expect(screen.getByRole("article", { name: "Partner" })).toHaveTextContent("Not yet today");
+  view.unmount();
+
+  // Once you have cared, or while it is open, the usual tags return.
+  const cared = sheet("moonflower", true, false);
+  cared.state.moonflower_open = false;
+  const again = render(<FlowerSheet {...cared} />);
+  expect(screen.getByRole("article", { name: "You" })).toHaveTextContent("Cared today");
+  again.unmount();
+  render(<FlowerSheet {...sheet("moonflower", false, false)} />);
+  expect(screen.getByRole("article", { name: "You" })).toHaveTextContent("Your turn");
 });
 
 it("ends the round calmly with Close when nothing else is due", async () => {
