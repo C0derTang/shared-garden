@@ -89,7 +89,10 @@ it("shows partner care immediately before the current member contributes and esc
   expect(
     screen.getByText("<script>not executable</script>"),
   ).toBeInTheDocument();
-  expect(screen.getByText("Partner · cared today")).toBeInTheDocument();
+  const cards = screen.getAllByRole("article");
+  expect(cards.map((card) => within(card).getByRole("heading", { level: 4 }).textContent)).toEqual(["Partner", "You"]);
+  expect(cards[0]).toHaveTextContent("Cared today");
+  expect(cards[1]).toHaveTextContent("Your turn");
   expect(
     screen.queryByRole("button", { name: "Edit your entry" }),
   ).not.toBeInTheDocument();
