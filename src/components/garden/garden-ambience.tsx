@@ -127,42 +127,65 @@ export function alongTrack({ y, segments }: SkyTrack, t: number) {
   return { x: last[1], y };
 }
 
-// Measures the garden's controls and first flowers, relative to the garden.
+// Measures the garden's controls, cards and first flowers, relative to the
+// garden, again whenever one appears, changes or resizes.
 function useSkyTrack(ref: RefObject<HTMLDivElement | null>) {
   const [track, setTrack] = useState<SkyTrack | null>(null);
   useEffect(() => {
     const layer = ref.current;
     const garden = layer?.parentElement;
-    if (!layer || !garden || typeof ResizeObserver === "undefined") return;
-    const controls: Element[] = [];
-    let header: Element | null = null;
-    for (const child of garden.children) {
-      if (child === layer) continue;
-      if (child.tagName === "HEADER") header = child;
-      else if (!child.querySelector("section")) controls.push(child, ...child.children);
-    }
+    if (!layer || !garden || typeof ResizeObserver === "undefined" || typeof MutationObserver === "undefined") return;
+    let last = "";
     const measure = () => {
       const origin = garden.getBoundingClientRect();
       const box = (r: DOMRect): Box => ({ left: r.left - origin.left, right: r.right - origin.left, top: r.top - origin.top, bottom: r.bottom - origin.top });
-      const shown = (element: Element) => {
-        const r = element.getBoundingClientRect();
-        return r.width > 0 && r.height > 0 ? box(r) : null;
-      };
-      // A full-width row stands for its children; only its controls block.
-      const blocking = controls
-        .filter((element) => element.getBoundingClientRect().width < origin.width * 0.9)
-        .map(shown)
-        .filter((b): b is Box => !!b);
-      const flowers = [...garden.querySelectorAll("section svg")].map(shown).filter((b): b is Box => !!b);
+      let header: Element | null = null;
+      const blocking: Box[] = [];
+      for (const child of garden.children) {
+        // The beds are measured as flowers below; the layer itself never blocks.
+        if (child === layer || child.querySelector("section section")) continue;
+        if (child.tagName === "HEADER") {
+          header = child;
+          continue;
+        }
+        mutations.observe(child, { childList: true, subtree: true, attributes: true, attributeFilter: ["open", "class"] });
+        const rect = child.getBoundingClientRect();
+        // A full-width row stands for its children; only its contents block.
+        for (const element of rect.width >= origin.width * 0.9 ? [...child.children] : [child]) {
+          sizes.observe(element);
+          const r = element.getBoundingClientRect();
+          // Visually hidden live regions (1px boxes) never block the sky.
+          if (r.width > 4 && r.height > 4) blocking.push(box(r));
+        }
+      }
+      const flowers = [...garden.querySelectorAll("section section svg")]
+        .map((svg) => svg.getBoundingClientRect())
+        .filter((r) => r.width > 0)
+        .map(box);
       const headerBottom = header ? header.getBoundingClientRect().bottom - origin.top + 4 : 0;
-      const row = blocking.length
-        ? { top: Math.min(...blocking.map((b) => b.top)), bottom: Math.min(...blocking.map((b) => b.bottom)) }
+      // The sign row: the controls that start right under the header.
+      const signs = blocking.filter((b) => b.top < headerBottom + 20);
+      const row = signs.length
+        ? { top: Math.min(...signs.map((b) => b.top)), bottom: Math.min(...signs.map((b) => b.bottom)) }
         : { top: headerBottom, bottom: headerBottom + 44 };
-      setTrack(skyTrack(origin.width, headerBottom, row, [...blocking, ...flowers]));
+      const next = skyTrack(origin.width, headerBottom, row, [...blocking, ...flowers]);
+      const key = JSON.stringify(next);
+      if (key !== last) {
+        last = key;
+        setTrack(next);
+      }
     };
-    const observer = new ResizeObserver(measure);
-    for (const element of [garden, ...controls]) observer.observe(element);
-    return () => observer.disconnect();
+    const sizes = new ResizeObserver(measure);
+    const mutations = new MutationObserver(measure);
+    sizes.observe(garden);
+    mutations.observe(garden, { childList: true });
+    // Cards drop in with a short transform animation; measure where they land.
+    garden.addEventListener("animationend", measure);
+    return () => {
+      sizes.disconnect();
+      mutations.disconnect();
+      garden.removeEventListener("animationend", measure);
+    };
   }, [ref]);
   return track;
 }

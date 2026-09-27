@@ -1,36 +1,67 @@
-.collection { margin: 0 auto; color: var(--ink, #333d2d); }
+/* Badge slots (decision 0055): parchment while growing, gold with a hard
+   pixel glow once earned. Behavior is unchanged from decision 0046. */
+.collection { margin: 0 auto; color: var(--ink); }
 .screenReader { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.intro { margin-bottom: 12px; }
-.summary { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 12px; font-size: .85rem; }
-.summary strong { font-size: 1.05rem; }
-.summary progress { flex-basis: 100%; margin-top: 2px; }
-.complete { color: #4b6040; }
-.refresh { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: .75rem; color: #536342; }
-.refresh button { min-height: 44px; padding: 8px 10px; background: transparent; border: 0; color: inherit; font: inherit; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
-.intro > p { padding: 10px; border: 1px solid var(--rust); font-size: .9rem; }
-.list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 0; list-style: none; }
-.list li { min-width: 0; border: 1px solid #b9ac8e; background: #fffaf0; box-shadow: 2px 2px 0 #e4d9c4; border-radius: var(--radius-pixel); }
-.list li.earned { border: 2px solid #698054; background: #f0f5e5; }
-.list li.growing { border-style: dashed; }
-.badge { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 100%; min-height: 108px; height: 100%; padding: 10px 8px; background: transparent; border: 0; border-radius: var(--radius-pixel); color: inherit; cursor: pointer; overflow-wrap: anywhere; font: inherit; text-align: center; }
+.intro { display: grid; gap: 10px; margin-bottom: 14px; }
+.summary { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; }
+.count { padding: 3px 10px 4px; border: var(--border-pixel) solid var(--wood-dark); background: var(--wood-deep); box-shadow: inset 2px 2px 0 var(--wood-light), inset -2px -2px 0 var(--wood-dark); color: var(--paper-light); font: 700 var(--text-md)/1.25 var(--font-pixel); letter-spacing: .03em; text-shadow: 0 2px 0 var(--wood-dark); }
+.streak { display: inline-flex; align-items: center; gap: 6px; font: 700 var(--text-sm)/1.2 var(--font-pixel); }
+.streak svg { width: 18px; height: 18px; color: var(--rust); }
+.summary progress { flex-basis: 100%; }
+.complete { flex-basis: 100%; color: var(--forest-dark); font: 700 var(--text-sm) var(--font-pixel); }
+.refresh { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.live { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font: 600 var(--text-xs) var(--font-pixel); }
+.live::before { content: ""; width: 8px; height: 8px; border: var(--border-pixel) solid var(--ink); background: var(--paper-light); }
+.live[data-live="true"]::before { background: var(--forest); }
+.refresh button { font-size: var(--text-sm); }
+.refresh button:disabled { cursor: default; opacity: .7; }
+.intro > p[role="alert"] { padding: 10px; border: var(--border-pixel) solid var(--danger); background: var(--danger-wash); color: var(--danger); font-size: .9rem; line-height: 1.45; }
+.hint, .unavailable { padding: 10px 12px; border: var(--border-pixel) dashed var(--line-strong); background: var(--paper-light); color: var(--ink); font-size: var(--text-sm); line-height: 1.5; }
+.unavailable { display: flex; align-items: center; gap: 10px; }
+.unavailable svg { width: 28px; height: 28px; flex: none; color: var(--wood-deep); }
+.list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 12px; padding: 6px; margin: 0; list-style: none; }
+.list li { position: relative; min-width: 0; border: 6px solid var(--paper-light); border-image: var(--frame-slot) 3 / 6px stretch; border-radius: var(--radius-pixel); background: var(--paper-light); background-clip: padding-box; }
+.list li.growing .badge { color: var(--ink); }
+/* Earned: a warm gold face with two hard gold rings standing in for a glow. */
+.list li.earned { background: color-mix(in srgb, var(--gold) 30%, var(--paper-light)); box-shadow: 0 0 0 3px var(--gold), 0 0 0 6px rgb(242 193 78 / 38%); }
+.badge { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; width: 100%; min-height: 112px; height: 100%; padding: 10px 8px; background: transparent; border: 0; border-radius: var(--radius-pixel); color: inherit; cursor: pointer; overflow-wrap: anywhere; font: inherit; text-align: center; }
+.badge:hover { background: rgb(255 255 255 / 30%); }
 .badge strong { font: 700 var(--text-sm)/1.3 var(--font-pixel); }
-.emblem { position: relative; display: grid; place-items: center; flex: 0 0 auto; width: 36px; height: 32px; color: #526e39; background: #e3e8d0; border: 1px solid #a9b58d; box-shadow: 2px 2px #c8d3ba; }
+.emblem { position: relative; display: grid; place-items: center; flex: 0 0 auto; width: 40px; height: 40px; color: var(--muted); background: var(--paper-deep); border: var(--border-pixel) dashed var(--line-strong); }
+.earned .emblem { color: var(--forest-dark); background: var(--gold); border: var(--border-pixel) solid var(--wood-dark); box-shadow: var(--bevel), 0 2px 0 var(--wood-dark); }
 .emblem svg { width: 24px; height: 24px; }
-.emblem > span { position: absolute; right: -6px; bottom: -4px; background: #fffaf0; border: 1px solid #9aa980; font-size: var(--text-xs); line-height: 1; padding: 1px 2px; }
-.status { font-size: var(--text-xs); line-height: 1.3; }
-.meter { display: block; flex: 0 0 auto; width: 100%; max-width: 88px; height: 4px; margin-top: 2px; background: var(--paper-deep); box-shadow: inset 0 0 0 1px var(--line-strong); }
-.meter > span { display: block; height: 100%; background: var(--forest); }
+.emblem > span { position: absolute; right: -8px; bottom: -6px; padding: 1px 3px; border: var(--border-pixel) solid var(--line-strong); background: var(--paper-light); color: var(--muted); font: 700 var(--text-xs)/1 var(--font-pixel); }
+.earned .emblem > span { border-color: var(--wood-dark); background: var(--forest); color: var(--paper-light); }
+/* Decorative sparkle pixels beside an earned emblem. */
+.sparkle { position: absolute; top: -7px; left: -9px; width: 4px; height: 4px; background: var(--paper-light); box-shadow: 4px 0 var(--gold), -4px 0 var(--gold), 0 4px var(--gold), 0 -4px var(--gold), 50px 8px var(--paper-light), 54px 8px var(--gold), 46px 8px var(--gold), 50px 12px var(--gold), 50px 4px var(--gold); }
+@media (prefers-reduced-motion: no-preference) {
+  .sparkle { animation: twinkle 2.4s steps(2, jump-none) infinite; }
+}
+@keyframes twinkle { 50% { opacity: .25; } }
+.status { font: 600 var(--text-xs)/1.3 var(--font-body); color: var(--muted); }
+.earned .status { color: var(--forest-dark); font-weight: 700; }
+.meter { display: block; flex: 0 0 auto; width: 100%; max-width: 88px; height: 8px; margin-top: 2px; border: var(--border-pixel) solid var(--wood-dark); background: var(--paper-deep); box-sizing: content-box; }
+.meter > span { display: block; height: 100%; background: repeating-linear-gradient(90deg, var(--forest) 0 6px, var(--forest-dark) 6px 8px); }
 .list li.expanded { grid-column: 1 / -1; }
-.expanded .badge { height: auto; min-height: 44px; display: grid; grid-template-columns: 36px 1fr; text-align: left; gap: 2px 12px; padding: 10px 12px; }
+.expanded .badge { height: auto; min-height: 44px; display: grid; grid-template-columns: 40px 1fr; text-align: left; gap: 3px 14px; padding: 10px 12px; }
 .expanded .emblem { grid-row: 1 / 4; }
 .expanded .status, .expanded .meter { grid-column: 2; }
 .expanded .meter { max-width: 160px; }
 .detail { padding: 0 12px 14px; overflow-wrap: anywhere; }
-.detail h2 { padding-top: 12px; border-top: 1px solid #c8d3ba; font-size: 1rem; line-height: 1.4; }
+.detail h2 { padding-top: 12px; border-top: var(--border-pixel) dashed var(--line-strong); font: 700 var(--text-md)/1.4 var(--font-pixel); }
 .detail p { margin-top: 8px; font-size: .9rem; line-height: 1.6; }
 .detail .exactProgress, .detail .date { font-size: .8rem; }
-.collection progress { display: block; width: 100%; height: 6px; margin-top: 6px; accent-color: #56763c; border: 0; background: #e6dfcd; }
-.collection progress::-webkit-progress-bar { background: #e6dfcd; }
-.collection progress::-webkit-progress-value { background: #56763c; }
-.collection progress::-moz-progress-bar { background: #56763c; }
+.collection progress { display: block; width: 100%; height: 12px; margin-top: 2px; appearance: none; accent-color: var(--forest); border: var(--border-pixel) solid var(--wood-dark); background: var(--paper-deep); }
+.collection progress::-webkit-progress-bar { background: var(--paper-deep); }
+.collection progress::-webkit-progress-value { background: repeating-linear-gradient(90deg, var(--forest) 0 6px, var(--forest-dark) 6px 8px); }
+.collection progress::-moz-progress-bar { background: var(--forest); }
 @media (min-width: 640px) { .list { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (forced-colors: active) {
+  .list li { border-image-source: none; }
+  .list li.earned { border-width: 6px; border-style: double; }
+}
+/* Pixelify Sans substitutes "fi" and "ff" ligatures that read as other letters
+   ("first" looks like "Arst"). Each `font` shorthand resets the ligature
+   setting, so it is forced off for everything in this panel. */
+.collection,
+.collection * { font-variant-ligatures: none !important; }

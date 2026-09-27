@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { NewBadgeMark, newBadgeHost } from "@/components/garden/new-badge-mark";
 import { PixelIcon } from "@/components/ui/pixel-icon";
 
 export type GardenDestination =
@@ -27,9 +28,11 @@ export function GardenNavigation({ current }: { current: GardenDestination }) {
             prefetch={false}
             scroll={false}
             aria-current={current === id ? "page" : undefined}
+            className={id === "achievements" ? newBadgeHost : undefined}
           >
             <PixelIcon name={icon} />
             <span>{label}</span>
+            {id === "achievements" && <NewBadgeMark viewing={current === id} />}
           </Link>
         ))}
       </nav>

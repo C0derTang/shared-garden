@@ -154,3 +154,13 @@ it("moves the sun from 4 a.m. to 10 p.m. and the moon through Moonflower hours",
   expect(alongTrack(track, 0.75)).toEqual({ x: 45, y: 88 });
   expect(alongTrack(track, 1)).toEqual({ x: 50, y: 88 });
 });
+
+it("yields the sky to the While you were away card when no clear track remains", () => {
+  const guide = { left: 124, top: 66, right: 196, bottom: 110 };
+  const away = { left: 12, top: 124, right: 308, bottom: 260 };
+  expect(skyTrack(320, 72, { top: 66, bottom: 110 }, [help(94), guide, songs(211, 308), away])).toBeNull();
+  // Without the Guide button the disc keeps to the sign row above the card.
+  const track = skyTrack(320, 72, { top: 66, bottom: 110 }, [help(94), songs(211, 308), away])!;
+  expect(track.y).toBe(88);
+  clears(track, [help(94), songs(211, 308), away]);
+});

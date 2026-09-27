@@ -113,19 +113,24 @@ export function AchievementsClient({
       <h1 id="achievements-title" className={styles.screenReader}>Little milestones</h1>
       <header className={styles.intro}>
         {state && <div className={styles.summary}>
-          <strong aria-live="polite">{earned} of 26 earned</strong>
-          <span aria-label={`Current shared streak: ${state.current_streak} completed days`}>{state.current_streak}-day streak</span>
+          <strong className={styles.count} aria-live="polite">{earned} of 26 earned</strong>
+          <span className={styles.streak} aria-label={`Current shared streak: ${state.current_streak} completed days`}><PixelIcon name="heart" />{state.current_streak}-day streak</span>
           <progress aria-label="Ordinary achievements earned" max={26} value={earned} />
           {earned === 26 && <span className={styles.complete}>All milestones earned ✿</span>}
         </div>}
         <div className={styles.refresh}>
-          <span aria-label={connected ? "Partner updates connected" : "Refresh to check for partner updates"}>{connected ? "● Live" : "Not live"}</span>
-          <button type="button" aria-label="Refresh achievements" onClick={() => void refresh()} disabled={busy}>
+          <span className={styles.live} data-live={connected} aria-label={connected ? "Partner updates connected" : "Refresh to check for partner updates"}>{connected ? "Live" : "Not live"}</span>
+          <button type="button" className="pixel-button" aria-label="Refresh achievements" onClick={() => void refresh()} disabled={busy}>
             {busy ? "Refreshing…" : "Refresh"}
           </button>
         </div>
         {error && <p role="alert">{error} {state ? "Showing the last saved progress." : ""}</p>}
+        {state && earned === 0 && <p className={styles.hint}>No badges yet. Each one glows gold the moment you earn it together. Tap any badge to see how it grows.</p>}
       </header>
+      {!state && <div className={styles.unavailable}>
+        <PixelIcon name="flower" />
+        <p>Your badges will appear here once your progress loads.</p>
+      </div>}
       {state && <ol className={styles.list}>
         {state.achievements.map((item) => {
           const isEarned = item.earned_at !== null;
@@ -139,7 +144,7 @@ export function AchievementsClient({
               aria-label={`${item.title}, ${status}, ${item.progress} of ${item.target} ${item.unit}`}
               aria-expanded={isOpen} aria-controls={`achievement-detail-${item.achievement_id}`}
               onClick={() => setExpanded(isOpen ? null : item.achievement_id)}>
-              <span className={styles.emblem} aria-hidden="true"><PixelIcon name={icon} /><span>{isEarned ? "✓" : "◇"}</span></span>
+              <span className={styles.emblem} aria-hidden="true"><PixelIcon name={icon} /><span>{isEarned ? "✓" : "◇"}</span>{isEarned && <i className={styles.sparkle} />}</span>
               <strong>{badgeLabels[item.achievement_id] ?? item.title}</strong>
               <span className={styles.status}>{status} · {item.progress}/{item.target}</span>
               <span className={styles.meter} aria-hidden="true">

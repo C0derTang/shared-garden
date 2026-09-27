@@ -111,6 +111,16 @@ badge names. Body text, descriptions, entries and fields stay in the system
 sans (`--font-body`). The type scale is unchanged except `--text-title`, which
 grows from 1.1rem to 1.25rem. 0.75rem remains the floor for visible text.
 
+Pixelify Sans' standard ligatures draw "fi" and "ff" (and so "ffi") as shapes
+that read as other letters, so "first" looked like "Arst"
+([issue #132](https://github.com/C0derTang/shared-garden/issues/132)). Each
+Pixelify `@font-face` rule sets the descriptor `font-feature-settings: "liga"
+0, "clig" 0`. A per-element rule cannot fix it, because every `font`
+shorthand resets `font-variant-ligatures` and `font-feature-settings` on its
+element. The face descriptor sits beneath the element settings and survives
+the shorthand. It works in Chromium and Playwright WebKit. Pixel text needs no
+panel-local ligature override. Pixel text never turns "liga" or "clig" back on.
+
 ## Shared chrome
 
 - **Header:** a wooden sign plank (`--wood` with darker grain lines and a
@@ -165,6 +175,11 @@ grows from 1.1rem to 1.25rem. 0.75rem remains the floor for visible text.
   accessible name Close panel (decision 0029). The red × stamp sits in front
   of the word on a parchment pixel button. Header and notice dividers are 2px
   dashed `--line-strong`. The phone sheet omits its bottom frame edge.
+  Route-panel titles are fixed words, so their plaque never breaks inside a
+  word (`overflow-wrap: normal`). Below 360px the plaque drops to `--text-md`
+  with 8px side padding, so "Achievements" fits on one line beside Close
+  instead of breaking as "Achievement / s" (issue #132). Sheet titles keep
+  wrapping anywhere because they can hold longer names.
 - **Buttons and fields:** primary is `--forest` with `--paper-light` text and
   a `--forest-dark` hover. Secondary is `--paper-light` with `--ink` text and
   a `--paper-deep` hover. Both use the `--frame-border` outline, the bevel,

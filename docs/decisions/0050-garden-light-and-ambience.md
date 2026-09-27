@@ -78,8 +78,18 @@ or expands:
    below the signs (8px under their lips) and above the flowers. This happens
    on a narrow phone, or with the Guide button between the signs. It skips any
    flower that reaches into the band.
-3. If neither band has room (for example, under an expanded Guide card), the
-   disc is the longest available track, or is left out.
+3. If neither band reaches 96px, the disc uses the longer of the two clear
+   tracks. If neither has any clear room, it is left out until room returns.
+   On a 320px phone with the collapsed Guide button and the While you were
+   away card, for example, the disc yields to the card.
+
+Every card and notice in the garden (the While you were away card, the Today
+card and the spot notice) counts as an obstacle while it is shown. The disc is
+placed again as they appear, change or close. Visually hidden live regions are
+ignored. The cards and the notice sit above the ambience layer, so it never
+covers them. Their parchment faces keep their own text contrast: ink on
+parchment stays 12.08. Against the night ground the parchment reads 7.33,
+compared with 2.42 by day.
 
 
 Only `transform` and `opacity` animate, in stepped pixel timing. Petals fall
