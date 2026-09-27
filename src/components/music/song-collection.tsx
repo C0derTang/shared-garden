@@ -104,10 +104,10 @@ export function SongCollection({
 
   return (
     <section className={styles.collection} aria-label="Shared song collection">
-      <Link href="/garden">← Back to our garden</Link>
-      <div>
-        <span className="eyebrow">OUR TULIP SONGS</span>
-        <h1>Our song collection</h1>
+      <Link href="/garden" className={styles.back}>← Back to our garden</Link>
+      {/* The route panel title names the page; this is the jukebox's marquee. */}
+      <header className={styles.marquee}>
+        <p className={styles.marqueeTitle}>Tulip jukebox</p>
         <p>
           Both of our contributions, across every Tulip and permanent bloom.
           Repeated songs stay part of our story.
@@ -116,7 +116,7 @@ export function SongCollection({
           Listening is optional and never changes growth. Preview or full
           playback depends on the provider; every song keeps its original link.
         </p>
-      </div>
+      </header>
       <div className={styles.controls}>
         <button
           className="button button-secondary"
@@ -146,24 +146,36 @@ export function SongCollection({
         {busy ? "Loading songs…" : notice}
       </p>
       {ready && !entries.length && (
-        <p>No songs yet. Share a song with a Tulip in your garden to begin.</p>
+        <div className={styles.empty}>
+          <span className={styles.record} aria-hidden="true" />
+          <p>
+            No songs yet. The jukebox is waiting for its first record: share a
+            song from a Tulip in your garden to begin.
+          </p>
+        </div>
       )}
       <ol className={styles.songs}>
-        {entries.map((entry) => (
+        {entries.map((entry, index) => (
           <li key={entry.id} className={styles.entry}>
-            <div className={styles.meta}>
-              <strong>
-                {entry.author_id === memberId ? "You" : "Your partner"}
-              </strong>
-              <time dateTime={entry.original_posted_at}>
-                {entry.garden_day} · {pacificTime(entry.original_posted_at)}
-              </time>
+            <div className={styles.deck} aria-hidden="true">
+              <span className={styles.record} />
+              <span className={styles.track}>{String(index + 1).padStart(2, "0")}</span>
             </div>
-            <SongPlayer
-              title={entry.payload.title}
-              artist={entry.payload.artist}
-              url={entry.payload.url}
-            />
+            <div className={styles.entryBody}>
+              <div className={styles.meta}>
+                <strong>
+                  {entry.author_id === memberId ? "You" : "Your partner"}
+                </strong>
+                <time dateTime={entry.original_posted_at}>
+                  {entry.garden_day} · {pacificTime(entry.original_posted_at)}
+                </time>
+              </div>
+              <SongPlayer
+                title={entry.payload.title}
+                artist={entry.payload.artist}
+                url={entry.payload.url}
+              />
+            </div>
           </li>
         ))}
       </ol>

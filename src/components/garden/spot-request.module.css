@@ -1,0 +1,10 @@
+/* A small parchment note below the tools row when a requested flower cannot
+   open (decision 0055). */
+.host { position: absolute; z-index: 3; top: 118px; left: 12px; right: 12px; display: flex; justify-content: center; pointer-events: none; }
+.host:empty { display: none; }
+.notice { pointer-events: auto; display: flex; align-items: center; gap: 10px; max-width: 26rem; padding: 6px 6px 6px 12px; border: 8px solid var(--paper-light); border-image: var(--frame-slot) 3 fill / 6px stretch; background: var(--paper-light); background-clip: padding-box; box-shadow: var(--shadow-pixel); color: var(--ink); font-size: var(--text-sm); line-height: 1.4; overflow-wrap: anywhere; }
+.notice span { flex: 1 1 auto; min-width: 0; }
+.notice button { flex: none; }
+@media (forced-colors: active) {
+  .notice { border-image-source: none; }
+}
