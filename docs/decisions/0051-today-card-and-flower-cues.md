@@ -83,7 +83,9 @@ edge. The tab is the section's heading.
   `max(54px, 45px + 1.1 × the label size)`, and the label size follows the
   root text size. The hotbar and the card both use these properties. At 16px
   and 24px root text, the card stays 10px above the hotbar at 320, 390 and
-  1280 pixels.
+  1280 pixels. The spot-request notice from decision 0055 docks 12px above
+  the hotbar on the same properties. Its z-index is 20, so while it shows it
+  sits in front of the card.
 - Below 380px the primary button uses `--text-sm`. When the counts and the
   button don't fit on one row, the button wraps to its own row. Below 360px
   the plaque sits above the full-width hotbar shelf.

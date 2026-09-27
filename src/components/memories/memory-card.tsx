@@ -4,6 +4,7 @@ import {
   FlowerSprite,
   type FlowerType,
 } from "@/components/garden/flower-sprite";
+import { GardenSpotLink } from "@/components/garden/spot-request";
 import { PhotoViewer } from "@/components/media/photo-viewer";
 import { VoiceViewer } from "@/components/media/voice-player";
 import { SongPlayer } from "@/components/music/song-player";
@@ -15,20 +16,29 @@ export const flowerName = (type: string) =>
   type.charAt(0).toUpperCase() + type.slice(1);
 const authorName = (id: 1 | 2, memberId: 1 | 2) =>
   id === memberId ? "You" : "Your partner";
-const dateTime = (value: string) =>
+const dateTime = (value: string, short = false) =>
   new Intl.DateTimeFormat("en-US", {
     timeZone: "America/Los_Angeles",
-    year: "numeric",
+    // The card's date plaque already carries the year.
+    year: short ? undefined : "numeric",
     month: "short",
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
     timeZoneName: "short",
   }).format(new Date(value));
-function Posted({ at, day }: { at: string; day?: string }) {
+// The album plaque shows the garden day as a short date, such as Sep 18, 2026.
+const plaqueDate = (day: string) =>
+  new Intl.DateTimeFormat("en-US", {
+    timeZone: "UTC",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(new Date(`${day}T12:00:00Z`));
+function Posted({ at, day, short }: { at: string; day?: string; short?: boolean }) {
   return (
     <>
-      <time dateTime={at}>{dateTime(at)}</time>
+      <time dateTime={at}>{dateTime(at, short)}</time>
       {day && <span className={styles.day}>Garden day {day}</span>}
     </>
   );
@@ -236,17 +246,23 @@ export function MemoryCard({
       data-flower={f.type_key}
     >
       <header className={styles.cardHeader}>
-        <div className={styles.flowerFrame}>
+        <div className={styles.stamp}>
           <FlowerCue type={f.type_key} />
         </div>
         <div className={styles.cardHeading}>
-          <p className={styles.eyebrow}>
-            {item.kind === "wish"
-              ? "Shared wish"
-              : item.kind === "peony"
-                ? "Date keepsake"
-                : "Saved moment"}
-          </p>
+          <div className={styles.headingRow}>
+            <p className={styles.eyebrow}>
+              {item.kind === "wish"
+                ? "Shared wish"
+                : item.kind === "peony"
+                  ? "Date keepsake"
+                  : "Saved moment"}
+            </p>
+            <p className={styles.plaque}>
+              <span className={styles.visuallyHidden}>Garden day </span>
+              <time dateTime={item.garden_day}>{plaqueDate(item.garden_day)}</time>
+            </p>
+          </div>
           <h4 id={`memory-${item.key}`} className={styles.cardTitle}>
             {flowerName(f.type_key)} <span>· Spot {f.spot}</span>
           </h4>
@@ -258,16 +274,6 @@ export function MemoryCard({
         </div>
       </header>
       <div className={styles.cardBody}>
-        <div className={styles.meta}>
-          <strong>
-            {entry
-              ? authorName(entry.author_id, memberId)
-              : f.planted_by
-                ? `Planted by ${authorName(f.planted_by, memberId).toLowerCase()}`
-                : "Our garden"}
-          </strong>
-          <Posted at={item.at} day={item.garden_day} />
-        </div>
       {f.shared_wish && (
         <blockquote className={styles.wish}>
           <ExpandableText text={f.shared_wish} label="Read full wish" />
@@ -328,6 +334,26 @@ export function MemoryCard({
       )}
       {item.peony && <PeonyHistory peony={item.peony} memberId={memberId} />}
       </div>
+      <footer className={styles.cardFooter}>
+        <div className={styles.meta}>
+          <strong>
+            {entry
+              ? authorName(entry.author_id, memberId)
+              : f.planted_by
+                ? `Planted by ${authorName(f.planted_by, memberId).toLowerCase()}`
+                : "Our garden"}
+          </strong>
+          <Posted at={item.at} short />
+        </div>
+        <GardenSpotLink
+          request={{ spot: f.spot }}
+          className={styles.openLink}
+          aria-label={`Open in garden: ${flowerName(f.type_key)}, spot ${f.spot}`}
+        >
+          <PixelIcon name="sprout" />
+          <span>Open in garden</span>
+        </GardenSpotLink>
+      </footer>
     </article>
   );
 }
