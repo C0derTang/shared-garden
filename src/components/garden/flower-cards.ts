@@ -1,4 +1,5 @@
 import type { Entry, GardenState, Plant } from "@/lib/garden/model";
+import { careStatus } from "./due-today";
 
 export type FlowerCard = {
   who: "partner" | "you";
@@ -37,27 +38,18 @@ export function flowerCards(
 }
 
 /**
- * Whether a flower still wants your care today. It matches the surface care
- * dots: Peony, ordinary permanent blooms (so fulfilled Dandelions too) and a
- * closed Moonflower are never due.
- *
- * TODO(dedupe): issue #119 adds a pure due-rule module for the Today card.
- * Once both land, replace this minimal local helper with that module.
+ * The next flower due for you after `spot`, in spot order, wrapping around.
+ * "Due" is the shared rule in `due-today.ts` (decision 0051), which matches the
+ * care dots and keeps a closed Moonflower out.
  */
-function dueForYou(plant: Plant, state: GardenState) {
-  const type = plant.flower.type_key;
-  if (type === "peony") return false;
-  if (plant.flower.first_bloom_at !== null && type !== "cactus") return false;
-  if (type === "moonflower" && !state.moonflower_open) return false;
-  return !(state.member_id === 1
-    ? plant.member1_submitted
-    : plant.member2_submitted);
-}
-
-/** The next due flower after `spot`, in spot order, wrapping around. */
 export function nextDueFlower(state: GardenState, spot: number) {
+  const catalog = new Map(state.catalog.map((item) => [item.type_key, item]));
   const due = state.plants
-    .filter((plant) => plant.flower.spot !== spot && dueForYou(plant, state))
+    .filter((plant) => {
+      if (plant.flower.spot === spot) return false;
+      const item = catalog.get(plant.flower.type_key);
+      return !!item && !!careStatus(plant, item, state)?.dueForYou;
+    })
     .sort((a, b) => a.flower.spot - b.flower.spot);
   return due.find((plant) => plant.flower.spot > spot) ?? due[0] ?? null;
 }
