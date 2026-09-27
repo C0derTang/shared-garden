@@ -1,0 +1,402 @@
+/* Public pages (landing, sign-in errors, not found) in the Harvest Handheld
+   skin (decisions 0049 and 0056): the garden's own meadow under a wooden
+   sign, with parchment cards in wooden frames. Text sits only on parchment
+   or on the sign, never on grass. */
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  /* The same meadow as the garden stage (decisions 0040 and 0042). */
+  background-color: #82a15d;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48' shape-rendering='crispEdges'%3E%3Cpath fill='%238dab65' d='M3 7h5v3H3zM31 4h3v5h-3zM18 27h6v3h-6zM40 34h5v4h-5zM7 42h3v3H7z'/%3E%3Cpath fill='%23739250' d='M15 12h4v3h-4zM38 17h3v4h-3zM2 29h6v3H2zM28 40h4v3h-4z'/%3E%3C/svg%3E");
+  background-size: 48px 48px;
+}
+
+/* The wooden sign plank, matching the garden header. */
+.sign {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 60px;
+  padding: max(8px, env(safe-area-inset-top)) max(16px, calc((100vw - 1160px) / 2)) 8px;
+  background-color: var(--wood);
+  background-image: repeating-linear-gradient(180deg, transparent 0 10px, rgb(74 42 18 / 28%) 10px 12px, transparent 12px 22px), linear-gradient(180deg, var(--wood-light) 0 2px, transparent 2px);
+  border-bottom: 4px solid var(--wood-dark);
+  box-shadow: 0 4px 0 rgb(30 16 6 / 25%);
+}
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--paper-light);
+  font: 700 1.25rem/1.1 var(--font-pixel);
+  letter-spacing: 0.03em;
+  text-decoration: none;
+  text-shadow: 0 2px 0 var(--wood-dark), 2px 0 0 var(--wood-dark);
+}
+.wordmark svg {
+  width: 22px;
+  height: 22px;
+  color: var(--gold);
+  filter: drop-shadow(0 2px 0 var(--wood-dark));
+}
+.signNote {
+  display: none;
+  padding: 2px 6px;
+  border: 6px solid var(--paper-light);
+  border-image: var(--frame-slot) 3 fill / 6px stretch;
+  background: var(--paper-light);
+  background-clip: padding-box;
+  color: var(--ink);
+  font: 600 var(--text-sm)/1.2 var(--font-pixel);
+}
+
+.main {
+  flex: 1;
+  width: 100%;
+  max-width: 1192px;
+  margin: 0 auto;
+  padding: 24px 16px 32px;
+}
+
+/* A parchment card in the wooden 9-slice frame. */
+.card {
+  border: 12px solid var(--wood);
+  border-image: var(--frame-wood) 6 fill / 12px stretch;
+  background: var(--paper);
+  background-clip: padding-box;
+  box-shadow: var(--shadow-frame);
+  overflow-wrap: anywhere;
+}
+
+.hero {
+  display: grid;
+  gap: 24px;
+}
+.heroCard {
+  padding: 12px 8px 16px;
+}
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--forest-dark);
+  font: 700 var(--text-xs)/1.3 var(--font-pixel);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.eyebrow::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  flex: none;
+  background: var(--rust);
+  box-shadow: 0 0 0 2px var(--wood-dark);
+}
+.title {
+  margin: 12px 0;
+  font: 700 clamp(2.4rem, 11vw, 4rem)/1.02 var(--font-pixel);
+  letter-spacing: 0.01em;
+  color: var(--ink);
+}
+.title em {
+  font-style: normal;
+  color: var(--forest-dark);
+}
+.lead {
+  max-width: 28rem;
+  color: var(--muted);
+  font-size: var(--text-md);
+  line-height: 1.6;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 12px;
+  margin-top: 20px;
+}
+.actions > * {
+  flex: 1 1 14rem;
+}
+.actions :global(.button),
+.actions :global(.auth-form) {
+  width: 100%;
+  margin: 0;
+}
+.quiet {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+.quiet svg {
+  width: 14px;
+  height: 14px;
+  color: var(--rust);
+}
+
+/* The illustration sits in its own frame with a carved title plaque. */
+.scene {
+  position: relative;
+  margin: 0;
+  padding: 0;
+}
+.scene img {
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+}
+.plaque {
+  width: fit-content;
+  max-width: 100%;
+  padding: 4px 12px 5px;
+  border: var(--border-pixel) solid var(--wood-dark);
+  background: var(--wood-deep);
+  box-shadow: inset 2px 2px 0 var(--wood-light), inset -2px -2px 0 var(--wood-dark);
+  color: var(--paper-light);
+  font: 700 var(--text-sm)/1.25 var(--font-pixel);
+  letter-spacing: 0.06em;
+  text-shadow: 0 2px 0 var(--wood-dark);
+  text-transform: uppercase;
+}
+.scene .plaque {
+  position: absolute;
+  z-index: 1;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: var(--text-xs);
+}
+.caption {
+  padding: 8px 12px 10px;
+  border-top: 2px dashed var(--line-strong);
+  color: var(--muted);
+  font: 600 var(--text-sm)/1.3 var(--font-pixel);
+  text-align: center;
+}
+
+/* "A note. A song. A moment." as three inventory slots. */
+.little {
+  margin-top: 28px;
+  padding: 16px 8px;
+  text-align: center;
+}
+.little h2 {
+  margin: 8px 0 6px;
+  font: 700 clamp(1.4rem, 6vw, 1.9rem)/1.2 var(--font-pixel);
+}
+.little > p:not(.eyebrow) {
+  color: var(--muted);
+  font-size: var(--text-md);
+}
+.little .eyebrow {
+  justify-content: center;
+}
+.slots {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  max-width: 26rem;
+  margin: 16px auto 0;
+  padding: 0;
+  list-style: none;
+}
+.slots li {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 6px 4px 8px;
+  border: 6px solid var(--paper-light);
+  border-image: var(--frame-slot) 3 fill / 6px stretch;
+  background: var(--paper-light);
+  background-clip: padding-box;
+  color: var(--ink);
+  font: 700 var(--text-sm)/1.2 var(--font-pixel);
+}
+
+/* Setup status: a small parchment notice pinned under the cards. */
+.setup {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: 42rem;
+  margin: 24px auto 0;
+  padding: 10px 12px;
+  border: 8px solid var(--paper-light);
+  border-image: var(--frame-slot) 3 fill / 6px stretch;
+  background: var(--paper-light);
+  background-clip: padding-box;
+  box-shadow: 0 3px 0 var(--wood-dark);
+}
+.setupDot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  margin-top: 6px;
+  background: var(--ochre);
+  box-shadow: 0 0 0 2px var(--wood-dark);
+}
+.setup strong {
+  display: block;
+  font: 700 var(--text-sm)/1.3 var(--font-pixel);
+}
+.setup p > span {
+  display: block;
+  color: var(--muted);
+  font-size: var(--text-sm);
+  line-height: 1.45;
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 16px;
+  padding: 12px max(16px, calc((100vw - 1160px) / 2)) max(12px, env(safe-area-inset-bottom));
+  border-top: 4px solid var(--wood-dark);
+  background: var(--paper-deep);
+  color: var(--ink);
+  font: 600 var(--text-xs)/1.4 var(--font-pixel);
+}
+.footer span:last-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.footer svg {
+  width: 12px;
+  height: 12px;
+  color: var(--rust);
+}
+
+/* Landing "take a little look" sheet contents. */
+.aboutList {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.aboutList li {
+  display: flex;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 6px solid var(--paper-light);
+  border-image: var(--frame-slot) 3 fill / 6px stretch;
+  background: var(--paper-light);
+  background-clip: padding-box;
+}
+.aboutList li > svg {
+  flex: none;
+  margin-top: 2px;
+}
+.aboutList strong {
+  font: 700 var(--text-md)/1.3 var(--font-pixel);
+}
+.aboutList p {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: var(--text-sm);
+  line-height: 1.45;
+}
+
+/* Single-card pages: sign-in errors and not found. */
+.notice {
+  width: 100%;
+  max-width: 34rem;
+  margin: clamp(16px, 8vh, 72px) auto 0;
+  padding: 12px 8px 16px;
+}
+/* A single cozy soil plot with its sprite, drawn like a garden spot
+   (decision 0040's plot colors), so the page reads as part of the garden. */
+.noticeArt {
+  position: relative;
+  width: 116px;
+  height: 104px;
+  margin: 0 auto 8px;
+  border: var(--border-pixel) solid var(--wood-dark);
+  background: #82a15d url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48' shape-rendering='crispEdges'%3E%3Cpath fill='%238dab65' d='M3 7h5v3H3zM31 4h3v5h-3zM18 27h6v3h-6zM40 34h5v4h-5zM7 42h3v3H7z'/%3E%3Cpath fill='%23739250' d='M15 12h4v3h-4zM38 17h3v4h-3zM2 29h6v3H2zM28 40h4v3h-4z'/%3E%3C/svg%3E") 0 0 / 48px 48px;
+  box-shadow: 0 3px 0 var(--wood-dark);
+}
+.noticeArt::before,
+.noticeArt::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.noticeArt::before {
+  top: 53px;
+  width: 78px;
+  height: 42px;
+  background: #8f6948;
+  border: 3px solid #8a6846;
+  border-top-color: #a98253;
+  border-left-color: #98764d;
+  box-shadow: 0 3px 0 #6a543a;
+  clip-path: polygon(5px 0, calc(100% - 5px) 0, calc(100% - 5px) 3px, 100% 3px, 100% calc(100% - 5px), calc(100% - 5px) calc(100% - 5px), calc(100% - 5px) 100%, 5px 100%, 5px calc(100% - 5px), 0 calc(100% - 5px), 0 3px, 5px 3px);
+}
+.noticeArt::after {
+  top: 64px;
+  width: 42px;
+  height: 3px;
+  background: #75563d;
+  box-shadow: -7px 8px 0 #7c5b40, 6px 16px 0 #6f513a;
+}
+.noticeArt svg {
+  position: absolute;
+  z-index: 1;
+  top: 6px;
+  left: 24px;
+}
+.notice h1 {
+  margin: 8px 0;
+  font: 700 clamp(1.6rem, 7vw, 2.2rem)/1.15 var(--font-pixel);
+}
+.notice p + p {
+  margin-top: 12px;
+}
+.notice .lead {
+  max-width: none;
+}
+
+@media (min-width: 480px) {
+  .signNote {
+    display: inline-block;
+  }
+  .heroCard,
+  .notice {
+    padding: 16px 20px 20px;
+  }
+}
+@media (min-width: 1000px) {
+  .main {
+    padding-top: 40px;
+  }
+  .hero {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    align-items: center;
+    gap: 32px;
+  }
+  .heroCard {
+    padding: 28px 28px 28px;
+  }
+  .title {
+    font-size: clamp(3.4rem, 5vw, 4.4rem);
+  }
+}
+
+@media (forced-colors: active) {
+  .card,
+  .signNote,
+  .slots li,
+  .setup,
+  .aboutList li {
+    border-image-source: none;
+  }
+}

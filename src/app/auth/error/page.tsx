@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { SignInButton } from "@/components/auth/sign-in-button";
-import { PixelIcon } from "@/components/ui/pixel-icon";
+import { FlowerSprite } from "@/components/garden/flower-sprite";
+import { PublicSign } from "@/components/landing/public-sign";
+import styles from "@/components/landing/public.module.css";
 import { getAuthConfig } from "@/lib/auth/config";
 
 export const dynamic = "force-dynamic";
@@ -49,25 +51,31 @@ export default async function AuthErrorPage({
   const [title, description] = messages[reason];
   const configured = !!getAuthConfig();
   return (
-    <main id="main-content" className="auth-card auth-page">
-      <span className="wordmark">
-        <PixelIcon name="sprout" /> cc’s garden
-      </span>
-      <h1>{title}</h1>
-      <p>{description}</p>
-      <div className="auth-actions">
-        {configured && <SignInButton />}
-        {configured && reason !== "signout" && (
-          <form action="/auth/sign-out" method="post">
-            <button className="button button-secondary" type="submit">
-              Sign out
-            </button>
-          </form>
-        )}
-        <Link href="/" className="button button-secondary">
-          Return home
-        </Link>
-      </div>
-    </main>
+    <div className={styles.page}>
+      <PublicSign />
+      <main id="main-content" className={styles.main}>
+        <section className={`${styles.card} ${styles.notice}`} aria-labelledby="auth-heading">
+          <div className={styles.noticeArt}>
+            <FlowerSprite type="cactus" growthUnits={1} growthTarget={10} bloomed={false} size={64} />
+          </div>
+          <p className={styles.eyebrow}>Garden gate</p>
+          <h1 id="auth-heading">{title}</h1>
+          <p className={styles.lead}>{description}</p>
+          <div className={styles.actions}>
+            {configured && <SignInButton />}
+            {configured && reason !== "signout" && (
+              <form action="/auth/sign-out" method="post">
+                <button className="button button-secondary" type="submit">
+                  Sign out
+                </button>
+              </form>
+            )}
+            <Link href="/" className="button button-secondary">
+              Return home
+            </Link>
+          </div>
+        </section>
+      </main>
+    </div>
   );
 }

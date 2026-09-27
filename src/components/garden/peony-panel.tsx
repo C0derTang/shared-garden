@@ -11,6 +11,7 @@ import {
 } from "@/lib/peony/model";
 import type { Mutate } from "./seed-picker";
 import styles from "./garden.module.css";
+import peony from "./peony.module.css";
 const titles = [
   "Propose ideas",
   "Agree on a plan",
@@ -194,7 +195,8 @@ export function PeonyPanel({
             );
             return (
               <section
-                className={styles.entry}
+                className={`${styles.entry} ${peony.step}`}
+                data-state={complete ? "complete" : current ? "current" : "later"}
                 key={milestone}
                 aria-label={title}
               >
@@ -221,7 +223,7 @@ export function PeonyPanel({
                         (member) => {
                           const c = rows.find((c) => c.author_id === member);
                           return (
-                            <article key={member} className={styles.notice}>
+                            <article key={member} className={`${styles.notice} ${peony.contribution}`}>
                               <strong>
                                 {member === state.member_id
                                   ? "You"

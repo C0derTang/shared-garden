@@ -24,15 +24,15 @@ beforeEach(() => {
 });
 it("releases the guide for history navigation and reopens it from Settings after a successful save", async () => {
   const user = userEvent.setup(); const view = render(<App />);
-  expect(screen.getByRole("dialog", { name: "A little hello" })).toBeVisible();
+  expect(screen.getByRole("dialog", { name: "Tap your Cactus to say hello" })).toBeVisible();
   expect(screen.getByText("cc’s garden").closest("[inert]")).not.toBeNull();
   route.pathname = "/settings"; view.rerender(<App />);
   expect(await screen.findByRole("dialog", { name: "Settings" })).toBeVisible();
-  expect(screen.queryByRole("dialog", { name: "A little hello" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("dialog", { name: "Tap your Cactus to say hello" })).not.toBeInTheDocument();
   await user.click(screen.getByRole("button", { name: "Reopen garden guide" }));
   expect(route.push).toHaveBeenCalledWith("/garden");
   route.pathname = "/garden"; view.rerender(<App />);
-  expect(await screen.findByRole("dialog", { name: "A little hello" })).toContainElement(document.activeElement as HTMLElement);
+  expect(await screen.findByRole("dialog", { name: "Tap your Cactus to say hello" })).toContainElement(document.activeElement as HTMLElement);
   await user.keyboard("{Escape}");
   expect(screen.getByRole("button", { name: "Show garden guide" })).toHaveFocus();
   fireEvent.focus(window);
@@ -54,8 +54,8 @@ it("presents a late owner answer once inside the guide without stealing focus", 
   api.readPrivateInteraction.mockReturnValueOnce(new Promise((done) => { resolve = done; }));
   api.controlPrivateInteraction.mockResolvedValue({ state: { status: "owner", detail: { status: "answered", armed: true, unread: false, answer: { key: "yes", label: "Yes", answered_at: "2026-09-20T12:00:00Z" } } }, error: null });
   const user = userEvent.setup(); render(<App />);
-  const guide = screen.getByRole("dialog", { name: "A little hello" });
-  const heading = within(guide).getByRole("heading", { name: "A little hello" });
+  const guide = screen.getByRole("dialog", { name: "Tap your Cactus to say hello" });
+  const heading = within(guide).getByRole("heading", { name: "Tap your Cactus to say hello" });
   expect(heading).toHaveFocus();
   resolve({ state: { status: "owner", detail: { status: "answered", armed: true, unread: true, answer: { key: "yes", label: "Yes", answered_at: "2026-09-20T12:00:00Z" } } }, error: null });
   expect(await within(guide).findByRole("heading", { name: "A new answer is here" })).toBeVisible();

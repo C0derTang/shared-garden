@@ -106,6 +106,7 @@ function GardenSpot({
   return (
     <div
       className={styles.spot}
+      data-spot={spot}
       data-motion-phase={spot % 4}
       style={{ left: `${x}%`, top: y }}
     >

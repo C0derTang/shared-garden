@@ -4,8 +4,10 @@
   display: grid;
   place-items: center;
   overflow: hidden;
-  background: #eee9d9;
-  border: 2px solid #b0ad89;
+  /* Framed like an inventory slot; the photo is never cropped (0012). */
+  background: var(--paper-deep);
+  border: 6px solid var(--line-strong);
+  border-image: var(--frame-slot) 3 / 6px stretch;
   border-radius: var(--radius-pixel);
 }
 .square img {
@@ -66,5 +68,14 @@
   color: var(--ink);
 }
 .error {
+  padding: 8px 10px;
+  border-left: 3px solid var(--rust);
+  background: var(--danger-wash);
   color: var(--danger);
+  overflow-wrap: anywhere;
+}
+@media (forced-colors: active) {
+  .square {
+    border-image-source: none;
+  }
 }

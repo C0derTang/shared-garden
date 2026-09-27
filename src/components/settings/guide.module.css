@@ -1,11 +1,53 @@
-.overlay { position: fixed; inset: 0; z-index: 60; background: rgb(0 0 0 / 62%); }
-.guide { position: fixed; z-index: 61; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(26rem, calc(100% - 2rem)); max-height: calc(100dvh - 2rem - env(safe-area-inset-top) - env(safe-area-inset-bottom)); overflow-y: auto; overscroll-behavior: contain; border: var(--border-pixel) solid var(--frame-border); border-radius: var(--radius-pixel); padding: clamp(1rem, 4vw, 1.5rem); background: var(--paper-light); box-shadow: var(--shadow-frame); }
-.guide h2 { margin: .4rem 0 .65rem; font: 700 var(--text-title)/1.25 var(--font-pixel); letter-spacing: .025em; }
-.guide p { line-height: 1.5; }
-.guide > button { width: 100%; margin-top: .5rem; white-space: normal; }
-.progress, .guide small { color: var(--muted); font-size: .8rem; }
-.progress { margin: 0; }
-.notices:not(:empty) { margin-top: .75rem; }
-.actions { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .2rem .5rem; margin-top: .5rem; }
-.secondary { min-height: 44px; padding: .5rem 0; border: 0; color: var(--ink); background: transparent; text-decoration: underline; cursor: pointer; }
-.guide button[aria-disabled="true"] { opacity: .65; cursor: default; }
+/* Coach-mark guide (decision 0056): a parchment speech bubble anchored to the
+   real flower, with a spotlight cut out of the dim tint around that spot.
+   Hard edges only, Harvest Handheld tokens (decision 0049). */
+.overlay { position: fixed; inset: 0; z-index: 60; background: rgb(28 16 6 / 55%); }
+/* The spotlight's own spread draws the tint, leaving the flower lit. */
+.overlay[data-spotlight] { background: transparent; }
+/* Full-viewport layer; only the bubble and the flower hotspot take pointers. */
+.coach { position: fixed; inset: 0; z-index: 61; pointer-events: none; }
+.coach:focus { outline: none; }
+.spotlight { position: fixed; border: var(--border-pixel) solid var(--wood-dark); outline: 3px solid var(--gold); outline-offset: 0; box-shadow: 0 0 0 max(100vw, 100vh) rgb(28 16 6 / 55%), inset 0 0 0 2px var(--paper-light); animation: guide-beckon 1.2s steps(2, jump-none) infinite; }
+.hotspot { position: fixed; pointer-events: auto; cursor: pointer; }
+.hotspot[data-paused] { cursor: default; }
+.bubble { position: fixed; pointer-events: auto; overflow-y: auto; overscroll-behavior: contain; padding: 10px 12px 12px; border: 12px solid var(--wood); border-image: var(--frame-wood) 6 fill / 12px stretch; background: var(--paper); background-clip: padding-box; color: var(--ink); box-shadow: var(--shadow-frame); overflow-wrap: anywhere; animation: guide-pop 160ms steps(3, jump-end) both; }
+/* Without a measurable target (or before the first measurement) the bubble
+   docks above the hotbar, clear of the safe area. */
+.bubble[data-side="dock"] { left: 50%; bottom: calc(max(8px, env(safe-area-inset-bottom)) + 96px); width: min(22rem, calc(100vw - 24px)); max-height: calc(100dvh - 128px - env(safe-area-inset-bottom) - env(safe-area-inset-top)); transform: translateX(-50%); }
+/* The pointer is a stepped pixel wedge in the frame's dark wood, bridging
+   the gap between the bubble and the lit spot. */
+.arrow { position: fixed; width: 18px; height: 10px; background: var(--wood-dark); }
+.arrow[data-side="below"] { clip-path: polygon(0 100%, 22% 100%, 22% 60%, 39% 60%, 39% 20%, 61% 20%, 61% 60%, 78% 60%, 78% 100%, 100% 100%); }
+.arrow[data-side="above"] { clip-path: polygon(0 0, 100% 0, 78% 0, 78% 40%, 61% 40%, 61% 80%, 39% 80%, 39% 40%, 22% 40%, 22% 0); }
+.progress { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 0 40px 4px 0; color: var(--muted); font: 600 var(--text-xs)/1.2 var(--font-pixel); letter-spacing: .06em; text-transform: uppercase; }
+.pips { display: inline-flex; align-items: center; gap: 4px; color: var(--ink); font: 700 var(--text-xs)/1.2 var(--font-body); letter-spacing: .02em; }
+.pips i { width: 10px; height: 10px; border: var(--border-pixel) solid var(--wood-dark); background: var(--paper-light); }
+.pips i[data-done] { background: var(--forest); }
+.pips > span:not(.visuallyHidden) { margin-left: 2px; }
+.title { margin: 2px 40px 4px 0; font: 700 var(--text-title)/1.2 var(--font-pixel); letter-spacing: .02em; }
+.title:focus-visible { outline-offset: 2px; }
+.description { color: var(--muted); font-size: var(--text-sm); line-height: 1.45; }
+.bubble :global(.button) { width: 100%; margin-top: 10px; white-space: normal; }
+.bubble :global(.button)[aria-disabled="true"] { opacity: .65; cursor: default; }
+.notices:not(:empty) { margin-top: 10px; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 10px; margin-top: 8px; }
+.actions small { color: var(--muted); font-size: var(--text-xs); }
+.secondary { min-height: 44px; padding: 0 2px; border: 0; background: transparent; color: var(--ink); font: 600 var(--text-sm)/1.2 var(--font-body); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.secondary[aria-disabled="true"] { opacity: .65; cursor: default; }
+.status { margin-top: 8px; font-size: var(--text-sm); }
+.error { margin-top: 8px; padding: 8px 10px; background: var(--danger-wash); color: var(--danger); font-size: var(--text-sm); }
+/* Temporary close: the shared red × stamp inside a 44px target. */
+.close { position: absolute; top: -2px; right: -4px; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.close span { display: grid; place-items: center; width: 28px; height: 28px; border: var(--border-pixel) solid var(--frame-border); background: var(--stamp); color: var(--paper-light); box-shadow: var(--bevel), var(--shadow-pixel); font: 700 20px/1 var(--font-pixel); }
+.close:active span { translate: 0 var(--press-depth); box-shadow: var(--bevel-pressed), var(--shadow-pixel-pressed); }
+.visuallyHidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+/* The gold ring steps outward and back, like a game's "tap here" marker.
+   Reduced motion and the gentle-motion setting stop it (static ring). */
+@keyframes guide-beckon { from { outline-offset: 0; } to { outline-offset: 4px; } }
+@keyframes guide-pop { from { opacity: 0; translate: 0 6px; } to { opacity: 1; translate: 0 0; } }
+@media (forced-colors: active) {
+  .bubble { border-image-source: none; border-color: CanvasText; }
+  .spotlight { outline-color: Highlight; }
+  .arrow { background: CanvasText; }
+  .pips i[data-done] { background: Highlight; }
+}

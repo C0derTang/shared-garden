@@ -5,6 +5,10 @@ Status: approved direction and conservative interaction choices under
 [issue #75](https://github.com/C0derTang/shared-garden/issues/75).
 This extends the modal contract in [decision 0029](0029-immersive-garden.md).
 
+Its centered box is superseded by the coach-mark in
+[decision 0056](0056-guide-coach-mark-and-outer-pages.md); the coordinator,
+focus, persistence and reopen rules below still apply.
+
 The guide is a centered, content-sized box over a translucent black tint of the
 actual garden. It consumes no garden layout height. A short title, one instruction,
 one primary action, and a count of the member’s two saved tutorial care facts
