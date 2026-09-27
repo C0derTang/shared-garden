@@ -448,3 +448,21 @@ it("holds the away card while the guide is open, through a sheet round trip and 
   reloaded.unmount();
   localStorage.clear();
 });
+
+it.each([["Skip guide", "skipped"], ["Finish guide", "finished"]] as const)("shows waiting away news once after %s", async (label, guide) => {
+  localStorage.clear();
+  const earlier = gardenFixture();
+  const key = snapshotKey(earlier);
+  writeStoredSnapshot(key, takeSnapshot(earlier, null, null));
+  const state = gardenFixture(); state.plants[0].member2_submitted = true;
+  // Finish is offered on the final card; Skip while steps remain.
+  if (guide === "finished") state.tutorial_facts = { cactus_checked_in: true, rose_noted: true };
+  saveSetting.mockResolvedValue({ state: { ...settings.state, revision: 1, guide }, error: null });
+  show(state); const user = userEvent.setup();
+  await act(async () => {});
+  expect(screen.queryByRole("region", { name: "While you were away" })).not.toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: label }));
+  expect(await screen.findAllByRole("region", { name: "While you were away" })).toHaveLength(1);
+  expect(JSON.parse(localStorage.getItem(key)!).pending).toBeUndefined();
+  localStorage.clear();
+});

@@ -183,15 +183,21 @@ export function SinceLastVisit({
     };
     const releasing = !hold && !quiet;
     const waiting = releasing ? resolvePending(stored.snapshot?.pending, state, earned) : null;
-    const pending = hold ? addPending(stored.snapshot?.pending, shown) : releasing ? waiting!.waiting : stored.snapshot?.pending;
+    // While held, anything parked in memory (partner care deferred during a
+    // sheet) joins the stored list too, so no held news lives only in memory.
+    const pending = hold ? addPending(stored.snapshot?.pending, mergeNews(held.current, shown)) : releasing ? waiting!.waiting : stored.snapshot?.pending;
     const next = { ...takeSnapshot(state, earned, stored.snapshot), badgesPending: pendingSince.current !== null, pending };
     if (!writeStoredSnapshot(key, next)) {
       disabled.current = true;
       return;
     }
     publishBadges({ key, unread: unreadBadges(next) });
-    // Held news is stored above, so it survives a reload.
-    if (hold) return;
+    // Held news is stored above, so it survives a reload; memory is cleared
+    // only now that the write has succeeded.
+    if (hold) {
+      held.current = noNews;
+      return;
+    }
     if (quiet) {
       held.current = mergeNews(held.current, shown);
       return;

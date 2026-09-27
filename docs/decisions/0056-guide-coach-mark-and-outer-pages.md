@@ -87,7 +87,10 @@ over the top of the garden, where it would hide the lit flower. Detection is
 unchanged: the card still compares the garden with its stored snapshot and
 advances it at once, and the viewer's own actions and open sheets still only
 move it. News that would have been shown while the guide is up is added to a
-waiting list stored with the snapshot. The list holds ids and type keys only,
+waiting list stored with the snapshot. That includes partner care that arrived
+while a sheet the guide opened was showing, which was parked in memory: it
+joins the list as soon as the guide returns, and memory is cleared only once
+the list is saved. The list holds ids and type keys only,
 without repeats, at most 20 entries, and is validated like the rest of the
 snapshot. A reload, leaving, or a new day with the guide still open keeps the
 list. Once the guide is closed for now, skipped or finished and no sheet is

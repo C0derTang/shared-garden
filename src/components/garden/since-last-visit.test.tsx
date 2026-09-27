@@ -154,8 +154,7 @@ describe("While you were away", () => {
       view.rerender(<SinceLastVisit {...p} hold quiet />);
       view.rerender(<SinceLastVisit {...p} hold={false} quiet />);
       await act(async () => {});
-      // The sheet closes and the guide returns.
-      view.rerender(<SinceLastVisit {...p} hold={false} quiet={false} />);
+      // The sheet closes and the guide returns in the same render.
       view.rerender(<SinceLastVisit {...p} hold quiet={false} />);
       await act(async () => {});
       expect(card()).not.toBeInTheDocument();
@@ -188,6 +187,49 @@ describe("While you were away", () => {
       await settle(again);
       expect(card()).not.toBeInTheDocument();
       await expectShownOnce(view, again);
+    });
+
+    it("stores partner care that arrives while a guide-driven sheet is open, so a reload keeps it", async () => {
+      await visit(garden());
+      const p = props(garden());
+      const view = render(<SinceLastVisit {...p} hold />);
+      await settle(p);
+      // The guide yields to a sheet, and the partner cares while it is open.
+      view.rerender(<SinceLastVisit {...p} hold={false} quiet />);
+      await act(async () => {});
+      const cared = { ...p, state: garden((s) => { s.plants[2].member2_submitted = true; }) };
+      view.rerender(<SinceLastVisit {...cared} hold={false} quiet />);
+      await act(async () => {});
+      // The sheet closes and the guide returns: the care joins the stored list.
+      view.rerender(<SinceLastVisit {...cared} hold />);
+      await act(async () => {});
+      expect(stored().pending?.partnerCare).toEqual(["tulip-1"]);
+      view.unmount();
+      const again = props(cared.state);
+      const reloaded = render(<SinceLastVisit {...again} hold />);
+      await settle(again);
+      expect(card()).not.toBeInTheDocument();
+      reloaded.rerender(<SinceLastVisit {...again} hold={false} />);
+      const shown = await screen.findByRole("region", { name: "While you were away" });
+      expect(shown).toHaveTextContent("Your partner cared for Tulip");
+      expect(within(shown).getAllByRole("listitem")).toHaveLength(1);
+      expect(stored().pending).toBeUndefined();
+    });
+
+    it("shows partner care from a guide-driven sheet once when the guide closes without a reload", async () => {
+      await visit(garden());
+      const p = props(garden());
+      const view = render(<SinceLastVisit {...p} hold />);
+      await settle(p);
+      view.rerender(<SinceLastVisit {...p} hold={false} quiet />);
+      const cared = { ...p, state: garden((s) => { s.plants[2].member2_submitted = true; }) };
+      view.rerender(<SinceLastVisit {...cared} hold={false} quiet />);
+      view.rerender(<SinceLastVisit {...cared} hold />);
+      await act(async () => {});
+      view.rerender(<SinceLastVisit {...cared} hold={false} />);
+      const shown = await screen.findByRole("region", { name: "While you were away" });
+      expect(within(shown).getAllByRole("listitem")).toHaveLength(1);
+      expect(shown).toHaveTextContent("Your partner cared for Tulip");
     });
 
     it("never adds the viewer's own bloom to the waiting list", async () => {
