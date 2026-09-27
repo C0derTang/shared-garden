@@ -107,44 +107,111 @@ describe("While you were away", () => {
     expect(view.openSpot).toHaveBeenLastCalledWith(3);
   });
 
-  it("keeps held news through a reload with the guide open, shows it once after the guide closes, and never again", async () => {
-    await visit(garden());
-    const next = garden((s) => {
+  describe("while the garden guide holds the card", () => {
+    const news = () => garden((s) => {
       s.plants[1].flower.first_bloom_at = "2026-09-19T11:00:00Z";
       s.plants[2].member2_submitted = true;
     });
-    const before = localStorage.getItem(key);
-    const props = () => ({ state: next, openSpot: vi.fn(), focusGarden: vi.fn(), loadAchievements: vi.fn(async () => achievements([firstSeed])) });
+    const props = (state: GardenState) => ({ state, openSpot: vi.fn(), focusGarden: vi.fn(), loadAchievements: vi.fn(async () => achievements([firstSeed])) });
     const card = () => screen.queryByRole("region", { name: "While you were away" });
-    // Guide open: nothing shows, and the stored snapshot does not advance.
-    const first = props();
-    const held = render(<SinceLastVisit {...first} hold />);
-    await waitFor(() => expect(first.loadAchievements).toHaveBeenCalled());
-    await act(async () => {});
-    expect(card()).not.toBeInTheDocument();
-    expect(screen.queryByRole("status")).not.toBeInTheDocument();
-    expect(localStorage.getItem(key)).toBe(before);
-    // A reload with the guide still open.
-    held.unmount();
-    const second = props();
-    const reloaded = render(<SinceLastVisit {...second} hold />);
-    await waitFor(() => expect(second.loadAchievements).toHaveBeenCalled());
-    await act(async () => {});
-    expect(card()).not.toBeInTheDocument();
-    expect(localStorage.getItem(key)).toBe(before);
-    // The guide closes: the news shows once, and the snapshot advances.
-    reloaded.rerender(<SinceLastVisit {...second} hold={false} />);
-    const shown = await screen.findByRole("region", { name: "While you were away" });
-    expect(shown).toHaveTextContent("Your Rose bloomed");
-    expect(shown).toHaveTextContent("Your partner cared for Tulip");
-    await waitFor(() => expect(JSON.parse(localStorage.getItem(key)!).blooms).toContain("rose-1"));
-    // Another reload after that shows nothing again.
-    reloaded.unmount();
-    const third = props();
-    render(<SinceLastVisit {...third} />);
-    await waitFor(() => expect(third.loadAchievements).toHaveBeenCalled());
-    await act(async () => {});
-    expect(card()).not.toBeInTheDocument();
+    const stored = () => JSON.parse(localStorage.getItem(key)!);
+    async function settle(p: ReturnType<typeof props>) {
+      await waitFor(() => expect(p.loadAchievements).toHaveBeenCalled());
+      await act(async () => {});
+    }
+    async function expectShownOnce(view: ReturnType<typeof render>, p: ReturnType<typeof props>) {
+      view.rerender(<SinceLastVisit {...p} hold={false} />);
+      const shown = await screen.findByRole("region", { name: "While you were away" });
+      expect(shown).toHaveTextContent("Your Rose bloomed");
+      expect(shown).toHaveTextContent("Your partner cared for Tulip");
+      expect(within(shown).getAllByRole("listitem")).toHaveLength(2);
+      expect(stored().pending).toBeUndefined();
+      // Never again: a later visit with the guide closed shows nothing.
+      view.unmount();
+      const later = props(p.state);
+      render(<SinceLastVisit {...later} />);
+      await settle(later);
+      expect(card()).not.toBeInTheDocument();
+    }
+
+    it("stores held news with the snapshot as ids only and shows nothing meanwhile", async () => {
+      await visit(garden());
+      const p = props(news());
+      render(<SinceLastVisit {...p} hold />);
+      await settle(p);
+      expect(card()).not.toBeInTheDocument();
+      expect(screen.queryByRole("status")).not.toBeInTheDocument();
+      expect(stored().blooms).toContain("rose-1");
+      expect(stored().pending).toEqual({ blooms: ["rose-1"], unlocks: [], partnerCare: ["tulip-1"], badges: [] });
+    });
+
+    it("shows held news once after the guide yields to a sheet, returns and closes", async () => {
+      await visit(garden());
+      const p = props(news());
+      const view = render(<SinceLastVisit {...p} hold />);
+      await settle(p);
+      // The member taps the flower the guide points at: the guide yields to the sheet.
+      view.rerender(<SinceLastVisit {...p} hold quiet />);
+      view.rerender(<SinceLastVisit {...p} hold={false} quiet />);
+      await act(async () => {});
+      // The sheet closes and the guide returns.
+      view.rerender(<SinceLastVisit {...p} hold={false} quiet={false} />);
+      view.rerender(<SinceLastVisit {...p} hold quiet={false} />);
+      await act(async () => {});
+      expect(card()).not.toBeInTheDocument();
+      await expectShownOnce(view, p);
+    });
+
+    it("shows held news once after a sheet round trip and a reload, then the guide closing", async () => {
+      await visit(garden());
+      const p = props(news());
+      const first = render(<SinceLastVisit {...p} hold />);
+      await settle(p);
+      first.rerender(<SinceLastVisit {...p} hold quiet />);
+      first.rerender(<SinceLastVisit {...p} hold={false} quiet />);
+      await act(async () => {});
+      first.unmount();
+      const again = props(p.state);
+      const view = render(<SinceLastVisit {...again} hold />);
+      await settle(again);
+      expect(card()).not.toBeInTheDocument();
+      await expectShownOnce(view, again);
+    });
+
+    it("shows held news once after a reload with the guide still open", async () => {
+      await visit(garden());
+      const p = props(news());
+      render(<SinceLastVisit {...p} hold />).unmount();
+      await act(async () => {});
+      const again = props(p.state);
+      const view = render(<SinceLastVisit {...again} hold />);
+      await settle(again);
+      expect(card()).not.toBeInTheDocument();
+      await expectShownOnce(view, again);
+    });
+
+    it("never adds the viewer's own bloom to the waiting list", async () => {
+      await visit(garden());
+      const mine = garden((s) => { s.plants[1].flower.first_bloom_at = "2026-09-19T11:00:00Z"; });
+      const p = { ...props(mine), ownResult: mine };
+      const view = render(<SinceLastVisit {...p} hold />);
+      await settle(p);
+      expect(stored().pending).toBeUndefined();
+      view.rerender(<SinceLastVisit {...p} hold={false} />);
+      await act(async () => {});
+      expect(card()).not.toBeInTheDocument();
+    });
+
+    it("stays silent and safe when storage fails while held", async () => {
+      await visit(garden());
+      const p = props(news());
+      vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("full"); });
+      const view = render(<SinceLastVisit {...p} hold />);
+      await settle(p);
+      view.rerender(<SinceLastVisit {...p} hold={false} />);
+      await act(async () => {});
+      expect(card()).not.toBeInTheDocument();
+    });
   });
 
   it("dismisses, returns focus to the garden, and does not celebrate the same news again", async () => {

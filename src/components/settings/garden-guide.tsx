@@ -30,16 +30,20 @@ function safeBand() {
   };
 }
 
-export function GardenGuide({ state, paused, visit, focusGarden, actionOpen = false, enabled = true, onRequestedChange }: {
+export function GardenGuide({ state, paused, visit, focusGarden, actionOpen = false, enabled = true, closedRequest: heldClosedRequest, onClosedRequestChange }: {
   state: GardenState; paused: boolean; visit: (spot: number) => void;
   focusGarden: () => void; actionOpen?: boolean; enabled?: boolean;
-  /** Whether the guide wants to be on screen, so the away card can wait. */
-  onRequestedChange?: (requested: boolean) => void;
+  /** Optional lifted "closed for now" state (the garden request it applies
+      to), so the parent knows synchronously whether the guide is up. */
+  closedRequest?: number | null;
+  onClosedRequestChange?: (request: number | null) => void;
 }) {
   const preferences = useMemberPreferences();
   const scope = useSheetScope();
   const id = useId();
-  const [closedRequest, setClosedRequest] = useState<number | null>(null);
+  const [ownClosedRequest, setOwnClosedRequest] = useState<number | null>(null);
+  const closedRequest = heldClosedRequest !== undefined ? heldClosedRequest : ownClosedRequest;
+  const setClosedRequest = onClosedRequestChange ?? setOwnClosedRequest;
   const closed = closedRequest !== null && closedRequest === preferences?.guideRequest;
   const [focusTarget, setFocusTarget] = useState<"show" | "garden" | null>(null);
   const [layout, setLayout] = useState<Layout | null>(null);
@@ -54,9 +58,6 @@ export function GardenGuide({ state, paused, visit, focusGarden, actionOpen = fa
     if (requested) request?.(id);
     return () => release?.(id);
   }, [id, requested, request, release]);
-  // Keeps the parent's copy current after its first render, which computes
-  // the same condition itself so the away card is held from the start.
-  useEffect(() => { onRequestedChange?.(requested); }, [requested, onRequestedChange]);
   const visible = requested && (!scope || scope.active === id);
   const step = guideStep(state);
   const spot = "spot" in step ? step.spot : null;

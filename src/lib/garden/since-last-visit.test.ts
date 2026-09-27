@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 import { gardenFixture } from "@/test/garden-fixture";
 import type { GardenState, Plant } from "./model";
 import {
+  addPending,
+  noNews,
+  pendingLimit,
+  resolvePending,
   diffSnapshot,
   hasNews,
   mergeNews,
@@ -119,5 +123,42 @@ describe("since-last-visit diff", () => {
     expect(nameList(["Rose", "Rose", "Tulip"])).toBe("Rose ×2 and Tulip");
     expect(nameList(["Rose", "Tulip", "Daisy"])).toBe("Rose, Tulip and Daisy");
     expect(nameList(["Rose", "Tulip", "Daisy", "Marigold"])).toBe("Rose, Tulip and 2 more");
+  });
+});
+
+describe("waiting news while the guide holds the card", () => {
+  const state = () => {
+    const s = gardenFixture();
+    const base = s.plants[0];
+    for (let i = 2; i <= 30; i++) s.plants.push({ ...base, flower: { ...base.flower, id: `f${i}`, spot: i } });
+    return s;
+  };
+  it("stores ids only, without repeats, capped in total", () => {
+    const s = state();
+    const once = addPending(undefined, { ...noNews, blooms: [s.plants[1]], unlocks: [s.catalog[1]], badges: [{ id: "b1", title: "Private-free title" }] });
+    expect(once).toEqual({ blooms: ["f2"], unlocks: ["rose"], partnerCare: [], badges: ["b1"] });
+    expect(addPending(once, { ...noNews, blooms: [s.plants[1]] })).toEqual(once);
+    const full = addPending(once, { ...noNews, partnerCare: s.plants });
+    const total = (p: typeof full) => p!.blooms.length + p!.unlocks.length + p!.partnerCare.length + p!.badges.length;
+    expect(total(full)).toBe(pendingLimit);
+    expect(addPending(undefined, noNews)).toBeUndefined();
+  });
+  it("validates the stored list like the rest of the snapshot", () => {
+    const snapshot = { ...takeSnapshot(gardenFixture(), null, null) };
+    expect(parseSnapshot(JSON.stringify({ ...snapshot, pending: { blooms: ["a"], unlocks: [], partnerCare: [], badges: [] } }))?.pending?.blooms).toEqual(["a"]);
+    expect(parseSnapshot(JSON.stringify({ ...snapshot, pending: { blooms: [1], unlocks: [], partnerCare: [], badges: [] } }))).toBeNull();
+    expect(parseSnapshot(JSON.stringify({ ...snapshot, pending: { blooms: Array.from({ length: pendingLimit + 1 }, (_, i) => `x${i}`), unlocks: [], partnerCare: [], badges: [] } }))).toBeNull();
+  });
+  it("resolves ids from the current garden, skips gone flowers and keeps badges until their names load", () => {
+    const s = state();
+    const pending = { blooms: ["f2", "gone"], unlocks: ["rose"], partnerCare: ["f3"], badges: ["b1"] };
+    const early = resolvePending(pending, s, null);
+    expect(early.news.blooms.map((p) => p.flower.id)).toEqual(["f2"]);
+    expect(early.news.unlocks.map((u) => u.type_key)).toEqual(["rose"]);
+    expect(early.news.badges).toEqual([]);
+    expect(early.waiting).toEqual({ blooms: [], unlocks: [], partnerCare: [], badges: ["b1"] });
+    const later = resolvePending(pending, s, [{ id: "b1", title: "Three-day streak" }]);
+    expect(later.news.badges).toEqual([{ id: "b1", title: "Three-day streak" }]);
+    expect(later.waiting).toBeUndefined();
   });
 });

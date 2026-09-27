@@ -90,10 +90,12 @@ flag. Stored snapshots still stop any repeat after that. Fixing it would need
 shared cross-tab or server state, which this browser-only design leaves out.
 
 While the garden guide is open, the card also waits, so it never covers the
-flower the guide points at. Nothing is silenced. The snapshot does not advance
-for news from elsewhere while the card waits, so the news survives a reload.
-It appears once, when the guide closes or finishes
-([decision 0056](0056-guide-coach-mark-and-outer-pages.md)).
+flower the guide points at. Detection and the snapshot work as above. News
+that would have been shown is kept in a small waiting list inside the snapshot
+(`pending`: ids and type keys only, no repeats, at most 20 entries), so it
+survives a reload. It appears once, when the guide closes or finishes and no
+sheet is open, and the list is then cleared. The hotbar badge dot still
+updates meanwhile ([decision 0056](0056-guide-coach-mark-and-outer-pages.md)).
 
 ## Snapshot
 
@@ -105,7 +107,8 @@ The comparison uses a snapshot in this browser's `localStorage`, keyed
 - the garden day and the ids of flowers your partner cared for on that day;
 - earned achievement ids, and the earned ids already seen in the Achievements
   panel;
-- whether a badge read is still pending after your own action.
+- whether a badge read is still pending after your own action;
+- news waiting while the garden guide is open (`pending`, ids only; see above).
 
 It never stores entry text, wishes, answers, media, songs or any other private
 content, only ids, type keys and the garden day. It is not an account

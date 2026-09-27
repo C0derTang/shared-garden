@@ -11,8 +11,10 @@ import {
   publishBadges,
   readStoredSnapshot,
   writeStoredSnapshot,
+  addPending,
   diffSnapshot,
   hasNews,
+  resolvePending,
   mergeNews,
   noNews,
   nameList,
@@ -160,11 +162,6 @@ export function SinceLastVisit({
       return;
     }
     const silent = quiet || state === ownResult;
-    // While the guide holds the card, news from elsewhere stays in the stored
-    // snapshot's diff: nothing advances, so a reload or a later day with the
-    // guide still open loses nothing. The viewer's own actions still only
-    // move the snapshot, as below.
-    if (hold && !silent) return;
     // A change that could earn a badge arrived with the viewer's own action.
     if (silent && lastSignature.current !== null && lastSignature.current !== signature)
       pendingSince.current = ++generation.current;
@@ -172,26 +169,34 @@ export function SinceLastVisit({
     // A pending flag stored by an earlier visit counts from generation 0.
     if (stored.snapshot?.badgesPending && pendingSince.current === null) pendingSince.current = 0;
     const earned = badges?.list ?? null;
+    const found = diffSnapshot(stored.snapshot, state, earned);
     const settles = !!badges && pendingSince.current !== null && badges.generation >= pendingSince.current;
     if (settles) pendingSince.current = null;
-    const next = { ...takeSnapshot(state, earned, stored.snapshot), badgesPending: pendingSince.current !== null };
-    if (!writeStoredSnapshot(key, next)) {
-      disabled.current = true;
-      return;
-    }
-    publishBadges({ key, unread: unreadBadges(next) });
-    const found = diffSnapshot(stored.snapshot, state, earned);
+    // Detection is the same whether or not the guide is up; only showing
+    // waits. The viewer's own news is already silenced above, so only news
+    // that would have been shown joins the stored waiting list.
     const shown: VisitNews = {
       blooms: silent ? [] : found.blooms,
       unlocks: silent ? [] : found.unlocks,
       partnerCare: found.partnerCare,
       badges: silent || settles || pendingSince.current !== null ? [] : found.badges,
     };
-    if (quiet || hold) {
+    const releasing = !hold && !quiet;
+    const waiting = releasing ? resolvePending(stored.snapshot?.pending, state, earned) : null;
+    const pending = hold ? addPending(stored.snapshot?.pending, shown) : releasing ? waiting!.waiting : stored.snapshot?.pending;
+    const next = { ...takeSnapshot(state, earned, stored.snapshot), badgesPending: pendingSince.current !== null, pending };
+    if (!writeStoredSnapshot(key, next)) {
+      disabled.current = true;
+      return;
+    }
+    publishBadges({ key, unread: unreadBadges(next) });
+    // Held news is stored above, so it survives a reload.
+    if (hold) return;
+    if (quiet) {
       held.current = mergeNews(held.current, shown);
       return;
     }
-    const all = mergeNews(held.current, shown);
+    const all = mergeNews(mergeNews(waiting?.news ?? noNews, held.current), shown);
     held.current = noNews;
     if (!hasNews(all)) return;
     // The card is non-modal and never takes focus; it only appears.

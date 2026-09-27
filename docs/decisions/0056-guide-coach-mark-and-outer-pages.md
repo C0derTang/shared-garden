@@ -83,14 +83,25 @@ is talking about:
 
 **Away card waits.** While the guide wants to be on screen, the "While you
 were away" card ([decision 0054](0054-while-you-were-away.md)) waits. It sits
-over the top of the garden, where it would hide the lit flower. While it
-waits, the stored snapshot does not advance for news from elsewhere, so a
-reload, leaving, or a new day with the guide still open loses nothing. The
-viewer's own actions still only move the snapshot. The card and its
-announcement appear
-unchanged once the guide is closed for now, skipped or finished, or yields to a
-flower sheet (the card's own sheet rule then applies). `GardenGuide` reports
-this through `onRequestedChange`, and `SinceLastVisit` takes it as `hold`.
+over the top of the garden, where it would hide the lit flower. Detection is
+unchanged: the card still compares the garden with its stored snapshot and
+advances it at once, and the viewer's own actions and open sheets still only
+move it. News that would have been shown while the guide is up is added to a
+waiting list stored with the snapshot. The list holds ids and type keys only,
+without repeats, at most 20 entries, and is validated like the rest of the
+snapshot. A reload, leaving, or a new day with the guide still open keeps the
+list. Once the guide is closed for now, skipped or finished and no sheet is
+open, the card shows the waiting news with anything new, once, and clears the
+list. Flowers that are gone by then are skipped. Badge lines wait until the
+achievements read has loaded their names. The Achievements hotbar dot is
+published as normal while the card waits. The card and its
+announcement appear unchanged then. While the guide yields to a flower sheet,
+the card's own sheet rule applies, and the waiting list stays stored.
+`GardenClient` computes the hold in the same render as the guide: the guide
+is open in the shared preferences, enabled, not closed for now, and no sheet
+is open. The "closed for now" state is lifted from `GardenGuide` into
+`GardenClient`, so the card never sees a stale value between commits.
+`SinceLastVisit` takes the hold as `hold`.
 This is an orchestrator decision for issue #124. The guide's tint, spotlight
 and bubble are fixed layers above the garden ambience
 ([decision 0050](0050-garden-light-and-ambience.md)) in every light phase,

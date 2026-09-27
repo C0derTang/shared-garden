@@ -24,7 +24,15 @@ export type VisitSnapshot = {
    * next successful read only moves the badge baseline.
    */
   badgesPending?: boolean;
+  /**
+   * News found while the garden guide held the card (decision 0056), waiting
+   * to be shown once. Ids and type keys only, deduplicated and capped at
+   * `pendingLimit` in total.
+   */
+  pending?: PendingNews;
 };
+export type PendingNews = { blooms: string[]; unlocks: string[]; partnerCare: string[]; badges: string[] };
+export const pendingLimit = 20;
 export type EarnedBadge = { id: string; title: string };
 export type VisitNews = {
   blooms: Plant[];
@@ -43,6 +51,13 @@ const strings = (value: unknown): value is string[] =>
 const nullableStrings = (value: unknown): value is string[] | null =>
   value === null || strings(value);
 
+function validPending(value: unknown): value is PendingNews {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const lists = value as Partial<PendingNews>;
+  return strings(lists.blooms) && strings(lists.unlocks) && strings(lists.partnerCare) && strings(lists.badges) &&
+    lists.blooms.length + lists.unlocks.length + lists.partnerCare.length + lists.badges.length <= pendingLimit;
+}
+
 /** Anything unreadable counts as no snapshot, so it never celebrates. */
 export function parseSnapshot(raw: string | null): VisitSnapshot | null {
   if (!raw) return null;
@@ -56,7 +71,8 @@ export function parseSnapshot(raw: string | null): VisitSnapshot | null {
       strings(value.partnerCare) &&
       nullableStrings(value.badges) &&
       nullableStrings(value.badgesViewed) &&
-      (value.badgesPending === undefined || typeof value.badgesPending === "boolean")
+      (value.badgesPending === undefined || typeof value.badgesPending === "boolean") &&
+      (value.pending === undefined || validPending(value.pending))
     )
       return value as VisitSnapshot;
   } catch {
@@ -203,4 +219,51 @@ export function markBadgesViewed() {
   if (!stored.ok || !stored.snapshot?.badges) return;
   if (writeStoredSnapshot(key, { ...stored.snapshot, badgesViewed: stored.snapshot.badges }))
     publishBadges({ key, unread: 0 });
+}
+
+/**
+ * Adds news that would have been shown to the waiting list: ids only, no
+ * repeats, and at most `pendingLimit` entries, keeping the earliest.
+ */
+export function addPending(pending: PendingNews | undefined, news: VisitNews): PendingNews | undefined {
+  const next: PendingNews = {
+    blooms: [...(pending?.blooms ?? [])],
+    unlocks: [...(pending?.unlocks ?? [])],
+    partnerCare: [...(pending?.partnerCare ?? [])],
+    badges: [...(pending?.badges ?? [])],
+  };
+  let room = pendingLimit - (next.blooms.length + next.unlocks.length + next.partnerCare.length + next.badges.length);
+  const add = (list: string[], ids: string[]) => {
+    for (const id of ids) if (room > 0 && !list.includes(id)) { list.push(id); room--; }
+  };
+  add(next.blooms, news.blooms.map((p) => p.flower.id));
+  add(next.unlocks, news.unlocks.map((u) => u.type_key));
+  add(next.partnerCare, news.partnerCare.map((p) => p.flower.id));
+  add(next.badges, news.badges.map((b) => b.id));
+  return next.blooms.length + next.unlocks.length + next.partnerCare.length + next.badges.length ? next : undefined;
+}
+
+/**
+ * Turns waiting ids back into news from the current garden. Flowers that are
+ * gone are skipped. Badges wait until achievements have loaded, since their
+ * names come from that read; those ids are returned as still waiting.
+ */
+export function resolvePending(
+  pending: PendingNews | undefined,
+  state: GardenState,
+  badges: EarnedBadge[] | null,
+): { news: VisitNews; waiting: PendingNews | undefined } {
+  if (!pending) return { news: noNews, waiting: undefined };
+  const plants = new Map(state.plants.map((p) => [p.flower.id, p]));
+  const pick = (ids: string[]) => ids.flatMap((id) => plants.get(id) ?? []);
+  const titles = new Map((badges ?? []).map((b) => [b.id, b]));
+  return {
+    news: {
+      blooms: pick(pending.blooms),
+      unlocks: state.catalog.filter((item) => pending.unlocks.includes(item.type_key)),
+      partnerCare: pick(pending.partnerCare),
+      badges: badges ? pending.badges.flatMap((id) => titles.get(id) ?? []) : [],
+    },
+    waiting: !badges && pending.badges.length ? { blooms: [], unlocks: [], partnerCare: [], badges: pending.badges } : undefined,
+  };
 }
