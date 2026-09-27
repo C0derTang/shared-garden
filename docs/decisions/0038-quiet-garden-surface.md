@@ -5,6 +5,10 @@ Status: conservative presentation choices for
 approved discretion in [decision 0004](0004-finalized-launch-rules.md) and the
 immersive direction in [decision 0029](0029-immersive-garden.md).
 
+[Decision 0051](0051-today-card-and-flower-cues.md) updates this surface with
+the Today card and three flower-state cues. The label boxes, coordinates and
+targets described here are unchanged.
+
 The resting garden surface shows each planted flower through its existing
 artwork and, when relevant, its two care dots. Repeated visible flower names,
 growth totals, bloom or fulfilled labels, and decorative bed numbers are

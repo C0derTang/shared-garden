@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState, type FormEvent, type ReactNode } from "react";
+import { GardenSpotLink } from "@/components/garden/spot-request";
 import { PixelIcon } from "@/components/ui/pixel-icon";
 import {
   memoryTypes,
@@ -236,11 +237,22 @@ function MemoryFeed({
       {feed.ready && !feed.items.length && (
         <div className={styles.empty}>
           <PixelIcon name="book" />
-          <p>
-            {filtered
-              ? "No memories match those filters."
-              : "Your first shared memory will appear here."}
-          </p>
+          {filtered ? (
+            <p>No memories match those filters.</p>
+          ) : (
+            <>
+              <p>
+                Your first memory appears once one of you shares care. Start
+                with the Cactus — it’s one tap.
+              </p>
+              <GardenSpotLink
+                request={{ flower: "cactus" }}
+                className="button button-primary"
+              >
+                Visit the Cactus
+              </GardenSpotLink>
+            </>
+          )}
         </div>
       )}
       <ol className={styles.list}>
