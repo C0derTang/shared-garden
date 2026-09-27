@@ -1,5 +1,5 @@
 "use client";
-import { useId, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import type { GardenState } from "@/lib/garden/model";
 import { sheetCue, todayPlan, type CareStatus, type FlowerCue } from "./due-today";
 import { FlowerSprite } from "./flower-sprite";
@@ -25,12 +25,28 @@ function count(label: "You" | "Partner", due: number) {
   );
 }
 
+/** The "While you were away" card is never squeezed below this height
+    while a compact Today card would leave it more room (issue #137). */
+const awayComfort = 200;
+/** The away card's margin above the Today card's title tab. */
+const awayMargin = 10;
+
 /**
  * A parchment plaque above the hotbar: what each of you has left today, one
  * tap to the next flower, and a short list of the flowers still due
- * (decision 0051).
+ * (decision 0051). While the "While you were away" card (`away`) is open and
+ * the full plaque would leave it under 200px, the plaque turns compact: only
+ * its title tab and the next action (issue #137).
  */
-export function TodayCard({ state, visit }: { state: GardenState; visit: VisitFromCard }) {
+export function TodayCard({
+  state,
+  visit,
+  away = null,
+}: {
+  state: GardenState;
+  visit: VisitFromCard;
+  away?: HTMLElement | null;
+}) {
   const plan = todayPlan(state);
   const [expanded, setExpanded] = useState(false);
   const listId = useId();
@@ -38,7 +54,14 @@ export function TodayCard({ state, visit }: { state: GardenState; visit: VisitFr
   const card = useRef<HTMLElement>(null);
   const bar = useRef<HTMLDivElement>(null);
   const [clearance, setClearance] = useState(0);
-  const listed = expanded && plan.rows.length > 0;
+  const [crowded, setCrowded] = useState(false);
+  // The bar's full height, kept while the plaque is compact.
+  const fullBar = useRef(0);
+  const refocus = useRef(false);
+  const next = plan.next;
+  const hasAction = !!next || plan.plantSpot !== null;
+  const compact = !!away && crowded && hasAction;
+  const listed = expanded && plan.rows.length > 0 && !compact;
   // The in-flow spacer matches the collapsed plaque, so the garden can always
   // scroll its last plots clear of the card and the hotbar.
   // The same height is shared with the garden as --today-bar-height, so the
@@ -49,6 +72,7 @@ export function TodayCard({ state, visit }: { state: GardenState; visit: VisitFr
     const host = card.current?.parentElement;
     if (!element) return;
     const measure = () => {
+      if (!card.current?.hasAttribute("data-compact")) fullBar.current = element.offsetHeight;
       setClearance(element.offsetHeight);
       host?.style.setProperty("--today-bar-height", `${element.offsetHeight}px`);
     };
@@ -61,6 +85,46 @@ export function TodayCard({ state, visit }: { state: GardenState; visit: VisitFr
       host?.style.removeProperty("--today-bar-height");
     };
   }, []);
+  // Whether the full plaque would push the away card under its comfortable
+  // height. The plaque is fixed above the hotbar, and the away card scrolls
+  // with the garden, so this uses its unscrolled layout position.
+  useEffect(() => {
+    // With no away card the plaque is never compact, whatever was measured.
+    if (!away) return;
+    const check = () => {
+      const root = card.current;
+      const host = away.offsetParent as HTMLElement | null;
+      if (!root || !host) return;
+      const rect = root.getBoundingClientRect();
+      const tab = root.querySelector("h2")?.getBoundingClientRect();
+      const borders = root.offsetHeight - root.clientHeight;
+      const fullTop =
+        rect.bottom - fullBar.current - borders - Math.max(0, rect.top - (tab?.top ?? rect.top));
+      const awayTop = host.getBoundingClientRect().top + window.scrollY + away.offsetTop;
+      const squeezed = awayTop + awayComfort + awayMargin > fullTop;
+      // Focus on the list toggle or a row moves to the next action when they hide.
+      const focused = document.activeElement;
+      if (squeezed && focused && root.contains(focused) && focused.getAttribute("data-today-focus") !== "primary" &&
+        root.querySelector('[data-today-focus="primary"]'))
+        refocus.current = true;
+      setCrowded(squeezed);
+    };
+    check();
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(check);
+    observer?.observe(away);
+    if (bar.current) observer?.observe(bar.current);
+    window.addEventListener("resize", check);
+    void document.fonts?.ready.then(check);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", check);
+    };
+  }, [away]);
+  useEffect(() => {
+    if (!compact || !refocus.current) return;
+    refocus.current = false;
+    card.current?.querySelector<HTMLElement>('[data-today-focus="primary"]')?.focus({ preventScroll: true });
+  }, [compact]);
   function open(spot: number, from: string) {
     visit(spot, () => {
       const root = card.current;
@@ -72,7 +136,6 @@ export function TodayCard({ state, visit }: { state: GardenState; visit: VisitFr
       return !!target;
     });
   }
-  const next = plan.next;
   const laterOnly = plan.you === 0 && plan.partner === 0;
   return (
     <>
@@ -82,6 +145,7 @@ export function TodayCard({ state, visit }: { state: GardenState; visit: VisitFr
         className={styles.card}
         aria-labelledby={titleId}
         data-state={plan.allTended ? "done" : undefined}
+        data-compact={compact || undefined}
         onKeyDown={(event) => {
           if (event.key !== "Escape" || !listed) return;
           event.stopPropagation();
@@ -136,6 +200,12 @@ export function TodayCard({ state, visit }: { state: GardenState; visit: VisitFr
           {plan.allTended ? (
             <p className={styles.done}>
               All tended today <span aria-hidden="true">✿</span>
+            </p>
+          ) : compact ? (
+            <p className={styles.srOnly}>
+              {laterOnly
+                ? "All tended for now. Moonflower opens 10 p.m."
+                : `You ${plan.you ? `${plan.you} to tend` : "all tended"}. Partner ${plan.partner ? `${plan.partner} to tend` : "all tended"}.`}
             </p>
           ) : (
             <button

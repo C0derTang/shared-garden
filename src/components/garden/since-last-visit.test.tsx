@@ -309,6 +309,19 @@ describe("While you were away", () => {
     expect(screen.queryByRole("region", { name: "While you were away" })).not.toBeInTheDocument();
   });
 
+  it("hands the open card to the Today card and clears it on dismissal", async () => {
+    const user = userEvent.setup();
+    await visit(garden());
+    const onCard = vi.fn();
+    render(
+      <SinceLastVisit state={garden((s) => { s.plants[1].flower.first_bloom_at = "2026-09-19T11:00:00Z"; })} openSpot={vi.fn()} focusGarden={vi.fn()} loadAchievements={async () => achievements([firstSeed])} onCard={onCard} />,
+    );
+    const card = await screen.findByRole("region", { name: "While you were away" });
+    expect(onCard).toHaveBeenLastCalledWith(card);
+    await user.click(within(card).getByRole("button", { name: "Dismiss While you were away" }));
+    expect(onCard).toHaveBeenLastCalledWith(null);
+  });
+
   it("shows nothing and does not throw when storage is unavailable", async () => {
     await visit(garden());
     vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => { throw new Error("blocked"); });

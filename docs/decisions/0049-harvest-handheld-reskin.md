@@ -133,21 +133,34 @@ text never turns "liga" or "clig" back on.
   weekday and date of the garden day, a sun or moon icon, Pacific time and the
   new-day countdown. The moon shows while the Moonflower is open (10 p.m.–4
   a.m. Pacific, from `moonflower_open`), and the sun shows otherwise. This is
-  a static icon choice. Time-of-day lighting is a follow-up. The toolbar
-  moves to 66px and the stage padding to 60px at the top and 104px at the
-  bottom to clear the taller header and hotbar.
+  a static icon choice. Time-of-day lighting is a follow-up. The sign is at
+  least 68px tall. The toolbar sits at 66px and the beds start at 60px to
+  clear the taller header, and the stage keeps at least 104px at the bottom
+  to clear the hotbar.
   **Large text (issue #135):** the header wraps. The name keeps at least its
   longest word (`flex: 1 1 min-content`, 6px between name and clock), so when
   both no longer fit, the clock plate moves to a second line at the right
   instead of covering the name or scrolling the page sideways. This happens at
   320px with 20px root text or more, at 390px with 24px, and at 320px with a
   wide date and countdown. The plate's lines may wrap too, but the time stays
-  whole. The header publishes its measured height as `--hud-height` on the
-  stage. The tools and the collapsed Guide sit at
-  `max(66px, --hud-height − 2px)`, so they still hang 2px over the sign's
-  edge, and the stage's top padding is `max(60px, --hud-height − 8px)`. The
-  bottom padding is `max(104px, --hotbar-bottom + --hotbar-height + 10px)`.
-  At the default size all of these keep their fixed values.
+  whole. In the plate, the "·" separator stays with the time
+  ("Pacific" then "· 10:05 PM PDT"), so a wrapped line never ends on
+  "Pacific ·" (issue #137).
+  **Header offsets (issue #137, correcting the issue #135 note):** the sign
+  and the Help/Songs line are in normal flow at the top of the stage, so they
+  are right from the first paint, before any script runs. The sign is
+  `position: relative` with a 68px minimum height. The tools follow it as a
+  line with no height, moved up 2px, so they hang 2px over the sign's edge at
+  any text size. The beds follow with a −8px top margin, so they start 8px
+  above the sign's bottom edge. The stage has no top padding. Its bottom
+  padding is `max(104px, --hotbar-bottom + --hotbar-height + 10px)`, which
+  also depends on the safe-area bottom inset (`--hotbar-bottom`). The layout
+  doesn't set `viewport-fit=cover`, so that inset is 0 today. At the default
+  size the sign is 68px (previously 67.5px), the tools sit at 66px and the
+  beds at 60px, as before. The header still publishes its measured height as
+  `--hud-height` on the stage. The collapsed Guide sits at
+  `max(66px, --hud-height − 2px)`, and the "While you were away" card
+  follows the same line (decision 0054). Neither is shown before hydration.
 - **Help and Songs:** parchment sign buttons with a `--wood-dark` border,
   bevel and lip, `--ink` Pixelify text at `--text-md`, and a decorative pixel
   "?" or note glyph. The collapsed Guide button shares the style without a
@@ -193,6 +206,23 @@ text never turns "liga" or "clig" back on.
   the one-row value, so the Today card, the spot notice and the "While you
   were away" card still clear it. The one-row stylesheet value applies again
   when it fits.
+  **First paint (issue #137):** until the navigation has measured (it then
+  sets `data-rows` to 1 or 2), a CSS estimate picks the same arrangement. The
+  four whole Pixelify labels need about 14.9rem at `--text-xs`. With slot
+  frames, padding, gaps and the bar frame, the bar wraps when the viewport is
+  narrower than 14.9rem + 126px, or 14.9rem + 110px from 360 to 379px,
+  14.9rem + 70px on the full-width shelf, and 17.4rem + 182px at the
+  `--text-sm` label size from 640px up. `--hotbar-wrap` is a length that is
+  positive only below that width. Every two-row value is clamped by it, so it
+  is zero in one row and whole in two rows: the Garden nav takes the full
+  first line and wraps its slots at half width, the Settings nav moves up
+  into the empty half of the second row, and `--hotbar-height` adds one slot
+  row and its 2px gap. After the measurement, the grid above and the
+  published height take over, and the estimate is dropped. It follows the
+  root text size, not the browser's initial size, so it matches the measured
+  result at 320, 390 and 1280px with 16, 20 and 24px root text. Before the
+  pixel font loads, the fallback monospace labels are up to 6% wider, so an
+  arrangement near the threshold can still change once the font arrives.
   In forced colors the current slot uses `Highlight` and `HighlightText`
   (`forced-color-adjust: none`), and its focus outline is `HighlightText`.
   Plain slots set their border to `Canvas`, so the focus ring is the only

@@ -183,13 +183,21 @@ the rest of the garden.
 
 The card stays clear of the collapsed Today card (fixed, `z-index` 19) above
 the hotbar. Its height is capped at `100dvh` minus its top offset, the shared
-`--hotbar-bottom` and `--hotbar-height`, and a Today-card clearance: 108px, or
-160px below 360px, where the Today card wraps to 125px. The clearance covers
-the Today card's height, its 14px title tab, its 10px gap and a 10px margin.
-The Today card shares its measured bar height as `--today-bar-height`, so the
-clearance grows with it when large text makes it taller (issue #135). The cap
-never goes below 200px, so on a 320×640 screen with 20px root text or more
-the Today card can still cover the card's lower edge. When the lines don't
+`--hotbar-bottom` and `--hotbar-height`, and a Today-card clearance. The
+clearance is the Today card's measured bar height (`--today-bar-height`,
+shared by the Today card; 69px at the default size, and taller below 360px,
+where the card wraps) plus 39px for its borders, its 14px title tab,
+its 10px gap and a 10px margin: 108px at the default size. It grows with the
+Today card when large text makes it taller (issue #135). When the full Today
+card would leave this card under 200px, the Today card turns compact, with
+only its tab and next action
+([decision 0051](0051-today-card-and-flower-cues.md),
+[issue #137](https://github.com/C0derTang/shared-garden/issues/137)), and the
+clearance follows its shorter bar. The cap never goes below 140px, about the
+title and one line. At 320×640 and 390×664 with 16, 20 or 24px root text, and
+at 390×844 and 1280×800, the two cards no longer overlap in Chromium or
+WebKit; the tightest case, 320×640 with 24px text, leaves this card 187px
+and a 13px gap. When the lines don't
 fit, they scroll inside the card, with padding that keeps row lips and focus
 rings in view. While more lines are below, the bottom 28px of the list fades
 into the parchment (a mask down to 15% opacity) to show there is more to

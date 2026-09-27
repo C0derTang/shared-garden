@@ -42,7 +42,11 @@ it("renders real fixed beds, permanent flowers, clock and selectable empty posit
   expect(screen.getAllByRole("button", { name: /Plant in spot/ })).toHaveLength(
     11,
   );
-  expect(screen.getByText(/Pacific ·/)).toBeInTheDocument();
+  // The separator stays with the time, so a wrapped plate never ends a line
+  // on "Pacific ·" (issue #137).
+  const clock = screen.getByLabelText("Garden day");
+  expect(clock).toHaveTextContent(/Pacific · \d/);
+  expect(clock.querySelector("strong")?.parentElement).toHaveTextContent(/^· \d/);
   expect(screen.getByText(/New day in/)).toBeInTheDocument();
   expect(screen.getByText("Cactus")).toHaveAttribute("aria-hidden", "true");
   expect(screen.queryByText(/BED 01/)).not.toBeInTheDocument();
