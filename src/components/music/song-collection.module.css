@@ -153,8 +153,3 @@
 @media (forced-colors: active) {
   .entry { border-image-source: none; }
 }
-/* Pixelify Sans substitutes "fi" and "ff" ligatures that read as other letters
-   ("first" looks like "Arst"). Each `font` shorthand resets the ligature
-   setting, so it is forced off for everything in this panel. */
-.collection,
-.collection * { font-variant-ligatures: none !important; }

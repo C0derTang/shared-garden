@@ -116,7 +116,7 @@ export function AchievementsClient({
           <strong className={styles.count} aria-live="polite">{earned} of 26 earned</strong>
           <span className={styles.streak} aria-label={`Current shared streak: ${state.current_streak} completed days`}><PixelIcon name="heart" />{state.current_streak}-day streak</span>
           <progress aria-label="Ordinary achievements earned" max={26} value={earned} />
-          {earned === 26 && <span className={styles.complete}>All milestones earned ✿</span>}
+          {earned === 26 && <span className={styles.complete}>All milestones earned<span aria-hidden="true"> ✿</span></span>}
         </div>}
         <div className={styles.refresh}>
           <span className={styles.live} data-live={connected} aria-label={connected ? "Partner updates connected" : "Refresh to check for partner updates"}>{connected ? "Live" : "Not live"}</span>

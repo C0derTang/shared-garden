@@ -119,7 +119,10 @@ Pixelify `@font-face` rule sets the descriptor `font-feature-settings: "liga"
 shorthand resets `font-variant-ligatures` and `font-feature-settings` on its
 element. The face descriptor sits beneath the element settings and survives
 the shorthand. It works in Chromium and Playwright WebKit. Pixel text needs no
-panel-local ligature override. Pixel text never turns "liga" or "clig" back on.
+panel-local ligature override, so the four `!important` overrides from
+decision 0055 were removed
+([issue #135](https://github.com/C0derTang/shared-garden/issues/135)). Pixel
+text never turns "liga" or "clig" back on.
 
 ## Shared chrome
 
@@ -133,6 +136,18 @@ panel-local ligature override. Pixel text never turns "liga" or "clig" back on.
   a static icon choice. Time-of-day lighting is a follow-up. The toolbar
   moves to 66px and the stage padding to 60px at the top and 104px at the
   bottom to clear the taller header and hotbar.
+  **Large text (issue #135):** the header wraps. The name keeps at least its
+  longest word (`flex: 1 1 min-content`, 6px between name and clock), so when
+  both no longer fit, the clock plate moves to a second line at the right
+  instead of covering the name or scrolling the page sideways. This happens at
+  320px with 20px root text or more, at 390px with 24px, and at 320px with a
+  wide date and countdown. The plate's lines may wrap too, but the time stays
+  whole. The header publishes its measured height as `--hud-height` on the
+  stage. The tools and the collapsed Guide sit at
+  `max(66px, --hud-height − 2px)`, so they still hang 2px over the sign's
+  edge, and the stage's top padding is `max(60px, --hud-height − 8px)`. The
+  bottom padding is `max(104px, --hotbar-bottom + --hotbar-height + 10px)`.
+  At the default size all of these keep their fixed values.
 - **Help and Songs:** parchment sign buttons with a `--wood-dark` border,
   bevel and lip, `--ink` Pixelify text at `--text-md`, and a decorative pixel
   "?" or note glyph. The collapsed Guide button shares the style without a
@@ -163,10 +178,30 @@ panel-local ligature override. Pixel text never turns "liga" or "clig" back on.
   `7px 7px 8px` padding. The ring sits 3–6px in
   (`calc(-3px - var(--focus-ring-width))`), and clearance is 8px. That keeps
   "Achievements" whole at 320px.
+  **Two rows with large text (issue #135):** when the four whole labels, each
+  with its slot frame and padding (and never under the 56px minimum), plus
+  the 2px gaps no longer fit the bar, the slots wrap into two rows of two:
+  Garden and Memories, then Achievements and Settings. The Garden landmark
+  spans both rows on a subgrid and leaves its fourth cell to the separate
+  Settings landmark. The navigation measures the fit whenever the bar or a
+  label changes size, for example when the pixel font arrives. This happens
+  at 320 and 390px with 20px or 24px root text. At 1280px the bar stays one
+  row. The bar keeps its width, and slot padding, frames and the focus ring
+  don't change, so the clearance rule holds (labels measured 11px inside the
+  slot edges). While wrapped, the bar
+  publishes its measured height as `--hotbar-height` on the root, replacing
+  the one-row value, so the Today card, the spot notice and the "While you
+  were away" card still clear it. The one-row stylesheet value applies again
+  when it fits.
   In forced colors the current slot uses `Highlight` and `HighlightText`
   (`forced-color-adjust: none`), and its focus outline is `HighlightText`.
   Plain slots set their border to `Canvas`, so the focus ring is the only
   outline and stands out.
+- **Decorative glyphs:** a "✿" in a sheet title or notice is
+  `aria-hidden`, so names and announcements stay plain words, for example the
+  sheet "Rose planted". The shared bottom sheet's title accepts text with such
+  a hidden glyph; the dialog's name is the title's accessible text
+  (issue #135).
 - **Sheets and route panels:** the wood frame on a parchment body, with a
   darker overlay tint. The title sits on a `--wood-deep` plaque with
   `--paper-light` text. The flower and seed sheet close is a 30px red ×

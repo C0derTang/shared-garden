@@ -5,6 +5,7 @@ import { GardenGuide } from "@/components/settings/garden-guide";
 import { useMemberPreferences } from "@/components/settings/member-preferences";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { PixelIcon } from "@/components/ui/pixel-icon";
+import { usePublishedHeight } from "@/components/ui/published-height";
 import {
   pacificTime,
   type CatalogItem,
@@ -134,7 +135,9 @@ function GardenSpot({
         }}
         title={
           !picking && item
-            ? `${item.display_name}${planted ? " planted ✿" : ""}`
+            ? planted
+              ? <>{item.display_name} planted<span aria-hidden="true"> ✿</span></>
+              : item.display_name
             : "Plant something together"
         }
         description={
@@ -252,6 +255,8 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
   const mutate = own.mutate;
   const spotRequest = useSpotRequest(state, guideEnabled, setOpenSpot);
   const light = useGardenLight(now, state?.moonflower_open);
+  // Large text can make the header sign taller; the tools hang below it.
+  const hud = usePublishedHeight<HTMLElement>("--hud-height", "parent");
   if (!state)
     return (
       <div className={`${styles.garden} ${styles.fallback}`}>
@@ -284,7 +289,7 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
   const catalog = new Map(state.catalog.map((item) => [item.type_key, item]));
   return (
     <div className={styles.garden} data-light={light?.phase}>
-      <header className={styles.hud}>
+      <header ref={hud} className={styles.hud}>
         <h1 ref={heading} tabIndex={-1}>cc’s garden</h1>
         <div className={styles.clock} aria-label="Garden day">
           <span className={styles.clockDay}>

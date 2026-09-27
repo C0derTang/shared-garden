@@ -127,7 +127,8 @@
 /* Every focusable control above the Plant bar scrolls fully clear of it. */
 .slot,
 .locked summary,
-.picker textarea {
+.picker textarea,
+.error {
   scroll-margin-block: 0.5rem var(--plant-bar-clearance);
 }
 

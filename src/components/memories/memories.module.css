@@ -398,8 +398,3 @@
   .list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .wide { grid-column: 1 / -1; }
 }
-/* Pixelify Sans substitutes "fi" and "ff" ligatures that read as other letters
-   ("first" looks like "Arst"). Each `font` shorthand resets the ligature
-   setting, so it is forced off for everything in this panel. */
-.collection,
-.collection * { font-variant-ligatures: none !important; }

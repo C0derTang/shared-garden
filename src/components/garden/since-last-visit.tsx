@@ -82,6 +82,40 @@ const confetti = [
   [16, -74], [52, -58], [88, -30], [120, -8], [-70, -18], [36, -22],
 ];
 
+/**
+ * Whether a scroll box has more below its visible part. The card fades its
+ * last visible line to hint at the rest (issue #135).
+ */
+function useMoreBelow() {
+  const [list, setList] = useState<HTMLElement | null>(null);
+  const [more, setMore] = useState(false);
+  useEffect(() => {
+    // With no list there is nothing to fade; a new list is checked at once.
+    if (!list) return;
+    const check = () =>
+      setMore(list.scrollHeight - list.scrollTop - list.clientHeight > 1);
+    check();
+    list.addEventListener("scroll", check, { passive: true });
+    const observer =
+      typeof ResizeObserver === "undefined" ? null : new ResizeObserver(check);
+    observer?.observe(list);
+    // Lines can arrive or grow without the capped list changing size.
+    for (const child of Array.from(list.children)) observer?.observe(child);
+    const mutation =
+      typeof MutationObserver === "undefined" ? null : new MutationObserver(() => {
+        for (const child of Array.from(list.children)) observer?.observe(child);
+        check();
+      });
+    mutation?.observe(list, { childList: true });
+    return () => {
+      list.removeEventListener("scroll", check);
+      observer?.disconnect();
+      mutation?.disconnect();
+    };
+  }, [list]);
+  return [setList, more] as const;
+}
+
 export function SinceLastVisit({
   state,
   openSpot,
@@ -105,6 +139,7 @@ export function SinceLastVisit({
 }) {
   const titleId = useId();
   const card = useRef<HTMLElement>(null);
+  const [linesRef, moreBelow] = useMoreBelow();
   const disabled = useRef(false);
   const badgesLoaded = useRef(false);
   const [badges, setBadges] = useState<{ list: EarnedBadge[]; generation: number } | null>(null);
@@ -307,7 +342,7 @@ export function SinceLastVisit({
           <button type="button" className={`sheet-close ${styles.close}`} aria-label="Dismiss While you were away" onClick={dismiss}>
             <span aria-hidden="true">×</span>
           </button>
-          <ul className={styles.lines}>
+          <ul ref={linesRef} className={styles.lines} data-more={moreBelow || undefined}>
             {lines.map((line) => (
               <li key={line.key} data-line={line.key}>
                 <LineView line={line} />

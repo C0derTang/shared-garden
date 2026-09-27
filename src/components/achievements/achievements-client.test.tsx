@@ -144,3 +144,12 @@ it("labels the offline connection state as a status, not an action", () => {
   expect(screen.getByText("Not live")).toHaveAttribute("aria-label", "Refresh to check for partner updates");
   expect(screen.queryByText("Check for updates")).not.toBeInTheDocument();
 });
+
+it("keeps the decorative flower out of the all-earned line's spoken text", () => {
+  const state = fixture();
+  state.achievements = state.achievements.map((a) => ({ ...a, progress: a.target, earned_at: "2026-01-02T20:00:00Z" }));
+  render(<AchievementsClient initial={{ state, error: null }} />);
+  const line = screen.getByText("All milestones earned", { exact: false });
+  expect(line).toHaveTextContent("All milestones earned ✿");
+  expect(within(line).getByText("✿")).toHaveAttribute("aria-hidden", "true");
+});

@@ -1,15 +1,23 @@
 /* The grass texture spans the whole stage, so no flat bands flank the 1200px bed cap (decision 0042). */
-.garden { position: relative; min-height: 100dvh; background-color: #82a15d; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48' shape-rendering='crispEdges'%3E%3Cpath fill='%238dab65' d='M3 7h5v3H3zM31 4h3v5h-3zM18 27h6v3h-6zM40 34h5v4h-5zM7 42h3v3H7z'/%3E%3Cpath fill='%23739250' d='M15 12h4v3h-4zM38 17h3v4h-3zM2 29h6v3H2zM28 40h4v3h-4z'/%3E%3C/svg%3E"); background-size: 48px 48px; padding: 60px 0 104px; }
+/* The beds start under the header sign and end above the hotbar, and both
+   follow those bars when large text makes them taller (issue #135). */
+.garden { position: relative; min-height: 100dvh; background-color: #82a15d; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48' shape-rendering='crispEdges'%3E%3Cpath fill='%238dab65' d='M3 7h5v3H3zM31 4h3v5h-3zM18 27h6v3h-6zM40 34h5v4h-5zM7 42h3v3H7z'/%3E%3Cpath fill='%23739250' d='M15 12h4v3h-4zM38 17h3v4h-3zM2 29h6v3H2zM28 40h4v3h-4z'/%3E%3C/svg%3E"); background-size: 48px 48px; padding: max(60px, var(--hud-height, 0px) - 8px) 0 max(104px, var(--hotbar-bottom) + var(--hotbar-height) + 10px); }
 /* The header is a wooden sign: the name is carved into the plank and the
    clock is a small parchment day plate (decision 0049). */
-.hud { position: absolute; z-index: 2; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: max(6px, env(safe-area-inset-top)) 10px 6px; background-color: var(--wood); background-image: repeating-linear-gradient(180deg, transparent 0 10px, rgb(74 42 18 / 28%) 10px 12px, transparent 12px 22px), linear-gradient(180deg, var(--wood-light) 0 2px, transparent 2px); border-bottom: 4px solid var(--wood-dark); box-shadow: 0 4px 0 rgb(30 16 6 / 25%); }
-.hud h1 { min-width: 0; font: 700 1.2rem/1.1 var(--font-pixel); color: var(--paper-light); letter-spacing: .03em; text-shadow: 0 2px 0 var(--wood-dark), 2px 0 0 var(--wood-dark); }
-.clock { display: flex; flex: none; align-items: stretch; border: 8px solid var(--paper-light); border-image: var(--frame-slot) 3 fill / 6px stretch; background: var(--paper-light); background-clip: padding-box; color: var(--ink); font: 600 var(--text-xs)/1.25 var(--font-pixel); font-variant-numeric: tabular-nums; }
+.hud { position: absolute; z-index: 2; top: 0; left: 0; right: 0; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 6px; padding: max(6px, env(safe-area-inset-top)) 10px 6px; background-color: var(--wood); background-image: repeating-linear-gradient(180deg, transparent 0 10px, rgb(74 42 18 / 28%) 10px 12px, transparent 12px 22px), linear-gradient(180deg, var(--wood-light) 0 2px, transparent 2px); border-bottom: 4px solid var(--wood-dark); box-shadow: 0 4px 0 rgb(30 16 6 / 25%); }
+/* The name keeps at least its longest word, so with large text (or a long
+   date at 320px) the clock plate wraps below it instead of covering the name
+   or pushing the page sideways (issue #135). The negative margin cancels the
+   trailing letter spacing. */
+.hud h1 { flex: 1 1 min-content; min-width: 0; margin-right: -.03em; font: 700 1.2rem/1.1 var(--font-pixel); color: var(--paper-light); letter-spacing: .03em; text-shadow: 0 2px 0 var(--wood-dark), 2px 0 0 var(--wood-dark); }
+.clock { display: flex; flex: 0 1 auto; min-width: 0; margin-left: auto; align-items: stretch; border: 8px solid var(--paper-light); border-image: var(--frame-slot) 3 fill / 6px stretch; background: var(--paper-light); background-clip: padding-box; color: var(--ink); font: 600 var(--text-xs)/1.25 var(--font-pixel); font-variant-numeric: tabular-nums; }
 .clockDay { display: grid; justify-items: center; align-content: center; padding: 0 8px 0 2px; margin-right: 8px; border-right: 2px solid var(--line-strong); font-size: var(--text-sm); font-weight: 700; white-space: nowrap; }
 .clockIcon { width: 18px; height: 18px; color: var(--wood-deep); }
-.clockTime { display: grid; text-align: right; padding-right: 2px; }
-.clock strong { font-size: var(--text-md); font-weight: 700; }
-.tools { position: absolute; z-index: 3; top: 66px; left: 0; right: 0; display: flex; justify-content: space-between; align-items: start; padding: 0 12px; }
+.clockTime { display: grid; min-width: 0; text-align: right; padding-right: 2px; }
+.clock strong { font-size: var(--text-md); font-weight: 700; white-space: nowrap; }
+/* The tools hang 2px over the sign's dark edge, and follow it down when large
+   text makes the sign taller (--hud-height is its measured height). */
+.tools { position: absolute; z-index: 3; top: max(66px, var(--hud-height, 0px) - 2px); left: 0; right: 0; display: flex; justify-content: space-between; align-items: start; padding: 0 12px; }
 /* Help, Songs and the collapsed Guide are parchment sign buttons that press
    down onto their dark lip (decision 0049; 44px targets from decision 0042). */
 .chip, .guide > button { min-height: 44px; display: flex; align-items: center; gap: 6px; padding: 0 12px; border: var(--border-pixel) solid var(--frame-border); border-radius: var(--radius-pixel); background: var(--paper-light); color: var(--ink); box-shadow: var(--bevel), var(--shadow-pixel); font: 700 var(--text-md)/1 var(--font-pixel); letter-spacing: .02em; text-decoration: none; cursor: pointer; }
@@ -22,7 +30,7 @@ a.chip::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://
 .help summary::-webkit-details-marker { display: none; }
 .help > div { position: absolute; left: 12px; right: 12px; max-width: 28rem; margin-top: 10px; padding: .5rem .75rem; border: 12px solid var(--wood); border-image: var(--frame-wood) 6 fill / 12px stretch; background: var(--paper); background-clip: padding-box; box-shadow: var(--shadow-frame); font-size: var(--text-sm); }
 .help p + p { margin-top: .65rem; }
-.guide { position: absolute; top: 66px; left: 50%; transform: translateX(-50%); z-index: 3; }
+.guide { position: absolute; top: max(66px, var(--hud-height, 0px) - 2px); left: 50%; transform: translateX(-50%); z-index: 3; }
 .guide:empty { display: none; }
 .fallback { display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); }
 .fallbackCard { width: 100%; max-width: 28rem; padding: 1.25rem; background: var(--paper-light); border: var(--border-pixel) solid var(--frame-border); border-radius: var(--radius-pixel); box-shadow: var(--shadow-frame); overflow-wrap: anywhere; }
@@ -243,19 +251,6 @@ a.chip::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://
   accent-color: var(--forest);
   margin: 0.65rem 0;
 }
-.markers {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem 1rem;
-  color: var(--muted);
-  font-size: 0.76rem;
-}
-.markers > span[data-cared="true"] {
-  color: var(--forest-dark);
-}
-.markers > span:last-child[data-cared="true"] {
-  color: #843d2b;
-}
 .question {
   padding: 1.1rem;
   border: 1px solid #d7cba8;
@@ -359,7 +354,7 @@ a.chip::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://
  .flowerButton strong { font-size: .8rem; }
 }
 
-.garden .guide:has(> button) { position: absolute; top: 66px; left: 50%; transform: translateX(-50%); z-index: 3; padding: 0; }
+.garden .guide:has(> button) { position: absolute; top: max(66px, var(--hud-height, 0px) - 2px); left: 50%; transform: translateX(-50%); z-index: 3; padding: 0; }
 
 /* Forced colors: plain system borders instead of the painted 9-slices. */
 @media (forced-colors: active) {

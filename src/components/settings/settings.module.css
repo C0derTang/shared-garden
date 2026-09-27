@@ -42,8 +42,3 @@ p.copy { color: var(--muted); font-size: .88rem; line-height: 1.45; }
   .toggle:checked { background: Highlight; }
   .toggle:checked::after { background: HighlightText; }
 }
-/* Pixelify Sans substitutes "fi" and "ff" ligatures that read as other letters
-   ("first" looks like "Arst"). Each `font` shorthand resets the ligature
-   setting, so it is forced off for everything in this panel. */
-.page,
-.page * { font-variant-ligatures: none !important; }

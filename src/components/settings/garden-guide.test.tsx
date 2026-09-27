@@ -304,7 +304,7 @@ it("goes from the unrestricted seed picker straight to the newly planted Rose's 
   await user.click(screen.getByRole("button", { name: /Rose.*Note about today/ }));
   await user.click(screen.getByRole("button", { name: "Plant Rose" }));
   // Planting turns the same sheet into the new Rose's care sheet (decision 0052).
-  expect(await screen.findByRole("dialog", { name: "Rose planted ✿" })).toBeInTheDocument();
+  expect(await screen.findByRole("dialog", { name: "Rose planted" })).toBeInTheDocument();
   expect(screen.getByRole("textbox", { name: "Note about today" })).toBeVisible();
   // Once that sheet closes, the guide can still point to the Rose.
   await user.click(screen.getByRole("button", { name: "Close" }));

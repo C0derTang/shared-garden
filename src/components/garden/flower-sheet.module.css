@@ -136,11 +136,40 @@
 
 .cardHead {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   gap: 0.4rem 0.5rem;
   padding-bottom: 0.45rem;
   border-bottom: 2px dashed var(--line-strong);
+}
+
+/* With care status: dot, name and tag. */
+.cardHead[data-care] {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: "dot name tag";
+}
+
+.cardHead h4 {
+  grid-area: name;
+}
+
+/* Cards are equal-width size containers, so side-by-side cards always pick
+   the same header: dot, name and tag on one line when the longest pair
+   ("Partner" and "Not yet today") fits, otherwise the tag on its own line
+   under the name. The dividers then line up (issue #135). */
+.card {
+  container-type: inline-size;
+}
+
+@container (max-width: 12.5rem) {
+  .cardHead[data-care] {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas: "dot name" "tag tag";
+  }
+
+  .cardHead .cardStatus {
+    justify-self: start;
+  }
 }
 
 .cardHead h4 {
@@ -151,7 +180,7 @@
 
 /* The same meaning as the surface care dots: filled once cared today. */
 .cardDot {
-  flex: none;
+  grid-area: dot;
   box-sizing: border-box;
   width: 12px;
   height: 12px;
@@ -170,7 +199,7 @@
 }
 
 .cardStatus {
-  margin-left: auto;
+  grid-area: tag;
   border: var(--border-pixel) solid var(--frame-border);
   padding: 2px 6px;
   font: 600 var(--text-xs)/1.2 var(--font-pixel);
@@ -223,6 +252,13 @@
 .saved > button {
   width: 100%;
   gap: 0.5rem;
+}
+
+/* Scrolling to the focused next step keeps its whole focus ring (the 2px
+   offset and 3px outline, with 2px to spare) and its 3px lip inside the
+   sheet. */
+.saved button {
+  scroll-margin-block: calc(var(--focus-ring-offset) + var(--focus-ring-width) + 2px + var(--press-depth));
 }
 
 .doneRow {

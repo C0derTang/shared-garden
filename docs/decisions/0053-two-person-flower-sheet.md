@@ -49,6 +49,18 @@ also has a status tag:
 | Partner | "Cared today" (`--forest-dark` on `--sage-light`, 7.09:1) | "Not yet today" (`--muted` on `--paper-deep`, 5.27:1) |
 | You | "Cared today" | "Your turn" (`--ink` on `--gold`, 8.68:1) |
 
+A closed Moonflower (outside 10 p.m.–4 a.m. Pacific) isn't due, so your card's
+tag reads "Opens 10 p.m." in the muted "Not yet" style instead of the gold
+"Your turn". Your draft form and its notice are unchanged
+([issue #135](https://github.com/C0derTang/shared-garden/issues/135)).
+
+The header is a three-column grid: dot, name, tag. Each card is a size
+container. When its content is narrower than 12.5rem, the room the longest
+pair ("Partner" and "Not yet today") needs, the tag moves to its own line
+under the name. Side-by-side cards are always the same width, so both pick
+the same header and their dashed dividers line up (issue #135). At the 1280
+desktop sheet both tags sit under the names. Phone cards keep one line.
+
 The status comes from the authoritative day markers, the same source as the
 care dots. The partner card comes first once your partner has cared or has an
 entry. Otherwise your card comes first, because it holds the form. An empty
@@ -88,6 +100,11 @@ When nothing else is due, the line "That's everything for today ✿" appears wit
 a secondary Close button. Its accessible name is "Close and return to the
 garden", so it stays distinct from the sheet's × Close. Focus moves to the Next
 or Close button after the share, because the form it came from is gone.
+Focus alone scrolls only until the button reaches the sheet's edge, which
+could cut off the bottom of the ring at 390px. So focus doesn't scroll, and
+the button is then scrolled to the nearest position with a scroll margin that
+covers the 2px offset and 3px ring, 2px to spare and the 3px lip. The whole
+focus ring stays in view (issue #135).
 Opening the next flower uses the garden's existing open-spot state. The first
 sheet closes, the next opens with the usual focus handling, and closing it
 returns focus to that flower on the garden. A saved edit shows the same notice
