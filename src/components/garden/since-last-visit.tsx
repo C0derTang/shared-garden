@@ -85,6 +85,7 @@ export function SinceLastVisit({
   openSpot,
   focusGarden,
   quiet = false,
+  hold = false,
   ownResult = null,
   loadAchievements = readAchievements,
 }: {
@@ -93,6 +94,9 @@ export function SinceLastVisit({
   focusGarden: () => void;
   /** A flower or seed sheet is open: the viewer may be acting. */
   quiet?: boolean;
+  /** The garden guide is open (decision 0056): the news waits, unchanged,
+      and appears once the guide closes or finishes. */
+  hold?: boolean;
   /** The latest state returned by the viewer's own action. */
   ownResult?: GardenState | null;
   loadAchievements?: () => Promise<AchievementResult>;
@@ -178,7 +182,7 @@ export function SinceLastVisit({
       partnerCare: found.partnerCare,
       badges: silent || settles || pendingSince.current !== null ? [] : found.badges,
     };
-    if (quiet) {
+    if (quiet || hold) {
       held.current = mergeNews(held.current, shown);
       return;
     }
@@ -188,7 +192,7 @@ export function SinceLastVisit({
     // The card is non-modal and never takes focus; it only appears.
     setNews((old) => (old ? mergeNews(old, all) : all));
     setBurst((count) => count + 1);
-  }, [state, badges, quiet, ownResult, signature]);
+  }, [state, badges, quiet, hold, ownResult, signature]);
 
   const catalog = new Map(state.catalog.map((item) => [item.type_key, item]));
   const current = new Map(state.plants.map((plant) => [plant.flower.id, plant]));
@@ -265,6 +269,8 @@ export function SinceLastVisit({
     if (hadFocus) focusGarden();
   }
 
+  // While the guide is open the card and its announcement wait.
+  if (hold) return null;
   const announcement = lines.length ? `While you were away: ${lines.map((line) => line.text).join(". ")}.` : "";
   return (
     <>

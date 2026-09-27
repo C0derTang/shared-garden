@@ -107,6 +107,25 @@ describe("While you were away", () => {
     expect(view.openSpot).toHaveBeenLastCalledWith(3);
   });
 
+  it("holds the card while the garden guide is open and shows the same news once it closes", async () => {
+    await visit(garden());
+    const next = garden((s) => {
+      s.plants[1].flower.first_bloom_at = "2026-09-19T11:00:00Z";
+      s.plants[2].member2_submitted = true;
+    });
+    const props = { state: next, openSpot: vi.fn(), focusGarden: vi.fn(), loadAchievements: vi.fn(async () => achievements([firstSeed])) };
+    const view = render(<SinceLastVisit {...props} hold />);
+    await waitFor(() => expect(props.loadAchievements).toHaveBeenCalled());
+    // The snapshot still advances, but nothing is shown or announced.
+    await waitFor(() => expect(JSON.parse(localStorage.getItem(key)!).blooms).toContain("rose-1"));
+    expect(screen.queryByRole("region", { name: "While you were away" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    view.rerender(<SinceLastVisit {...props} hold={false} />);
+    const card = await screen.findByRole("region", { name: "While you were away" });
+    expect(card).toHaveTextContent("Your Rose bloomed");
+    expect(card).toHaveTextContent("Your partner cared for Tulip");
+  });
+
   it("dismisses, returns focus to the garden, and does not celebrate the same news again", async () => {
     const user = userEvent.setup();
     await visit(garden());

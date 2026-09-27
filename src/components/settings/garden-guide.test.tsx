@@ -378,3 +378,39 @@ it("ends with a one-time both-set card that only finishes, and never returns aft
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "Show garden guide" })).not.toBeInTheDocument();
 });
+
+it("places nothing until the fonts load, then re-chooses the scroll when a later measurement would dock over the flower", async () => {
+  let top = 80;
+  const rect = layoutSpots(() => ({ top, left: 150 }));
+  let fontsLoaded!: () => void;
+  const fonts = new Promise<void>((done) => { fontsLoaded = done; });
+  Object.defineProperty(document, "fonts", { configurable: true, value: { ready: fonts } });
+  Object.defineProperty(document.documentElement, "scrollHeight", { configurable: true, value: 5000 });
+  const scrollBy = vi.fn();
+  const originalScrollBy = window.scrollBy;
+  window.scrollBy = scrollBy as typeof window.scrollBy;
+  try {
+    show();
+    const bubble = () => document.querySelector("[data-guide-bubble]")!;
+    await new Promise((done) => setTimeout(done, 50));
+    expect(bubble()).toHaveAttribute("data-pending");
+    expect(scrollBy).not.toHaveBeenCalled();
+    await act(async () => fontsLoaded());
+    await waitFor(() => expect(bubble()).toHaveAttribute("data-side", "below"));
+    // The first choice kept the view: the bubble already fit below.
+    expect(scrollBy).not.toHaveBeenCalled();
+    // A later layout change leaves the flower cut off at the bottom edge, where
+    // it would dock over the flower; the guide scrolls it back into a fit.
+    top = window.innerHeight - 60;
+    fireEvent(window, new Event("resize"));
+    await waitFor(() => expect(scrollBy).toHaveBeenCalledTimes(1));
+    const delta = scrollBy.mock.calls[0][0].top as number;
+    expect(delta).toBeGreaterThan(0);
+    expect(top + 130 - delta).toBeLessThanOrEqual(window.innerHeight - 12);
+  } finally {
+    rect.mockRestore();
+    window.scrollBy = originalScrollBy;
+    delete (document as { fonts?: unknown }).fonts;
+    delete (document.documentElement as { scrollHeight?: unknown }).scrollHeight;
+  }
+});

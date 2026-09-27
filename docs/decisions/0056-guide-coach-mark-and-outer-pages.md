@@ -33,10 +33,16 @@ is talking about:
   on the first side where the whole bubble fits without covering the flower.
   The scroll position is chosen together with the side. When the guide opens,
   it keeps the current view if a side already fits with the whole flower in
-  view. Otherwise it scrolls the garden once, instantly, by the smallest amount
-  that makes a side fit. The target is the flower at the top of the band with
-  the bubble below, at its bottom with the bubble above, or centered beside
-  it. The header scrolls away with the garden, so the room it frees counts. A
+  view. Otherwise it scrolls the garden instantly to the nearest of four
+  targets that makes a side fit. The targets are: the flower at the top of the
+  screen (once the header has scrolled away) or of the band, with the bubble
+  below; at the bottom, with the bubble above; or centered beside it. Each
+  target is the edge of that side's feasible range, so it needs the least
+  scroll for that side. The header scrolls away with the garden, so the room
+  it frees counts. Nothing is placed until the page's fonts have loaded, since
+  text sizes decide the fit. Any later measurement that would dock over a
+  measurable flower chooses the scroll again, at most three scrolls per
+  opening. A
   flower reaching under the hotbar or the Today card counts as not fitting.
   Only when no scroll position works (in practice, only the final card and
   "Grow at your own pace", which have no flower) does the bubble dock at the
@@ -46,7 +52,7 @@ is talking about:
   row and the padding tightens. At default text size the title, primary action
   and Skip or Finish then show in full, with the flower uncovered, at 390×664,
   375×667, 320×568, 390×844, 844×390 and 1280×800 on every step, in Chromium
-  and WebKit. The bubble re-measures on resize, scroll, and size changes of the
+  and WebKit, with and without pending away news, by day and at night. The bubble re-measures on resize, scroll, and size changes of the
   target, the bubble content or the page. A reopened guide measures afresh:
   until it is placed, the bubble is laid out invisibly (still focusable), so it
   never shows a stale position. If the spot cannot be measured, the bubble
@@ -74,6 +80,18 @@ is talking about:
   "Close guide for now" and the target is still 44px. Escape does the same.
   Both collapse the guide to the "Guide" button until it is shown again or the
   next successful Settings reopen.
+
+**Away card waits.** While the guide wants to be on screen, the "While you
+were away" card ([decision 0054](0054-while-you-were-away.md)) waits. It sits
+over the top of the garden, where it would hide the lit flower. The snapshot
+still advances and nothing is lost. The card and its announcement appear
+unchanged once the guide is closed for now, skipped or finished, or yields to a
+flower sheet (the card's own sheet rule then applies). `GardenGuide` reports
+this through `onRequestedChange`, and `SinceLastVisit` takes it as `hold`.
+This is an orchestrator decision for issue #124. The guide's tint, spotlight
+and bubble are fixed layers above the garden ambience
+([decision 0050](0050-garden-light-and-ambience.md)) in every light phase,
+including night.
 
 The coordinator contract is unchanged. The guide still requests a slot in the
 sheet queue and is shown only while it holds the slot. The garden behind it is

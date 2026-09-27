@@ -86,9 +86,12 @@ export type ScrollInput = PlacementInput & {
 /**
  * Chooses how far to scroll the garden (positive is down) together with the
  * placement. Keeps the current view when it already has a side for the
- * bubble with the whole flower in view; otherwise takes the smallest allowed
- * scroll that makes one fit (flower at the top of the band with the bubble
- * below, at the bottom with it above, or centered beside it). Docks only when
+ * bubble with the whole flower in view. Otherwise it tries four scroll
+ * targets, nearest first, and takes the first that makes a side fit: the
+ * flower at the top of the screen (once the header has scrolled away) or of
+ * the band, with the bubble below; at the bottom with it above; or centered
+ * beside it. These are the edges of each side's feasible range, so the first
+ * fit is also the least scroll for that side. Docks only when
  * no scroll works, with the flower at the top of the band so the docked
  * bubble covers as little of it as possible.
  */

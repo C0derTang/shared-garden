@@ -218,6 +218,8 @@ function GardenSpot({
 }
 export function GardenClient({ initial, guideEnabled = true }: { initial: GardenResult; guideEnabled?: boolean }) {
   const [openSpot, setOpenSpot] = useState<number | null>(null);
+  // The away card waits while the guide is up (decision 0056).
+  const [guideUp, setGuideUp] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
   const focusGarden = useCallback(() => heading.current?.focus(), []);
   // A sheet opened from the Today card returns focus to the card on close.
@@ -305,8 +307,8 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
         <Link href="/garden/songs" scroll={false} className={styles.chip}>Songs</Link>
       </div>
       <SpotNotice {...spotRequest} />
-      <div className={styles.guide}><GardenGuide state={state} paused={busy || !!error} visit={setOpenSpot} actionOpen={openSpot !== null} enabled={guideEnabled} focusGarden={focusGarden} /></div>
-      <SinceLastVisit state={state} openSpot={setOpenSpot} focusGarden={focusGarden} quiet={openSpot !== null} ownResult={own.result} />
+      <div className={styles.guide}><GardenGuide state={state} paused={busy || !!error} visit={setOpenSpot} actionOpen={openSpot !== null} enabled={guideEnabled} focusGarden={focusGarden} onRequestedChange={setGuideUp} /></div>
+      <SinceLastVisit state={state} openSpot={setOpenSpot} focusGarden={focusGarden} quiet={openSpot !== null} hold={guideUp} ownResult={own.result} />
       <div className={styles.workspace}>
         <section className={styles.beds} aria-label="Your flower beds">
           {error && (

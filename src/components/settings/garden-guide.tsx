@@ -30,9 +30,11 @@ function safeBand() {
   };
 }
 
-export function GardenGuide({ state, paused, visit, focusGarden, actionOpen = false, enabled = true }: {
+export function GardenGuide({ state, paused, visit, focusGarden, actionOpen = false, enabled = true, onRequestedChange }: {
   state: GardenState; paused: boolean; visit: (spot: number) => void;
   focusGarden: () => void; actionOpen?: boolean; enabled?: boolean;
+  /** Whether the guide wants to be on screen, so the away card can wait. */
+  onRequestedChange?: (requested: boolean) => void;
 }) {
   const preferences = useMemberPreferences();
   const scope = useSheetScope();
@@ -52,21 +54,23 @@ export function GardenGuide({ state, paused, visit, focusGarden, actionOpen = fa
     if (requested) request?.(id);
     return () => release?.(id);
   }, [id, requested, request, release]);
+  useEffect(() => { onRequestedChange?.(requested); }, [requested, onRequestedChange]);
   const visible = requested && (!scope || scope.active === id);
   const step = guideStep(state);
   const spot = "spot" in step ? step.spot : null;
   const layoutKey = `${step.kind}:${spot ?? ""}`;
   // Follow the real flower on screen and fit the whole bubble between the
-  // garden header and the hotbar or Today card. Opening may scroll the garden
-  // once (chooseScroll); layout, content and resize changes re-measure.
+  // garden header and the hotbar or Today card. Nothing is placed until the
+  // fonts have loaded, since text sizes decide the fit. The first placement
+  // may scroll the garden (chooseScroll), and so may any later one that would
+  // dock over a measurable flower; layout, content and resize changes
+  // re-measure.
   useEffect(() => {
     if (!visible) return;
     const target = () => spot === null ? null : document.querySelector<HTMLElement>(`[data-spot="${spot}"]`);
-    // The first measurement of each opening may scroll the garden once, so the
-    // flower lands where the bubble fits beside it; later ones only follow it.
-    let scrolled = false;
-    let frame = 0;
+    let ready = false, live = true, decided = false, scrolls = 0, frame = 0;
     const measure = () => {
+      if (!ready) return;
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
         const rect = target()?.getBoundingClientRect();
@@ -74,25 +78,35 @@ export function GardenGuide({ state, paused, visit, focusGarden, actionOpen = fa
         const frameHeight = (bubble.current?.offsetHeight ?? 0) - (body.current?.clientHeight ?? 0);
         const bubbleHeight = frameHeight + (body.current?.scrollHeight ?? 0);
         const input = { target: box, bubbleHeight, viewWidth: window.innerWidth, viewHeight: window.innerHeight, ...safeBand() };
-        if (!scrolled && box) {
-          scrolled = true;
+        const placement = placeBubble(input);
+        // A few scrolls at most per opening, so a layout that never fits cannot loop.
+        if (box && (!decided || placement.side === "dock") && scrolls < 3) {
+          decided = true;
           const page = document.scrollingElement ?? document.documentElement;
           const choice = chooseScroll({ ...input, minDelta: -page.scrollTop, maxDelta: Math.max(0, page.scrollHeight - window.innerHeight - page.scrollTop) });
-          if (choice.delta) {
+          if (Math.abs(choice.delta) >= 1) {
+            scrolls++;
             // The scroll listener measures again at the new position.
             window.scrollBy({ top: choice.delta, behavior: "instant" });
             return;
           }
         }
-        setLayout({ key: layoutKey, target: box, placement: placeBubble(input) });
+        setLayout({ key: layoutKey, target: box, placement });
       });
     };
-    measure();
+    // Fonts decide text sizes, so the first placement waits for them.
+    void (document.fonts?.ready ?? Promise.resolve()).then(() => {
+      if (!live) return;
+      ready = true;
+      measure();
+    });
     const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure);
-    for (const element of [target(), content.current, document.documentElement]) if (element) observer?.observe(element);
+    const floating = [document.querySelector(".garden-navigation"), document.querySelector('[data-today-focus="title"]')?.closest("section")];
+    for (const element of [target(), content.current, document.documentElement, ...floating]) if (element) observer?.observe(element);
     window.addEventListener("resize", measure);
     window.addEventListener("scroll", measure, true);
     return () => {
+      live = false;
       cancelAnimationFrame(frame);
       observer?.disconnect();
       window.removeEventListener("resize", measure);

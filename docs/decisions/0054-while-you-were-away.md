@@ -89,6 +89,10 @@ badge line if its badge read lands before the acting tab writes the pending
 flag. Stored snapshots still stop any repeat after that. Fixing it would need
 shared cross-tab or server state, which this browser-only design leaves out.
 
+While the garden guide is open, the card also waits, so it never covers the
+flower the guide points at. Nothing is silenced. The news appears once the
+guide closes or finishes ([decision 0056](0056-guide-coach-mark-and-outer-pages.md)).
+
 ## Snapshot
 
 The comparison uses a snapshot in this browser's `localStorage`, keyed
