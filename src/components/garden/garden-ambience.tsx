@@ -1,40 +1,50 @@
 "use client";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type RefObject } from "react";
 import { useMemberPreferences } from "@/components/settings/member-preferences";
+import { civilTwilight, solarDay, sunPosition, sunTimes } from "@/lib/garden/solar";
 import styles from "./garden-ambience.module.css";
 
-/** Time of day in the garden (decision 0050). Night is the Moonflower window. */
+/** Time of day in the garden (decision 0050), from the real Pacific sun. */
 export type GardenPhase = "dawn" | "day" | "golden" | "dusk" | "night";
-export type GardenLight = { phase: GardenPhase; minute: number };
+/** The phase, and how far (0–1) the sun or moon has crossed the sky. */
+export type GardenLight = { phase: GardenPhase; progress: number };
 
-const pacificClock = new Intl.DateTimeFormat("en-US", {
-  timeZone: "America/Los_Angeles",
-  hour: "numeric",
-  minute: "numeric",
-  hourCycle: "h23",
-});
-
-/** Minutes since Pacific midnight for a garden-clock instant. */
-export function pacificMinute(now: number) {
-  const parts = pacificClock.formatToParts(new Date(now));
-  const part = (type: string) => Number(parts.find((p) => p.type === type)?.value ?? 0);
-  return (part("hour") % 24) * 60 + part("minute");
-}
+const hour = 3_600_000;
+const day = 86_400_000;
+const clamp = (value: number) => Math.min(1, Math.max(0, value));
 
 /**
- * The server's `moonflower_open` flag alone decides night, so the light always
- * agrees with the clock icon and the Moonflower. Around its edges, before the
- * next garden read confirms the change, the hour picks the nearest non-night
- * phase instead.
+ * The garden light for a garden-clock instant, from the sun over Los Angeles.
+ * Night is when the sun is more than 6° below the horizon. Dawn runs from civil
+ * dawn to an hour after sunrise, golden hour is the last hour before sunset,
+ * and dusk runs from sunset to civil dusk. The Moonflower flag plays no part.
+ *
+ * The sun crosses the sky with its real azimuth, from where it rises (0) to
+ * where it sets (1); through twilight it waits low at that edge. The moon
+ * crosses the sky from civil dusk to the next civil dawn.
  */
-export function gardenPhase(now: number, moonflowerOpen: boolean): GardenLight {
-  const minute = pacificMinute(now);
-  if (moonflowerOpen) return { phase: "night", minute };
-  const hour = minute / 60;
+export function gardenPhase(now: number): GardenLight {
+  const base = solarDay(now);
+  const today = sunTimes(base);
+  const { elevation, azimuth } = sunPosition(now);
+  if (elevation < civilTwilight) {
+    const [dusk, dawn] = now > today.noon
+      ? [today.civilDusk, sunTimes(base + day).civilDawn]
+      : [sunTimes(base - day).civilDusk, today.civilDawn];
+    return { phase: "night", progress: clamp((now - dusk) / (dawn - dusk)) };
+  }
+  const rise = sunPosition(today.sunrise).azimuth;
+  const set = sunPosition(today.sunset).azimuth;
+  const progress = clamp((azimuth - rise) / (set - rise));
   const phase: GardenPhase =
-    hour < 8 ? "dawn" : hour < 17 ? "day" : hour < 20 ? "golden" : "dusk";
-  return { phase, minute };
+    now < today.noon
+      ? now < today.sunrise + hour ? "dawn" : "day"
+      : now >= today.sunset ? "dusk" : now >= today.sunset - hour ? "golden" : "day";
+  return { phase, progress };
 }
+
+/** The sky's disc, which the clock icon also shows: the moon at night, the sun otherwise. */
+export const celestialBody = (phase: GardenPhase) => (phase === "night" ? "moon" : "sun");
 
 const subscribeNothing = () => () => {};
 const reducedMotionQuery = "(prefers-reduced-motion: reduce)";
@@ -50,28 +60,14 @@ const prefersReducedMotion = () =>
 /**
  * The garden light for the current clock, or null during server rendering and
  * hydration. Both render the same neutral garden, and the phase appears right
- * after hydration, so the markup never mismatches.
+ * after hydration, so the markup never mismatches. The light is worked out once
+ * per clock minute, so a page left open changes light at the right moments and
+ * per-second ticks change nothing.
  */
-export function useGardenLight(now: number, moonflowerOpen: boolean | undefined): GardenLight | null {
+export function useGardenLight(now: number): GardenLight | null {
   const hydrated = useSyncExternalStore(subscribeNothing, () => true, () => false);
-  const light = hydrated && now > 0 ? gardenPhase(now, !!moonflowerOpen) : null;
-  const phase = light?.phase;
-  const minute = light?.minute;
-  // Keep one object per phase and minute, so per-second ticks change nothing.
-  return useMemo(
-    () => (phase && minute !== undefined ? { phase, minute } : null),
-    [phase, minute],
-  );
-}
-
-// The sun crosses the sky from 4 a.m. to 10 p.m., matching the clock's sun
-// icon, and the moon crosses it through Moonflower hours.
-export function celestialProgress({ phase, minute }: GardenLight) {
-  const progress =
-    phase === "night"
-      ? (minute >= 1320 ? minute - 1320 : minute + 120) / 360
-      : (minute - 240) / 1080;
-  return Math.min(1, Math.max(0, progress));
+  const clockMinute = hydrated && now > 0 ? Math.floor(now / 60_000) : null;
+  return useMemo(() => (clockMinute === null ? null : gardenPhase(clockMinute * 60_000)), [clockMinute]);
 }
 
 type Box = { left: number; top: number; right: number; bottom: number };
@@ -211,7 +207,7 @@ export function GardenAmbience({ light }: { light: GardenLight | null }) {
   if (!light) return <div ref={layer} className={styles.ambience} aria-hidden="true" />;
   const { phase } = light;
   const glowCount = phase === "night" ? fireflies.length : phase === "dusk" ? 4 : 0;
-  const celestial = track && track.segments.length > 0 ? alongTrack(track, celestialProgress(light)) : null;
+  const celestial = track && track.segments.length > 0 ? alongTrack(track, light.progress) : null;
   const showPetals = !still && (phase === "dawn" || phase === "day" || phase === "golden");
   return (
     <div
@@ -232,7 +228,7 @@ export function GardenAmbience({ light }: { light: GardenLight | null }) {
           {celestial && (
             <i
               className={styles.celestial}
-              data-celestial={phase === "night" ? "moon" : "sun"}
+              data-celestial={celestialBody(phase)}
               style={{ left: celestial.x, top: celestial.y }}
             />
           )}

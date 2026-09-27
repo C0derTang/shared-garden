@@ -1,11 +1,11 @@
-import { act, render } from "@testing-library/react";
+import { act, render, renderHook } from "@testing-library/react";
 import { hydrateRoot } from "react-dom/client";
 import { renderToString } from "react-dom/server";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 const { readSettings } = vi.hoisted(() => ({ readSettings: vi.fn() }));
 vi.mock("@/lib/settings/actions", () => ({ readSettings, saveSetting: vi.fn() }));
 import { MemberPreferences } from "@/components/settings/member-preferences";
-import { alongTrack, celestialProgress, GardenAmbience, gardenPhase, skyTrack, useGardenLight } from "./garden-ambience";
+import { alongTrack, celestialBody, GardenAmbience, gardenPhase, skyTrack, useGardenLight, type GardenPhase } from "./garden-ambience";
 
 // Pacific daylight time is UTC-7 on these September dates.
 const at = (pacific: string) => Date.parse(`2026-09-18T${pacific}:00-07:00`);
@@ -21,8 +21,8 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllGlobals());
 
-function Ambience({ now, moonflower, gentle }: { now: number; moonflower: boolean; gentle: boolean }) {
-  const light = useGardenLight(now, moonflower);
+function Ambience({ now, gentle }: { now: number; gentle: boolean }) {
+  const light = useGardenLight(now);
   return (
     <MemberPreferences initial={{ state: { revision: 1, guide: "finished", gentle_motion: gentle }, error: null }}>
       <GardenAmbience light={light} />
@@ -31,23 +31,86 @@ function Ambience({ now, moonflower, gentle }: { now: number; moonflower: boolea
 }
 const layer = () => document.querySelector<HTMLElement>("[data-phase]");
 
-it("derives the phase from the Pacific garden clock, with night only in Moonflower hours", () => {
-  expect(gardenPhase(at("04:00"), false).phase).toBe("dawn");
-  expect(gardenPhase(at("07:59"), false).phase).toBe("dawn");
-  expect(gardenPhase(at("08:00"), false).phase).toBe("day");
-  expect(gardenPhase(at("16:59"), false).phase).toBe("day");
-  expect(gardenPhase(at("17:00"), false).phase).toBe("golden");
-  expect(gardenPhase(at("20:00"), false).phase).toBe("dusk");
-  expect(gardenPhase(at("22:00"), true).phase).toBe("night");
-  expect(gardenPhase(at("03:59"), true)).toEqual({ phase: "night", minute: 239 });
-  // Until the next garden read confirms the Moonflower window, night waits.
-  expect(gardenPhase(at("22:00"), false).phase).toBe("dusk");
-  expect(gardenPhase(at("04:00"), true).phase).toBe("night");
+// On 2026-09-18 Los Angeles has civil dawn 6:13, sunrise 6:38, solar noon 12:47,
+// sunset 6:55 p.m. and civil dusk 7:20 p.m. PDT.
+it("derives the phase from the real Pacific sun, never from the Moonflower flag", () => {
+  const phase = (time: string) => gardenPhase(at(time)).phase;
+  expect(phase("00:20")).toBe("night");
+  expect(phase("04:00")).toBe("night");
+  expect(phase("06:10")).toBe("night");
+  expect(phase("06:20")).toBe("dawn");
+  expect(phase("07:35")).toBe("dawn");
+  expect(phase("07:45")).toBe("day");
+  expect(phase("12:30")).toBe("day");
+  expect(phase("17:50")).toBe("day");
+  expect(phase("18:00")).toBe("golden");
+  expect(phase("18:50")).toBe("golden");
+  expect(phase("19:00")).toBe("dusk");
+  expect(phase("19:15")).toBe("dusk");
+  expect(phase("19:25")).toBe("night");
+  expect(phase("22:00")).toBe("night");
+});
+
+it("follows the seasons: the same clock time is day in June and night in December", () => {
+  // 5:30 p.m.: golden hour in June (sunset 8:08 p.m. PDT) is past civil dusk in December.
+  expect(gardenPhase(Date.parse("2026-06-21T17:30:00-07:00")).phase).toBe("day");
+  expect(gardenPhase(Date.parse("2026-06-21T19:30:00-07:00")).phase).toBe("golden");
+  expect(gardenPhase(Date.parse("2025-12-21T17:30:00-08:00")).phase).toBe("night");
+  expect(gardenPhase(Date.parse("2025-12-21T16:15:00-08:00")).phase).toBe("golden");
+  expect(gardenPhase(Date.parse("2025-12-21T07:30:00-08:00")).phase).toBe("dawn");
+  expect(gardenPhase(Date.parse("2026-06-21T05:30:00-07:00")).phase).toBe("dawn");
+});
+
+// A 24-hour sweep, a minute at a time, on a summer and a winter date.
+function sweep(start: number) {
+  return Array.from({ length: 1440 }, (_, minute) => start + minute * 60_000);
+}
+
+it("shows the sun from dawn through dusk and the moon only at night, in the sky and on the clock", () => {
+  readSettings.mockReturnValue(new Promise(() => {}));
+  for (const start of [Date.parse("2026-06-21T00:00:00-07:00"), Date.parse("2025-12-21T00:00:00-08:00")]) {
+    const seen = new Set<GardenPhase>();
+    let last: GardenPhase | null = null;
+    const order: GardenPhase[] = [];
+    for (const now of sweep(start)) {
+      const light = gardenPhase(now);
+      seen.add(light.phase);
+      if (light.phase !== last) order.push(light.phase);
+      last = light.phase;
+      expect(light.progress).toBeGreaterThanOrEqual(0);
+      expect(light.progress).toBeLessThanOrEqual(1);
+    }
+    expect(order).toEqual(["night", "dawn", "day", "golden", "dusk", "night"]);
+    expect(seen.size).toBe(5);
+  }
+  // The rendered sky's disc matches the clock icon's choice for each phase.
+  const view = render(<Ambience now={at("12:30")} gentle />);
+  for (const time of ["00:20", "06:20", "12:30", "18:30", "19:10", "23:00"]) {
+    view.rerender(<Ambience now={at(time)} gentle />);
+    const phase = layer()!.dataset.phase as GardenPhase;
+    expect(phase).toBe(gardenPhase(at(time)).phase);
+    const disc = document.querySelector<HTMLElement>("[data-celestial]");
+    // jsdom measures no sky track, so the disc may be left out; when drawn it agrees.
+    if (disc) expect(disc.dataset.celestial).toBe(celestialBody(phase));
+  }
+  expect(celestialBody("night")).toBe("moon");
+  for (const phase of ["dawn", "day", "golden", "dusk"] as const) expect(celestialBody(phase)).toBe("sun");
+});
+
+it("keeps one light object per clock minute", () => {
+  const { result, rerender } = renderHook(({ now }) => useGardenLight(now), { initialProps: { now: at("12:30") } });
+  const first = result.current;
+  expect(first?.phase).toBe("day");
+  rerender({ now: at("12:30") + 20_000 });
+  rerender({ now: at("12:30") + 59_000 });
+  expect(result.current).toBe(first);
+  rerender({ now: at("12:31") });
+  expect(result.current).not.toBe(first);
 });
 
 it("server-renders a neutral garden and hydrates into the phase without warnings", async () => {
   readSettings.mockReturnValue(new Promise(() => {}));
-  const tree = <Ambience now={at("23:30")} moonflower gentle />;
+  const tree = <Ambience now={at("23:30")} gentle />;
   const html = renderToString(tree);
   expect(html).not.toContain("data-phase");
   const container = document.createElement("div");
@@ -66,7 +129,7 @@ it("server-renders a neutral garden and hydrates into the phase without warnings
 
 it("stays decorative: hidden from assistive technology and never focusable", () => {
   readSettings.mockReturnValue(new Promise(() => {}));
-  render(<Ambience now={at("23:30")} moonflower gentle />);
+  render(<Ambience now={at("23:30")} gentle />);
   const ambience = layer()!;
   expect(ambience).toHaveAttribute("aria-hidden", "true");
   expect(ambience.querySelectorAll("a, button, input, select, textarea, [tabindex]")).toHaveLength(0);
@@ -74,11 +137,11 @@ it("stays decorative: hidden from assistive technology and never focusable", () 
 
 it("moves fireflies at night and petals by day while motion is allowed", () => {
   readSettings.mockReturnValue(new Promise(() => {}));
-  const view = render(<Ambience now={at("23:30")} moonflower gentle />);
+  const view = render(<Ambience now={at("23:30")} gentle />);
   expect(layer()).toHaveAttribute("data-motion", "live");
   expect(document.querySelectorAll("[data-firefly]").length).toBeGreaterThan(0);
   expect(document.querySelectorAll("[data-petal]")).toHaveLength(0);
-  view.rerender(<Ambience now={at("12:30")} moonflower={false} gentle />);
+  view.rerender(<Ambience now={at("12:30")} gentle />);
   expect(layer()).toHaveAttribute("data-phase", "day");
   expect(document.querySelectorAll("[data-firefly]")).toHaveLength(0);
   expect(document.querySelectorAll("[data-petal]").length).toBeGreaterThan(0);
@@ -86,21 +149,21 @@ it("moves fireflies at night and petals by day while motion is allowed", () => {
 
 it("stops all ambience motion when the member turns gentle motion off", () => {
   readSettings.mockReturnValue(new Promise(() => {}));
-  const view = render(<Ambience now={at("23:30")} moonflower gentle={false} />);
+  const view = render(<Ambience now={at("23:30")} gentle={false} />);
   expect(layer()).toHaveAttribute("data-motion", "still");
   // Fireflies remain as static glows; drifting petals are removed.
   expect(document.querySelectorAll("[data-firefly]").length).toBeGreaterThan(0);
-  view.rerender(<Ambience now={at("12:30")} moonflower={false} gentle={false} />);
+  view.rerender(<Ambience now={at("12:30")} gentle={false} />);
   expect(document.querySelectorAll("[data-petal]")).toHaveLength(0);
 });
 
 it("stops all ambience motion under the device reduced-motion setting", () => {
   reduce = true;
   readSettings.mockReturnValue(new Promise(() => {}));
-  const view = render(<Ambience now={at("12:30")} moonflower={false} gentle />);
+  const view = render(<Ambience now={at("12:30")} gentle />);
   expect(layer()).toHaveAttribute("data-motion", "still");
   expect(document.querySelectorAll("[data-petal]")).toHaveLength(0);
-  view.rerender(<Ambience now={at("23:30")} moonflower gentle />);
+  view.rerender(<Ambience now={at("23:30")} gentle />);
   expect(layer()).toHaveAttribute("data-motion", "still");
   expect(document.querySelectorAll("[data-firefly]").length).toBeGreaterThan(0);
 });
@@ -143,12 +206,19 @@ it("drops below the signs, around the flowers, when a narrow row has no room", (
   clears(track, boxes);
 });
 
-it("moves the sun from 4 a.m. to 10 p.m. and the moon through Moonflower hours", () => {
-  expect(celestialProgress({ phase: "dawn", minute: 240 })).toBe(0);
-  expect(celestialProgress({ phase: "day", minute: 780 })).toBe(0.5);
-  expect(celestialProgress({ phase: "dusk", minute: 1319 })).toBeCloseTo(1, 2);
-  expect(celestialProgress({ phase: "night", minute: 1320 })).toBe(0);
-  expect(celestialProgress({ phase: "night", minute: 60 })).toBe(0.5);
+it("moves the sun with its real azimuth and the moon from civil dusk to civil dawn", () => {
+  const progress = (time: string) => gardenPhase(at(time)).progress;
+  // Before sunrise the sun waits at the rising edge, and after sunset at the setting edge.
+  expect(progress("06:20")).toBe(0);
+  expect(progress("19:10")).toBe(1);
+  // At solar noon the sun is due south, halfway across.
+  expect(progress("12:47")).toBeCloseTo(0.5, 1);
+  expect(progress("09:00")).toBeLessThan(progress("12:00"));
+  expect(progress("15:00")).toBeGreaterThan(progress("12:47"));
+  // The moon starts at civil dusk and ends at the next civil dawn.
+  expect(progress("19:25")).toBeLessThan(0.02);
+  expect(progress("00:47")).toBeCloseTo(0.5, 1);
+  expect(progress("06:10")).toBeGreaterThan(0.98);
   const track = { y: 88, segments: [[10, 20], [40, 50]] as [number, number][] };
   expect(alongTrack(track, 0)).toEqual({ x: 10, y: 88 });
   expect(alongTrack(track, 0.75)).toEqual({ x: 45, y: 88 });

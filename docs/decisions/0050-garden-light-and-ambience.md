@@ -10,26 +10,46 @@ motion and its suppression rules in
 [decision 0040](0040-cozy-pixel-garden-beds.md), and the focus ring, care tag
 and spot geometry in [decision 0042](0042-legible-garden-surface.md). No
 product rule, data, route, sprite, plot or spot coordinate changes.
+[Issue #139](https://github.com/C0derTang/shared-garden/issues/139) replaced the
+phase rule with the real Pacific sun (see Phases); the Moonflower window is
+unchanged.
 
 ## Phases
 
-The garden light follows the existing garden clock in Pacific time. The server's
-`moonflower_open` flag alone decides night, so the light always agrees with the
-clock's moon icon and the Moonflower window (10 p.m. to 4 a.m.) in decision
-0004. The other phases come from the Pacific hour:
+The garden light follows the real sun in Pacific time
+([issue #139](https://github.com/C0derTang/shared-garden/issues/139),
+superseding the first version below). It uses the garden's live clock (the
+server time plus the time elapsed since the last read) and a small,
+dependency-free NOAA-style solar position function (`src/lib/garden/solar.ts`)
+for a fixed Pacific reference point, Los Angeles (34.05°N, 118.24°W). Sunrise
+and sunset are when the sun's upper limb meets the horizon (−0.833° with
+refraction), so the light follows the seasons and daylight saving time:
 
-| Phase | Pacific time | Sky and light |
+| Phase | When | Sky and light |
 | --- | --- | --- |
-| Dawn | 4:00–7:59 a.m. | Rose and peach sky, pale low sun, faint rose light |
-| Day | 8:00 a.m.–4:59 p.m. | Clear blue sky, sun, the unchanged daytime grass |
-| Golden | 5:00–7:59 p.m. | Amber sky, warm sun, warm light |
-| Dusk | 8:00–9:59 p.m. | Violet sky over a sunset band, a low red sun |
-| Night | Moonflower hours | Navy sky, stars, moon, moonlit ground |
+| Night | Sun more than 6° below the horizon (civil dusk to civil dawn) | Navy sky, stars, moon, moonlit ground |
+| Dawn | Civil dawn to 1 hour after sunrise | Rose and peach sky, pale low sun, faint rose light |
+| Day | 1 hour after sunrise to 1 hour before sunset | Clear blue sky, sun, the unchanged daytime grass |
+| Golden | The last hour before sunset | Amber sky, warm sun, warm light |
+| Dusk | Sunset to civil dusk | Violet sky over a sunset band, a low red sun |
 
-Around the night edges, before the next garden read confirms the flag change,
-the light shows dusk after 10 p.m. or dawn before 4 a.m. The garden already
-refreshes at those boundaries. The phase uses a fixed clock, not sunrise times,
-so it stays predictable through the year.
+In Los Angeles, for example, night begins about 5:15 p.m. PST at the winter
+solstice and 8:37 p.m. PDT at the summer solstice, and dawn begins about 6:27
+a.m. PST and 5:13 a.m. PDT. At 12:20 a.m. the garden is always a moonlit night.
+The phase is worked out again every clock minute, so a page left open changes
+light at the right moments. The solar function is checked against published Los
+Angeles sunrise and sunset times at both solstices and either side of both DST
+changes, within 3 minutes.
+
+**Superseded (issue #139).** The first version let the server's
+`moonflower_open` flag alone decide night and used fixed Pacific hours for the
+rest (dawn 4:00–7:59 a.m., day 8:00 a.m.–4:59 p.m., golden 5:00–7:59 p.m., dusk
+8:00–9:59 p.m.). When the flag was false or stale, the middle of the night
+showed a dawn sky with a sun. The light no longer reads the flag. The
+Moonflower's 10 p.m.–4 a.m. window in decision 0004 is unchanged and still comes
+from `moonflower_open`, so the Moonflower's availability and the night sky are
+now independent: on a summer evening the sky can be dark before the Moonflower
+opens, and on a winter morning the sky can still be dark after it closes.
 
 ## Layers
 
@@ -51,7 +71,8 @@ flowers. It holds:
 A firefly is a 3px core in hard square glow rings, and a petal is a two-tone
 pixel chip. There is no blur, backdrop filter or blurred shadow.
 
-At dusk and night the garden itself adds three small changes. Each flower gets a
+At dusk and night (the phases above, from the real sun, not the Moonflower
+window) the garden itself adds three small changes. Each flower gets a
 one-art-pixel moonlit rim: warm parchment `#eadbb4` at dusk and pale moon
 `#d6def6` at night. Care tags gain a 1px `--paper-light` band outside their ink
 border. Spot, Help, Songs and Guide focus rings gain a 2px `--paper-light` band
@@ -60,10 +81,21 @@ are unchanged.
 
 ## Sun and moon
 
-The disc follows the clock's icon logic: the sun from 4 a.m. to 10 p.m.
-(including dusk, as a low red sun) and the moon through Moonflower hours. It
-moves left to right with the time of day. It is a 16-unit pixel disc at 2px
-per art pixel, with a 20px core inside a 32px halo.
+The disc and the clock's sun or moon icon come from the same phase (issue
+#139): the sun from dawn through dusk (at dusk, a low red sun) and the moon at
+night. The icon therefore always agrees with the sky, instead of following the
+Moonflower flag as in decision 0049. The icon's first render uses the server
+time on both the server and the client, so it hydrates without a mismatch.
+
+The disc moves left to right along its track. The sun follows its real
+azimuth, from where it rises (the left end) to where it sets (the right end),
+so it is halfway across at solar noon. Through the dawn twilight before sunrise
+it waits low at the left end, and through dusk after sunset at the right end.
+The track is one horizontal band chosen for clearance (below), so the sun's
+height is shown by the phase colours rather than by moving the disc up or down.
+The moon crosses the track at an even pace from civil dusk to the next civil
+dawn. It is a 16-unit pixel disc at 2px per art pixel, with a 20px core inside
+a 32px halo.
 
 The disc stays in open sky. Its core keeps at least 8px from the Help, Songs
 and Guide controls and from the flowers, and it never goes under the header.
@@ -95,7 +127,7 @@ compared with 2.42 by day.
 Only `transform` and `opacity` animate, in stepped pixel timing. Petals fall
 with a flip, fireflies wander and blink, stars twinkle, and a new phase fades
 in over six steps. The layer adds no timer, and its markup changes only when
-the garden clock's minute or phase changes.
+the garden clock's minute changes the phase or the disc's position.
 
 All ambience motion stops under `prefers-reduced-motion: reduce` or when the
 member's gentle-motion setting is off (decision 0033). Petals are then removed,
