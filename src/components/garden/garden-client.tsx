@@ -16,6 +16,7 @@ import { FlowerSprite } from "./flower-sprite";
 import { FlowerSheet } from "./flower-sheet";
 import { HelpDisclosure } from "./help-disclosure";
 import { SeedPicker, type Mutate } from "./seed-picker";
+import { SinceLastVisit } from "./since-last-visit";
 import styles from "./garden.module.css";
 
 // Short weekday and date for the clock plate, from the YYYY-MM-DD garden day.
@@ -271,6 +272,7 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
         <Link href="/garden/songs" scroll={false} className={styles.chip}>Songs</Link>
       </div>
       <div className={styles.guide}><GardenGuide state={state} paused={busy || !!error} visit={setOpenSpot} actionOpen={openSpot !== null} enabled={guideEnabled} focusGarden={focusGarden} /></div>
+      <SinceLastVisit state={state} openSpot={setOpenSpot} focusGarden={focusGarden} />
       <div className={styles.workspace}>
         <section className={styles.beds} aria-label="Your flower beds">
           {error && (

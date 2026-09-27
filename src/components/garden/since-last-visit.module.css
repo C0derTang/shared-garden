@@ -1,0 +1,221 @@
+/* "While you were away" card (decision 0054): a wood-framed parchment note
+   under the Help and Songs signs. It is non-modal and sits below the tools
+   layer, so the Help card and the guide always open over it. */
+.card {
+  position: absolute;
+  z-index: 2;
+  top: 124px;
+  left: 50%;
+  width: min(25rem, calc(100% - 24px));
+  translate: -50% 0;
+  padding: 6px 4px 4px;
+  border: 12px solid var(--wood);
+  border-image: var(--frame-wood) 6 fill / 12px stretch;
+  background: var(--paper);
+  background-clip: padding-box;
+  box-shadow: var(--shadow-frame);
+  color: var(--ink);
+  animation: drop-in 280ms steps(4, end) both;
+}
+@keyframes drop-in {
+  from { translate: -50% -14px; opacity: 0; }
+  to { translate: -50% 0; opacity: 1; }
+}
+.card .title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-md);
+}
+/* A four-point pixel sparkle on the plaque. */
+.sparkle {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 7' shape-rendering='crispEdges'%3E%3Cpath fill='%23f2c14e' d='M3 0h1v2h1v1h2v1H5v1H4v2H3V5H2V4H0V3h2V2h1z'/%3E%3Cpath fill='%23fdf4dc' d='M3 3h1v1H3z'/%3E%3C/svg%3E") center / contain no-repeat;
+  image-rendering: pixelated;
+}
+.card .close {
+  top: -6px;
+  right: -6px;
+}
+.lines {
+  display: grid;
+  gap: 10px;
+  margin: 10px 0 3px;
+  padding: 0;
+  list-style: none;
+}
+/* Each line is a tactile parchment row that presses onto its lip. */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 56px;
+  padding: 4px 10px 4px 4px;
+  border: var(--border-pixel) solid var(--frame-border);
+  border-radius: var(--radius-pixel);
+  background: var(--paper-light);
+  box-shadow: var(--bevel), var(--shadow-pixel);
+  color: var(--ink);
+  font: 400 var(--text-sm)/1.3 var(--font-body);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.row:hover { background: var(--paper-deep); }
+.row:active {
+  translate: 0 var(--press-depth);
+  box-shadow: var(--bevel-pressed), var(--shadow-pixel-pressed);
+}
+.still {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  cursor: default;
+  box-shadow: var(--bevel);
+}
+.still:hover { background: var(--paper-light); }
+.still:active { translate: none; box-shadow: var(--bevel); }
+/* The sprite or glyph sits in a small inventory slot. */
+.slot {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 6px solid var(--paper-light);
+  border-image: var(--frame-slot) 3 fill / 6px stretch;
+  background: var(--paper-light);
+  background-clip: padding-box;
+}
+.slot > svg { width: 32px; height: 32px; }
+.slot > .iconBloom, .slot > .iconUnlock, .slot > .iconCare, .slot > .iconBadge { width: 22px; height: 22px; }
+.iconBloom { color: var(--forest-dark); }
+.iconUnlock { color: var(--wood-deep); }
+.iconCare { color: var(--rust); }
+.iconBadge { color: var(--ochre); }
+.row[data-kind="badge"] .slot { background: var(--gold); border-color: var(--gold); }
+.row[data-kind="badge"] .iconBadge { color: var(--wood-deep); }
+.text {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: 1px;
+}
+.kicker {
+  font: 700 var(--text-xs)/1.2 var(--font-pixel);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.row[data-kind="bloom"] .kicker { color: var(--forest-dark); }
+.row[data-kind="care"] .kicker { color: var(--rust); }
+/* --rust is 4.00:1 on the --paper-deep hover face, so the darker berry takes over. */
+.row[data-kind="care"]:hover .kicker { color: var(--danger); }
+.row[data-kind="unlock"] .kicker, .row[data-kind="badge"] .kicker { color: var(--wood-deep); }
+.go {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  color: var(--forest-dark);
+  font: 700 var(--text-xs)/1 var(--font-pixel);
+  letter-spacing: .03em;
+}
+.go > svg { width: 14px; height: 14px; }
+/* Several flowers: one sprite-and-name button each, under the sentence. */
+.chips {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 2px 0 6px 2px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 2px 10px 2px 4px;
+  border: var(--border-pixel) solid var(--frame-border);
+  border-radius: var(--radius-pixel);
+  background: var(--paper);
+  box-shadow: var(--bevel), var(--shadow-pixel);
+  color: var(--ink);
+  font: 700 var(--text-xs)/1.1 var(--font-pixel);
+  cursor: pointer;
+}
+.chip:hover { background: var(--paper-deep); }
+.chip:active {
+  translate: 0 var(--press-depth);
+  box-shadow: var(--bevel-pressed), var(--shadow-pixel-pressed);
+}
+.chip > svg { width: 32px; height: 32px; }
+
+/* Pixel confetti: square bits that pop out of the plaque in stepped frames.
+   It is not rendered when gentle motion is off and is hidden under reduced
+   motion. */
+.burst {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.burst > i {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: var(--gold);
+  box-shadow: 0 2px 0 var(--wood-dark);
+  opacity: 0;
+  animation: confetti 1s steps(10, end) both;
+}
+.burst > i:nth-child(3n + 1) { background: var(--rust); width: 4px; height: 4px; }
+.burst > i:nth-child(3n + 2) { background: var(--forest); }
+.burst > i:nth-child(4n) { background: var(--paper-light); animation-delay: 60ms; }
+@keyframes confetti {
+  0% { opacity: 1; transform: translate(0, 0); }
+  50% { opacity: 1; transform: translate(calc(var(--dx) * .7), var(--dy)); }
+  100% { opacity: 0; transform: translate(var(--dx), calc(var(--dy) + 30px)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .burst { display: none; }
+  .card { animation: none; }
+}
+
+/* The unread badge dot on the Achievements hotbar slot. */
+.newBadgeHost { position: relative; }
+.newBadge {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--wood-dark);
+  background: var(--rust);
+  box-shadow: inset 1px 1px 0 rgb(255 255 255 / 40%);
+}
+.screenReader {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (max-width: 359px) {
+  .card .title { font-size: var(--text-sm); }
+}
+@media (min-width: 640px) {
+  .card { top: 128px; }
+}
+@media (forced-colors: active) {
+  .card, .slot { border-image-source: none; }
+  .newBadge { forced-color-adjust: none; background: Highlight; border-color: CanvasText; }
+}

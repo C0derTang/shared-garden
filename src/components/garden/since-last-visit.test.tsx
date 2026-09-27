@@ -1,0 +1,186 @@
+const { preferences } = vi.hoisted(() => ({ preferences: { current: null as null | { state: { gentle_motion: boolean } } } }));
+vi.mock("@/components/settings/member-preferences", () => ({ useMemberPreferences: () => preferences.current }));
+import { act, render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { gardenFixture } from "@/test/garden-fixture";
+import type { AchievementResult } from "@/lib/achievements/model";
+import type { GardenState, Plant } from "@/lib/garden/model";
+import { publishBadges, snapshotKey } from "@/lib/garden/since-last-visit";
+import { NewBadgeMark } from "./new-badge-mark";
+import { SinceLastVisit } from "./since-last-visit";
+
+function plant(state: GardenState, id: string, type: Plant["flower"]["type_key"], spot: number): Plant {
+  const base = state.plants[0];
+  return { ...base, flower: { ...base.flower, id, type_key: type, spot, is_initial: false }, entries: [] };
+}
+function garden(change: (state: GardenState) => void = () => {}) {
+  const state = gardenFixture();
+  state.plants.push(plant(state, "rose-1", "rose", 2), plant(state, "tulip-1", "tulip", 3));
+  change(state);
+  return state;
+}
+function achievements(earned: { id: string; title: string }[]): AchievementResult {
+  return {
+    error: null,
+    state: {
+      server_now: "2026-09-18T17:00:00Z",
+      current_streak: 3,
+      achievements: earned.map((badge, index) => ({
+        achievement_id: badge.id, position: index + 1, title: badge.title, target: 1, unit: "", requirement: "", progress: 1, earned_at: "2026-09-18T17:00:00Z",
+      })),
+    },
+  };
+}
+const firstSeed = { id: "first-seed", title: "First seed" };
+const streak = { id: "streak-3", title: "Three-day streak" };
+const key = snapshotKey(gardenFixture());
+
+function renderCard(state: GardenState, earned = [firstSeed]) {
+  const openSpot = vi.fn();
+  const focusGarden = vi.fn();
+  const loadAchievements = vi.fn(async () => achievements(earned));
+  const view = render(
+    <>
+      <button type="button">Somewhere else</button>
+      <SinceLastVisit state={state} openSpot={openSpot} focusGarden={focusGarden} loadAchievements={loadAchievements} />
+      <NewBadgeMark viewing={false} />
+    </>,
+  );
+  return { ...view, openSpot, focusGarden, loadAchievements };
+}
+// A previous visit: render once, let achievements load, then unmount.
+async function visit(state: GardenState, earned = [firstSeed]) {
+  const view = renderCard(state, earned);
+  await waitFor(() => expect(view.loadAchievements).toHaveBeenCalled());
+  await waitFor(() => expect(JSON.parse(localStorage.getItem(key)!).badges).not.toBeNull());
+  view.unmount();
+}
+
+beforeEach(() => {
+  localStorage.clear();
+  preferences.current = null;
+  publishBadges({ key: null, unread: 0 });
+});
+afterEach(() => vi.restoreAllMocks());
+
+describe("While you were away", () => {
+  it("shows nothing on a first visit and keeps a snapshot of ids only", async () => {
+    const view = renderCard(garden((s) => {
+      s.plants[1].flower.first_bloom_at = s.server_now;
+      s.plants[1].member2_submitted = true;
+      s.plants[1].flower.shared_wish = "our private wish";
+    }));
+    await waitFor(() => expect(view.loadAchievements).toHaveBeenCalled());
+    await waitFor(() => expect(JSON.parse(localStorage.getItem(key)!).badges).toEqual(["first-seed"]));
+    expect(screen.queryByRole("region", { name: /While you were away/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("");
+    expect(localStorage.getItem(key)).not.toMatch(/private/);
+    expect(document.querySelector("[data-since-last-visit]")).toBeNull();
+  });
+
+  it("celebrates blooms, unlocks, partner care and badges since the last visit without taking focus", async () => {
+    const user = userEvent.setup();
+    await visit(garden());
+    const other = () => screen.getByRole("button", { name: "Somewhere else" });
+    const view = renderCard(garden((s) => {
+      s.plants[1].flower.first_bloom_at = "2026-09-19T11:00:00Z";
+      s.unlocks.push({ type_key: "daisy", unlocked_at: "2026-09-19T11:00:00Z" });
+      s.plants[1].member2_submitted = true;
+      s.plants[2].member2_submitted = true;
+    }), [firstSeed, streak]);
+    other().focus();
+    const card = await screen.findByRole("region", { name: "While you were away" });
+    await waitFor(() => expect(within(card).getByRole("link", { name: /New badge: Three-day streak/ })).toHaveAttribute("href", "/achievements"));
+    expect(other()).toHaveFocus();
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "While you were away: Your Rose bloomed. Daisy unlocked. Your partner cared for Rose and Tulip. New badge: Three-day streak.",
+    );
+    // The hotbar dot names the unread badge.
+    expect(screen.getByText(", 1 new badge")).toBeInTheDocument();
+
+    await user.click(within(card).getByRole("button", { name: /Your Rose bloomed/ }));
+    expect(view.openSpot).toHaveBeenLastCalledWith(2);
+    await user.click(within(card).getByRole("button", { name: /Daisy unlocked/ }));
+    expect(view.openSpot).toHaveBeenLastCalledWith(4);
+    await user.click(within(card).getByRole("button", { name: "Visit Tulip, spot 3" }));
+    expect(view.openSpot).toHaveBeenLastCalledWith(3);
+  });
+
+  it("dismisses, returns focus to the garden, and does not celebrate the same news again", async () => {
+    const user = userEvent.setup();
+    await visit(garden());
+    const bloomed = garden((s) => { s.plants[1].flower.first_bloom_at = "2026-09-19T11:00:00Z"; });
+    const view = renderCard(bloomed);
+    const card = await screen.findByRole("region", { name: "While you were away" });
+    await user.click(within(card).getByRole("button", { name: "Dismiss While you were away" }));
+    expect(screen.queryByRole("region", { name: "While you were away" })).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("");
+    expect(view.focusGarden).toHaveBeenCalledTimes(1);
+
+    // A live refresh with nothing new keeps it closed.
+    view.rerender(
+      <SinceLastVisit state={garden((s) => { s.plants[1].flower.first_bloom_at = "2026-09-19T11:00:00Z"; })} openSpot={view.openSpot} focusGarden={view.focusGarden} loadAchievements={view.loadAchievements} />,
+    );
+    expect(screen.queryByRole("region", { name: "While you were away" })).not.toBeInTheDocument();
+    // New partner care arrives live: only the new line appears.
+    view.rerender(
+      <SinceLastVisit state={garden((s) => { s.plants[1].flower.first_bloom_at = "2026-09-19T11:00:00Z"; s.plants[2].member2_submitted = true; })} openSpot={view.openSpot} focusGarden={view.focusGarden} loadAchievements={view.loadAchievements} />,
+    );
+    const again = await screen.findByRole("region", { name: "While you were away" });
+    expect(within(again).getByText("Your partner cared for Tulip")).toBeInTheDocument();
+    expect(within(again).queryByText(/bloomed/)).not.toBeInTheDocument();
+    view.unmount();
+
+    // A reload does not repeat what was already shown.
+    renderCard(garden((s) => { s.plants[1].flower.first_bloom_at = "2026-09-19T11:00:00Z"; s.plants[2].member2_submitted = true; }));
+    await act(async () => {});
+    expect(screen.queryByRole("region", { name: "While you were away" })).not.toBeInTheDocument();
+  });
+
+  it("shows nothing and does not throw when storage is unavailable", async () => {
+    await visit(garden());
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => { throw new Error("blocked"); });
+    renderCard(garden((s) => { s.plants[1].flower.first_bloom_at = "2026-09-19T11:00:00Z"; }));
+    await act(async () => {});
+    expect(screen.queryByRole("region", { name: "While you were away" })).not.toBeInTheDocument();
+  });
+
+  it("shows nothing when the snapshot cannot be saved", async () => {
+    await visit(garden());
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("full"); });
+    renderCard(garden((s) => { s.plants[1].flower.first_bloom_at = "2026-09-19T11:00:00Z"; }));
+    await act(async () => {});
+    expect(screen.queryByRole("region", { name: "While you were away" })).not.toBeInTheDocument();
+  });
+
+  it("pops pixel confetti only when gentle motion is on", async () => {
+    await visit(garden());
+    const bloom = (s: GardenState) => { s.plants[1].flower.first_bloom_at = "2026-09-19T11:00:00Z"; };
+    preferences.current = { state: { gentle_motion: false } };
+    const quiet = renderCard(garden(bloom));
+    const card = await screen.findByRole("region", { name: "While you were away" });
+    expect(card.querySelector("i")).toBeNull();
+    quiet.unmount();
+    localStorage.clear();
+    await visit(garden());
+    preferences.current = { state: { gentle_motion: true } };
+    renderCard(garden(bloom));
+    const lively = await screen.findByRole("region", { name: "While you were away" });
+    expect(lively.querySelectorAll("i").length).toBeGreaterThan(0);
+  });
+
+  it("clears the hotbar dot once the Achievements panel is open", async () => {
+    await visit(garden());
+    const view = renderCard(garden(), [firstSeed, streak]);
+    await screen.findByText(", 1 new badge");
+    view.rerender(
+      <>
+        <SinceLastVisit state={garden()} openSpot={view.openSpot} focusGarden={view.focusGarden} loadAchievements={view.loadAchievements} />
+        <NewBadgeMark viewing />
+      </>,
+    );
+    await waitFor(() => expect(JSON.parse(localStorage.getItem(key)!).badgesViewed).toEqual(["first-seed", "streak-3"]));
+    expect(screen.queryByText(/new badge$/)).not.toBeInTheDocument();
+  });
+});
