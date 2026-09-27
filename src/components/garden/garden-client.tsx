@@ -16,6 +16,7 @@ import { FlowerSprite } from "./flower-sprite";
 import { FlowerSheet } from "./flower-sheet";
 import { HelpDisclosure } from "./help-disclosure";
 import { SeedPicker, type Mutate } from "./seed-picker";
+import { SpotNotice, useSpotRequest } from "./spot-request";
 import styles from "./garden.module.css";
 
 // Short weekday and date for the clock plate, from the YYYY-MM-DD garden day.
@@ -84,6 +85,7 @@ function GardenSpot({
   mutate,
   open,
   setOpen,
+  visit,
 }: {
   spot: number;
   plant?: Plant;
@@ -94,10 +96,16 @@ function GardenSpot({
   mutate: Mutate;
   open: boolean;
   setOpen: (open: boolean) => void;
+  visit: (spot: number) => void;
 }) {
   const [picking, setPicking] = useState(!plant);
+  // Set by a successful plant, which turns this sheet into the new flower's.
+  const [planted, setPlanted] = useState(false);
   // Reopening after a successful plant must show the new flower’s care sheet.
-  if (!open && picking !== !plant) setPicking(!plant);
+  if (!open && (picking !== !plant || planted)) {
+    setPicking(!plant);
+    setPlanted(false);
+  }
   const [x, y] = positions[(spot - 1) % 12];
   const bloom = !!plant?.flower.first_bloom_at;
   const cared = plant
@@ -117,7 +125,9 @@ function GardenSpot({
           setOpen(next);
         }}
         title={
-          !picking && item ? item.display_name : "Plant something together"
+          !picking && item
+            ? `${item.display_name}${planted ? " planted ✿" : ""}`
+            : "Plant something together"
         }
         description={
           plant
@@ -180,11 +190,16 @@ function GardenSpot({
           (!picking && plant ? (
             <FlowerSheet
               {...{ plant, state, item: item!, now, busy, mutate }}
+              onVisit={visit}
+              onClose={() => setOpen(false)}
             />
           ) : (
             <SeedPicker
               {...{ state, spot, busy, mutate }}
-              onPlanted={() => setOpen(false)}
+              onPlanted={() => {
+                setPlanted(true);
+                setPicking(false);
+              }}
             />
           ))}
       </BottomSheet>
@@ -197,6 +212,7 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
   const focusGarden = useCallback(() => heading.current?.focus(), []);
   const { state, now, error, connected, busy, refresh, mutate } =
     useGarden(initial);
+  const spotRequest = useSpotRequest(state, guideEnabled, setOpenSpot);
   if (!state)
     return (
       <div className={`${styles.garden} ${styles.fallback}`}>
@@ -257,6 +273,7 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
         </HelpDisclosure>
         <Link href="/garden/songs" scroll={false} className={styles.chip}>Songs</Link>
       </div>
+      <SpotNotice {...spotRequest} />
       <div className={styles.guide}><GardenGuide state={state} paused={busy || !!error} visit={setOpenSpot} actionOpen={openSpot !== null} enabled={guideEnabled} focusGarden={focusGarden} /></div>
       <div className={styles.workspace}>
         <section className={styles.beds} aria-label="Your flower beds">
@@ -280,6 +297,7 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
                     key={spot}
                     open={openSpot === spot}
                     setOpen={(open) => setOpenSpot(open ? spot : null)}
+                    visit={setOpenSpot}
                     {...{
                       spot,
                       plant,

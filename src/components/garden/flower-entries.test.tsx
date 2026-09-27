@@ -63,7 +63,8 @@ it("shows saved Hydrangea moods as a swatch with the colour name today and in hi
   });
   render(<FlowerSheet {...p} />);
   const today = screen.getByRole("region", { name: "Today's entries" });
-  const tender = within(today).getByText("Tender · Pink");
+  const partner = within(today).getByRole("article", { name: "Partner" });
+  const tender = within(partner).getByText("Tender · Pink");
   const todaySwatch = tender.querySelector('[data-mood-swatch="tender"]');
   expect(todaySwatch).toHaveAttribute("aria-hidden", "true");
   expect(todaySwatch).toHaveStyle({ backgroundColor: "#d88798" });
