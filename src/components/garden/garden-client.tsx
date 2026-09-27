@@ -87,6 +87,7 @@ function GardenSpot({
   open,
   setOpen,
   onCloseAutoFocus,
+  visit,
 }: {
   spot: number;
   plant?: Plant;
@@ -98,10 +99,16 @@ function GardenSpot({
   open: boolean;
   setOpen: (open: boolean) => void;
   onCloseAutoFocus: (event: Event) => void;
+  visit: (spot: number) => void;
 }) {
   const [picking, setPicking] = useState(!plant);
+  // Set by a successful plant, which turns this sheet into the new flower's.
+  const [planted, setPlanted] = useState(false);
   // Reopening after a successful plant must show the new flower’s care sheet.
-  if (!open && picking !== !plant) setPicking(!plant);
+  if (!open && (picking !== !plant || planted)) {
+    setPicking(!plant);
+    setPlanted(false);
+  }
   const [x, y] = positions[(spot - 1) % 12];
   const bloom = !!plant?.flower.first_bloom_at;
   const cared = plant
@@ -121,7 +128,9 @@ function GardenSpot({
           setOpen(next);
         }}
         title={
-          !picking && item ? item.display_name : "Plant something together"
+          !picking && item
+            ? `${item.display_name}${planted ? " planted ✿" : ""}`
+            : "Plant something together"
         }
         description={
           plant
@@ -187,11 +196,16 @@ function GardenSpot({
           (!picking && plant ? (
             <FlowerSheet
               {...{ plant, state, item: item!, now, busy, mutate }}
+              onVisit={visit}
+              onClose={() => setOpen(false)}
             />
           ) : (
             <SeedPicker
               {...{ state, spot, busy, mutate }}
-              onPlanted={() => setOpen(false)}
+              onPlanted={() => {
+                setPlanted(true);
+                setPicking(false);
+              }}
             />
           ))}
       </BottomSheet>
@@ -206,6 +220,12 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
   const restoreFocus = useRef<(() => boolean) | null>(null);
   const visitFromCard = useCallback<VisitFromCard>((spot, restore) => {
     restoreFocus.current = restore;
+    setOpenSpot(spot);
+  }, []);
+  // The sheet's Next step moves on to another flower, which keeps the default
+  // return to that flower's own trigger.
+  const visitFromSheet = useCallback((spot: number) => {
+    restoreFocus.current = null;
     setOpenSpot(spot);
   }, []);
   const closeAutoFocus = useCallback((event: Event) => {
@@ -269,7 +289,7 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
             <p>Garden day {state.garden_day} · starts 4 a.m. Pacific.</p>
             <p>{state.moonflower_open ? "Moonflower · open until 4 a.m." : "Moonflower · 10 p.m.–4 a.m. Pacific"}</p>
             <p>Dots · you left, partner right; filled means cared today.</p>
-            <p>A pulsing dot · your partner cared. Sparkle · blooms at 4 a.m. Empty drop · may lose growth.</p>
+            <p>An outlined dot · your partner cared. Sparkle · blooms at 4 a.m. Empty drop · may lose growth.</p>
             <p>{connected ? "Live updates on" : "Checking updates…"}</p>
             <button type="button" className={styles.refreshButton} onClick={() => void refresh()} disabled={busy}>Refresh</button>
           </div>
@@ -304,6 +324,7 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
                       setOpenSpot(open ? spot : null);
                     }}
                     onCloseAutoFocus={closeAutoFocus}
+                    visit={visitFromSheet}
                     {...{
                       spot,
                       plant,

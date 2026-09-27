@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { FlowerSprite, type FlowerType } from "./flower-sprite";
 import {
   seedAvailability,
@@ -13,6 +13,31 @@ import seedStyles from "./seed-picker.module.css";
 import type { GardenMutation } from "@/lib/garden/use-garden";
 
 export type Mutate = (command: GardenMutation) => Promise<GardenResult>;
+
+const growthLabel = (seed: CatalogItem) =>
+  `${seed.growth_target} ${seed.type_key === "peony" ? "milestones" : "growth units"} to bloom`;
+// A slot shows only a sprite and name, so its accessible name carries the rest.
+const seedLabel = (seed: CatalogItem, reason: string) =>
+  `${seed.display_name}, ${seed.action_label}. ${growthLabel(seed)}. ${reason}`;
+
+// Leads the empty bag with the nearest unlock, or with why nothing is free.
+function nextUnlock(state: GardenState) {
+  const blooms = state.plants.filter((p) => p.flower.first_bloom_at).length;
+  const next = state.catalog
+    .filter(
+      (c) =>
+        c.type_key !== "cactus" &&
+        !state.unlocks.some((u) => u.type_key === c.type_key),
+    )
+    .sort((a, b) => a.unlock_after_blooms - b.unlock_after_blooms)[0];
+  if (!next) return { seed: null, lead: "Every seed is growing right now." };
+  const needed = Math.max(1, next.unlock_after_blooms - blooms);
+  return {
+    seed: next,
+    lead: `Bloom ${needed} more flower${needed === 1 ? "" : "s"} to unlock ${next.display_name}.`,
+  };
+}
+
 export function SeedPicker({
   state,
   spot,
@@ -31,6 +56,8 @@ export function SeedPicker({
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const lock = useRef(false);
+  const root = useRef<HTMLDivElement>(null);
+  const bagId = useId();
   const item = state.catalog.find((c) => c.type_key === selected);
   const occupied = state.plants.some((p) => p.flower.spot === spot);
   const canPlant =
@@ -52,46 +79,22 @@ export function SeedPicker({
         ...(selected === "dandelion" ? { wish } : {}),
       });
       setError(result.error);
-      if (result.saved) onPlanted();
+      if (result.saved) {
+        // The same sheet becomes the new flower's sheet, so its heading is the
+        // natural place for focus once this picker leaves.
+        const heading = root.current
+          ?.closest('[role="dialog"]')
+          ?.querySelector<HTMLElement>("h2");
+        onPlanted();
+        if (heading) {
+          heading.tabIndex = -1;
+          heading.focus();
+        }
+      }
     } finally {
       lock.current = false;
       setPending(false);
     }
-  }
-  function tile(seed: CatalogItem, reason: string, locked: boolean) {
-    return (
-      <button
-        key={seed.type_key}
-        className={seedStyles.seed}
-        data-locked={locked || undefined}
-        type="button"
-        disabled={locked || busy || pending || occupied}
-        aria-pressed={selected === seed.type_key}
-        onClick={() => {
-          setSelected(seed.type_key);
-          setError(null);
-        }}
-      >
-        <FlowerSprite
-          type={seed.type_key}
-          growthUnits={seed.growth_target}
-          growthTarget={seed.growth_target}
-          bloomed
-          size={64}
-        />
-        <span className={seedStyles.text}>
-          <span className={seedStyles.title}>
-            <strong>{seed.display_name}</strong>
-            <span>{seed.action_label}</span>
-          </span>
-          <small>
-            {seed.growth_target}{" "}
-            {seed.type_key === "peony" ? "milestones" : "growth units"} to bloom
-            · {reason}
-          </small>
-        </span>
-      </button>
-    );
   }
   const seeds = state.catalog.map((seed) => ({
     seed,
@@ -99,26 +102,126 @@ export function SeedPicker({
   }));
   const available = seeds.filter((s) => s.availability.available);
   const locked = seeds.filter((s) => !s.availability.available);
+  const selectedReason = item && seedAvailability(item, state).reason;
+  const unlock = available.length === 0 ? nextUnlock(state) : null;
+  function select(seed: CatalogItem) {
+    setSelected(seed.type_key);
+    setError(null);
+  }
+  function sprite(seed: CatalogItem) {
+    return (
+      <FlowerSprite
+        type={seed.type_key}
+        growthUnits={seed.growth_target}
+        growthTarget={seed.growth_target}
+        bloomed
+        size={64}
+      />
+    );
+  }
   return (
-    <div className={seedStyles.picker} aria-busy={pending}>
+    <div ref={root} className={seedStyles.picker} aria-busy={pending}>
       <p className={styles.quiet}>
         Spot {spot} · Choose a little thing to grow together.
       </p>
+      {unlock && (
+        <div className={seedStyles.nextUnlock}>
+          {unlock.seed && (
+            <span className={seedStyles.nextSprite} aria-hidden="true">
+              {sprite(unlock.seed)}
+            </span>
+          )}
+          <p>
+            <strong>{unlock.lead}</strong>
+            <span>
+              Nothing can be planted right now. Your growing flowers free up
+              seeds as they bloom.
+            </span>
+          </p>
+        </div>
+      )}
       {available.length > 0 && (
-        <div className={seedStyles.seeds}>
-          {available.map(({ seed, availability }) =>
-            tile(seed, availability.reason, false),
+        <section className={seedStyles.bag} aria-labelledby={bagId}>
+          <h3 id={bagId} className={seedStyles.bagLabel}>
+            Seed bag <span>{available.length}</span>
+          </h3>
+          <div className={seedStyles.slots}>
+            {available.map(({ seed, availability }) => (
+              <button
+                key={seed.type_key}
+                className={seedStyles.slot}
+                type="button"
+                disabled={busy || pending || occupied}
+                aria-pressed={selected === seed.type_key}
+                aria-label={seedLabel(seed, availability.reason)}
+                onClick={() => select(seed)}
+              >
+                <span className={seedStyles.slotSprite}>{sprite(seed)}</span>
+                <strong className={seedStyles.slotName}>
+                  {seed.display_name}
+                </strong>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+      {available.length > 0 && (
+        <div
+          className={seedStyles.card}
+          data-item-card=""
+          data-empty={item ? undefined : ""}
+        >
+          {item ? (
+            <>
+              <span className={seedStyles.cardSprite} aria-hidden="true">
+                {sprite(item)}
+              </span>
+              <div className={seedStyles.cardText}>
+                <p className={seedStyles.cardName}>{item.display_name}</p>
+                <p className={seedStyles.cardRitual}>{item.action_label}</p>
+                <p className={seedStyles.cardStats}>
+                  <span className={seedStyles.pips} aria-hidden="true">
+                    {Array.from(
+                      { length: Math.min(item.growth_target, 14) },
+                      (_, i) => (
+                        <i key={i} />
+                      ),
+                    )}
+                  </span>
+                  <span>{growthLabel(item)}</span>
+                  <span>{selectedReason}</span>
+                </p>
+              </div>
+            </>
+          ) : (
+            <p className={seedStyles.cardHint}>
+              Pick a seed from your bag to see its ritual.
+            </p>
           )}
         </div>
       )}
       {locked.length > 0 && (
         <details className={seedStyles.locked}>
           <summary>Still to unlock ({locked.length})</summary>
-          <div className={seedStyles.seeds}>
-            {locked.map(({ seed, availability }) =>
-              tile(seed, availability.reason, true),
-            )}
-          </div>
+          <ul className={seedStyles.lockedList}>
+            {locked.map(({ seed, availability }) => (
+              <li key={seed.type_key}>
+                <button
+                  className={seedStyles.lockedSeed}
+                  type="button"
+                  disabled
+                  aria-pressed={false}
+                  aria-label={seedLabel(seed, availability.reason)}
+                >
+                  <span className={seedStyles.lockedSprite}>{sprite(seed)}</span>
+                  <span className={seedStyles.lockedText}>
+                    <strong>{seed.display_name}</strong>
+                    <small>{availability.reason}</small>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
         </details>
       )}
       {selected === "dandelion" && (

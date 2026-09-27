@@ -53,7 +53,7 @@ it("uses the existing Rose and keeps its active draft through partner updates", 
   const next = structuredClone(state); next.server_now = "2026-09-18T17:00:01Z"; next.plants[1].member1_submitted = true;
   refreshGarden.mockResolvedValue({ state: next, error: null });
   fireEvent.focus(window);
-  await screen.findByText("Partner · cared today");
+  await waitFor(() => expect(screen.getByRole("article", { name: "Partner" })).toHaveTextContent("Cared today"));
   expect(screen.getByRole("textbox")).toHaveValue("Keep my note");
   expect(mutateGarden).not.toHaveBeenCalled();
 });
@@ -293,7 +293,7 @@ it("lets a queued private moment precede the requested flower and the resumed gu
   expect(await screen.findByRole("dialog", { name: "A little hello" })).toBeVisible();
 });
 
-it("opens the newly planted Rose as care after yielding to the unrestricted seed picker", async () => {
+it("goes from the unrestricted seed picker straight to the newly planted Rose's care", async () => {
   const state = gardenFixture(); state.tutorial_facts.cactus_checked_in = true;
   show(state); const user = userEvent.setup();
   await user.click(screen.getByRole("button", { name: "Choose a Rose seed" }));
@@ -302,6 +302,10 @@ it("opens the newly planted Rose as care after yielding to the unrestricted seed
   mutateGarden.mockResolvedValue({ state: next, saved: true, error: null });
   await user.click(screen.getByRole("button", { name: /Rose.*Note about today/ }));
   await user.click(screen.getByRole("button", { name: "Plant Rose" }));
-  await user.click(await screen.findByRole("button", { name: "Visit Rose" }));
+  // Planting turns the same sheet into the new Rose's care sheet (decision 0052).
+  expect(await screen.findByRole("dialog", { name: "Rose planted ✿" })).toBeInTheDocument();
   expect(screen.getByRole("textbox", { name: "Note about today" })).toBeVisible();
+  // Once that sheet closes, the guide can still point to the Rose.
+  await user.click(screen.getByRole("button", { name: "Close" }));
+  expect(await screen.findByRole("button", { name: "Visit Rose" })).toBeInTheDocument();
 });

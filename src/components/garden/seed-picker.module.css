@@ -1,93 +1,264 @@
-/* Compact seed picker (decision 0043). */
+/* Seed bag and plant-to-care picker in the Harvest Handheld skin
+   (decision 0052, superseding the tile layout of decision 0043). */
 .picker {
-  /* Space kept clear of the sticky Plant bar: its button, padding and the
-     sheet's bottom padding (about 86-100px), plus a small gap. */
+  /* Space kept clear of the sticky Plant bar: its button, lip, padding and
+     the sheet's bottom padding (about 86-100px), plus a small gap. */
   --plant-bar-clearance: 7rem;
   display: grid;
   gap: 0.75rem;
   min-width: 0;
 }
 
-.seeds {
+/* The bag: a sunken parchment well holding the available seed slots. */
+.bag {
   display: grid;
-  gap: 0.4rem;
+  gap: 0.45rem;
+  min-width: 0;
+  padding: 0.4rem 2px 0.7rem;
+  border: var(--border-pixel) solid var(--wood-deep);
+  background: var(--paper-deep);
+  box-shadow: var(--bevel-pressed);
 }
 
-.seed {
+.bagLabel {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  width: 100%;
+  gap: 0.4rem;
+  color: var(--ink);
+  font: 700 var(--text-sm) / 1.2 var(--font-pixel);
+  letter-spacing: 0.03em;
+}
+
+.bagLabel span {
+  min-width: 1.35rem;
+  padding: 1px 5px 2px;
+  border: 1px solid var(--wood-dark);
+  background: var(--wood-deep);
+  color: var(--paper-light);
+  font-size: var(--text-xs);
+  text-align: center;
+}
+
+.slots {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  /* Rows leave room for the 3px lip. Focus outlines paint above
+     neighbouring slots, so columns can sit closer. */
+  gap: 0.6rem 4px;
+}
+
+.slot {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 1px;
+  min-width: 0;
   min-height: 44px;
-  padding: 0.3rem 0.6rem 0.3rem 0.35rem;
-  border: var(--border-pixel) solid var(--control-border);
+  /* Phones draw the slot art at 1px per art pixel, so the longest seed
+     names fit on one line in four columns; wider screens use 2px. */
+  padding: 1px 0 3px;
+  border: 3px solid var(--paper-light);
+  border-image: var(--frame-slot) 3 fill / 3px stretch;
   border-radius: var(--radius-pixel);
   background: var(--paper-light);
+  box-shadow: var(--shadow-pixel);
   color: var(--ink);
-  text-align: left;
+  cursor: pointer;
+  text-align: center;
+}
+
+.slot:active:not(:disabled) {
+  translate: 0 var(--press-depth);
+  box-shadow: var(--shadow-pixel-pressed);
+}
+
+.slotSprite svg {
+  display: block;
+  width: 48px;
+  height: 48px;
+}
+
+.slotName {
+  max-width: 100%;
+  font: 600 var(--text-xs) / 1.15 var(--font-pixel);
+  letter-spacing: -0.01em;
+  hyphens: auto;
+  overflow-wrap: anywhere;
+}
+
+/* The chosen seed glows gold with a berry rim, like the current hotbar slot.
+   Its border is balanced by padding, so the slot keeps its size. */
+.slot[aria-pressed="true"] {
+  padding: 2px 1px 4px;
+  border: var(--border-pixel) solid var(--wood-dark);
+  border-image-source: none;
+  background: var(--gold);
+  box-shadow: inset 0 0 0 2px var(--rust), var(--shadow-pixel);
+}
+
+.slot[aria-pressed="true"]:active:not(:disabled) {
+  box-shadow: inset 0 0 0 2px var(--rust), var(--shadow-pixel-pressed);
+}
+
+.slot[aria-pressed="true"]:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--rust), var(--focus-ring);
+}
+
+.slot[aria-pressed="true"] .slotSprite svg {
+  animation: seed-hop 360ms steps(3, end);
+}
+
+@media (hover: hover) {
+  .slot:hover:not(:disabled) .slotSprite svg {
+    translate: 0 -2px;
+  }
+}
+
+/* Temporarily unavailable while planting or after the spot is taken. */
+.slot:disabled {
+  cursor: default;
+}
+
+.slot:disabled svg {
+  opacity: 0.6;
 }
 
 /* Every focusable control above the Plant bar scrolls fully clear of it. */
-.seed,
+.slot,
 .locked summary,
 .picker textarea {
   scroll-margin-block: 0.5rem var(--plant-bar-clearance);
 }
 
-.seed svg {
+/* The item card describes the chosen seed. It keeps one height, so choosing
+   a seed never shifts the Plant bar. */
+.card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 6rem;
+  padding: 0.35rem 0.5rem;
+  border: 6px solid var(--paper-light);
+  border-image: var(--frame-slot) 3 fill / 6px stretch;
+  background: var(--paper-light);
+  color: var(--ink);
+}
+
+.card[data-empty] {
+  grid-template-columns: 1fr;
+  justify-items: center;
+}
+
+.cardHint {
+  color: var(--muted);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+.cardSprite {
+  display: grid;
+  place-items: center;
+  width: 68px;
+  height: 68px;
+  border: var(--border-pixel) solid var(--wood-deep);
+  background: var(--paper-deep);
+  box-shadow: var(--bevel-pressed);
+}
+
+.cardSprite svg {
+  display: block;
+  width: 64px;
+  height: 64px;
+}
+
+.cardText {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.cardName {
+  font: 700 var(--text-md) / 1.2 var(--font-pixel);
+  letter-spacing: 0.02em;
+}
+
+.cardRitual {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.cardStats {
+  display: grid;
+  justify-items: start;
+  gap: 0.1rem;
+  color: var(--muted);
+  font-size: var(--text-xs);
+  line-height: 1.4;
+}
+
+/* One pip per growth unit: a quick picture of how long the seed takes. */
+.pips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-block: 1px 2px;
+}
+
+.pips i {
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--forest-dark);
+  background: var(--forest);
+}
+
+/* Nothing to plant: lead with what comes next. */
+.nextUnlock {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border: var(--border-pixel) solid var(--forest-dark);
+  background: var(--sage-light);
+  box-shadow: 0 var(--press-depth) 0 var(--forest-dark);
+}
+
+.nextUnlock p {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.nextUnlock strong {
+  color: var(--forest-dark);
+  font: 700 var(--text-md) / 1.25 var(--font-pixel);
+  letter-spacing: 0.02em;
+}
+
+.nextUnlock span {
+  color: var(--ink);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+}
+
+.nextSprite {
   flex-shrink: 0;
+  padding: 2px;
+  border: var(--border-pixel) dashed var(--forest-dark);
+  background: var(--paper-light);
+}
+
+.nextSprite svg {
+  display: block;
   width: 48px;
   height: 48px;
 }
 
-.text {
-  display: grid;
-  gap: 0.1rem;
-  min-width: 0;
-}
-
-.title {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  column-gap: 0.45rem;
-  font-size: var(--text-sm);
-}
-
-.title strong {
-  font-size: var(--text-md);
-}
-
-.text small {
-  color: var(--muted);
-  font-size: var(--text-xs);
-  line-height: 1.45;
-}
-
-.seed[aria-pressed="true"] {
-  background: var(--sage-light);
-  border-color: var(--forest-dark);
-  box-shadow: inset 0 0 0 1px var(--forest-dark);
-}
-
-/* Temporarily unavailable while planting or after the spot is taken. */
-.seed:disabled svg {
-  opacity: 0.6;
-}
-
-/* Locked seeds keep full-contrast text; only the sprite is quieted. */
-.seed[data-locked] {
-  border-color: var(--line);
-  background: var(--paper-deep);
-}
-
-.seed[data-locked] svg {
-  filter: grayscale(1);
-  opacity: 0.5;
-}
-
+/* Locked seeds: dimmed, dashed slots with their reasons in readable text. */
 .locked {
-  border-block: 1px solid var(--line);
+  border-top: 2px dashed var(--line-strong);
   font-size: var(--text-sm);
 }
 
@@ -98,7 +269,8 @@
   min-height: 44px;
   color: var(--forest-dark);
   cursor: pointer;
-  font-weight: 650;
+  font: 700 var(--text-sm) / 1.2 var(--font-pixel);
+  letter-spacing: 0.02em;
 }
 
 .locked summary::before {
@@ -111,18 +283,68 @@
   content: "−";
 }
 
-.locked > .seeds {
-  padding-bottom: 0.6rem;
+.lockedList {
+  display: grid;
+  gap: 0.35rem 0.75rem;
+  margin: 0;
+  padding: 0 0 0.6rem;
+  list-style: none;
+}
+
+.lockedSeed {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  text-align: left;
+}
+
+.lockedSprite {
+  flex-shrink: 0;
+  padding: 4px;
+  border: var(--border-pixel) dashed var(--line-strong);
+  background: var(--paper-deep);
+}
+
+.lockedSprite svg {
+  display: block;
+  width: 32px;
+  height: 32px;
+  filter: grayscale(1);
+  opacity: 0.5;
+}
+
+.lockedText {
+  display: grid;
+  gap: 0.05rem;
+  min-width: 0;
+}
+
+.lockedText strong {
+  font: 700 var(--text-sm) / 1.2 var(--font-pixel);
+  letter-spacing: 0.02em;
+}
+
+/* Locked text is not faded: --muted is 6.24:1 on the sheet parchment. */
+.lockedText small {
+  color: var(--muted);
+  font-size: var(--text-xs);
+  line-height: 1.4;
 }
 
 /* Only the Plant button is sticky, so the bar keeps one fixed height. */
 .footer {
   position: sticky;
-  bottom: calc(-1 * max(1.25rem, env(safe-area-inset-bottom)));
+  bottom: calc(-1 * max(1rem, env(safe-area-inset-bottom)));
   z-index: 1;
-  margin-bottom: calc(-1 * max(1.25rem, env(safe-area-inset-bottom)));
-  padding: 0.6rem 0 max(1.25rem, env(safe-area-inset-bottom));
-  border-top: 1px solid var(--line);
+  margin-bottom: calc(-1 * max(1rem, env(safe-area-inset-bottom)));
+  padding: 0.6rem 0 max(1.1rem, env(safe-area-inset-bottom));
+  border-top: 2px dashed var(--line-strong);
   background: var(--paper);
 }
 
@@ -134,10 +356,81 @@
   opacity: 0.65;
 }
 
+@keyframes seed-hop {
+  0% { translate: 0 0; }
+  33% { translate: 0 -4px; }
+  66% { translate: 0 -2px; }
+  100% { translate: 0 0; }
+}
+
+/* Four slots only fit the longest names from 380px up (the hotbar's
+   compact breakpoint); narrower phones use three. */
+@media (max-width: 379px) {
+  .slots {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 @media (min-width: 640px) {
   .footer {
-    bottom: -1.5rem;
-    margin-bottom: -1.5rem;
-    padding-bottom: 1.5rem;
+    bottom: -1.25rem;
+    margin-bottom: -1.25rem;
+    padding-bottom: 1.25rem;
+  }
+
+  .bag {
+    padding-inline: 0.5rem;
+  }
+
+  .slot {
+    padding: 1px 2px 3px;
+    border-width: 6px;
+    border-image-width: 6px;
+  }
+
+  .slot[aria-pressed="true"] {
+    padding: 5px 6px 7px;
+    border-width: var(--border-pixel);
+  }
+
+  .slotSprite svg {
+    width: 64px;
+    height: 64px;
+  }
+
+  .lockedList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slot[aria-pressed="true"] .slotSprite svg {
+    animation: none;
+  }
+
+  .slot:hover:not(:disabled) .slotSprite svg,
+  .slot:active:not(:disabled) {
+    translate: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .slot,
+  .card {
+    border-image-source: none;
+  }
+
+  .slot[aria-pressed="true"] {
+    forced-color-adjust: none;
+    border-color: HighlightText;
+    background: Highlight;
+    color: HighlightText;
+    box-shadow: none;
+  }
+
+  /* The ring sits outside the slot, on the system canvas. */
+  .slot[aria-pressed="true"]:focus-visible {
+    outline-color: CanvasText;
+    box-shadow: none;
   }
 }

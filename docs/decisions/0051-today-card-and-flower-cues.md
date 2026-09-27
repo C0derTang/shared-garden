@@ -14,7 +14,9 @@ as decisions 0004 and 0007–0020 set them. Idle motion stays as
 
 ## Due rule
 
-One pure function in `src/components/garden/due-today.ts` decides what is due.
+One pure module, `src/components/garden/due-today.ts`, decides what is due.
+The Today card and the flower sheet's Next step in
+[decision 0053](0053-two-person-flower-sheet.md) both use it.
 It uses only existing `GardenState` fields. A flower takes daily care when its
 care dots show. That excludes Peony, every bloomed flower except the Cactus,
 and fulfilled Dandelion wishes, which are always bloomed.
@@ -76,6 +78,12 @@ edge. The tab is the section's heading.
   collapsed plaque's height plus 32px. That lets the last plots scroll clear of
   the plaque and the hotbar. An open list can overlap the garden, because the
   person asked for it, and closing it restores the view.
+- **Hotbar clearance:** `globals.css` defines `--hotbar-height` and
+  `--hotbar-bottom` where the hotbar is styled. The slot height is
+  `max(54px, 45px + 1.1 × the label size)`, and the label size follows the
+  root text size. The hotbar and the card both use these properties. At 16px
+  and 24px root text, the card stays 10px above the hotbar at 320, 390 and
+  1280 pixels.
 - Below 380px the primary button uses `--text-sm`. When the counts and the
   button don't fit on one row, the button wraps to its own row. Below 360px
   the plaque sits above the full-width hotbar shelf.
@@ -94,7 +102,9 @@ coordinates and targets are unchanged.
   the other side of the tag.
 - Each flower button's accessible name adds the cue: ", your partner cared,
   add yours", ", blooms at 4 a.m." or ", may lose growth at 4 a.m.".
-- The Help card gains one line that explains the three marks.
+- The Help card gains one line that explains the three marks: "An outlined dot
+  · your partner cared. Sparkle · blooms at 4 a.m. Empty drop · may lose
+  growth." It says "outlined" because the outline stays when motion is off.
 - The flower sheet's heading area adds one line under the progress bar.
   Nothing else in the sheet changes. The lines are:
   - "Your partner cared today. Add yours before 4 a.m. to grow." A bloomed

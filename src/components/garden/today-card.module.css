@@ -1,11 +1,11 @@
 /* Today card and flower-state cues (decision 0051), in the Harvest Handheld
    skin (decision 0049). */
 
-/* The hotbar is 8px above the safe area and about 84px tall (a 12px wood
-   frame around its slots). The plaque floats 10px above it, which leaves room
-   for its own hard shadow. */
+/* The plaque floats 10px above the hotbar, whose height and offset are the
+   shared --hotbar-height and --hotbar-bottom (globals.css), leaving room for
+   its own hard shadow. */
 .card {
-  --today-hotbar-top: calc(max(8px, env(safe-area-inset-bottom)) + 84px);
+  --today-hotbar-top: calc(var(--hotbar-bottom) + var(--hotbar-height));
   position: fixed;
   z-index: 19;
   left: 50%;
@@ -209,11 +209,6 @@
 
 @media (max-width: 379px) {
   .primary { padding-inline: 10px; font-size: var(--text-sm); }
-}
-/* Below 360px the hotbar is a bottom shelf: a 12px wood edge, 54px slots and
-   the safe-area padding. */
-@media (max-width: 359px) {
-  .card { --today-hotbar-top: calc(max(4px, env(safe-area-inset-bottom)) + 66px); }
 }
 
 /* ---- Flower cues on the garden surface ---- */
