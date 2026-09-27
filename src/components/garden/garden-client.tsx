@@ -16,7 +16,7 @@ import {
 import { useGarden } from "@/lib/garden/use-garden";
 import { FlowerSprite } from "./flower-sprite";
 import { FlowerSheet } from "./flower-sheet";
-import { GardenAmbience, useGardenLight } from "./garden-ambience";
+import { celestialBody, GardenAmbience, gardenPhase, useGardenLight } from "./garden-ambience";
 import { HelpDisclosure } from "./help-disclosure";
 import { SeedPicker, type Mutate } from "./seed-picker";
 import { careStatus, cueLabel } from "./due-today";
@@ -254,7 +254,7 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
   const own = useOwnActions(gardenMutate);
   const mutate = own.mutate;
   const spotRequest = useSpotRequest(state, guideEnabled, setOpenSpot);
-  const light = useGardenLight(now, state?.moonflower_open);
+  const light = useGardenLight(now);
   // Large text can make the header sign taller; the tools hang below it.
   const hud = usePublishedHeight<HTMLElement>("--hud-height", "parent");
   // The open "While you were away" card; the Today card makes room for it.
@@ -295,8 +295,10 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
         <h1 ref={heading} tabIndex={-1}>cc’s garden</h1>
         <div className={styles.clock} aria-label="Garden day">
           <span className={styles.clockDay}>
-            {/* Moon during the Moonflower night (10 p.m.–4 a.m. Pacific), sun otherwise. */}
-            <PixelIcon name={state.moonflower_open ? "moon" : "sun"} className={styles.clockIcon} />
+            {/* The sky's own phase: moon at night, sun from dawn through dusk.
+                The first render uses server_now (to the minute, like the sky) on
+                both sides, so it hydrates. */}
+            <PixelIcon name={celestialBody((light ?? gardenPhase(now - (now % 60_000))).phase)} className={styles.clockIcon} />
             {gardenDayLabel(state.garden_day)}
           </span>
           <span className={styles.clockTime}>

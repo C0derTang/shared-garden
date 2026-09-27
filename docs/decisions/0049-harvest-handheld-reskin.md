@@ -131,9 +131,11 @@ text never turns "liga" or "clig" back on.
   wordmark is `--paper-light` Pixelify text with a hard `--wood-dark` shadow.
   The clock is a parchment plate in a `--frame-slot` frame. It shows the
   weekday and date of the garden day, a sun or moon icon, Pacific time and the
-  new-day countdown. The moon shows while the Moonflower is open (10 p.m.–4
-  a.m. Pacific, from `moonflower_open`), and the sun shows otherwise. This is
-  a static icon choice. Time-of-day lighting is a follow-up. The sign is at
+  new-day countdown. The icon follows the garden light's phase in decision 0050:
+  the moon at night (the sun more than 6° below the horizon) and the sun from
+  dawn through dusk, so it always agrees with the sky. It first followed the
+  Moonflower window (`moonflower_open`); issue #139 changed it to the real
+  Pacific sun. The sign is at
   least 68px tall. The toolbar sits at 66px and the beds start at 60px to
   clear the taller header, and the stage keeps at least 104px at the bottom
   to clear the hotbar.

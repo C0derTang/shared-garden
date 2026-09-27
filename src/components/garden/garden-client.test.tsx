@@ -26,6 +26,7 @@ vi.mock("@/lib/garden/actions", () => ({
 }));
 vi.mock("@/lib/auth/browser", () => ({ gardenBrowserClient: () => null }));
 import { GardenClient } from "./garden-client";
+import { PixelIcon } from "@/components/ui/pixel-icon";
 import { FlowerSheet } from "./flower-sheet";
 import { SeedPicker } from "./seed-picker";
 import type { GardenResult } from "@/lib/garden/model";
@@ -367,6 +368,28 @@ it("renders the shared Daisy prompt and category, six moods and honest media sta
   expect(
     screen.queryByRole("button", { name: "Share care" }),
   ).not.toBeInTheDocument();
+});
+it("lights the garden and the clock icon from the real Pacific sun, not the Moonflower flag", async () => {
+  const icon = (name: "sun" | "moon") => render(<PixelIcon name={name} />).container.querySelector("path")!.getAttribute("d");
+  const [sun, moon] = [icon("sun"), icon("moon")];
+  const shown = (container: HTMLElement) => ({
+    light: container.querySelector("[data-light]")?.getAttribute("data-light"),
+    icon: within(container).getByLabelText("Garden day").querySelector("path")!.getAttribute("d"),
+  });
+  // 00:20 PDT with a stale closed Moonflower flag: still a moonlit night.
+  const late = { ...gardenFixture(), server_now: "2026-09-18T07:20:00Z", moonflower_open: false };
+  refreshGarden.mockResolvedValue({ state: late, error: null });
+  const night = render(<GardenClient initial={{ state: late, error: null }} />);
+  expect(shown(night.container)).toEqual({ light: "night", icon: moon });
+  await act(async () => {});
+  night.unmount();
+  // Midday with an open flag: a sunny day.
+  const noon = { ...gardenFixture(), server_now: "2026-09-18T19:30:00Z", moonflower_open: true };
+  refreshGarden.mockResolvedValue({ state: noon, error: null });
+  const day = render(<GardenClient initial={{ state: noon, error: null }} />);
+  expect(shown(day.container)).toEqual({ light: "day", icon: sun });
+  await act(async () => {});
+  day.unmount();
 });
 it("keeps an unsaved Moonflower thought when the window closes at rollover", () => {
   const state = gardenFixture();
