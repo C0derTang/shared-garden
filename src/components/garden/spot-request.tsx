@@ -53,7 +53,7 @@ export function useSpotRequest(
 
 export function SpotNotice({ notice, dismiss }: { notice: string; dismiss: () => void }) {
   return (
-    <div className={styles.host} role="status">
+    <div className={styles.host} role="status" data-spot-notice="">
       {notice && (
         <p className={styles.notice}>
           <span>{notice}</span>

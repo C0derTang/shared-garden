@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ComponentProps, MouseEvent } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
@@ -28,7 +28,7 @@ import { GardenStage } from "@/components/layout/garden-stage";
 import { MemoriesClient } from "@/components/memories/memories-client";
 import { MemberPreferences } from "@/components/settings/member-preferences";
 import { SheetScope } from "@/components/ui/sheet-scope";
-import { clearSpotRequest } from "@/lib/garden/spot-request";
+import { clearSpotRequest, requestSpot } from "@/lib/garden/spot-request";
 import { gardenFixture } from "@/test/garden-fixture";
 import { memoryFixture } from "@/test/memory-fixture";
 import type { MemoryItem } from "@/lib/memories/model";
@@ -83,6 +83,21 @@ it("opens a flower from a direct garden URL and then forgets the one-shot query"
   await waitFor(() => expect(sheet).toContainElement(document.activeElement as HTMLElement));
   expect(window.location.pathname).toBe("/garden");
   expect(window.location.search).toBe("");
+});
+
+it("keeps the notice's live region rendered and empty before any notice text arrives", async () => {
+  route.pathname = "/memories";
+  const view = render(<App />);
+  await screen.findByRole("dialog", { name: "Memories" });
+  const region = document.querySelector<HTMLElement>('[role="status"][data-spot-notice]');
+  expect(region).not.toBeNull();
+  expect(region).toBeEmptyDOMElement();
+  // Leaving the panel for an empty spot fills the same, already-present region.
+  act(() => requestSpot({ spot: 5 }));
+  route.pathname = "/garden";
+  view.rerender(<App />);
+  await waitFor(() => expect(region).toHaveTextContent("Spot 5 has no flower right now."));
+  expect(document.querySelector('[role="status"][data-spot-notice]')).toBe(region);
 });
 
 it.each([

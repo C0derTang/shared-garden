@@ -56,10 +56,13 @@ with the visible words, for example "Open in garden: Rose, spot 2".
 - **Modified clicks** (Ctrl, Command, Shift or Alt) keep the browser's own
   behavior and record nothing in the current tab.
 - **Unknown or removed spots** never open the seed picker. The garden shows a
-  parchment note below the tools row instead, with an OK button: "Spot N has no
-  flower right now." for an empty spot, or "That flower isn't in your garden."
-  for a malformed spot or one beyond capacity. The note is a live status
-  region and does not move focus.
+  parchment note docked just above the hotbar instead, with an OK button:
+  "Spot N has no flower right now." for an empty spot, or "That flower isn't
+  in your garden." for a malformed spot or one beyond capacity. Docking it at
+  the bottom keeps the first bed row, the header and the top private-notice
+  area clear. The note's status region is always rendered, empty and without
+  a box, so screen readers already track it when the text arrives. It does not
+  move focus.
 - A pending private moment or open draft keeps its existing priority. The
   flower sheet waits in the same sheet queue.
 
@@ -120,7 +123,10 @@ own place below the groups.
 ## Songs jukebox
 
 The song collection is a jukebox. A wooden marquee with a row of gold and berry
-pixel bulbs carries a "Tulip jukebox" plaque and the existing introduction. The
+pixel bulbs carries a "Tulip jukebox" plaque and the short introduction. The
+note that listening is optional moves below the list, beside the note about
+posting times, so the first record is in view without scrolling. At 480px and
+narrower the marquee is slimmer and the two check buttons share the width. The
 duplicate "Our song collection" h1 is removed, because the route panel title
 already names the page and each song title is an h3. Each song is a record
 slot: a pixel vinyl disc and a gold track number sit beside the author, date
@@ -171,7 +177,7 @@ route panel frame:
 | --- | --- | --- | --- |
 | First memory card height, before → after | 192 → 272px | 205 → 235px | 181 → 211px |
 | First badge height, before → after | 112 → 135px | 112 → 135px | 112 → 135px |
-| First song top, before → after | 674 → 609px | 585 → 575px | 479 → 479px |
+| First song top, before → after | 674 → 463px | 585 → 455px | 479 → 430px |
 
 Memory cards grow by the Open in garden row. At 320px, the signature and the
 button wrap onto two lines. No view scrolls sideways, and every new control

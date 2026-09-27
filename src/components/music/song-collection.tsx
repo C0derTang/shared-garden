@@ -112,10 +112,6 @@ export function SongCollection({
           Both of our contributions, across every Tulip and permanent bloom.
           Repeated songs stay part of our story.
         </p>
-        <p className={styles.quiet}>
-          Listening is optional and never changes growth. Preview or full
-          playback depends on the provider; every song keeps its original link.
-        </p>
       </header>
       <div className={styles.controls}>
         <button
@@ -188,6 +184,11 @@ export function SongCollection({
           Older songs
         </button>
       )}
+      {/* Listening notes sit below the list so the first record stays in view. */}
+      <p className={styles.quiet}>
+        Listening is optional and never changes growth. Preview or full
+        playback depends on the provider; every song keeps its original link.
+      </p>
       <p className={styles.quiet}>
         Original posting times stay the same after edits. To edit your current
         song within its allowed window, open its Tulip in the garden.

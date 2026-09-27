@@ -137,6 +137,15 @@
   color: var(--muted);
   font-size: 0.85rem;
 }
+/* Phones: a slimmer marquee so the first record shows without scrolling. */
+@media (max-width: 480px) {
+  .collection { gap: 0.7rem; }
+  .marquee { padding: 14px 12px 10px; gap: 0.3rem; }
+  .marqueeTitle { font-size: var(--text-md); }
+  .marquee p:not(.marqueeTitle) { font-size: var(--text-sm); line-height: 1.45; }
+  .controls { gap: 0.5rem; }
+  .controls :global(.button) { flex: 1 1 auto; padding-inline: 0.6rem; }
+}
 @media (max-width: 359px) {
   .entry { grid-template-columns: 32px minmax(0, 1fr); gap: 8px; padding: 8px; }
   .record { width: 30px; height: 30px; }
