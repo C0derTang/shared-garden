@@ -210,6 +210,78 @@ describe("While you were away", () => {
     expect(within(card).queryByText(/bloomed/)).not.toBeInTheDocument();
   });
 
+  describe("badges earned by your own action", () => {
+    const third = { id: "blooms-10", title: "Ten blooms" };
+    const props = (loadAchievements: () => Promise<AchievementResult>) => ({ openSpot: vi.fn(), focusGarden: vi.fn(), loadAchievements });
+    const stored = () => JSON.parse(localStorage.getItem(key)!);
+    const acted = () => garden((s) => { s.garden.current_streak = 3; });
+
+    it("stays silent on the next visit when you leave before the badge read", async () => {
+      await visit(garden());
+      let earned = [firstSeed];
+      const load = vi.fn(async () => achievements(earned));
+      const first = render(<SinceLastVisit state={garden()} {...props(load)} />);
+      await waitFor(() => expect(load).toHaveBeenCalledTimes(1));
+      const own = acted();
+      earned = [firstSeed, streak];
+      first.rerender(<SinceLastVisit state={own} ownResult={own} {...props(load)} />);
+      await waitFor(() => expect(stored().badgesPending).toBe(true));
+      first.unmount(); // Left within the 1.5s read delay.
+      expect(load).toHaveBeenCalledTimes(1);
+
+      const next = render(<SinceLastVisit state={acted()} {...props(load)} />);
+      await waitFor(() => expect(stored().badges).toEqual(["first-seed", "streak-3"]));
+      expect(stored().badgesPending).toBe(false);
+      expect(screen.queryByRole("region", { name: "While you were away" })).not.toBeInTheDocument();
+      // Once settled, a later badge is news again.
+      earned = [firstSeed, streak, third];
+      next.rerender(<SinceLastVisit state={garden((s) => { s.garden.current_streak = 3; s.garden.qualifying_days = 9; })} {...props(load)} />);
+      const card = await screen.findByRole("region", { name: "While you were away" }, { timeout: 3000 });
+      expect(within(card).getByText("New badge: Ten blooms")).toBeInTheDocument();
+    });
+
+    it("stays silent after a failed badge read until one succeeds", async () => {
+      await visit(garden());
+      let fail = false;
+      const load = vi.fn(async () => {
+        if (fail) throw new Error("offline");
+        return achievements([firstSeed, streak]);
+      });
+      const view = render(<SinceLastVisit state={garden()} {...props(vi.fn(async () => achievements([firstSeed])))} />);
+      await act(async () => {});
+      fail = true;
+      const own = acted();
+      view.rerender(<SinceLastVisit state={own} ownResult={own} {...props(load)} />);
+      await waitFor(() => expect(load).toHaveBeenCalledTimes(1), { timeout: 3000 });
+      expect(stored().badgesPending).toBe(true);
+      fail = false;
+      view.rerender(<SinceLastVisit state={garden((s) => { s.garden.current_streak = 3; s.garden.qualifying_days = 9; })} {...props(load)} />);
+      await waitFor(() => expect(stored().badges).toEqual(["first-seed", "streak-3"]), { timeout: 3000 });
+      expect(stored().badgesPending).toBe(false);
+      expect(screen.queryByRole("region", { name: "While you were away" })).not.toBeInTheDocument();
+    });
+
+    it("stays silent when another change restarts the badge read, and still shows partner care", async () => {
+      await visit(garden());
+      let earned = [firstSeed];
+      const load = vi.fn(async () => achievements(earned));
+      const view = render(<SinceLastVisit state={garden()} {...props(load)} />);
+      await waitFor(() => expect(load).toHaveBeenCalledTimes(1));
+      const own = acted();
+      earned = [firstSeed, streak];
+      view.rerender(<SinceLastVisit state={own} ownResult={own} {...props(load)} />);
+      // Partner care lands within 1.5s and restarts the read timer.
+      const partner = garden((s) => { s.garden.current_streak = 3; s.plants[2].member2_submitted = true; s.plants[2].entries = [{ id: 9, flower_id: "tulip-1", author_id: 2, garden_day: s.garden_day, original_posted_at: s.server_now, updated_at: s.server_now, payload: {}, daisy_assignment_day: null }]; });
+      view.rerender(<SinceLastVisit state={partner} ownResult={own} {...props(load)} />);
+      const card = await screen.findByRole("region", { name: "While you were away" });
+      expect(within(card).getByText("Your partner cared for Tulip")).toBeInTheDocument();
+      await waitFor(() => expect(load).toHaveBeenCalledTimes(2), { timeout: 3000 });
+      await waitFor(() => expect(stored().badges).toEqual(["first-seed", "streak-3"]));
+      expect(stored().badgesPending).toBe(false);
+      expect(within(card).queryByText(/New badge/)).not.toBeInTheDocument();
+    });
+  });
+
   it("clears the hotbar dot once the Achievements panel is open", async () => {
     await visit(garden());
     const view = renderCard(garden(), [firstSeed, streak]);

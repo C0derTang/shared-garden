@@ -58,14 +58,31 @@ action.
 - **While a flower or seed sheet is open:** every garden action starts from one
   of these sheets. While one is open, blooms, unlocks and badges that appear
   only move the snapshot. Nothing appears behind the sheet.
-- **Badge reads:** a read scheduled by one of those states or while a sheet is
-  open only moves the badge baseline. The hotbar dot still marks the badge as
-  unviewed, because it belongs to both of you.
+- **Badge reads:** badges come from a separate, delayed read, so the guard
+  outlives the read timer. When a state from your own action, or a change
+  while a sheet is open, alters the garden facts badges depend on, badges
+  become pending. The pending flag is kept in memory and in the stored
+  snapshot (`badgesPending`). Every read records when it started. The first
+  successful read that started after your action only moves the badge
+  baseline, and only that read clears the flag. So leaving within the 1.5s
+  delay, a failed read, or another change that restarts the timer never turns
+  your own badge into news. A pending flag stored by an earlier visit makes
+  the next visit's first successful read silent. Until then no badge is
+  celebrated. The hotbar dot still marks the badge as unviewed, because it
+  belongs to both of you.
 - **Partner care** is never the viewer's own. Care that arrives while a sheet
   is open is held, and the card shows it once the sheet closes.
 
 This errs toward silence. A partner-caused bloom, such as a Peony milestone,
-that lands while your sheet is open is absorbed instead of celebrated.
+that lands while your sheet is open is absorbed instead of celebrated. So is a
+partner-earned badge that arrives in the same silent read as your own.
+
+**Known edge: two open tabs.** The own-action record lives in the tab that
+acted. Another tab of the same member sees that result as a live change. It
+may celebrate your own bloom or unlock if it reads first, and it can show a
+badge line if its badge read lands before the acting tab writes the pending
+flag. Stored snapshots still stop any repeat after that. Fixing it would need
+shared cross-tab or server state, which this browser-only design leaves out.
 
 ## Snapshot
 
@@ -76,7 +93,8 @@ The comparison uses a snapshot in this browser's `localStorage`, keyed
 - the unlocked type keys;
 - the garden day and the ids of flowers your partner cared for on that day;
 - earned achievement ids, and the earned ids already seen in the Achievements
-  panel.
+  panel;
+- whether a badge read is still pending after your own action.
 
 It never stores entry text, wishes, answers, media, songs or any other private
 content, only ids, type keys and the garden day. It is not an account
@@ -173,9 +191,12 @@ sheet's trigger.
 Tests cover the diff for blooms, unlocks, partner care for either member,
 rollover and badges. They also cover your own action's bloom, unlock and badge
 being absorbed while partner care still shows (through the real garden client
-and check-in), and partner care held while a sheet is open. They also cover the first visit showing nothing, storage
-read and write failures, stored content, dismissal and focus, live merging,
-no repeat on reload, confetti only when gentle motion is confirmed on, and the hotbar dot.
+and check-in), and partner care held while a sheet is open. They cover an own
+badge staying silent when you leave before the read, when a read fails, and
+when another change restarts the read timer. They also cover the first visit
+showing nothing, storage read and write failures, stored content, dismissal
+and focus, live merging, no repeat on reload, confetti only when gentle motion
+is confirmed on, and the hotbar dot.
 Verification uses the actual components with disposable synthetic data at
 320, 390 and 1280 pixels. It never reads or mutates production data. There is
 no backend, schema, dependency, route or product-rule change.

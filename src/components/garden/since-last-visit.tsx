@@ -101,15 +101,15 @@ export function SinceLastVisit({
   const card = useRef<HTMLElement>(null);
   const disabled = useRef(false);
   const badgesLoaded = useRef(false);
-  const [badges, setBadges] = useState<{ list: EarnedBadge[]; silent: boolean } | null>(null);
+  const [badges, setBadges] = useState<{ list: EarnedBadge[]; generation: number } | null>(null);
   const held = useRef<VisitNews>(noNews);
-  // Whether the rendered state may come from the viewer's own action. Kept in
-  // a ref so the achievements read can capture it when it is scheduled.
-  const silentNow = quiet || state === ownResult;
-  const silentRef = useRef(silentNow);
-  useEffect(() => {
-    silentRef.current = silentNow;
-  }, [silentNow]);
+  // Own-action badge guard. Each achievements read records the generation it
+  // started in. An own action bumps the generation and marks badges pending,
+  // in memory and in the stored snapshot, until a read that started after it
+  // succeeds. That read only moves the baseline, however late it lands.
+  const generation = useRef(0);
+  const pendingSince = useRef<number | null>(null);
+  const lastSignature = useRef<string | null>(null);
   const [news, setNews] = useState<VisitNews | null>(null);
   const [burst, setBurst] = useState(0);
   const preferences = useMemberPreferences();
@@ -120,9 +120,8 @@ export function SinceLastVisit({
   // and again only after a garden change that could have earned one.
   useEffect(() => {
     let live = true;
-    // A read scheduled by the viewer's own action only moves the baseline.
-    const silent = silentRef.current;
     const timer = window.setTimeout(() => {
+      const started = generation.current;
       loadAchievements()
         .then((result) => {
           if (!live || !result.state) return;
@@ -131,7 +130,7 @@ export function SinceLastVisit({
             list: result.state.achievements
               .filter((a) => a.earned_at !== null)
               .map((a) => ({ id: a.achievement_id, title: a.title })),
-            silent,
+            generation: started,
           });
         })
         .catch(() => {});
@@ -152,20 +151,32 @@ export function SinceLastVisit({
     if (disabled.current) return;
     const key = snapshotKey(state);
     const stored = readStoredSnapshot(key);
+    if (!stored.ok) {
+      disabled.current = true;
+      return;
+    }
+    const silent = quiet || state === ownResult;
+    // A change that could earn a badge arrived with the viewer's own action.
+    if (silent && lastSignature.current !== null && lastSignature.current !== signature)
+      pendingSince.current = ++generation.current;
+    lastSignature.current = signature;
+    // A pending flag stored by an earlier visit counts from generation 0.
+    if (stored.snapshot?.badgesPending && pendingSince.current === null) pendingSince.current = 0;
     const earned = badges?.list ?? null;
-    const next = stored.ok ? takeSnapshot(state, earned, stored.snapshot) : null;
-    if (!stored.ok || !next || !writeStoredSnapshot(key, next)) {
+    const settles = !!badges && pendingSince.current !== null && badges.generation >= pendingSince.current;
+    if (settles) pendingSince.current = null;
+    const next = { ...takeSnapshot(state, earned, stored.snapshot), badgesPending: pendingSince.current !== null };
+    if (!writeStoredSnapshot(key, next)) {
       disabled.current = true;
       return;
     }
     publishBadges({ key, unread: unreadBadges(next) });
     const found = diffSnapshot(stored.snapshot, state, earned);
-    const silent = quiet || state === ownResult;
     const shown: VisitNews = {
       blooms: silent ? [] : found.blooms,
       unlocks: silent ? [] : found.unlocks,
       partnerCare: found.partnerCare,
-      badges: silent || badges?.silent ? [] : found.badges,
+      badges: silent || settles || pendingSince.current !== null ? [] : found.badges,
     };
     if (quiet) {
       held.current = mergeNews(held.current, shown);
@@ -177,7 +188,7 @@ export function SinceLastVisit({
     // The card is non-modal and never takes focus; it only appears.
     setNews((old) => (old ? mergeNews(old, all) : all));
     setBurst((count) => count + 1);
-  }, [state, badges, quiet, ownResult]);
+  }, [state, badges, quiet, ownResult, signature]);
 
   const catalog = new Map(state.catalog.map((item) => [item.type_key, item]));
   const current = new Map(state.plants.map((plant) => [plant.flower.id, plant]));

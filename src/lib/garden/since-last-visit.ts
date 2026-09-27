@@ -19,6 +19,11 @@ export type VisitSnapshot = {
   badges: string[] | null;
   /** Earned achievement ids already seen in the Achievements panel. */
   badgesViewed: string[] | null;
+  /**
+   * The viewer acted and no achievements read has succeeded since, so the
+   * next successful read only moves the badge baseline.
+   */
+  badgesPending?: boolean;
 };
 export type EarnedBadge = { id: string; title: string };
 export type VisitNews = {
@@ -50,7 +55,8 @@ export function parseSnapshot(raw: string | null): VisitSnapshot | null {
       typeof value.careDay === "string" &&
       strings(value.partnerCare) &&
       nullableStrings(value.badges) &&
-      nullableStrings(value.badgesViewed)
+      nullableStrings(value.badgesViewed) &&
+      (value.badgesPending === undefined || typeof value.badgesPending === "boolean")
     )
       return value as VisitSnapshot;
   } catch {
@@ -81,6 +87,7 @@ export function takeSnapshot(
     partnerCare: state.plants.filter((p) => partnerCared(state, p)).map((p) => p.flower.id),
     badges: earned ?? previous?.badges ?? null,
     badgesViewed: previous?.badgesViewed ?? earned,
+    badgesPending: previous?.badgesPending ?? false,
   };
 }
 
