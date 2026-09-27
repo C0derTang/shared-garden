@@ -14,6 +14,7 @@ import {
 import { useGarden } from "@/lib/garden/use-garden";
 import { FlowerSprite } from "./flower-sprite";
 import { FlowerSheet } from "./flower-sheet";
+import { GardenAmbience, useGardenLight } from "./garden-ambience";
 import { HelpDisclosure } from "./help-disclosure";
 import { SeedPicker, type Mutate } from "./seed-picker";
 import { careStatus, cueLabel } from "./due-today";
@@ -241,6 +242,7 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
   const own = useOwnActions(gardenMutate);
   const mutate = own.mutate;
   const spotRequest = useSpotRequest(state, guideEnabled, setOpenSpot);
+  const light = useGardenLight(now, state?.moonflower_open);
   if (!state)
     return (
       <div className={`${styles.garden} ${styles.fallback}`}>
@@ -272,7 +274,7 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
   );
   const catalog = new Map(state.catalog.map((item) => [item.type_key, item]));
   return (
-    <div className={styles.garden}>
+    <div className={styles.garden} data-light={light?.phase}>
       <header className={styles.hud}>
         <h1 ref={heading} tabIndex={-1}>cc’s garden</h1>
         <div className={styles.clock} aria-label="Garden day">
@@ -352,6 +354,7 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
         </section>
       </div>
       <TodayCard state={state} visit={visitFromCard} />
+      <GardenAmbience light={light} />
     </div>
   );
 }

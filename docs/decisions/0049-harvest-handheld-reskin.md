@@ -255,7 +255,8 @@ Controls, the focus ring and state indicators need 3:1.
 
 Each of these depends on this foundation and builds on its tokens:
 
-- Time-of-day lighting and ambience tied to the garden clock.
+- Time-of-day lighting and ambience tied to the garden clock
+  ([decision 0050](0050-garden-light-and-ambience.md)).
 - The Today card and flower-state cues.
 - The seed-bag inventory grid and the plant-to-care flow.
 - The flower-sheet layout.

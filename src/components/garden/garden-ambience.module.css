@@ -1,0 +1,156 @@
+/* Time-of-day light and ambience (decision 0050). Every layer sits under the
+   plots, flowers, care tags and focus rings: the spots stack above it, and
+   nothing here is drawn over them. Only transform and opacity animate; there
+   is no blur or backdrop filter. */
+.ambience {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  --sun-day: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Cpath fill='%23fff3b8' fill-opacity='.28' d='M5 0h6v1H5zM3 1h10v1H3zM2 2h12v1H2zM1 3h14v1H1zM1 4h14v1H1zM0 5h16v1H0zM0 6h16v1H0zM0 7h16v1H0zM0 8h16v1H0zM0 9h16v1H0zM0 10h16v1H0zM1 11h14v1H1zM1 12h14v1H1zM2 13h12v1H2zM3 14h10v1H3zM5 15h6v1H5z'/%3E%3Cpath fill='%23fff3b8' fill-opacity='.4' d='M7 1h2v1H7zM4 2h8v1H4zM3 3h10v1H3zM2 4h12v1H2zM2 5h12v1H2zM2 6h12v1H2zM1 7h14v1H1zM1 8h14v1H1zM2 9h12v1H2zM2 10h12v1H2zM2 11h12v1H2zM3 12h10v1H3zM4 13h8v1H4zM7 14h2v1H7z'/%3E%3Cpath fill='%23fff1a8' d='M6 3h4v1H6zM4 4h8v1H4zM4 5h8v1H4zM3 6h10v1H3zM3 7h10v1H3zM3 8h10v1H3zM3 9h10v1H3zM4 10h8v1H4zM4 11h8v1H4zM6 12h4v1H6z'/%3E%3Cpath fill='%23fffbe0' d='M6 5h3v1H6zM5 6h1v2H5z'/%3E%3C/svg%3E");
+  --sun-dawn: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Cpath fill='%23ffb8b0' fill-opacity='.28' d='M5 0h6v1H5zM3 1h10v1H3zM2 2h12v1H2zM1 3h14v1H1zM1 4h14v1H1zM0 5h16v1H0zM0 6h16v1H0zM0 7h16v1H0zM0 8h16v1H0zM0 9h16v1H0zM0 10h16v1H0zM1 11h14v1H1zM1 12h14v1H1zM2 13h12v1H2zM3 14h10v1H3zM5 15h6v1H5z'/%3E%3Cpath fill='%23ffb8b0' fill-opacity='.4' d='M7 1h2v1H7zM4 2h8v1H4zM3 3h10v1H3zM2 4h12v1H2zM2 5h12v1H2zM2 6h12v1H2zM1 7h14v1H1zM1 8h14v1H1zM2 9h12v1H2zM2 10h12v1H2zM2 11h12v1H2zM3 12h10v1H3zM4 13h8v1H4zM7 14h2v1H7z'/%3E%3Cpath fill='%23ffd2a0' d='M6 3h4v1H6zM4 4h8v1H4zM4 5h8v1H4zM3 6h10v1H3zM3 7h10v1H3zM3 8h10v1H3zM3 9h10v1H3zM4 10h8v1H4zM4 11h8v1H4zM6 12h4v1H6z'/%3E%3Cpath fill='%23fff0d8' d='M6 5h3v1H6zM5 6h1v2H5z'/%3E%3C/svg%3E");
+  --sun-golden: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Cpath fill='%23ff9e48' fill-opacity='.28' d='M5 0h6v1H5zM3 1h10v1H3zM2 2h12v1H2zM1 3h14v1H1zM1 4h14v1H1zM0 5h16v1H0zM0 6h16v1H0zM0 7h16v1H0zM0 8h16v1H0zM0 9h16v1H0zM0 10h16v1H0zM1 11h14v1H1zM1 12h14v1H1zM2 13h12v1H2zM3 14h10v1H3zM5 15h6v1H5z'/%3E%3Cpath fill='%23ff9e48' fill-opacity='.4' d='M7 1h2v1H7zM4 2h8v1H4zM3 3h10v1H3zM2 4h12v1H2zM2 5h12v1H2zM2 6h12v1H2zM1 7h14v1H1zM1 8h14v1H1zM2 9h12v1H2zM2 10h12v1H2zM2 11h12v1H2zM3 12h10v1H3zM4 13h8v1H4zM7 14h2v1H7z'/%3E%3Cpath fill='%23ffbf5a' d='M6 3h4v1H6zM4 4h8v1H4zM4 5h8v1H4zM3 6h10v1H3zM3 7h10v1H3zM3 8h10v1H3zM3 9h10v1H3zM4 10h8v1H4zM4 11h8v1H4zM6 12h4v1H6z'/%3E%3Cpath fill='%23ffe3a0' d='M6 5h3v1H6zM5 6h1v2H5z'/%3E%3C/svg%3E");
+  --sun-dusk: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Cpath fill='%23e8645a' fill-opacity='.28' d='M5 0h6v1H5zM3 1h10v1H3zM2 2h12v1H2zM1 3h14v1H1zM1 4h14v1H1zM0 5h16v1H0zM0 6h16v1H0zM0 7h16v1H0zM0 8h16v1H0zM0 9h16v1H0zM0 10h16v1H0zM1 11h14v1H1zM1 12h14v1H1zM2 13h12v1H2zM3 14h10v1H3zM5 15h6v1H5z'/%3E%3Cpath fill='%23e8645a' fill-opacity='.4' d='M7 1h2v1H7zM4 2h8v1H4zM3 3h10v1H3zM2 4h12v1H2zM2 5h12v1H2zM2 6h12v1H2zM1 7h14v1H1zM1 8h14v1H1zM2 9h12v1H2zM2 10h12v1H2zM2 11h12v1H2zM3 12h10v1H3zM4 13h8v1H4zM7 14h2v1H7z'/%3E%3Cpath fill='%23ff9a58' d='M6 3h4v1H6zM4 4h8v1H4zM4 5h8v1H4zM3 6h10v1H3zM3 7h10v1H3zM3 8h10v1H3zM3 9h10v1H3zM4 10h8v1H4zM4 11h8v1H4zM6 12h4v1H6z'/%3E%3Cpath fill='%23ffc690' d='M6 5h3v1H6zM5 6h1v2H5z'/%3E%3C/svg%3E");
+  --moon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Cpath fill='%23c8d2ff' fill-opacity='.16' d='M5 0h6v1H5zM3 1h10v1H3zM2 2h12v1H2zM1 3h14v1H1zM1 4h14v1H1zM0 5h16v1H0zM0 6h16v1H0zM0 7h16v1H0zM0 8h16v1H0zM0 9h16v1H0zM0 10h16v1H0zM1 11h14v1H1zM1 12h14v1H1zM2 13h12v1H2zM3 14h10v1H3zM5 15h6v1H5z'/%3E%3Cpath fill='%23c8d2ff' fill-opacity='.24' d='M7 1h2v1H7zM4 2h8v1H4zM3 3h10v1H3zM2 4h12v1H2zM2 5h12v1H2zM2 6h12v1H2zM1 7h14v1H1zM1 8h14v1H1zM2 9h12v1H2zM2 10h12v1H2zM2 11h12v1H2zM3 12h10v1H3zM4 13h8v1H4zM7 14h2v1H7z'/%3E%3Cpath fill='%23eef0ff' d='M6 3h4v1H6zM4 4h8v1H4zM4 5h8v1H4zM3 6h10v1H3zM3 7h10v1H3zM3 8h10v1H3zM3 9h10v1H3zM4 10h8v1H4zM4 11h8v1H4zM6 12h4v1H6z'/%3E%3Cpath fill='%23c3c9ec' d='M9 5h2v2H9zM6 9h2v1H6zM10 9h1v2h-1zM11 7h1v4h-1zM10 11h1v1h-1z'/%3E%3C/svg%3E");
+}
+.light {
+  position: absolute;
+  inset: 0;
+  animation: light-in 900ms steps(6) both;
+}
+/* Banded pixel sky across the top of the meadow, fading into the grass. */
+.sky {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 250px;
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--sky-1) 0 96px, var(--sky-2) 96px 144px, var(--sky-3) 144px 192px, var(--sky-4) 192px 234px, transparent 234px);
+}
+/* The sun or moon: a 16-unit pixel disc at 2px per art pixel. Its centre is
+   placed on a measured track in open sky (decision 0050). */
+.celestial {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  translate: -50% -50%;
+  background: var(--sun-day) center / 100% 100% no-repeat;
+  image-rendering: pixelated;
+}
+.star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: #f4f1d0;
+  box-shadow: 0 0 0 1px rgb(244 241 208 / 22%);
+  animation: twinkle 4.2s steps(1) infinite;
+}
+.tint {
+  position: absolute;
+  inset: 0;
+  background: var(--tint);
+}
+/* A viewport-fixed vignette on the ground at dusk and night only (it would
+   lower the day focus-ring contrast); a plain gradient, not a blur. */
+.vignette {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse 75% 70% at 50% 50%, transparent 58%, var(--vignette) 100%);
+}
+.motes {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  contain: strict;
+}
+/* A firefly is a 3px pixel core inside hard-edged square glow rings. */
+.firefly {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: #fbf3a0;
+  box-shadow: 0 0 0 1px rgb(251 243 160 / 60%), 0 0 0 3px rgb(251 243 160 / 24%), 0 0 0 6px rgb(251 243 160 / 9%);
+  animation-name: firefly-wander, firefly-blink;
+  animation-timing-function: steps(24), steps(1);
+  animation-iteration-count: infinite;
+  animation-direction: alternate, normal;
+}
+.petal {
+  position: absolute;
+  top: 0;
+  width: 8px;
+  height: 6px;
+  background: var(--petal, #f4b8c4);
+  box-shadow: inset -2px -2px 0 var(--petal-hi, #fbd6dc);
+  clip-path: polygon(0 34%, 25% 34%, 25% 0, 100% 0, 100% 66%, 75% 66%, 75% 100%, 0 100%);
+  opacity: 0;
+  animation: petal-fall 18s steps(72) infinite;
+}
+
+/* Dawn: rose and peach sky, low pale sun. */
+.ambience[data-phase="dawn"] {
+  --sky-1: #f2c3cc; --sky-2: rgb(246 204 196 / 72%); --sky-3: rgb(248 216 190 / 44%); --sky-4: rgb(248 224 196 / 20%);
+  --tint: rgb(196 146 168 / 14%);
+  --vignette: transparent;
+}
+.ambience[data-phase="dawn"] .celestial { background-image: var(--sun-dawn); }
+/* Day: the unchanged daytime garden under a clear sky. */
+.ambience[data-phase="day"] {
+  --sky-1: #bfe2ef; --sky-2: rgb(196 228 236 / 70%); --sky-3: rgb(206 232 226 / 42%); --sky-4: rgb(214 236 214 / 18%);
+  --tint: transparent;
+  --vignette: transparent;
+  --petal: #fbe9ef; --petal-hi: #f4b8c4;
+}
+/* Golden hour: amber sky and warm light across the grass. */
+.ambience[data-phase="golden"] {
+  --sky-1: #f4ae5f; --sky-2: rgb(246 184 108 / 72%); --sky-3: rgb(248 200 132 / 44%); --sky-4: rgb(248 212 150 / 20%);
+  --tint: rgb(206 146 62 / 18%);
+  --vignette: transparent;
+  --petal: #ffd48a; --petal-hi: #ffe9b8;
+}
+.ambience[data-phase="golden"] .celestial { background-image: var(--sun-golden); }
+/* Dusk: violet sky over a sunset band, a low red sun and the first fireflies. */
+.ambience[data-phase="dusk"] {
+  --sky-1: #4f427e; --sky-2: rgb(122 80 128 / 80%); --sky-3: rgb(196 112 118 / 50%); --sky-4: rgb(222 148 118 / 22%);
+  --tint: rgb(56 40 104 / 50%);
+  --vignette: rgb(20 12 42 / 38%);
+}
+.ambience[data-phase="dusk"] .celestial { background-image: var(--sun-dusk); }
+/* Night, during Moonflower hours: navy sky, stars, moon and fireflies. */
+.ambience[data-phase="night"] {
+  --sky-1: #111a3a; --sky-2: rgb(20 30 66 / 82%); --sky-3: rgb(22 34 70 / 52%); --sky-4: rgb(22 34 70 / 22%);
+  --tint: rgb(14 22 60 / 60%);
+  --vignette: rgb(4 6 22 / 46%);
+}
+.ambience[data-phase="night"] .celestial { background-image: var(--moon); }
+
+@keyframes light-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes twinkle { 0%, 100% { opacity: 1; } 45% { opacity: .35; } 70% { opacity: .8; } }
+@keyframes firefly-wander {
+  0% { transform: translate(0, 0); }
+  30% { transform: translate(18px, -14px); }
+  60% { transform: translate(-10px, -26px); }
+  100% { transform: translate(24px, 8px); }
+}
+@keyframes firefly-blink { 0%, 100% { opacity: 1; } 55% { opacity: .45; } 80% { opacity: .85; } }
+@keyframes petal-fall {
+  0% { opacity: 0; transform: translate(0, -12px) scaleX(1); }
+  8% { opacity: .95; }
+  25% { transform: translate(calc(var(--petal-drift, 0vw) * .25 + 3vw), 25vh) scaleX(-1); }
+  50% { transform: translate(calc(var(--petal-drift, 0vw) * .5 - 2vw), 50vh) scaleX(1); }
+  75% { transform: translate(calc(var(--petal-drift, 0vw) * .75 + 2vw), 75vh) scaleX(-1); }
+  92% { opacity: .95; }
+  100% { opacity: 0; transform: translate(var(--petal-drift, 0vw), 102vh) scaleX(1); }
+}
+
+/* All ambience motion stops for the device setting and the member's
+   gentle-motion setting (the member setting also quiets animation globally).
+   Fireflies and stars then rest as static glows. */
+.ambience[data-motion="still"] *,
+.ambience[data-motion="still"] .light { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .ambience * { animation: none !important; }
+}
+/* Forced colors: the system palette replaces the painted light. */
+@media (forced-colors: active) {
+  .ambience { display: none; }
+}
