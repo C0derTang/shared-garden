@@ -74,7 +74,7 @@ it("shows no guide after durable skip and does not force care for permanent Rose
   state.plants.push({ ...structuredClone(state.plants[0]), flower: { ...state.plants[0].flower, type_key: "rose", id: "bloom", spot: 2, first_bloom_at: state.server_now } });
   show(state);
   expect(screen.getByRole("button", { name: "Finish guide" })).toBeInTheDocument();
-  await waitFor(() => expect(screen.queryByRole("dialog", { name: /A little hello|Make room for a Rose|A note for your Rose|Your Roses are in bloom|You’re finding your rhythm|Grow at your own pace/ })).not.toBeInTheDocument());
+  await waitFor(() => expect(screen.queryByRole("dialog", { name: /Tap your Cactus to say hello|Tap bare soil to plant a Rose|Tap your Rose to leave a note|Your Rose is in bloom|You’re both set|Grow at your own pace/ })).not.toBeInTheDocument());
   expect(mutateGarden).not.toHaveBeenCalled();
 });
 
@@ -107,7 +107,7 @@ it("hands keyboard focus to the collapsed control and then the reopened guide he
   const reopen = screen.getByRole("button", { name: "Show garden guide" });
   expect(reopen).toHaveFocus();
   await user.keyboard("{Enter}");
-  expect(screen.getByRole("heading", { name: "A little hello" })).toHaveFocus();
+  expect(screen.getByRole("heading", { name: "Tap your Cactus to say hello" })).toHaveFocus();
   await user.tab();
   expect(screen.getByRole("button", { name: "Visit Cactus" })).toHaveFocus();
   expect(saveSetting).not.toHaveBeenCalled();
@@ -116,19 +116,20 @@ it("hands keyboard focus to the collapsed control and then the reopened guide he
 
 it.each(["Skip", "Finish"] as const)("hands keyboard focus to the garden after confirmed %s", async (action) => {
   const state = gardenFixture();
-  state.tutorial_facts = { cactus_checked_in: true, rose_noted: true };
+  // Skip is offered while steps remain; the final "both set" card offers Finish.
+  if (action === "Finish") state.tutorial_facts = { cactus_checked_in: true, rose_noted: true };
   show(state); const user = userEvent.setup();
   const guide = action === "Skip" ? "skipped" : "finished";
   saveSetting.mockResolvedValue({ state: { ...settings.state, revision: 1, guide }, error: null });
   await activateWithKeyboard(user, screen.getByRole("button", { name: `${action} guide` }));
-  await waitFor(() => expect(screen.queryByRole("dialog", { name: /A little hello|Make room for a Rose|A note for your Rose|Your Roses are in bloom|You’re finding your rhythm|Grow at your own pace/ })).not.toBeInTheDocument());
+  await waitFor(() => expect(screen.queryByRole("dialog", { name: /Tap your Cactus to say hello|Tap bare soil to plant a Rose|Tap your Rose to leave a note|Your Rose is in bloom|You’re both set|Grow at your own pace/ })).not.toBeInTheDocument());
   expect(screen.getByRole("heading", { name: "cc’s garden" })).toHaveFocus();
   expect(saveSetting).toHaveBeenCalledExactlyOnceWith({ guide });
   expect(mutateGarden).not.toHaveBeenCalled();
 });
 
 it.each(["Skip", "Finish"])("retains keyboard focus during a delayed unsuccessful %s and permits closing afterward", async (action) => {
-  const state = gardenFixture(); state.tutorial_facts = { cactus_checked_in: true, rose_noted: true };
+  const state = gardenFixture(); if (action === "Finish") state.tutorial_facts = { cactus_checked_in: true, rose_noted: true };
   show(state); const user = userEvent.setup();
   let resolve!: (value: unknown) => void;
   saveSetting.mockReturnValue(new Promise((done) => { resolve = done; }));
@@ -167,7 +168,7 @@ it.each(["pending save", "remote refresh"])("does not take focus from a flower d
   } else {
     await activateWithKeyboard(user, screen.getByRole("button", { name: "Close guide for now" }));
     await user.keyboard("{Enter}");
-    expect(screen.getByRole("heading", { name: "A note for your Rose" })).toHaveFocus();
+    expect(screen.getByRole("heading", { name: "Tap your Rose to leave a note" })).toHaveFocus();
   }
   await user.click(screen.getByRole("button", { name: "Visit Rose" }));
   const draft = screen.getByRole("textbox", { name: "Note about today" });
@@ -175,7 +176,7 @@ it.each(["pending save", "remote refresh"])("does not take focus from a flower d
   const result = { state: { ...settings.state, revision: 1, guide: "skipped" }, error: null };
   if (source === "pending save") await act(async () => resolve(result));
   else { readSettings.mockResolvedValue(result); fireEvent.focus(window); }
-  await waitFor(() => expect(screen.queryByRole("dialog", { name: /A little hello|Make room for a Rose|A note for your Rose|Your Roses are in bloom|You’re finding your rhythm|Grow at your own pace/, hidden: true })).not.toBeInTheDocument());
+  await waitFor(() => expect(screen.queryByRole("dialog", { name: /Tap your Cactus to say hello|Tap bare soil to plant a Rose|Tap your Rose to leave a note|Your Rose is in bloom|You’re both set|Grow at your own pace/, hidden: true })).not.toBeInTheDocument());
   expect(draft).toHaveFocus();
   expect(draft).toHaveValue("Keep my focused note");
   expect(mutateGarden).not.toHaveBeenCalled();
@@ -252,22 +253,22 @@ it("reopens a locally closed guide from Settings without requiring a new server 
   saveSetting.mockResolvedValue(settings);
   render(<MemberPreferences initial={settings}><GardenClient initial={{ state, error: null }} /><SettingsClient /></MemberPreferences>);
   await userEvent.click(screen.getByRole("button", { name: "Close guide for now" }));
-  expect(screen.queryByRole("dialog", { name: /A little hello|Make room for a Rose|A note for your Rose|Your Roses are in bloom|You’re finding your rhythm|Grow at your own pace/ })).not.toBeInTheDocument();
+  expect(screen.queryByRole("dialog", { name: /Tap your Cactus to say hello|Tap bare soil to plant a Rose|Tap your Rose to leave a note|Your Rose is in bloom|You’re both set|Grow at your own pace/ })).not.toBeInTheDocument();
   await userEvent.click(screen.getByRole("button", { name: "Reopen garden guide" }));
-  expect(await screen.findByRole("dialog", { name: /A little hello|Make room for a Rose|A note for your Rose|Your Roses are in bloom|You’re finding your rhythm|Grow at your own pace/ })).toBeVisible();
+  expect(await screen.findByRole("dialog", { name: /Tap your Cactus to say hello|Tap bare soil to plant a Rose|Tap your Rose to leave a note|Your Rose is in bloom|You’re both set|Grow at your own pace/ })).toBeVisible();
 });
 
 
 it("opens a modal guide, yields to real care and resumes only after the action closes", async () => {
   show(); const user = userEvent.setup();
-  const guide = screen.getByRole("dialog", { name: "A little hello" });
+  const guide = screen.getByRole("dialog", { name: "Tap your Cactus to say hello" });
   expect(guide).toContainElement(document.activeElement as HTMLElement);
   await user.click(within(guide).getByRole("button", { name: "Visit Cactus" }));
-  expect(screen.queryByRole("dialog", { name: "A little hello" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("dialog", { name: "Tap your Cactus to say hello" })).not.toBeInTheDocument();
   expect(screen.getByRole("dialog", { name: "Cactus" })).toContainElement(document.activeElement as HTMLElement);
   fireEvent.focus(window);
   await user.click(screen.getByRole("button", { name: "Close" }));
-  expect(await screen.findByRole("dialog", { name: "A little hello" })).toContainElement(document.activeElement as HTMLElement);
+  expect(await screen.findByRole("dialog", { name: "Tap your Cactus to say hello" })).toContainElement(document.activeElement as HTMLElement);
   await user.keyboard("{Escape}");
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Show garden guide" })).toHaveFocus();
@@ -282,7 +283,7 @@ it("lets a queued private moment precede the requested flower and the resumed gu
   }
   render(<MemberPreferences initial={settings}><SheetScope><GardenClient initial={{ state, error: null }} /><Moment /></SheetScope></MemberPreferences>);
   const user = userEvent.setup();
-  expect(screen.getByRole("dialog", { name: "A little hello" })).toBeVisible();
+  expect(screen.getByRole("dialog", { name: "Tap your Cactus to say hello" })).toBeVisible();
   act(() => pending());
   await user.click(screen.getByRole("button", { name: "Visit Cactus" }));
   expect(screen.getByRole("dialog", { name: "Pending moment" })).toBeVisible();
@@ -290,7 +291,7 @@ it("lets a queued private moment precede the requested flower and the resumed gu
   await user.click(screen.getByRole("button", { name: "Close" }));
   expect(await screen.findByRole("dialog", { name: "Cactus" })).toBeVisible();
   await user.click(screen.getByRole("button", { name: "Close" }));
-  expect(await screen.findByRole("dialog", { name: "A little hello" })).toBeVisible();
+  expect(await screen.findByRole("dialog", { name: "Tap your Cactus to say hello" })).toBeVisible();
 });
 
 it("goes from the unrestricted seed picker straight to the newly planted Rose's care", async () => {
@@ -308,4 +309,160 @@ it("goes from the unrestricted seed picker straight to the newly planted Rose's 
   // Once that sheet closes, the guide can still point to the Rose.
   await user.click(screen.getByRole("button", { name: "Close" }));
   expect(await screen.findByRole("button", { name: "Visit Rose" })).toBeInTheDocument();
+});
+
+// Coach-mark placement uses the real spot's box; jsdom has no layout, so the
+// flower spots report a box here.
+function layoutSpots(box: (spot: number) => { top: number; left: number }) {
+  return vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
+    const spot = Number(this.dataset.spot);
+    if (!spot) return new DOMRect(0, 0, 0, 0);
+    const { top, left } = box(spot);
+    return new DOMRect(left, top, 88, 130);
+  });
+}
+
+it("anchors the coach-mark to the target flower and opens its real sheet when that flower is tapped", async () => {
+  const rect = layoutSpots(() => ({ top: 80, left: 20 }));
+  try {
+    show(); const user = userEvent.setup();
+    const target = await waitFor(() => {
+      const element = document.querySelector<HTMLElement>('[data-guide-target="1"]');
+      expect(element).not.toBeNull();
+      return element!;
+    });
+    expect(document.querySelector("[data-guide-bubble]")).toHaveAttribute("data-side", "below");
+    expect(screen.getByRole("heading", { name: "Tap your Cactus to say hello" })).toHaveFocus();
+    await user.click(target);
+    expect(screen.queryByRole("dialog", { name: "Tap your Cactus to say hello" })).not.toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: "Cactus" })).toContainElement(document.activeElement as HTMLElement);
+    expect(mutateGarden).not.toHaveBeenCalled();
+  } finally { rect.mockRestore(); }
+});
+
+it("opens the bubble above a flower low on screen and ignores flower taps while paused", async () => {
+  // The flower's bottom sits 20px above the viewport edge: too little room for
+  // the bubble below it (14px gap plus the 12px gutter), so it opens above.
+  const rect = layoutSpots(() => ({ top: window.innerHeight - 150, left: 200 }));
+  try {
+    const state = gardenFixture(); show(state); const user = userEvent.setup();
+    await waitFor(() => expect(document.querySelector("[data-guide-bubble]")).toHaveAttribute("data-side", "above"));
+    refreshGarden.mockResolvedValue({ state: null, error: "Refresh unavailable" });
+    fireEvent.focus(window);
+    await waitFor(() => expect(screen.getByRole("button", { name: "Visit Cactus" })).toHaveAttribute("aria-disabled", "true"));
+    await user.click(document.querySelector<HTMLElement>('[data-guide-target="1"]')!);
+    expect(screen.getByRole("dialog", { name: "Tap your Cactus to say hello" })).toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: "Cactus" })).not.toBeInTheDocument();
+  } finally { rect.mockRestore(); }
+});
+
+it("docks without a spotlight when the target cannot be measured and shows progress as text", () => {
+  show();
+  expect(document.querySelector("[data-guide-bubble]")).toHaveAttribute("data-side", "dock");
+  expect(document.querySelector("[data-guide-target]")).toBeNull();
+  expect(screen.getByRole("dialog", { name: "Tap your Cactus to say hello" })).toHaveTextContent("0 of 2 moments shared");
+});
+
+it("ends with a one-time both-set card that only finishes, and never returns after Finish", async () => {
+  const state = gardenFixture(); state.tutorial_facts = { cactus_checked_in: true, rose_noted: true };
+  saveSetting.mockResolvedValue({ state: { ...settings.state, revision: 1, guide: "finished" }, error: null });
+  show(state); const user = userEvent.setup();
+  const card = screen.getByRole("dialog", { name: "You’re both set" });
+  expect(within(card).queryByRole("button", { name: "Skip guide" })).not.toBeInTheDocument();
+  await user.click(within(card).getByRole("button", { name: "Finish guide" }));
+  expect(saveSetting).toHaveBeenCalledExactlyOnceWith({ guide: "finished" });
+  await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  readSettings.mockResolvedValue({ state: { ...settings.state, revision: 1, guide: "finished" }, error: null });
+  fireEvent.focus(window);
+  await waitFor(() => expect(readSettings).toHaveBeenCalled());
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Show garden guide" })).not.toBeInTheDocument();
+});
+
+it("places nothing until the fonts load, then re-chooses the scroll when a later measurement would dock over the flower", async () => {
+  let top = 80;
+  const rect = layoutSpots(() => ({ top, left: 150 }));
+  let fontsLoaded!: () => void;
+  const fonts = new Promise<void>((done) => { fontsLoaded = done; });
+  Object.defineProperty(document, "fonts", { configurable: true, value: { ready: fonts } });
+  Object.defineProperty(document.documentElement, "scrollHeight", { configurable: true, value: 5000 });
+  const scrollBy = vi.fn();
+  const originalScrollBy = window.scrollBy;
+  window.scrollBy = scrollBy as typeof window.scrollBy;
+  try {
+    show();
+    const bubble = () => document.querySelector("[data-guide-bubble]")!;
+    await new Promise((done) => setTimeout(done, 50));
+    expect(bubble()).toHaveAttribute("data-pending");
+    expect(scrollBy).not.toHaveBeenCalled();
+    await act(async () => fontsLoaded());
+    await waitFor(() => expect(bubble()).toHaveAttribute("data-side", "below"));
+    // The first choice kept the view: the bubble already fit below.
+    expect(scrollBy).not.toHaveBeenCalled();
+    // A later layout change leaves the flower cut off at the bottom edge, where
+    // it would dock over the flower; the guide scrolls it back into a fit.
+    top = window.innerHeight - 60;
+    fireEvent(window, new Event("resize"));
+    await waitFor(() => expect(scrollBy).toHaveBeenCalledTimes(1));
+    const delta = scrollBy.mock.calls[0][0].top as number;
+    expect(delta).toBeGreaterThan(0);
+    expect(top + 130 - delta).toBeLessThanOrEqual(window.innerHeight - 12);
+  } finally {
+    rect.mockRestore();
+    window.scrollBy = originalScrollBy;
+    delete (document as { fonts?: unknown }).fonts;
+    delete (document.documentElement as { scrollHeight?: unknown }).scrollHeight;
+  }
+});
+
+import { snapshotKey, takeSnapshot, writeStoredSnapshot } from "@/lib/garden/since-last-visit";
+vi.mock("@/lib/achievements/actions", () => ({ readAchievements: vi.fn(async () => ({ state: null, error: "unavailable" })) }));
+it("holds the away card while the guide is open, through a sheet round trip and a reload, and shows it once after close", async () => {
+  localStorage.clear();
+  const earlier = gardenFixture();
+  const key = snapshotKey(earlier);
+  writeStoredSnapshot(key, takeSnapshot(earlier, null, null));
+  // The partner cared for the Cactus since that snapshot.
+  const state = gardenFixture(); state.plants[0].member2_submitted = true;
+  const view = show(state); const user = userEvent.setup();
+  expect(screen.getByRole("dialog", { name: "Tap your Cactus to say hello" })).toBeInTheDocument();
+  await act(async () => {});
+  expect(screen.queryByRole("region", { name: "While you were away" })).not.toBeInTheDocument();
+  expect(JSON.parse(localStorage.getItem(key)!).pending?.partnerCare).toEqual([state.plants[0].flower.id]);
+  // The guide sends the member into the Cactus sheet and returns when it closes;
+  // the news keeps waiting through that round trip.
+  await user.click(screen.getByRole("button", { name: "Visit Cactus" }));
+  await user.click(screen.getByRole("button", { name: "Close" }));
+  expect(await screen.findByRole("dialog", { name: "Tap your Cactus to say hello" })).toBeInTheDocument();
+  await act(async () => {});
+  expect(screen.queryByRole("region", { name: "While you were away" })).not.toBeInTheDocument();
+  expect(JSON.parse(localStorage.getItem(key)!).pending?.partnerCare).toEqual([state.plants[0].flower.id]);
+  // A reload with the guide still open keeps the news waiting.
+  view.unmount();
+  const reloaded = show(state);
+  await act(async () => {});
+  expect(screen.queryByRole("region", { name: "While you were away" })).not.toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "Close guide for now" }));
+  expect(await screen.findByRole("region", { name: "While you were away" })).toHaveTextContent("Your partner cared for Cactus");
+  expect(JSON.parse(localStorage.getItem(key)!).pending).toBeUndefined();
+  reloaded.unmount();
+  localStorage.clear();
+});
+
+it.each([["Skip guide", "skipped"], ["Finish guide", "finished"]] as const)("shows waiting away news once after %s", async (label, guide) => {
+  localStorage.clear();
+  const earlier = gardenFixture();
+  const key = snapshotKey(earlier);
+  writeStoredSnapshot(key, takeSnapshot(earlier, null, null));
+  const state = gardenFixture(); state.plants[0].member2_submitted = true;
+  // Finish is offered on the final card; Skip while steps remain.
+  if (guide === "finished") state.tutorial_facts = { cactus_checked_in: true, rose_noted: true };
+  saveSetting.mockResolvedValue({ state: { ...settings.state, revision: 1, guide }, error: null });
+  show(state); const user = userEvent.setup();
+  await act(async () => {});
+  expect(screen.queryByRole("region", { name: "While you were away" })).not.toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: label }));
+  expect(await screen.findAllByRole("region", { name: "While you were away" })).toHaveLength(1);
+  expect(JSON.parse(localStorage.getItem(key)!).pending).toBeUndefined();
+  localStorage.clear();
 });

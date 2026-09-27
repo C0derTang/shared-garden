@@ -17,12 +17,23 @@
   width: 100%;
   min-width: 0;
 }
+/* The recording timer reads like the garden clock plate. */
 .clock {
+  justify-self: start;
+  padding: 2px 10px;
+  border: 8px solid var(--paper-light);
+  border-image: var(--frame-slot) 3 fill / 6px stretch;
+  background: var(--paper-light);
+  background-clip: padding-box;
+  font: 700 1.5rem/1.2 var(--font-pixel);
   font-variant-numeric: tabular-nums;
-  font-size: 1.5rem;
 }
 .error {
+  padding: 8px 10px;
+  border-left: 3px solid var(--rust);
+  background: var(--danger-wash);
   color: var(--danger);
+  overflow-wrap: anywhere;
 }
 .hint {
   color: var(--muted);
@@ -32,5 +43,11 @@
 /* Same compact look whether it is an h3 (sharing) or h4 (replacing). */
 .stack .review {
   margin: 0;
-  font: 700 var(--text-md) / 1.4 var(--font-body);
+  font: 700 var(--text-md) / 1.4 var(--font-pixel);
+  letter-spacing: 0.02em;
+}
+@media (forced-colors: active) {
+  .clock {
+    border-image-source: none;
+  }
 }
