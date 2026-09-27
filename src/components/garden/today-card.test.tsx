@@ -14,6 +14,7 @@ const { refreshGarden, mutateGarden, loadFlowerHistory } = vi.hoisted(() => ({
 vi.mock("@/lib/garden/actions", () => ({ refreshGarden, mutateGarden, loadFlowerHistory }));
 vi.mock("@/lib/auth/browser", () => ({ gardenBrowserClient: () => null }));
 import { GardenClient } from "./garden-client";
+import { TodayCard } from "./today-card";
 
 function plant(state: GardenState, type: FlowerType, spot: number, options: Partial<Plant["flower"]> & { m1?: boolean; m2?: boolean } = {}): Plant {
   const { m1 = false, m2 = false, ...flower } = options;
@@ -109,4 +110,55 @@ it("names each flower's cue on the surface", () => {
   expect(screen.getByRole("button", { name: "Rose, spot 2, 2 of 5 growth units, 0 of 2 cared today, may lose growth at 4 a.m." })).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Rose, spot 5, 3 of 5 growth units, 1 of 2 cared today" })).toBeInTheDocument();
   expect(screen.getByRole("button", { name: /^Cactus, spot 1, 0 of 10 growth units, 2 of 2 cared today$/ })).toBeInTheDocument();
+});
+
+it("turns compact while a crowded While-you-were-away card is open, and keeps focus on its action", async () => {
+  const user = userEvent.setup();
+  // jsdom has no layout: a 130px bar whose plaque ends at 480px, a 14px title
+  // tab, and an away card whose unscrolled top is `awayTop`.
+  const heights = vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockImplementation(function (this: HTMLElement) {
+    return this.matches("section > div:last-child") ? 130 : 0;
+  });
+  const rects = vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(function (this: Element) {
+    const box = (top: number, bottom: number) => ({ top, bottom, left: 0, right: 0, width: 0, height: bottom - top, x: 0, y: top, toJSON: () => ({}) });
+    if (this.matches("section[aria-labelledby]")) return box(400, 480);
+    if (this.matches("section[aria-labelledby] > h2")) return box(386, 404);
+    return box(0, 0);
+  });
+  const host = document.createElement("div");
+  function awayCard(awayTop: number) {
+    const away = document.createElement("section");
+    Object.defineProperty(away, "offsetParent", { get: () => host });
+    Object.defineProperty(away, "offsetTop", { get: () => awayTop });
+    return away;
+  }
+  const state = garden(1);
+  const visit = vi.fn();
+  const view = render(<TodayCard state={state} visit={visit} />);
+  const toggle = within(card()).getByRole("button", { name: /You 2 to tend.*Partner 1 to tend/ });
+  await user.click(toggle);
+  expect(within(card()).getByRole("list", { name: "Still to tend today" })).toBeInTheDocument();
+
+  // Plenty of room: 20 + 200 + 10 stays above the full plaque's tab at 336px.
+  view.rerender(<TodayCard state={state} visit={visit} away={awayCard(20)} />);
+  expect(card()).not.toHaveAttribute("data-compact");
+  expect(toggle).toBeInTheDocument();
+
+  // Crowded: only the title tab and the next action remain, and focus on the
+  // hidden list toggle moves to that action.
+  toggle.focus();
+  view.rerender(<TodayCard state={state} visit={visit} away={awayCard(200)} />);
+  await waitFor(() => expect(card()).toHaveAttribute("data-compact", "true"));
+  expect(within(card()).queryByRole("button", { name: /to tend/ })).not.toBeInTheDocument();
+  expect(within(card()).queryByRole("list")).not.toBeInTheDocument();
+  const tend = within(card()).getByRole("button", { name: "Tend Tulip in spot 3" });
+  expect(tend).toHaveFocus();
+  expect(within(card()).getByText("You 2 to tend. Partner 1 to tend.")).toBeInTheDocument();
+
+  // Once the away card closes, the full plaque returns.
+  view.rerender(<TodayCard state={state} visit={visit} away={null} />);
+  expect(card()).not.toHaveAttribute("data-compact");
+  expect(within(card()).getByRole("button", { name: /You 2 to tend/ })).toBeInTheDocument();
+  heights.mockRestore();
+  rects.mockRestore();
 });

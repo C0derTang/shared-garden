@@ -124,6 +124,7 @@ export function SinceLastVisit({
   hold = false,
   ownResult = null,
   loadAchievements = readAchievements,
+  onCard,
 }: {
   state: GardenState;
   openSpot: (spot: number) => void;
@@ -136,9 +137,16 @@ export function SinceLastVisit({
   /** The latest state returned by the viewer's own action. */
   ownResult?: GardenState | null;
   loadAchievements?: () => Promise<AchievementResult>;
+  /** Receives the open card, or null once it closes, so the Today card can
+      make room for it (issue #137). */
+  onCard?: (card: HTMLElement | null) => void;
 }) {
   const titleId = useId();
-  const card = useRef<HTMLElement>(null);
+  const card = useRef<HTMLElement | null>(null);
+  const cardRef = useCallback((element: HTMLElement | null) => {
+    card.current = element;
+    onCard?.(element);
+  }, [onCard]);
   const [linesRef, moreBelow] = useMoreBelow();
   const disabled = useRef(false);
   const badgesLoaded = useRef(false);
@@ -327,7 +335,7 @@ export function SinceLastVisit({
     <>
       <p role="status" className={styles.screenReader}>{announcement}</p>
       {lines.length > 0 && (
-        <section ref={card} className={styles.card} aria-labelledby={titleId} data-since-last-visit="">
+        <section ref={cardRef} className={styles.card} aria-labelledby={titleId} data-since-last-visit="">
           {gentleMotion && (
             <span key={burst} className={styles.burst} aria-hidden="true">
               {confetti.map(([x, y], index) => (

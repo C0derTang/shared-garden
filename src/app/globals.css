@@ -267,7 +267,22 @@ p {
   --hotbar-label-size: var(--text-xs);
   --hotbar-slot-height: max(54px, calc(45px + 1.1 * var(--hotbar-label-size)));
   --hotbar-bottom: max(8px, env(safe-area-inset-bottom));
-  --hotbar-height: calc(24px + var(--hotbar-slot-height));
+  /* First-paint estimate of the two-row wrap (issue #137). The four whole
+     labels need about 14.9rem at --text-xs; slot frames, padding, the 2px
+     gaps and the bar's own frame add 126px here (110px from 360 to 379px,
+     70px on the full-width shelf, and 17.4rem + 182px at the --text-sm label
+     size from 640px up). --hotbar-wrap is positive only when the viewport is
+     narrower than that, and each two-row value is clamped by it: nothing in
+     one row, all of it in two rows. It scales with the root text size. */
+  --hotbar-fit-width: calc(14.9rem + 126px);
+  --hotbar-wrap: calc((var(--hotbar-fit-width) - 100vw) * 1000);
+  --hotbar-extra-row: clamp(0px, var(--hotbar-wrap), var(--hotbar-slot-height) + 2px);
+  --hotbar-height: calc(24px + var(--hotbar-slot-height) + var(--hotbar-extra-row));
+}
+/* Once the navigation has measured its labels, it publishes a two-row
+   height itself, so the estimate drops out. */
+:root:has(.garden-navigation[data-rows]) {
+  --hotbar-extra-row: 0px;
 }
 .garden-navigation {
   position: fixed;
@@ -351,6 +366,9 @@ p {
    drops to 1px per art pixel: a 3px slot frame, a 1px berry rim and 1px
    halo, and the ring 3-6px in. Labels keep 8px clearance (9px at the bottom). */
 @media (max-width: 379px) {
+  :root {
+    --hotbar-fit-width: calc(14.9rem + 110px);
+  }
   .garden-navigation a {
     border-width: 3px;
     border-image-width: 3px;
@@ -373,7 +391,8 @@ p {
 @media (max-width: 359px) {
   :root {
     --hotbar-bottom: 0px;
-    --hotbar-height: calc(12px + max(4px, env(safe-area-inset-bottom)) + var(--hotbar-slot-height));
+    --hotbar-height: calc(12px + max(4px, env(safe-area-inset-bottom)) + var(--hotbar-slot-height) + var(--hotbar-extra-row));
+    --hotbar-fit-width: calc(14.9rem + 70px);
   }
   .garden-navigation {
     left: 0;
@@ -392,6 +411,27 @@ p {
    navigation measures the fit and publishes its taller height as
    --hotbar-height. Slot padding, frames and the focus ring are unchanged, so
    the clearance rule still holds. */
+/* Before that measurement (the first paint, or with scripts off), the same
+   two rows come from the --hotbar-wrap estimate using only lengths: the
+   Garden nav takes the whole first line and wraps its slots at half width,
+   and the Settings nav moves up into the empty half of the second row. In
+   one row every clamp is zero, so nothing changes (issue #137). */
+.garden-navigation:not([data-rows]) {
+  flex-wrap: wrap;
+  row-gap: 0;
+}
+.garden-navigation:not([data-rows]) .garden-primary-nav {
+  flex-basis: clamp(0%, var(--hotbar-wrap), 100%);
+  flex-wrap: wrap;
+}
+.garden-navigation:not([data-rows]) .garden-primary-nav a {
+  min-width: max(56px, clamp(0%, var(--hotbar-wrap), 50% - 1px));
+  max-width: calc(100% - clamp(0%, var(--hotbar-wrap), 50% + 1px));
+}
+.garden-navigation:not([data-rows]) .garden-settings-nav {
+  min-width: clamp(0%, var(--hotbar-wrap), 50% - 1px);
+  margin: calc(-1 * clamp(0px, var(--hotbar-wrap), var(--hotbar-slot-height))) 0 0 auto;
+}
 .garden-navigation[data-rows="2"] {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -453,6 +493,7 @@ p {
   }
   :root {
     --hotbar-label-size: var(--text-sm);
+    --hotbar-fit-width: calc(17.4rem + 182px);
   }
   .garden-navigation a {
     padding-inline: 12px;

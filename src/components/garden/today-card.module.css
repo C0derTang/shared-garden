@@ -153,6 +153,12 @@
 }
 .done > span { margin-left: 6px; color: var(--rust); }
 
+/* Compact: while the "While you were away" card is open and the full plaque
+   would squeeze it, only the title tab and the next action show, on one row
+   (issue #137). The counts stay available to screen readers. */
+.card[data-compact] .bar { padding: 12px 8px 8px; }
+.card[data-compact] .primary { flex: 1 1 auto; }
+
 /* The list of flowers still due opens above the bar and scrolls inside the
    plaque, so it never grows past the header. */
 .list {

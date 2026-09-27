@@ -89,6 +89,23 @@ edge. The tab is the section's heading.
 - Below 380px the primary button uses `--text-sm`. When the counts and the
   button don't fit on one row, the button wraps to its own row. Below 360px
   the plaque sits above the full-width hotbar shelf.
+- **Compact beside the away card
+  ([issue #137](https://github.com/C0derTang/shared-garden/issues/137)):**
+  while the "While you were away" card from
+  [decision 0054](0054-while-you-were-away.md) is open, and the full plaque
+  would leave that card less than 200px between its top and the plaque's tab
+  (with its 10px margin), the plaque turns compact. It keeps only the "Today"
+  tab and the primary action, which fills one row (`12px 8px 8px` bar
+  padding, the 44px button). The counts toggle and the list are hidden, and
+  a visually hidden line keeps the counts for screen readers ("You 2 to tend.
+  Partner 1 to tend."). If focus was on the toggle or a list row, it moves to
+  the primary action. The rest state, or a card with no primary action, stays
+  as it is. The check uses the away card's unscrolled position, so scrolling
+  the garden never toggles it, and the full bar height measured before the
+  plaque turned compact. The full plaque returns when the away card is
+  dismissed. This happens at 320×640 with 20px or 24px root text and at
+  390×664 with 24px. At the default size, and at 390×844 and 1280×800 with
+  any tested size, the plaque stays full.
 
 ## Surface and sheet cues
 

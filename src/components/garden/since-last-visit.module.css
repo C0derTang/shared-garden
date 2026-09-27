@@ -3,12 +3,12 @@
    layer, so the Help card and the guide always open over it. */
 .card {
   /* Room kept for the collapsed Today card above the hotbar (decision 0051):
-     its measured bar (--today-bar-height, 69px at the default size) and 2px
-     borders, its 14px title tab, its 10px gap and a 10px margin, never under
-     108px. It follows the card when it wraps below 360px or grows with large
-     text (issue #135). The lines scroll inside the card instead of running
-     under it. */
-  --since-today-clearance: max(108px, var(--today-bar-height, 0px) + 39px);
+     its measured bar (--today-bar-height, 69px at the default size; the
+     fallbacks apply only before it is measured) and 2px borders, its 14px title tab, its 10px
+     gap and a 10px margin. It follows the card when it grows with large text
+     (issue #135) or turns compact (issue #137). The lines scroll inside the
+     card instead of running under it. */
+  --since-today-clearance: calc(var(--today-bar-height, 69px) + 39px);
   /* 58px below the tools line (62px from 640px up), which follows the header
      sign down with large text: 124px and 128px at the default size. */
   --since-top: calc(max(66px, var(--hud-height, 0px) - 2px) + 58px);
@@ -17,7 +17,10 @@
   top: var(--since-top);
   display: flex;
   flex-direction: column;
-  max-height: max(200px, calc(100dvh - var(--since-top) - var(--hotbar-bottom) - var(--hotbar-height) - var(--since-today-clearance)));
+  /* Never under 140px, about the title and one line. When the full Today
+     card would leave less than 200px, it turns compact first (issue #137),
+     so the floor only binds on screens shorter than 320×640 with 24px text. */
+  max-height: max(140px, calc(100dvh - var(--since-top) - var(--hotbar-bottom) - var(--hotbar-height) - var(--since-today-clearance)));
   left: 50%;
   width: min(25rem, calc(100% - 24px));
   translate: -50% 0;
@@ -240,7 +243,7 @@
 }
 
 @media (max-width: 359px) {
-  .card { --since-today-clearance: max(160px, var(--today-bar-height, 0px) + 39px); }
+  .card { --since-today-clearance: calc(var(--today-bar-height, 121px) + 39px); }
   .card .title { font-size: var(--text-sm); }
 }
 @media (min-width: 640px) {

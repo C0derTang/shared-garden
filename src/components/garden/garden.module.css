@@ -1,10 +1,14 @@
 /* The grass texture spans the whole stage, so no flat bands flank the 1200px bed cap (decision 0042). */
-/* The beds start under the header sign and end above the hotbar, and both
-   follow those bars when large text makes them taller (issue #135). */
-.garden { position: relative; min-height: 100dvh; background-color: #82a15d; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48' shape-rendering='crispEdges'%3E%3Cpath fill='%238dab65' d='M3 7h5v3H3zM31 4h3v5h-3zM18 27h6v3h-6zM40 34h5v4h-5zM7 42h3v3H7z'/%3E%3Cpath fill='%23739250' d='M15 12h4v3h-4zM38 17h3v4h-3zM2 29h6v3H2zM28 40h4v3h-4z'/%3E%3C/svg%3E"); background-size: 48px 48px; padding: max(60px, var(--hud-height, 0px) - 8px) 0 max(104px, var(--hotbar-bottom) + var(--hotbar-height) + 10px); }
+/* The header sign and the Help/Songs line are in normal flow, so the beds
+   start 8px above the sign's bottom edge at any text size, from the first
+   paint on (issue #137). The beds end above the hotbar, whose height follows
+   large text (issue #135). */
+.garden { position: relative; min-height: 100dvh; background-color: #82a15d; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48' shape-rendering='crispEdges'%3E%3Cpath fill='%238dab65' d='M3 7h5v3H3zM31 4h3v5h-3zM18 27h6v3h-6zM40 34h5v4h-5zM7 42h3v3H7z'/%3E%3Cpath fill='%23739250' d='M15 12h4v3h-4zM38 17h3v4h-3zM2 29h6v3H2zM28 40h4v3h-4z'/%3E%3C/svg%3E"); background-size: 48px 48px; padding: 0 0 max(104px, var(--hotbar-bottom) + var(--hotbar-height) + 10px); }
 /* The header is a wooden sign: the name is carved into the plank and the
-   clock is a small parchment day plate (decision 0049). */
-.hud { position: absolute; z-index: 2; top: 0; left: 0; right: 0; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 6px; padding: max(6px, env(safe-area-inset-top)) 10px 6px; background-color: var(--wood); background-image: repeating-linear-gradient(180deg, transparent 0 10px, rgb(74 42 18 / 28%) 10px 12px, transparent 12px 22px), linear-gradient(180deg, var(--wood-light) 0 2px, transparent 2px); border-bottom: 4px solid var(--wood-dark); box-shadow: 0 4px 0 rgb(30 16 6 / 25%); }
+   clock is a small parchment day plate (decision 0049). It is at least 68px
+   tall, so at the default size the tools hang at 66px and the beds start at
+   60px. */
+.hud { position: relative; z-index: 2; min-height: 68px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 6px; padding: max(6px, env(safe-area-inset-top)) 10px 6px; background-color: var(--wood); background-image: repeating-linear-gradient(180deg, transparent 0 10px, rgb(74 42 18 / 28%) 10px 12px, transparent 12px 22px), linear-gradient(180deg, var(--wood-light) 0 2px, transparent 2px); border-bottom: 4px solid var(--wood-dark); box-shadow: 0 4px 0 rgb(30 16 6 / 25%); }
 /* The name keeps at least its longest word, so with large text (or a long
    date at 320px) the clock plate wraps below it instead of covering the name
    or pushing the page sideways (issue #135). The negative margin cancels the
@@ -14,10 +18,13 @@
 .clockDay { display: grid; justify-items: center; align-content: center; padding: 0 8px 0 2px; margin-right: 8px; border-right: 2px solid var(--line-strong); font-size: var(--text-sm); font-weight: 700; white-space: nowrap; }
 .clockIcon { width: 18px; height: 18px; color: var(--wood-deep); }
 .clockTime { display: grid; min-width: 0; text-align: right; padding-right: 2px; }
+/* The separator stays with the time, so a wrapped line never ends on "·". */
+.clockNow { white-space: nowrap; }
 .clock strong { font-size: var(--text-md); font-weight: 700; white-space: nowrap; }
-/* The tools hang 2px over the sign's dark edge, and follow it down when large
-   text makes the sign taller (--hud-height is its measured height). */
-.tools { position: absolute; z-index: 3; top: max(66px, var(--hud-height, 0px) - 2px); left: 0; right: 0; display: flex; justify-content: space-between; align-items: start; padding: 0 12px; }
+/* The tools hang 2px over the sign's dark edge. They are an in-flow line of
+   no height right under the sign, so they follow it down when large text
+   makes it taller, before any script runs (issue #137). */
+.tools { position: relative; z-index: 3; top: -2px; height: 0; display: flex; justify-content: space-between; align-items: start; padding: 0 12px; }
 /* Help, Songs and the collapsed Guide are parchment sign buttons that press
    down onto their dark lip (decision 0049; 44px targets from decision 0042). */
 .chip, .guide > button { min-height: 44px; display: flex; align-items: center; gap: 6px; padding: 0 12px; border: var(--border-pixel) solid var(--frame-border); border-radius: var(--radius-pixel); background: var(--paper-light); color: var(--ink); box-shadow: var(--bevel), var(--shadow-pixel); font: 700 var(--text-md)/1 var(--font-pixel); letter-spacing: .02em; text-decoration: none; cursor: pointer; }
@@ -36,7 +43,7 @@ a.chip::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://
 .fallbackCard { width: 100%; max-width: 28rem; padding: 1.25rem; background: var(--paper-light); border: var(--border-pixel) solid var(--frame-border); border-radius: var(--radius-pixel); box-shadow: var(--shadow-frame); overflow-wrap: anywhere; }
 .fallbackCard h1 { font: 600 var(--text-lg)/1.2 var(--font-display); margin-bottom: .75rem; }
 .fallbackCard .button { margin-top: 1rem; }
-.workspace { max-width: 1200px; margin: auto; }
+.workspace { max-width: 1200px; margin: -8px auto 0; }
 .beds { min-width: 0; }
 .refreshButton { min-height: 44px; margin-top: .5rem; padding: .5rem 1rem; border: var(--border-pixel) solid var(--frame-border); background: var(--paper-light); color: var(--ink); box-shadow: var(--bevel), var(--shadow-pixel); font: 700 var(--text-md)/1 var(--font-pixel); }
 .refreshButton:active:not(:disabled) { translate: 0 var(--press-depth); box-shadow: var(--bevel-pressed), var(--shadow-pixel-pressed); }

@@ -257,6 +257,8 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
   const light = useGardenLight(now, state?.moonflower_open);
   // Large text can make the header sign taller; the tools hang below it.
   const hud = usePublishedHeight<HTMLElement>("--hud-height", "parent");
+  // The open "While you were away" card; the Today card makes room for it.
+  const [awayCard, setAwayCard] = useState<HTMLElement | null>(null);
   if (!state)
     return (
       <div className={`${styles.garden} ${styles.fallback}`}>
@@ -298,7 +300,7 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
             {gardenDayLabel(state.garden_day)}
           </span>
           <span className={styles.clockTime}>
-            <span>Pacific · <strong suppressHydrationWarning>{pacificTime(now)}</strong></span>
+            <span>Pacific <span className={styles.clockNow}>· <strong suppressHydrationWarning>{pacificTime(now)}</strong></span></span>
             <span>{remaining > 0 ? `New day in ${hours}h ${minutes}m` : "Refreshing day…"}</span>
           </span>
         </div>
@@ -320,7 +322,7 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
       </div>
       <SpotNotice {...spotRequest} />
       <div className={styles.guide}><GardenGuide state={state} paused={busy || !!error} visit={setOpenSpot} actionOpen={openSpot !== null} enabled={guideEnabled} focusGarden={focusGarden} closedRequest={guideClosedRequest} onClosedRequestChange={setGuideClosedRequest} /></div>
-      <SinceLastVisit state={state} openSpot={setOpenSpot} focusGarden={focusGarden} quiet={openSpot !== null} hold={guideUp} ownResult={own.result} />
+      <SinceLastVisit state={state} openSpot={setOpenSpot} focusGarden={focusGarden} quiet={openSpot !== null} hold={guideUp} ownResult={own.result} onCard={setAwayCard} />
       <div className={styles.workspace}>
         <section className={styles.beds} aria-label="Your flower beds">
           {error && (
@@ -367,7 +369,7 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
           ))}
         </section>
       </div>
-      <TodayCard state={state} visit={visitFromCard} />
+      <TodayCard state={state} visit={visitFromCard} away={awayCard} />
       <GardenAmbience light={light} />
     </div>
   );

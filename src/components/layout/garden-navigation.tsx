@@ -48,8 +48,11 @@ export function GardenNavigation({ current }: { current: GardenDestination }) {
   // With large text the four labels no longer fit on one shelf, so the slots
   // wrap into two rows of two (issue #135). The measured height then replaces
   // the stylesheet's one-row --hotbar-height, so everything that clears the
-  // hotbar still does.
-  const [twoRows, setTwoRows] = useState(false);
+  // hotbar still does. Until the first measurement `rows` is null and a CSS
+  // estimate picks the arrangement, so the first paint is already right
+  // (issue #137).
+  const [rows, setRows] = useState<1 | 2 | null>(null);
+  const twoRows = rows === 2;
   const publish = usePublishedHeight<HTMLDivElement>("--hotbar-height", "root", twoRows);
   const ref = useCallback((element: HTMLDivElement | null) => {
     setBar(element);
@@ -60,7 +63,7 @@ export function GardenNavigation({ current }: { current: GardenDestination }) {
     let frame = 0;
     const check = () => {
       cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => setTwoRows(!fitsOneRow(bar)));
+      frame = requestAnimationFrame(() => setRows(fitsOneRow(bar) ? 1 : 2));
     };
     check();
     const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(check);
@@ -76,7 +79,7 @@ export function GardenNavigation({ current }: { current: GardenDestination }) {
     <div
       ref={ref}
       className="garden-navigation"
-      data-rows={twoRows ? 2 : undefined}
+      data-rows={rows ?? undefined}
     >
       <nav aria-label="Garden" className="garden-primary-nav">
         {destinations.map(({ id, label, href, icon }) => (
