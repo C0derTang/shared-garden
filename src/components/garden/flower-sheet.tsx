@@ -21,6 +21,8 @@ import { PhotoViewer } from "@/components/media/photo-viewer";
 import { DandelionWish } from "./dandelion-wish";
 import { PeonyPanel } from "./peony-panel";
 import { EntryForm } from "./entry-form";
+import { careStatus } from "./due-today";
+import { SheetCue } from "./today-card";
 import type { Mutate } from "./seed-picker";
 import styles from "./garden.module.css";
 import sheetStyles from "./flower-sheet.module.css";
@@ -225,6 +227,7 @@ export function FlowerSheet({
             max={item.growth_target}
             aria-label={`${item.display_name} progress`}
           />
+          <SheetCue status={careStatus(plant, item, state)} />
         </div>
       </div>
       <details className={sheetStyles.details}>

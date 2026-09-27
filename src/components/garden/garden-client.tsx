@@ -16,6 +16,8 @@ import { FlowerSprite } from "./flower-sprite";
 import { FlowerSheet } from "./flower-sheet";
 import { HelpDisclosure } from "./help-disclosure";
 import { SeedPicker, type Mutate } from "./seed-picker";
+import { careStatus, cueLabel } from "./due-today";
+import { FlowerCueMark, TodayCard, yourDotCue, type VisitFromCard } from "./today-card";
 import styles from "./garden.module.css";
 
 // Short weekday and date for the clock plate, from the YYYY-MM-DD garden day.
@@ -84,6 +86,7 @@ function GardenSpot({
   mutate,
   open,
   setOpen,
+  onCloseAutoFocus,
 }: {
   spot: number;
   plant?: Plant;
@@ -94,6 +97,7 @@ function GardenSpot({
   mutate: Mutate;
   open: boolean;
   setOpen: (open: boolean) => void;
+  onCloseAutoFocus: (event: Event) => void;
 }) {
   const [picking, setPicking] = useState(!plant);
   // Reopening after a successful plant must show the new flower’s care sheet.
@@ -103,6 +107,7 @@ function GardenSpot({
   const cared = plant
     ? Number(plant.member1_submitted) + Number(plant.member2_submitted)
     : 0;
+  const cue = plant && item ? careStatus(plant, item, state)?.cue ?? null : null;
   return (
     <div
       className={styles.spot}
@@ -124,12 +129,13 @@ function GardenSpot({
             : "Every seed has its own small ritual."
         }
         hideDescription={!!plant}
+        onCloseAutoFocus={onCloseAutoFocus}
         trigger={
           <button
             className={plant ? styles.flowerButton : styles.emptyButton}
             aria-label={
               plant
-                ? `${item!.display_name}, spot ${spot}, ${plant.flower.fulfilled_at ? "fulfilled wish" : bloom ? "permanent bloom" : `${plant.flower.growth_units} of ${item!.growth_target} ${plant.flower.type_key === "peony" ? "milestones" : "growth units"}`}${plant.flower.type_key === "peony" ? "" : `, ${cared} of 2 cared today`}`
+                ? `${item!.display_name}, spot ${spot}, ${plant.flower.fulfilled_at ? "fulfilled wish" : bloom ? "permanent bloom" : `${plant.flower.growth_units} of ${item!.growth_target} ${plant.flower.type_key === "peony" ? "milestones" : "growth units"}`}${plant.flower.type_key === "peony" ? "" : `, ${cared} of 2 cared today`}${cueLabel(cue)}`
                 : `Plant in spot ${spot}`
             }
           >
@@ -155,6 +161,7 @@ function GardenSpot({
                   (!bloom || plant.flower.type_key === "cactus") && (
                     <span className={styles.miniMarkers} aria-hidden="true">
                       <i
+                        className={cue === "partner-cared" ? yourDotCue : undefined}
                         data-cared={
                           state.member_id === 1
                             ? plant.member1_submitted
@@ -170,6 +177,7 @@ function GardenSpot({
                       />
                     </span>
                   )}
+                <FlowerCueMark cue={cue} />
               </>
             ) : <span className={styles.emptyMark} aria-hidden="true" />}
           </button>
@@ -194,6 +202,17 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
   const [openSpot, setOpenSpot] = useState<number | null>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   const focusGarden = useCallback(() => heading.current?.focus(), []);
+  // A sheet opened from the Today card returns focus to the card on close.
+  const restoreFocus = useRef<(() => boolean) | null>(null);
+  const visitFromCard = useCallback<VisitFromCard>((spot, restore) => {
+    restoreFocus.current = restore;
+    setOpenSpot(spot);
+  }, []);
+  const closeAutoFocus = useCallback((event: Event) => {
+    const restore = restoreFocus.current;
+    restoreFocus.current = null;
+    if (restore?.()) event.preventDefault();
+  }, []);
   const { state, now, error, connected, busy, refresh, mutate } =
     useGarden(initial);
   if (!state)
@@ -250,6 +269,7 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
             <p>Garden day {state.garden_day} · starts 4 a.m. Pacific.</p>
             <p>{state.moonflower_open ? "Moonflower · open until 4 a.m." : "Moonflower · 10 p.m.–4 a.m. Pacific"}</p>
             <p>Dots · you left, partner right; filled means cared today.</p>
+            <p>A pulsing dot · your partner cared. Sparkle · blooms at 4 a.m. Empty drop · may lose growth.</p>
             <p>{connected ? "Live updates on" : "Checking updates…"}</p>
             <button type="button" className={styles.refreshButton} onClick={() => void refresh()} disabled={busy}>Refresh</button>
           </div>
@@ -278,7 +298,12 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
                   <GardenSpot
                     key={spot}
                     open={openSpot === spot}
-                    setOpen={(open) => setOpenSpot(open ? spot : null)}
+                    setOpen={(open) => {
+                      // Opening a flower directly keeps Radix's return to it.
+                      if (open) restoreFocus.current = null;
+                      setOpenSpot(open ? spot : null);
+                    }}
+                    onCloseAutoFocus={closeAutoFocus}
                     {...{
                       spot,
                       plant,
@@ -297,6 +322,7 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
           ))}
         </section>
       </div>
+      <TodayCard state={state} visit={visitFromCard} />
     </div>
   );
 }
