@@ -5,10 +5,30 @@ import { guideStep } from "@/lib/settings/model";
 import type { GardenState } from "@/lib/garden/model";
 import { useSheetScope } from "@/components/ui/sheet-scope";
 import { useMemberPreferences } from "./member-preferences";
-import { bubbleGutter, placeBubble, type Placement, type Rect } from "./guide-placement";
+import { bubbleGutter, chooseScroll, placeBubble, type Placement, type Rect } from "./guide-placement";
 import styles from "./guide.module.css";
 
 type Layout = { key: string; target: Rect | null; placement: Placement };
+
+/** The bands the guide uses: the bubble stays below the garden header (which
+    scrolls with the garden) and above the hotbar; the lit flower also stays
+    above the Today card, which the bubble may cover while it is dimmed. */
+function safeBand() {
+  const header = document.querySelector("#main-content header")?.getBoundingClientRect();
+  const top = (element: Element | null | undefined) => {
+    const rect = element?.getBoundingClientRect();
+    return rect && rect.height > 0 ? rect.top : window.innerHeight;
+  };
+  const hotbar = top(document.querySelector(".garden-navigation"));
+  const today = top(document.querySelector('[data-today-focus="title"]')?.closest("section"));
+  const headerBottom = header && header.height > 0 ? header.bottom : 0;
+  return {
+    headerBottom,
+    safeTop: Math.max(0, headerBottom) + bubbleGutter,
+    safeBottom: hotbar - bubbleGutter,
+    flowerBottom: Math.min(hotbar, today) - bubbleGutter,
+  };
+}
 
 export function GardenGuide({ state, paused, visit, focusGarden, actionOpen = false, enabled = true }: {
   state: GardenState; paused: boolean; visit: (spot: number) => void;
@@ -37,12 +57,14 @@ export function GardenGuide({ state, paused, visit, focusGarden, actionOpen = fa
   const spot = "spot" in step ? step.spot : null;
   const layoutKey = `${step.kind}:${spot ?? ""}`;
   // Follow the real flower on screen and fit the whole bubble between the
-  // garden header and the hotbar. The garden is scrolled once so the target
-  // spot is in view; layout, content and resize changes re-measure.
+  // garden header and the hotbar or Today card. Opening may scroll the garden
+  // once (chooseScroll); layout, content and resize changes re-measure.
   useEffect(() => {
     if (!visible) return;
     const target = () => spot === null ? null : document.querySelector<HTMLElement>(`[data-spot="${spot}"]`);
-    target()?.scrollIntoView?.({ block: "center", inline: "nearest" });
+    // The first measurement of each opening may scroll the garden once, so the
+    // flower lands where the bubble fits beside it; later ones only follow it.
+    let scrolled = false;
     let frame = 0;
     const measure = () => {
       cancelAnimationFrame(frame);
@@ -51,11 +73,18 @@ export function GardenGuide({ state, paused, visit, focusGarden, actionOpen = fa
         const box = rect && rect.width > 0 && rect.height > 0 ? { left: rect.left, top: rect.top, width: rect.width, height: rect.height } : null;
         const frameHeight = (bubble.current?.offsetHeight ?? 0) - (body.current?.clientHeight ?? 0);
         const bubbleHeight = frameHeight + (body.current?.scrollHeight ?? 0);
-        const header = document.querySelector("#main-content header")?.getBoundingClientRect();
-        const hotbar = document.querySelector(".garden-navigation")?.getBoundingClientRect();
-        const safeTop = Math.max(header && header.height > 0 ? header.bottom : 0, 0) + bubbleGutter;
-        const safeBottom = (hotbar && hotbar.height > 0 ? hotbar.top : window.innerHeight) - bubbleGutter;
-        setLayout({ key: layoutKey, target: box, placement: placeBubble({ target: box, bubbleHeight, viewWidth: window.innerWidth, viewHeight: window.innerHeight, safeTop, safeBottom }) });
+        const input = { target: box, bubbleHeight, viewWidth: window.innerWidth, viewHeight: window.innerHeight, ...safeBand() };
+        if (!scrolled && box) {
+          scrolled = true;
+          const page = document.scrollingElement ?? document.documentElement;
+          const choice = chooseScroll({ ...input, minDelta: -page.scrollTop, maxDelta: Math.max(0, page.scrollHeight - window.innerHeight - page.scrollTop) });
+          if (choice.delta) {
+            // The scroll listener measures again at the new position.
+            window.scrollBy({ top: choice.delta, behavior: "instant" });
+            return;
+          }
+        }
+        setLayout({ key: layoutKey, target: box, placement: placeBubble(input) });
       });
     };
     measure();

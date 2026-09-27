@@ -25,25 +25,32 @@ is talking about:
   it, so it stays a still ring.
 - **Bubble.** A parchment bubble in the wood frame with a stepped pixel pointer
   opens next to the spot. It is at most 340px wide with a 12px gutter. Its
-  placement uses the bubble's measured full height and the band between the
-  garden header and the hotbar, both measured on screen. The bubble opens below
-  the spot or above it (toward the roomier half when both fit), then to the
-  right or left of it, on the first side where the whole bubble fits in that
-  band without covering the flower. When no side fits, it docks at the bottom
-  of the band, clear of the header and hotbar, and may cover part of the
-  flower. Only when enlarged text is taller than the whole band does the
-  bubble's body scroll. The × stays on the frame, outside that scroller. On
-  screens up to 600px tall (a phone on its side, or a short phone), the primary
-  action and Skip share a row and the padding tightens. At default text size
-  the title, primary action and Skip or Finish then show in full at 320×568,
-  390×844, 844×390 and 1280×800 on every step. When the guide opens, the garden
-  scrolls the target spot into view once, without smooth scrolling. The bubble
-  re-measures on resize, scroll, and size changes of the target, the bubble
-  content or the page. A reopened guide measures afresh: until its first
-  measurement the bubble is laid out invisibly (still focusable), so it never
-  shows a stale position. If the spot cannot be measured, the bubble docks with
-  no spotlight. Steps with no spot (the final card and "Grow at your own pace")
-  also dock.
+  placement uses the bubble's measured full height. The bubble must stay
+  between the visible garden header and the hotbar. The lit flower must also
+  stay above the Today card. While the guide is open the Today card is dimmed
+  and inert, so the bubble may cover it. The bubble opens below the flower or
+  above it (toward the roomier half when both fit), then to the right or left,
+  on the first side where the whole bubble fits without covering the flower.
+  The scroll position is chosen together with the side. When the guide opens,
+  it keeps the current view if a side already fits with the whole flower in
+  view. Otherwise it scrolls the garden once, instantly, by the smallest amount
+  that makes a side fit. The target is the flower at the top of the band with
+  the bubble below, at its bottom with the bubble above, or centered beside
+  it. The header scrolls away with the garden, so the room it frees counts. A
+  flower reaching under the hotbar or the Today card counts as not fitting.
+  Only when no scroll position works (in practice, only the final card and
+  "Grow at your own pace", which have no flower) does the bubble dock at the
+  bottom of the band. Only when enlarged text is taller than the whole band
+  does the bubble's body scroll. The × stays on the frame, outside that
+  scroller. On screens up to 600px tall the primary action and Skip share a
+  row and the padding tightens. At default text size the title, primary action
+  and Skip or Finish then show in full, with the flower uncovered, at 390×664,
+  375×667, 320×568, 390×844, 844×390 and 1280×800 on every step, in Chromium
+  and WebKit. The bubble re-measures on resize, scroll, and size changes of the
+  target, the bubble content or the page. A reopened guide measures afresh:
+  until it is placed, the bubble is laid out invisibly (still focusable), so it
+  never shows a stale position. If the spot cannot be measured, the bubble
+  docks with no spotlight.
 - **Copy.** A short heading names the action: "Tap your Cactus to say hello",
   "Tap bare soil to plant a Rose", "Tap your Rose to leave a note", or "Your
   Rose is in bloom". One line of description follows. A "Garden guide" row
