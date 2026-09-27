@@ -84,6 +84,7 @@ function GardenSpot({
   mutate,
   open,
   setOpen,
+  visit,
 }: {
   spot: number;
   plant?: Plant;
@@ -94,6 +95,7 @@ function GardenSpot({
   mutate: Mutate;
   open: boolean;
   setOpen: (open: boolean) => void;
+  visit: (spot: number) => void;
 }) {
   const [picking, setPicking] = useState(!plant);
   // Reopening after a successful plant must show the new flower’s care sheet.
@@ -179,6 +181,8 @@ function GardenSpot({
           (!picking && plant ? (
             <FlowerSheet
               {...{ plant, state, item: item!, now, busy, mutate }}
+              onVisit={visit}
+              onClose={() => setOpen(false)}
             />
           ) : (
             <SeedPicker
@@ -279,6 +283,7 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
                     key={spot}
                     open={openSpot === spot}
                     setOpen={(open) => setOpenSpot(open ? spot : null)}
+                    visit={setOpenSpot}
                     {...{
                       spot,
                       plant,

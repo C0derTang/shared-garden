@@ -53,7 +53,7 @@ it("uses the existing Rose and keeps its active draft through partner updates", 
   const next = structuredClone(state); next.server_now = "2026-09-18T17:00:01Z"; next.plants[1].member1_submitted = true;
   refreshGarden.mockResolvedValue({ state: next, error: null });
   fireEvent.focus(window);
-  await screen.findByText("Partner · cared today");
+  await waitFor(() => expect(screen.getByRole("article", { name: "Partner" })).toHaveTextContent("Cared today"));
   expect(screen.getByRole("textbox")).toHaveValue("Keep my note");
   expect(mutateGarden).not.toHaveBeenCalled();
 });

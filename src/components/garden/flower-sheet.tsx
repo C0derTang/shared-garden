@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import {
   canEditAt,
   moods,
@@ -21,6 +21,7 @@ import { PhotoViewer } from "@/components/media/photo-viewer";
 import { DandelionWish } from "./dandelion-wish";
 import { PeonyPanel } from "./peony-panel";
 import { EntryForm } from "./entry-form";
+import { flowerCards, nextDueFlower, type FlowerCard } from "./flower-cards";
 import type { Mutate } from "./seed-picker";
 import styles from "./garden.module.css";
 import sheetStyles from "./flower-sheet.module.css";
@@ -63,28 +64,114 @@ function EntryContent({ entry, type }: { entry: Entry; type: string }) {
     </p>
   );
 }
-export function CareMarkers({
-  plant,
-  memberId,
-}: {
-  plant: Plant;
-  memberId: 1 | 2;
-}) {
-  const you =
-    memberId === 1 ? plant.member1_submitted : plant.member2_submitted;
-  const partner =
-    memberId === 1 ? plant.member2_submitted : plant.member1_submitted;
+function GrowthSummary({ plant, item }: { plant: Plant; item: CatalogItem }) {
+  const flower = plant.flower;
+  const bloomed = flower.first_bloom_at !== null;
+  const type = item.type_key;
+  const target = item.growth_target;
+  const units = Math.min(flower.growth_units, target);
+  const filled = bloomed ? target : units;
+  const unit = type === "peony" ? "milestones" : "growth units";
+  const line = flower.fulfilled_at
+    ? "Wish fulfilled · a keepsake"
+    : bloomed
+      ? type === "cactus"
+        ? "In bloom · check-ins continue"
+        : "In bloom · permanent"
+      : type === "peony"
+        ? `${units} of ${target} milestones`
+        : null;
   return (
-    <div className={styles.markers}>
-      <span data-cared={you}>
-        {you ? "●" : "○"}{" "}
-        <span>You · {you ? "cared today" : "not yet today"}</span>
+    <div className={sheetStyles.summary}>
+      <span className={sheetStyles.spriteSlot}>
+        <FlowerSprite
+          {...(type === "dandelion"
+            ? { type: "dandelion" as const, fulfilled: !!flower.fulfilled_at }
+            : { type })}
+          growthUnits={flower.growth_units}
+          growthTarget={target}
+          bloomed={bloomed}
+          size={64}
+        />
       </span>
-      <span data-cared={partner}>
-        {partner ? "●" : "○"}{" "}
-        <span>Partner · {partner ? "cared today" : "not yet today"}</span>
-      </span>
+      <div className={sheetStyles.growth}>
+        <p className={sheetStyles.growthLine}>
+          {line ? (
+            <strong>{line}</strong>
+          ) : (
+            <>
+              <strong>
+                {units} of {target}
+              </strong>
+              <span>
+                {" · "}+1 at 4 a.m. when you both{" "}
+                {type === "cactus" ? "check in" : "care"}
+              </span>
+            </>
+          )}
+        </p>
+        <div
+          className={sheetStyles.segments}
+          data-bloomed={bloomed}
+          role="progressbar"
+          aria-label={`${item.display_name} progress`}
+          aria-valuemin={0}
+          aria-valuemax={target}
+          aria-valuenow={bloomed ? target : units}
+          aria-valuetext={
+            bloomed ? "In bloom" : `${units} of ${target} ${unit}`
+          }
+        >
+          {Array.from({ length: target }, (_, index) => (
+            <i key={index} data-filled={index < filled} />
+          ))}
+        </div>
+      </div>
     </div>
+  );
+}
+function CareCard({
+  card,
+  dailyCare,
+  children,
+}: {
+  card: FlowerCard;
+  dailyCare: boolean;
+  children: ReactNode;
+}) {
+  const id = useId();
+  const you = card.who === "you";
+  const status = card.cared
+    ? "Cared today"
+    : you
+      ? "Your turn"
+      : "Not yet today";
+  return (
+    <article
+      className={sheetStyles.card}
+      data-who={card.who}
+      aria-labelledby={id}
+    >
+      <header className={sheetStyles.cardHead}>
+        {dailyCare && (
+          <span
+            className={sheetStyles.cardDot}
+            data-cared={card.cared}
+            aria-hidden="true"
+          />
+        )}
+        <h4 id={id}>{you ? "You" : "Partner"}</h4>
+        {dailyCare && (
+          <span
+            className={sheetStyles.cardStatus}
+            data-tone={card.cared ? "cared" : you ? "turn" : "waiting"}
+          >
+            {status}
+          </span>
+        )}
+      </header>
+      {children}
+    </article>
   );
 }
 export function FlowerSheet({
@@ -94,6 +181,8 @@ export function FlowerSheet({
   now,
   busy,
   mutate,
+  onVisit,
+  onClose,
 }: {
   plant: Plant;
   state: GardenState;
@@ -101,9 +190,14 @@ export function FlowerSheet({
   now: number;
   busy: boolean;
   mutate: Mutate;
+  /** Opens another spot's sheet (the garden's `setOpenSpot`). */
+  onVisit?: (spot: number) => void;
+  onClose?: () => void;
 }) {
   const [editing, setEditing] = useState<Entry | null>(null);
-  const [saved, setSaved] = useState(false);
+  // "share" after a new entry (offers the next flower), "edit" after an edit.
+  const [saved, setSaved] = useState<"share" | "edit" | null>(null);
+  const nextAction = useRef<HTMLButtonElement>(null);
   const [historyPage, setHistoryPage] = useState<{
     day: string;
     entries: Entry[];
@@ -158,6 +252,7 @@ export function FlowerSheet({
   const own = plant.entries.find(
     (entry) => entry.author_id === state.member_id,
   );
+  const cards = flowerCards(plant, state.member_id, !ordinaryDone);
   const mediaFlower =
     item.type_key === "sunflower" || item.type_key === "bluebell";
   const MediaForm = item.type_key === "bluebell" ? VoiceForm : PhotoForm;
@@ -201,32 +296,77 @@ export function FlowerSheet({
       setHistoryBusy(false);
     }
   }
+  // After a new share, carry focus to the next step so the round keeps flowing.
+  useEffect(() => {
+    if (saved === "share") nextAction.current?.focus();
+  }, [saved]);
+  const next = saved === "share" ? nextDueFlower(state, flower.spot) : null;
+  const nextItem = next
+    ? state.catalog.find((c) => c.type_key === next.flower.type_key)
+    : undefined;
+  // Side by side only when both cards are short read-only notes.
+  const sideBySide =
+    cards.length === 2 &&
+    !editing &&
+    !!own &&
+    !mediaFlower &&
+    item.type_key !== "tulip";
+  const newShare = mediaFlower ? (
+    <MediaForm
+      {...{ plant, state, now, busy, mutate }}
+      onSaved={() => setSaved("share")}
+    />
+  ) : (
+    <EntryForm
+      {...{ plant, state, item, now, busy, mutate }}
+      unavailable={
+        moonClosed
+          ? "Moonflower opens from 10 p.m. to 4 a.m. Pacific. You can keep a draft here, then share it during the open window."
+          : undefined
+      }
+      onSaved={() => setSaved("share")}
+    />
+  );
+  function todayEntry(entry: Entry) {
+    const mine = entry.author_id === state.member_id;
+    return (
+      <div className={sheetStyles.cardEntry} key={entry.id}>
+        <time
+          className={sheetStyles.entryTime}
+          dateTime={entry.original_posted_at}
+        >
+          {pacificTime(entry.original_posted_at)}
+        </time>
+        <EntryContent entry={entry} type={item.type_key} />
+        {mine &&
+          (canEditAt(entry, state, now) ? (
+            <div className={styles.editRow}>
+              <small>
+                Edit {entry.edit_deadline_inclusive ? "until" : "before"}{" "}
+                {pacificTime(entry.edit_deadline!)} · Original time stays the
+                same.
+              </small>
+              {editing?.id !== entry.id && (
+                <button
+                  className="button button-secondary"
+                  onClick={() => {
+                    setEditing(entry);
+                    setSaved(null);
+                  }}
+                >
+                  Edit your entry
+                </button>
+              )}
+            </div>
+          ) : (
+            <small className={styles.quiet}>Edit window ended</small>
+          ))}
+      </div>
+    );
+  }
   return (
     <div className={`${styles.stack} ${sheetStyles.sheet}`}>
-      <div className={`${styles.flowerSummary} ${sheetStyles.summary}`}>
-        <FlowerSprite
-          {...(item.type_key === "dandelion"
-            ? { type: "dandelion" as const, fulfilled: !!flower.fulfilled_at }
-            : { type: item.type_key })}
-          growthUnits={flower.growth_units}
-          growthTarget={item.growth_target}
-          bloomed={bloomed}
-          size={64}
-        />
-        <div>
-          {!bloomed && (
-            <strong>
-              {flower.growth_units} of {item.growth_target}{" "}
-              {item.type_key === "peony" ? "milestones" : "growth units"}
-            </strong>
-          )}
-          <progress
-            value={flower.growth_units}
-            max={item.growth_target}
-            aria-label={`${item.display_name} progress`}
-          />
-        </div>
-      </div>
+      <GrowthSummary plant={plant} item={item} />
       <details className={sheetStyles.details}>
         <summary>Details</summary>
         <div>
@@ -255,9 +395,6 @@ export function FlowerSheet({
         />
       ) : (
         <>
-          {!ordinaryDone && (
-            <CareMarkers plant={plant} memberId={state.member_id} />
-          )}
           {item.type_key === "tulip" && (
             <Link href="/garden/songs">Our song collection</Link>
           )}
@@ -290,106 +427,96 @@ export function FlowerSheet({
               </p>
             </div>
           )}
-          {plant.entries.length > 0 && (
-            <section className={styles.stack} aria-label="Today's entries">
-              <h3>Today</h3>
-              {plant.entries.map((entry) => (
-                <article className={styles.entry} key={entry.id}>
-                  <div className={styles.entryMeta}>
-                    <strong>
-                      {entry.author_id === state.member_id
-                        ? "You"
-                        : "Your partner"}
-                    </strong>
-                    <time dateTime={entry.original_posted_at}>
-                      {pacificTime(entry.original_posted_at)}
-                    </time>
-                  </div>
-                  <EntryContent entry={entry} type={item.type_key} />
-                  {canEditAt(entry, state, now) ? (
-                    <div className={styles.editRow}>
-                      <small>
-                        Edit {entry.edit_deadline_inclusive ? "until" : "before"}{" "}
-                        {pacificTime(entry.edit_deadline!)} · Original time stays
-                        the same.
-                      </small>
-                      <button
-                        className="button button-secondary"
-                        onClick={() => {
-                          setEditing(entry);
-                          setSaved(false);
+          {cards.length > 0 && (
+            <section className={sheetStyles.today} aria-label="Today's entries">
+              <h3 className={sheetStyles.sectionTitle}>Today</h3>
+              <div
+                className={sheetStyles.cards}
+                data-layout={sideBySide ? "pair" : "stack"}
+              >
+                {cards.map((card) => (
+                  <CareCard key={card.who} card={card} dailyCare={!ordinaryDone}>
+                    {card.entries.map(todayEntry)}
+                    {card.who === "partner" ? (
+                      card.entries.length === 0 && (
+                        <p className={sheetStyles.placeholder}>
+                          {card.cared
+                            ? "Shared today."
+                            : "Their care shows up here as soon as they share."}
+                        </p>
+                      )
+                    ) : editing && mediaFlower ? (
+                      <MediaForm
+                        key={editing.id}
+                        {...{ plant, state, now, busy, mutate, editing }}
+                        onSaved={() => {
+                          setEditing(null);
+                          setHistoryPage(null);
+                          setSaved("edit");
                         }}
-                      >
-                        Edit your entry
-                      </button>
-                    </div>
-                  ) : (
-                    <small className={styles.quiet}>
-                      Read-only
-                      {entry.author_id === state.member_id
-                        ? " · Edit window ended"
-                        : " · Your partner’s entry"}
-                    </small>
-                  )}
-                </article>
-              ))}
+                        onCancel={() => setEditing(null)}
+                      />
+                    ) : editing ? (
+                      <EntryForm
+                        key={editing.id}
+                        {...{ plant, state, item, now, busy, mutate, editing }}
+                        onSaved={() => {
+                          setEditing(null);
+                          setSaved("edit");
+                        }}
+                        onCancel={() => setEditing(null)}
+                      />
+                    ) : ordinaryDone || own ? null : (
+                      newShare
+                    )}
+                  </CareCard>
+                ))}
+              </div>
             </section>
           )}
           {saved && (
-            <p role="status" className={styles.notice}>
-              Your care is saved and visible to your partner.
-            </p>
-          )}
-          {editing && mediaFlower ? (
-            <MediaForm
-              key={editing.id}
-              {...{ plant, state, now, busy, mutate, editing }}
-              onSaved={() => {
-                setEditing(null);
-                setHistoryPage(null);
-                setSaved(true);
-              }}
-              onCancel={() => setEditing(null)}
-            />
-          ) : editing ? (
-            <EntryForm
-              key={editing.id}
-              {...{ plant, state, item, now, busy, mutate, editing }}
-              onSaved={() => {
-                setEditing(null);
-                setSaved(true);
-              }}
-              onCancel={() => setEditing(null)}
-            />
-          ) : ordinaryDone ? null : own ? (
-            <p className={styles.quiet}>
-              Your care for this garden day is already here.
-              {item.type_key === "cactus"
-                ? " Come back tomorrow for another check-in."
-                : " When both of you contribute, growth settles at 4 a.m."}
-            </p>
-          ) : mediaFlower ? (
-            <MediaForm
-              {...{ plant, state, now, busy, mutate }}
-              onSaved={() => setSaved(true)}
-            />
-          ) : (
-            <EntryForm
-              {...{ plant, state, item, now, busy, mutate }}
-              unavailable={
-                moonClosed
-                  ? "Moonflower opens from 10 p.m. to 4 a.m. Pacific. You can keep a draft here, then share it during the open window."
-                  : undefined
-              }
-              onSaved={() => setSaved(true)}
-            />
+            <div className={sheetStyles.saved}>
+              <p role="status" className={styles.notice}>
+                Saved · your partner can see it now.
+              </p>
+              {saved === "share" &&
+                (next && nextItem && onVisit ? (
+                  <button
+                    ref={nextAction}
+                    type="button"
+                    className="button button-primary"
+                    onClick={() => onVisit(next.flower.spot)}
+                  >
+                    Next: {nextItem.display_name}{" "}
+                    <span aria-hidden="true">→</span>
+                  </button>
+                ) : !next ? (
+                  <div className={sheetStyles.doneRow}>
+                    <p className={sheetStyles.doneLine}>
+                      That’s everything for today{" "}
+                      <span aria-hidden="true">✿</span>
+                    </p>
+                    {onClose && (
+                      <button
+                        ref={nextAction}
+                        type="button"
+                        className="button button-secondary"
+                        aria-label="Close and return to the garden"
+                        onClick={onClose}
+                      >
+                        Close
+                      </button>
+                    )}
+                  </div>
+                ) : null)}
+            </div>
           )}
           <section
             className={`${styles.history} ${sheetStyles.history}`}
             aria-label="Flower history"
           >
             {history?.map((entry) => (
-              <article className={styles.entry} key={entry.id}>
+              <article className={sheetStyles.historyEntry} key={entry.id}>
                 <div className={styles.entryMeta}>
                   <strong>
                     {entry.author_id === state.member_id
