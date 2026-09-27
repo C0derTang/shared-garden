@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useCallback, useRef, useState } from "react";
 import { GardenGuide } from "@/components/settings/garden-guide";
+import { useMemberPreferences } from "@/components/settings/member-preferences";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { PixelIcon } from "@/components/ui/pixel-icon";
 import {
@@ -218,8 +219,11 @@ function GardenSpot({
 }
 export function GardenClient({ initial, guideEnabled = true }: { initial: GardenResult; guideEnabled?: boolean }) {
   const [openSpot, setOpenSpot] = useState<number | null>(null);
-  // The away card waits while the guide is up (decision 0056).
-  const [guideUp, setGuideUp] = useState(false);
+  // The away card waits while the guide is up (decision 0056). The first
+  // render already knows: the guide requests the screen whenever it is open,
+  // enabled and not yet closed for now. Its reports then keep this current.
+  const preferences = useMemberPreferences();
+  const [guideUp, setGuideUp] = useState(() => guideEnabled && preferences?.state?.guide === "open");
   const heading = useRef<HTMLHeadingElement>(null);
   const focusGarden = useCallback(() => heading.current?.focus(), []);
   // A sheet opened from the Today card returns focus to the card on close.

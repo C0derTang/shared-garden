@@ -107,23 +107,44 @@ describe("While you were away", () => {
     expect(view.openSpot).toHaveBeenLastCalledWith(3);
   });
 
-  it("holds the card while the garden guide is open and shows the same news once it closes", async () => {
+  it("keeps held news through a reload with the guide open, shows it once after the guide closes, and never again", async () => {
     await visit(garden());
     const next = garden((s) => {
       s.plants[1].flower.first_bloom_at = "2026-09-19T11:00:00Z";
       s.plants[2].member2_submitted = true;
     });
-    const props = { state: next, openSpot: vi.fn(), focusGarden: vi.fn(), loadAchievements: vi.fn(async () => achievements([firstSeed])) };
-    const view = render(<SinceLastVisit {...props} hold />);
-    await waitFor(() => expect(props.loadAchievements).toHaveBeenCalled());
-    // The snapshot still advances, but nothing is shown or announced.
-    await waitFor(() => expect(JSON.parse(localStorage.getItem(key)!).blooms).toContain("rose-1"));
-    expect(screen.queryByRole("region", { name: "While you were away" })).not.toBeInTheDocument();
+    const before = localStorage.getItem(key);
+    const props = () => ({ state: next, openSpot: vi.fn(), focusGarden: vi.fn(), loadAchievements: vi.fn(async () => achievements([firstSeed])) });
+    const card = () => screen.queryByRole("region", { name: "While you were away" });
+    // Guide open: nothing shows, and the stored snapshot does not advance.
+    const first = props();
+    const held = render(<SinceLastVisit {...first} hold />);
+    await waitFor(() => expect(first.loadAchievements).toHaveBeenCalled());
+    await act(async () => {});
+    expect(card()).not.toBeInTheDocument();
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
-    view.rerender(<SinceLastVisit {...props} hold={false} />);
-    const card = await screen.findByRole("region", { name: "While you were away" });
-    expect(card).toHaveTextContent("Your Rose bloomed");
-    expect(card).toHaveTextContent("Your partner cared for Tulip");
+    expect(localStorage.getItem(key)).toBe(before);
+    // A reload with the guide still open.
+    held.unmount();
+    const second = props();
+    const reloaded = render(<SinceLastVisit {...second} hold />);
+    await waitFor(() => expect(second.loadAchievements).toHaveBeenCalled());
+    await act(async () => {});
+    expect(card()).not.toBeInTheDocument();
+    expect(localStorage.getItem(key)).toBe(before);
+    // The guide closes: the news shows once, and the snapshot advances.
+    reloaded.rerender(<SinceLastVisit {...second} hold={false} />);
+    const shown = await screen.findByRole("region", { name: "While you were away" });
+    expect(shown).toHaveTextContent("Your Rose bloomed");
+    expect(shown).toHaveTextContent("Your partner cared for Tulip");
+    await waitFor(() => expect(JSON.parse(localStorage.getItem(key)!).blooms).toContain("rose-1"));
+    // Another reload after that shows nothing again.
+    reloaded.unmount();
+    const third = props();
+    render(<SinceLastVisit {...third} />);
+    await waitFor(() => expect(third.loadAchievements).toHaveBeenCalled());
+    await act(async () => {});
+    expect(card()).not.toBeInTheDocument();
   });
 
   it("dismisses, returns focus to the garden, and does not celebrate the same news again", async () => {

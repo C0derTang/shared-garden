@@ -160,6 +160,11 @@ export function SinceLastVisit({
       return;
     }
     const silent = quiet || state === ownResult;
+    // While the guide holds the card, news from elsewhere stays in the stored
+    // snapshot's diff: nothing advances, so a reload or a later day with the
+    // guide still open loses nothing. The viewer's own actions still only
+    // move the snapshot, as below.
+    if (hold && !silent) return;
     // A change that could earn a badge arrived with the viewer's own action.
     if (silent && lastSignature.current !== null && lastSignature.current !== signature)
       pendingSince.current = ++generation.current;

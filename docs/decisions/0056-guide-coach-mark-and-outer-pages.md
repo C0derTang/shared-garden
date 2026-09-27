@@ -83,8 +83,11 @@ is talking about:
 
 **Away card waits.** While the guide wants to be on screen, the "While you
 were away" card ([decision 0054](0054-while-you-were-away.md)) waits. It sits
-over the top of the garden, where it would hide the lit flower. The snapshot
-still advances and nothing is lost. The card and its announcement appear
+over the top of the garden, where it would hide the lit flower. While it
+waits, the stored snapshot does not advance for news from elsewhere, so a
+reload, leaving, or a new day with the guide still open loses nothing. The
+viewer's own actions still only move the snapshot. The card and its
+announcement appear
 unchanged once the guide is closed for now, skipped or finished, or yields to a
 flower sheet (the card's own sheet rule then applies). `GardenGuide` reports
 this through `onRequestedChange`, and `SinceLastVisit` takes it as `hold`.

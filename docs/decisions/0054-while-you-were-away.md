@@ -90,8 +90,10 @@ flag. Stored snapshots still stop any repeat after that. Fixing it would need
 shared cross-tab or server state, which this browser-only design leaves out.
 
 While the garden guide is open, the card also waits, so it never covers the
-flower the guide points at. Nothing is silenced. The news appears once the
-guide closes or finishes ([decision 0056](0056-guide-coach-mark-and-outer-pages.md)).
+flower the guide points at. Nothing is silenced. The snapshot does not advance
+for news from elsewhere while the card waits, so the news survives a reload.
+It appears once, when the guide closes or finishes
+([decision 0056](0056-guide-coach-mark-and-outer-pages.md)).
 
 ## Snapshot
 

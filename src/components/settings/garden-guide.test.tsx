@@ -414,3 +414,30 @@ it("places nothing until the fonts load, then re-chooses the scroll when a later
     delete (document.documentElement as { scrollHeight?: unknown }).scrollHeight;
   }
 });
+
+import { snapshotKey, takeSnapshot, writeStoredSnapshot } from "@/lib/garden/since-last-visit";
+vi.mock("@/lib/achievements/actions", () => ({ readAchievements: vi.fn(async () => ({ state: null, error: "unavailable" })) }));
+it("holds the away card from the first render while the guide is open, keeping its news stored until the guide closes", async () => {
+  localStorage.clear();
+  const earlier = gardenFixture();
+  const key = snapshotKey(earlier);
+  writeStoredSnapshot(key, takeSnapshot(earlier, null, null));
+  const before = localStorage.getItem(key);
+  // The partner cared for the Cactus since that snapshot.
+  const state = gardenFixture(); state.plants[0].member2_submitted = true;
+  const view = show(state); const user = userEvent.setup();
+  expect(screen.getByRole("dialog", { name: "Tap your Cactus to say hello" })).toBeInTheDocument();
+  await act(async () => {});
+  expect(screen.queryByRole("region", { name: "While you were away" })).not.toBeInTheDocument();
+  expect(localStorage.getItem(key)).toBe(before);
+  // A reload with the guide still open keeps the news stored.
+  view.unmount();
+  show(state);
+  await act(async () => {});
+  expect(screen.queryByRole("region", { name: "While you were away" })).not.toBeInTheDocument();
+  expect(localStorage.getItem(key)).toBe(before);
+  await user.click(screen.getByRole("button", { name: "Close guide for now" }));
+  expect(await screen.findByRole("region", { name: "While you were away" })).toHaveTextContent("Your partner cared for Cactus");
+  expect(localStorage.getItem(key)).not.toBe(before);
+  localStorage.clear();
+});

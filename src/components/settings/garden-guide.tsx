@@ -54,6 +54,8 @@ export function GardenGuide({ state, paused, visit, focusGarden, actionOpen = fa
     if (requested) request?.(id);
     return () => release?.(id);
   }, [id, requested, request, release]);
+  // Keeps the parent's copy current after its first render, which computes
+  // the same condition itself so the away card is held from the start.
   useEffect(() => { onRequestedChange?.(requested); }, [requested, onRequestedChange]);
   const visible = requested && (!scope || scope.active === id);
   const step = guideStep(state);
