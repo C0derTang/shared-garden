@@ -10,6 +10,10 @@ pixel outline in [decision 0040](0040-cozy-pixel-garden-beds.md), and the
 tokens in [decision 0041](0041-pixel-design-tokens.md). This record completes
 the garden-surface styles that decision 0041 left to issue #102.
 
+Its visual values are superseded by the Harvest Handheld reskin in
+[decision 0049](0049-harvest-handheld-reskin.md); its accessibility guarantees
+still apply.
+
 ## Care dots
 
 The two care dots sit on a small square paper tag: a `--paper-light` fill, a

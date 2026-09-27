@@ -1,19 +1,28 @@
 /* The grass texture spans the whole stage, so no flat bands flank the 1200px bed cap (decision 0042). */
-.garden { position: relative; min-height: 100dvh; background-color: #82a15d; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48' shape-rendering='crispEdges'%3E%3Cpath fill='%238dab65' d='M3 7h5v3H3zM31 4h3v5h-3zM18 27h6v3h-6zM40 34h5v4h-5zM7 42h3v3H7z'/%3E%3Cpath fill='%23739250' d='M15 12h4v3h-4zM38 17h3v4h-3zM2 29h6v3H2zM28 40h4v3h-4z'/%3E%3C/svg%3E"); background-size: 48px 48px; padding: 50px 0 76px; }
-.hud { position: absolute; z-index: 2; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: max(8px, env(safe-area-inset-top)) 12px 6px; background: #f1e8ce; border-bottom: 1px solid #c4cda3; }
-.hud h1 { font: 600 1rem/1.15 var(--font-display); max-width: 7rem; }
-.clock { display: grid; text-align: right; font-size: .67rem; line-height: 1.5; font-variant-numeric: tabular-nums; }
-.clock strong { font-size: .85rem; }
-.tools { position: absolute; z-index: 3; top: 54px; left: 0; right: 0; display: flex; justify-content: space-between; align-items: start; padding: 0 12px; }
-/* One legible pixel chip for Help, Songs and Guide on the grass (decision 0042). */
-.chip, .guide > button { min-height: 44px; display: flex; align-items: center; padding: 0 12px; border: var(--border-pixel) solid var(--frame-border); border-radius: var(--radius-pixel); background: var(--paper-light); color: var(--forest-dark); box-shadow: var(--shadow-pixel); font: 700 var(--text-sm)/1 var(--font-pixel); text-decoration: none; cursor: pointer; }
-.chip:hover, .guide > button:hover { background: var(--sage-light); }
-.chip:active, .guide > button:active { translate: 2px 2px; transform: none; box-shadow: var(--shadow-pixel-pressed); }
+.garden { position: relative; min-height: 100dvh; background-color: #82a15d; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48' shape-rendering='crispEdges'%3E%3Cpath fill='%238dab65' d='M3 7h5v3H3zM31 4h3v5h-3zM18 27h6v3h-6zM40 34h5v4h-5zM7 42h3v3H7z'/%3E%3Cpath fill='%23739250' d='M15 12h4v3h-4zM38 17h3v4h-3zM2 29h6v3H2zM28 40h4v3h-4z'/%3E%3C/svg%3E"); background-size: 48px 48px; padding: 60px 0 104px; }
+/* The header is a wooden sign: the name is carved into the plank and the
+   clock is a small parchment day plate (decision 0049). */
+.hud { position: absolute; z-index: 2; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: max(6px, env(safe-area-inset-top)) 10px 6px; background-color: var(--wood); background-image: repeating-linear-gradient(180deg, transparent 0 10px, rgb(74 42 18 / 28%) 10px 12px, transparent 12px 22px), linear-gradient(180deg, var(--wood-light) 0 2px, transparent 2px); border-bottom: 4px solid var(--wood-dark); box-shadow: 0 4px 0 rgb(30 16 6 / 25%); }
+.hud h1 { min-width: 0; font: 700 1.2rem/1.1 var(--font-pixel); color: var(--paper-light); letter-spacing: .03em; text-shadow: 0 2px 0 var(--wood-dark), 2px 0 0 var(--wood-dark); }
+.clock { display: flex; flex: none; align-items: stretch; border: 8px solid var(--paper-light); border-image: var(--frame-slot) 3 fill / 6px stretch; background: var(--paper-light); background-clip: padding-box; color: var(--ink); font: 600 var(--text-xs)/1.25 var(--font-pixel); font-variant-numeric: tabular-nums; }
+.clockDay { display: grid; justify-items: center; align-content: center; padding: 0 8px 0 2px; margin-right: 8px; border-right: 2px solid var(--line-strong); font-size: var(--text-sm); font-weight: 700; white-space: nowrap; }
+.clockIcon { width: 18px; height: 18px; color: var(--wood-deep); }
+.clockTime { display: grid; text-align: right; padding-right: 2px; }
+.clock strong { font-size: var(--text-md); font-weight: 700; }
+.tools { position: absolute; z-index: 3; top: 66px; left: 0; right: 0; display: flex; justify-content: space-between; align-items: start; padding: 0 12px; }
+/* Help, Songs and the collapsed Guide are parchment sign buttons that press
+   down onto their dark lip (decision 0049; 44px targets from decision 0042). */
+.chip, .guide > button { min-height: 44px; display: flex; align-items: center; gap: 6px; padding: 0 12px; border: var(--border-pixel) solid var(--frame-border); border-radius: var(--radius-pixel); background: var(--paper-light); color: var(--ink); box-shadow: var(--bevel), var(--shadow-pixel); font: 700 var(--text-md)/1 var(--font-pixel); letter-spacing: .02em; text-decoration: none; cursor: pointer; }
+/* Decorative pixel glyphs: a question mark on Help and a note on Songs. */
+.chip::before { content: ""; flex: none; width: 14px; height: 14px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 7' shape-rendering='crispEdges'%3E%3Cpath fill='%237a4a20' d='M1 0h4v1h1v2H5v1H4v1H3V3h1V1H2v1H1zM3 6h1v1H3z'/%3E%3C/svg%3E") center / contain no-repeat; image-rendering: pixelated; }
+a.chip::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 7' shape-rendering='crispEdges'%3E%3Cpath fill='%23b0432a' d='M3 0h4v2H4v4H3v1H0V5h1V4h2z'/%3E%3C/svg%3E"); }
+.chip:hover, .guide > button:hover { background: var(--paper-deep); }
+.chip:active, .guide > button:active { translate: 0 var(--press-depth); transform: none; box-shadow: var(--bevel-pressed), var(--shadow-pixel-pressed); }
 .help summary { list-style: none; }
 .help summary::-webkit-details-marker { display: none; }
-.help > div { position: absolute; left: 12px; right: 12px; max-width: 28rem; margin-top: 8px; padding: 1rem; background: var(--paper); border: var(--border-pixel) solid var(--frame-border); border-radius: var(--radius-pixel); box-shadow: var(--shadow-frame); font-size: var(--text-sm); }
+.help > div { position: absolute; left: 12px; right: 12px; max-width: 28rem; margin-top: 10px; padding: .5rem .75rem; border: 12px solid var(--wood); border-image: var(--frame-wood) 6 fill / 12px stretch; background: var(--paper); background-clip: padding-box; box-shadow: var(--shadow-frame); font-size: var(--text-sm); }
 .help p + p { margin-top: .65rem; }
-.guide { position: absolute; top: 54px; left: 50%; transform: translateX(-50%); z-index: 3; }
+.guide { position: absolute; top: 66px; left: 50%; transform: translateX(-50%); z-index: 3; }
 .guide:empty { display: none; }
 .fallback { display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); }
 .fallbackCard { width: 100%; max-width: 28rem; padding: 1.25rem; background: var(--paper-light); border: var(--border-pixel) solid var(--frame-border); border-radius: var(--radius-pixel); box-shadow: var(--shadow-frame); overflow-wrap: anywhere; }
@@ -21,8 +30,9 @@
 .fallbackCard .button { margin-top: 1rem; }
 .workspace { max-width: 1200px; margin: auto; }
 .beds { min-width: 0; }
-.refreshButton { min-height: 44px; background: transparent; border: 0; color: var(--forest-dark); text-decoration: underline; padding: .5rem; }
-.bed { height: max(730px, calc(100dvh - 50px)); position: relative; overflow: clip; }
+.refreshButton { min-height: 44px; margin-top: .5rem; padding: .5rem 1rem; border: var(--border-pixel) solid var(--frame-border); background: var(--paper-light); color: var(--ink); box-shadow: var(--bevel), var(--shadow-pixel); font: 700 var(--text-md)/1 var(--font-pixel); }
+.refreshButton:active:not(:disabled) { translate: 0 var(--press-depth); box-shadow: var(--bevel-pressed), var(--shadow-pixel-pressed); }
+.bed { height: max(730px, calc(100dvh - 60px)); position: relative; overflow: clip; }
 .bed + .bed { border-top: 4px solid #668447; }
 .gardenScenery { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .meadowPatch { position: absolute; width: 28px; height: 12px; transform: translateX(-50%); background: #91ae63; box-shadow: 12px 8px #75934f, -6px 13px #89a65d; clip-path: polygon(0 25%, 20% 25%, 20% 0, 75% 0, 75% 20%, 100% 20%, 100% 80%, 78% 80%, 78% 100%, 12% 100%, 12% 75%, 0 75%); }
@@ -123,8 +133,9 @@
 .emptyButton > span:last-child {
   font-size: 0.65rem;
 }
-/* A small paper tag keeps the care dots readable on grass (decision 0042).
-   The negative margin keeps the old 12px block so sprites do not move. */
+/* A small parchment tag keeps the care dots readable on grass (decisions
+   0042 and 0049). The negative margin keeps the old 12px block so sprites do
+   not move. */
 .miniMarkers {
   display: flex;
   gap: 4px;
@@ -132,7 +143,7 @@
   padding: 2px;
   border: 1px solid var(--ink);
   background: var(--paper-light);
-  box-shadow: 2px 2px 0 rgb(0 0 0 / 28%);
+  box-shadow: 0 2px 0 var(--wood-dark);
 }
 .miniMarkers i,
 .legend i {
@@ -173,8 +184,9 @@
 .field textarea {
   width: 100%;
   min-width: 0;
-  border: 1px solid var(--control-border);
+  border: var(--border-pixel) solid var(--control-border);
   background: var(--paper-light);
+  box-shadow: inset 2px 2px 0 rgb(74 42 18 / 14%);
   color: var(--ink);
   padding: 0.7rem;
   border-radius: var(--radius-pixel);
@@ -336,8 +348,8 @@
 .spot:has(.emptyButton:hover)::after { filter: brightness(1.12); }
 @media (min-width: 640px) {
  .hud { padding-left: max(20px, calc((100vw - 1160px)/2)); padding-right: max(20px, calc((100vw - 1160px)/2)); }
- .hud h1 { max-width: none; font-size: 1.25rem; }
- .clock { grid-template-columns: auto auto; align-items: center; gap: 1rem; font-size: .8rem; }
+ .hud h1 { font-size: 1.6rem; }
+ .clockTime { grid-template-columns: auto auto; align-items: center; gap: 1rem; font-size: var(--text-sm); }
  .tools { padding-inline: max(12px, calc((100vw - 1160px)/2)); }
  .help > div { left: max(12px, calc((100vw - 1160px)/2)); }
  .spot { width: 114px; }
@@ -347,4 +359,9 @@
  .flowerButton strong { font-size: .8rem; }
 }
 
-.garden .guide:has(> button) { position: absolute; top: 54px; left: 50%; transform: translateX(-50%); z-index: 3; padding: 0; }
+.garden .guide:has(> button) { position: absolute; top: 66px; left: 50%; transform: translateX(-50%); z-index: 3; padding: 0; }
+
+/* Forced colors: plain system borders instead of the painted 9-slices. */
+@media (forced-colors: active) {
+  .clock, .help > div { border-image-source: none; }
+}

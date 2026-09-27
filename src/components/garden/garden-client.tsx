@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useCallback, useRef, useState } from "react";
 import { GardenGuide } from "@/components/settings/garden-guide";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { PixelIcon } from "@/components/ui/pixel-icon";
 import {
   pacificTime,
   type CatalogItem,
@@ -16,6 +17,14 @@ import { FlowerSheet } from "./flower-sheet";
 import { HelpDisclosure } from "./help-disclosure";
 import { SeedPicker, type Mutate } from "./seed-picker";
 import styles from "./garden.module.css";
+
+// Short weekday and date for the clock plate, from the YYYY-MM-DD garden day.
+function gardenDayLabel(day: string) {
+  const format = new Intl.DateTimeFormat("en-US", { timeZone: "UTC", weekday: "short", day: "numeric" });
+  const parts = format.formatToParts(new Date(`${day}T12:00:00Z`));
+  const part = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+  return `${part("weekday")} ${part("day")}`;
+}
 
 // Fixed offsets repeat within each twelve-spot bed. Plant IDs never move.
 const positions = [
@@ -222,8 +231,15 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
       <header className={styles.hud}>
         <h1 ref={heading} tabIndex={-1}>cc’s garden</h1>
         <div className={styles.clock} aria-label="Garden day">
-          <span>Pacific · <strong suppressHydrationWarning>{pacificTime(now)}</strong></span>
-          <span>{remaining > 0 ? `New day in ${hours}h ${minutes}m` : "Refreshing day…"}</span>
+          <span className={styles.clockDay}>
+            {/* Moon during the Moonflower night (10 p.m.–4 a.m. Pacific), sun otherwise. */}
+            <PixelIcon name={state.moonflower_open ? "moon" : "sun"} className={styles.clockIcon} />
+            {gardenDayLabel(state.garden_day)}
+          </span>
+          <span className={styles.clockTime}>
+            <span>Pacific · <strong suppressHydrationWarning>{pacificTime(now)}</strong></span>
+            <span>{remaining > 0 ? `New day in ${hours}h ${minutes}m` : "Refreshing day…"}</span>
+          </span>
         </div>
       </header>
       <div className={styles.tools}>

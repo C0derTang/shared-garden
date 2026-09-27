@@ -23,7 +23,7 @@
 }
 .eyebrow {
   margin: 0;
-  color: var(--forest);
+  color: var(--forest-dark);
   font-size: 0.7rem;
   font-weight: 750;
   letter-spacing: 0.1em;
@@ -201,7 +201,7 @@
 }
 .day { flex-basis: 100%; }
 .bloom,
-.complete { margin: 0.25rem 0 0; color: var(--forest); font-size: var(--text-xs); }
+.complete { margin: 0.25rem 0 0; color: var(--forest-dark); font-size: var(--text-xs); }
 .content { min-width: 0; margin-top: 0.7rem; }
 .wish,
 .question {

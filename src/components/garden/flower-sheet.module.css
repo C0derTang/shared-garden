@@ -67,7 +67,7 @@
 }
 
 .compactButton:active {
-  translate: 2px 2px;
+  translate: 0 var(--press-depth);
   box-shadow: var(--shadow-pixel-pressed);
 }
 
