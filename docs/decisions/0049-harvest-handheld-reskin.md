@@ -91,7 +91,9 @@ shorthand `border-image: none` into an invalid declaration.
 A tactile control uses `box-shadow: var(--bevel), var(--shadow-pixel)`. On
 `:active` it moves `translate: 0 var(--press-depth)` and uses
 `var(--bevel-pressed), var(--shadow-pixel-pressed)`, so it lands on its lip.
-Keyboard focus replaces the bevel and lip with the focus halo, as before.
+While a control has keyboard focus, the shared focus ring's `box-shadow` halo
+replaces the bevel and lip. Hotbar slots are the exception: their ring is
+drawn inside the slot (see Shared chrome).
 
 ### Type
 
@@ -131,7 +133,16 @@ grows from 1.1rem to 1.25rem. 0.75rem remains the floor for visible text.
   The current slot is `--gold` with a 2px `--wood-dark` border, a 2px inset
   `--rust` rim and a `--forest-dark` icon. Below 360px the bar becomes a
   full-width shelf with only its top wood edge, so "Achievements" fits at
-  320px. In forced colors the current slot also gets a `Highlight` outline.
+  320px.
+  The slot focus ring is drawn inside the slot, so it never lands on the wood
+  frame or leaves the screen at 320px. It is a 3px `--ink` outline inset
+  `calc(-6px - var(--focus-ring-width))`, 6–9px inside the slot's edge. On a
+  plain slot it sits on the parchment face, and the slot's pale frame rim is
+  its halo. On the current slot, `box-shadow: inset 0 0 0 2px var(--rust),
+  inset 0 0 0 4px var(--focus-ring-halo)` keeps the berry rim with a 2px
+  `--paper-light` halo inside it, then the ink outline on gold. In forced
+  colors the current slot uses `Highlight` and `HighlightText`
+  (`forced-color-adjust: none`), and its focus outline is `HighlightText`.
 - **Sheets and route panels:** the wood frame on a parchment body, with a
   darker overlay tint. The title sits on a `--wood-deep` plaque with
   `--paper-light` text. The flower and seed sheet close is a 30px red ×
@@ -206,6 +217,10 @@ Controls, the focus ring and state indicators need 3:1.
 | Care tag `--ink` border on base grass / darkest texture | 5.00 / 4.13 |
 | Filled `--forest` / `--rust` dot on the tag | 4.73 / 5.20 |
 | Empty dot `--ink` border on the tag | 13.28 |
+| Hotbar focus outline on a plain slot: against the frame rim `#ead3a0` / its parchment face `--paper-light` | 9.93 / 13.28 |
+| Hotbar focus outline on the current slot: against its halo `--paper-light` / the `--gold` face | 13.28 / 8.68 |
+| Current-slot halo against the `--rust` rim | 5.20 |
+| Hotbar focus change, unfocused to focused, in the ring band (plain / current) | 13.28 / 8.68 |
 
 ## Follow-up issues
 
