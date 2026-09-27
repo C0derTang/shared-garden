@@ -1,31 +1,14 @@
 "use client";
 import * as Dialog from "@radix-ui/react-dialog";
-import { useCallback, useEffect, useId, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { guideStep } from "@/lib/settings/model";
 import type { GardenState } from "@/lib/garden/model";
 import { useSheetScope } from "@/components/ui/sheet-scope";
 import { useMemberPreferences } from "./member-preferences";
+import { bubbleGutter, placeBubble, type Placement, type Rect } from "./guide-placement";
 import styles from "./guide.module.css";
 
-type Anchor = { spot: number; left: number; top: number; width: number; height: number; viewWidth: number; viewHeight: number };
-// Room kept between the bubble, the highlighted spot and the viewport edge.
-const gap = 14, gutter = 12, maxBubble = 340;
-
-/** Where the coach-mark bubble and its pointer sit relative to the highlighted spot. */
-function placement(anchor: Anchor | null): { bubble: CSSProperties; arrow?: CSSProperties; side: "below" | "above" | "dock" } {
-  if (!anchor) return { bubble: {}, side: "dock" };
-  const width = Math.min(maxBubble, anchor.viewWidth - gutter * 2);
-  const center = anchor.left + anchor.width / 2;
-  const left = Math.min(Math.max(gutter, center - width / 2), anchor.viewWidth - gutter - width);
-  const arrowLeft = Math.min(Math.max(left + 18, center), left + width - 18) - 9;
-  // Open toward the larger free side so the flower itself always stays visible.
-  if (anchor.top + anchor.height / 2 < anchor.viewHeight / 2) {
-    const top = anchor.top + anchor.height + gap;
-    return { side: "below", arrow: { left: arrowLeft, top: top - 10 }, bubble: { left, width, top, maxHeight: `calc(100dvh - ${top + gutter}px)` } };
-  }
-  const bottom = anchor.viewHeight - anchor.top + gap;
-  return { side: "above", arrow: { left: arrowLeft, top: anchor.top - gap }, bubble: { left, width, bottom, maxHeight: `calc(100dvh - ${bottom + gutter}px)` } };
-}
+type Layout = { key: string; target: Rect | null; placement: Placement };
 
 export function GardenGuide({ state, paused, visit, focusGarden, actionOpen = false, enabled = true }: {
   state: GardenState; paused: boolean; visit: (spot: number) => void;
@@ -37,7 +20,10 @@ export function GardenGuide({ state, paused, visit, focusGarden, actionOpen = fa
   const [closedRequest, setClosedRequest] = useState<number | null>(null);
   const closed = closedRequest !== null && closedRequest === preferences?.guideRequest;
   const [focusTarget, setFocusTarget] = useState<"show" | "garden" | null>(null);
-  const [anchor, setAnchor] = useState<Anchor | null>(null);
+  const [layout, setLayout] = useState<Layout | null>(null);
+  const bubble = useRef<HTMLDivElement>(null);
+  const body = useRef<HTMLDivElement>(null);
+  const content = useRef<HTMLDivElement>(null);
   const showButton = useRef<HTMLButtonElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   const requested = enabled && preferences?.state?.guide === "open" && !closed && !actionOpen;
@@ -49,31 +35,43 @@ export function GardenGuide({ state, paused, visit, focusGarden, actionOpen = fa
   const visible = requested && (!scope || scope.active === id);
   const step = guideStep(state);
   const spot = "spot" in step ? step.spot : null;
-  // Follow the real flower on screen. Measuring runs only while the coach-mark
-  // shows; the garden is scrolled once so the target spot is in view.
+  const layoutKey = `${step.kind}:${spot ?? ""}`;
+  // Follow the real flower on screen and fit the whole bubble between the
+  // garden header and the hotbar. The garden is scrolled once so the target
+  // spot is in view; layout, content and resize changes re-measure.
   useEffect(() => {
-    if (!visible || spot === null) return;
-    const target = () => document.querySelector<HTMLElement>(`[data-spot="${spot}"]`);
+    if (!visible) return;
+    const target = () => spot === null ? null : document.querySelector<HTMLElement>(`[data-spot="${spot}"]`);
     target()?.scrollIntoView?.({ block: "center", inline: "nearest" });
     let frame = 0;
     const measure = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
         const rect = target()?.getBoundingClientRect();
-        setAnchor(rect && rect.width > 0 && rect.height > 0
-          ? { spot, left: rect.left, top: rect.top, width: rect.width, height: rect.height, viewWidth: window.innerWidth, viewHeight: window.innerHeight }
-          : null);
+        const box = rect && rect.width > 0 && rect.height > 0 ? { left: rect.left, top: rect.top, width: rect.width, height: rect.height } : null;
+        const frameHeight = (bubble.current?.offsetHeight ?? 0) - (body.current?.clientHeight ?? 0);
+        const bubbleHeight = frameHeight + (body.current?.scrollHeight ?? 0);
+        const header = document.querySelector("#main-content header")?.getBoundingClientRect();
+        const hotbar = document.querySelector(".garden-navigation")?.getBoundingClientRect();
+        const safeTop = Math.max(header && header.height > 0 ? header.bottom : 0, 0) + bubbleGutter;
+        const safeBottom = (hotbar && hotbar.height > 0 ? hotbar.top : window.innerHeight) - bubbleGutter;
+        setLayout({ key: layoutKey, target: box, placement: placeBubble({ target: box, bubbleHeight, viewWidth: window.innerWidth, viewHeight: window.innerHeight, safeTop, safeBottom }) });
       });
     };
     measure();
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure);
+    for (const element of [target(), content.current, document.documentElement]) if (element) observer?.observe(element);
     window.addEventListener("resize", measure);
     window.addEventListener("scroll", measure, true);
     return () => {
       cancelAnimationFrame(frame);
+      observer?.disconnect();
       window.removeEventListener("resize", measure);
       window.removeEventListener("scroll", measure, true);
+      // A reopened guide measures afresh instead of showing a stale frame.
+      setLayout(null);
     };
-  }, [visible, spot]);
+  }, [visible, spot, layoutKey]);
   const registerNoticeContainer = scope?.registerNoticeContainer;
   const noticeContainerRef = useCallback((element: HTMLDivElement | null) => {
     registerNoticeContainer?.(id, element);
@@ -105,8 +103,9 @@ export function GardenGuide({ state, paused, visit, focusGarden, actionOpen = fa
     unavailable: ["Grow at your own pace", "Explore the flowers and seeds in your garden whenever you like.", ""],
   }[step.kind];
   const completed = Number(state.tutorial_facts.cactus_checked_in) + Number(state.tutorial_facts.rose_noted);
-  const target = anchor && anchor.spot === spot ? anchor : null;
-  const place = placement(target);
+  const current = layout?.key === layoutKey ? layout : null;
+  const target = current?.target ?? null;
+  const place = current?.placement;
   const primary = () => { if (spot !== null && !paused) { setFocusTarget(null); visit(spot); } };
   const pad = 6;
   return <Dialog.Root open={visible} onOpenChange={(open) => { if (!open) close(); }}>
@@ -119,8 +118,11 @@ export function GardenGuide({ state, paused, visit, focusGarden, actionOpen = fa
               the primary action; keyboard and screen-reader users use the button. */}
           <div className={styles.hotspot} data-guide-target={spot} aria-hidden="true" data-paused={paused || undefined} onClick={primary} style={{ left: target.left, top: target.top, width: target.width, height: target.height }} />
         </>}
-        {place.arrow && <span className={styles.arrow} data-side={place.side} aria-hidden="true" style={place.arrow} />}
-        <div className={styles.bubble} data-guide-bubble="" data-side={place.side} style={place.bubble}>
+        {place?.arrow && <span className={styles.arrow} data-side={place.side} aria-hidden="true" style={place.arrow} />}
+        {/* Until the first measurement the bubble is laid out invisibly, so it
+            never flashes in the wrong place; it stays focusable meanwhile. */}
+        <div ref={bubble} className={styles.bubble} data-guide-bubble="" data-side={place?.side ?? "dock"} data-pending={place ? undefined : ""} style={place?.bubble}>
+          <div ref={body} className={styles.body} style={place ? { maxHeight: `max(0px, ${place.bubble.maxHeight}px - 24px)` } : undefined}><div ref={content}>
           <p className={styles.progress}>
             <span>Garden guide</span>
             <span className={styles.pips}>
@@ -132,16 +134,18 @@ export function GardenGuide({ state, paused, visit, focusGarden, actionOpen = fa
           <Dialog.Title ref={heading} tabIndex={-1} className={styles.title}>{copy[0]}{step.kind === "ready" && <span aria-hidden="true"> ✿</span>}</Dialog.Title>
           <Dialog.Description aria-live="polite" className={styles.description}>{copy[1]}</Dialog.Description>
           <div ref={noticeContainerRef} className={styles.notices} data-private-notice-host="guide" />
-          {spot !== null ? <button className="button button-primary" type="button" aria-disabled={paused} onClick={primary}>{copy[2]}</button>
-            : <button className="button button-primary" type="button" aria-disabled={preferences.busy} onClick={() => void dismiss("finished")}>Finish guide</button>}
-          {step.kind !== "ready" && <div className={styles.actions}>
-            {step.kind === "blooms"
+          <div className={styles.controls}>
+            {spot !== null ? <button className="button button-primary" type="button" aria-disabled={paused} onClick={primary}>{copy[2]}</button>
+              : <button className="button button-primary" type="button" aria-disabled={preferences.busy} onClick={() => void dismiss("finished")}>Finish guide</button>}
+            {step.kind !== "ready" && (step.kind === "blooms"
               ? <button type="button" className={styles.secondary} aria-disabled={preferences.busy} onClick={() => void dismiss("finished")}>Finish guide</button>
-              : <button type="button" className={styles.secondary} aria-disabled={preferences.busy} onClick={() => void dismiss("skipped")}>Skip guide</button>}
-            <small>Reopen in Settings</small>
-          </div>}
+              : <button type="button" className={styles.secondary} aria-disabled={preferences.busy} onClick={() => void dismiss("skipped")}>Skip guide</button>)}
+          </div>
+          {step.kind !== "ready" && <small className={styles.reopen}>Reopen in Settings</small>}
           {paused && <p role="status" className={styles.status}>Garden updates are paused. Close this guide to refresh.</p>}
           {preferences.error && <div role="alert" className={styles.error}><p>{preferences.error}</p><button type="button" className="button button-secondary" aria-disabled={preferences.busy} onClick={() => { if (!preferences.busy) void preferences.refresh(); }}>Refresh settings</button></div>}
+          </div></div>
+          {/* The close stamp sits on the frame, outside the scrolling body. */}
           <Dialog.Close className={styles.close} aria-label="Close guide for now"><span aria-hidden="true">×</span></Dialog.Close>
         </div>
       </Dialog.Content>

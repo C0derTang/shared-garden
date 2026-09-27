@@ -341,7 +341,7 @@ it("anchors the coach-mark to the target flower and opens its real sheet when th
 });
 
 it("opens the bubble above a flower low on screen and ignores flower taps while paused", async () => {
-  const rect = layoutSpots(() => ({ top: window.innerHeight - 160, left: 200 }));
+  const rect = layoutSpots(() => ({ top: window.innerHeight - 140, left: 200 }));
   try {
     const state = gardenFixture(); show(state); const user = userEvent.setup();
     await waitFor(() => expect(document.querySelector("[data-guide-bubble]")).toHaveAttribute("data-side", "above"));

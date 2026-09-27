@@ -24,14 +24,26 @@ is talking about:
   4px and back every 1.2s. Reduced motion and the gentle-motion setting stop
   it, so it stays a still ring.
 - **Bubble.** A parchment bubble in the wood frame with a stepped pixel pointer
-  opens next to the spot. It opens below the spot when the spot is in the top
-  half of the screen and above it otherwise, so the flower is never covered. It
-  is at most 340px wide, keeps a 12px gutter at 320px, and scrolls inside
-  itself for enlarged text. When the guide opens, the garden scrolls the target
-  spot into view once, without smooth scrolling. The bubble follows the spot on
-  resize and scroll. If the spot cannot be measured, or before the first
-  measurement, the bubble docks above the hotbar with no spotlight. Steps with
-  no spot (the final card and "Grow at your own pace") also dock.
+  opens next to the spot. It is at most 340px wide with a 12px gutter. Its
+  placement uses the bubble's measured full height and the band between the
+  garden header and the hotbar, both measured on screen. The bubble opens below
+  the spot or above it (toward the roomier half when both fit), then to the
+  right or left of it, on the first side where the whole bubble fits in that
+  band without covering the flower. When no side fits, it docks at the bottom
+  of the band, clear of the header and hotbar, and may cover part of the
+  flower. Only when enlarged text is taller than the whole band does the
+  bubble's body scroll. The × stays on the frame, outside that scroller. On
+  screens up to 600px tall (a phone on its side, or a short phone), the primary
+  action and Skip share a row and the padding tightens. At default text size
+  the title, primary action and Skip or Finish then show in full at 320×568,
+  390×844, 844×390 and 1280×800 on every step. When the guide opens, the garden
+  scrolls the target spot into view once, without smooth scrolling. The bubble
+  re-measures on resize, scroll, and size changes of the target, the bubble
+  content or the page. A reopened guide measures afresh: until its first
+  measurement the bubble is laid out invisibly (still focusable), so it never
+  shows a stale position. If the spot cannot be measured, the bubble docks with
+  no spotlight. Steps with no spot (the final card and "Grow at your own pace")
+  also dock.
 - **Copy.** A short heading names the action: "Tap your Cactus to say hello",
   "Tap bare soil to plant a Rose", "Tap your Rose to leave a note", or "Your
   Rose is in bloom". One line of description follows. A "Garden guide" row
