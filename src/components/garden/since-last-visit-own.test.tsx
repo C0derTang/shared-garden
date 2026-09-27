@@ -12,6 +12,7 @@ vi.mock("@/lib/auth/browser", () => ({ gardenBrowserClient: () => null }));
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, expect, it, vi } from "vitest";
+import { requestSpot } from "@/lib/garden/spot-request";
 import { gardenFixture } from "@/test/garden-fixture";
 import type { AchievementResult } from "@/lib/achievements/model";
 import type { GardenState, Plant } from "@/lib/garden/model";
@@ -33,7 +34,9 @@ function achievements(ids: [string, string][]): AchievementResult {
 function garden() {
   const state = gardenFixture();
   const base = state.plants[0];
-  const rose: Plant = { ...base, flower: { ...base.flower, id: "rose-1", type_key: "rose", spot: 2, is_initial: false, growth_units: 4 }, entries: [] };
+  // You already cared for the Rose today, so the Cactus is your next flower.
+  const rose: Plant = { ...base, flower: { ...base.flower, id: "rose-1", type_key: "rose", spot: 2, is_initial: false, growth_units: 4 }, entries: [], member1_submitted: true };
+  state.tutorial_facts = { cactus_checked_in: true, rose_noted: true };
   state.plants.push(rose);
   return state;
 }
@@ -45,13 +48,18 @@ beforeEach(() => {
   publishBadges({ key: null, unread: 0 });
 });
 
-it("absorbs blooms, unlocks and badges from your own action and still shows partner care", async () => {
+const openers = {
+  "tapping the flower": async (user: ReturnType<typeof userEvent.setup>) => user.click(screen.getByRole("button", { name: /Cactus, spot 1/ })),
+  "the Today card": async (user: ReturnType<typeof userEvent.setup>) => user.click(screen.getByRole("button", { name: /Tend Cactus/ })),
+  "a spot request": async () => { act(() => requestSpot({ spot: 1 })); },
+};
+it.each(Object.keys(openers) as (keyof typeof openers)[])("absorbs blooms, unlocks and badges from your own action opened by %s and still shows partner care", async (opener) => {
   const user = userEvent.setup();
   const initial = garden();
   localStorage.setItem(key, JSON.stringify(takeSnapshot(initial, [{ id: "first-seed", title: "First seed" }], null)));
   readAchievements.mockResolvedValue(achievements([["first-seed", "First seed"]]));
   refreshGarden.mockResolvedValue({ state: initial, error: null });
-  render(<GardenClient initial={{ state: initial, error: null }} guideEnabled={false} />);
+  render(<GardenClient initial={{ state: initial, error: null }} />);
   await waitFor(() => expect(readAchievements).toHaveBeenCalledTimes(1));
 
   // Your check-in returns a garden where a bloom, an unlock and a badge also
@@ -67,8 +75,8 @@ it("absorbs blooms, unlocks and badges from your own action and still shows part
   refreshGarden.mockResolvedValue({ state: after, error: null });
   readAchievements.mockResolvedValue(achievements([["first-seed", "First seed"], ["streak-3", "Three-day streak"]]));
 
-  await user.click(screen.getByRole("button", { name: /Cactus, spot 1/ }));
-  await user.click(screen.getByRole("button", { name: "I’m here · Check in" }));
+  await openers[opener](user);
+  await user.click(await screen.findByRole("button", { name: "I’m here · Check in" }));
   await waitFor(() => expect(mutateGarden).toHaveBeenCalled());
   // Nothing pops up behind the open sheet.
   expect(document.querySelector("[data-since-last-visit]")).toBeNull();

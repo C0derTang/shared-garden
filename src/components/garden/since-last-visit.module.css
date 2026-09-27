@@ -2,9 +2,18 @@
    under the Help and Songs signs. It is non-modal and sits below the tools
    layer, so the Help card and the guide always open over it. */
 .card {
+  /* Room kept for the collapsed Today card above the hotbar (decision 0051):
+     its height (73px, 125px when it wraps below 360px), its 14px title tab,
+     its 10px gap and a 10px margin. The lines scroll inside the card instead
+     of running under it. */
+  --since-today-clearance: 108px;
+  --since-top: 124px;
   position: absolute;
   z-index: 2;
-  top: 124px;
+  top: var(--since-top);
+  display: flex;
+  flex-direction: column;
+  max-height: max(200px, calc(100dvh - var(--since-top) - var(--hotbar-bottom) - var(--hotbar-height) - var(--since-today-clearance)));
   left: 50%;
   width: min(25rem, calc(100% - 24px));
   translate: -50% 0;
@@ -42,8 +51,12 @@
 .lines {
   display: grid;
   gap: 10px;
-  margin: 10px 0 3px;
-  padding: 0;
+  min-height: 0;
+  /* Padding keeps row lips and focus rings inside the scroll box. */
+  margin: 4px -4px -4px;
+  padding: 6px 6px 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   list-style: none;
 }
 /* Each line is a tactile parchment row that presses onto its lip. */
@@ -216,10 +229,11 @@
 }
 
 @media (max-width: 359px) {
+  .card { --since-today-clearance: 160px; }
   .card .title { font-size: var(--text-sm); }
 }
 @media (min-width: 640px) {
-  .card { top: 128px; }
+  .card { --since-top: 128px; }
 }
 @media (forced-colors: active) {
   .card, .slot { border-image-source: none; }

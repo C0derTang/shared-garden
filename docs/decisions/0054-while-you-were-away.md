@@ -56,8 +56,13 @@ action.
   that renders it. Blooms, unlocks and badges in that state only move the
   snapshot.
 - **While a flower or seed sheet is open:** every garden action starts from one
-  of these sheets. While one is open, blooms, unlocks and badges that appear
-  only move the snapshot. Nothing appears behind the sheet.
+  of these sheets, however it was opened: a tap on the spot, the Today card's
+  Tend or Plant action ([decision 0051](0051-today-card-and-flower-cues.md)),
+  a spot request from Memories or a link
+  ([decision 0055](0055-album-badges-and-menus.md)), the guide, or this card.
+  All of them go through `openSpot`, and every save goes through the wrapped
+  `mutate`. While a sheet is open, blooms, unlocks and badges that appear only
+  move the snapshot. Nothing appears behind the sheet.
 - **Badge reads:** badges come from a separate, delayed read, so the guard
   outlives the read timer. When a state from your own action, or a change
   while a sheet is open, alters the garden facts badges depend on, badges
@@ -164,6 +169,16 @@ The card sits under the tools layer (`z-index` 2 against 3), so the Help card
 and the guide always open over it. Sheets and route panels make it inert with
 the rest of the garden.
 
+The card stays clear of the collapsed Today card (fixed, `z-index` 19) above
+the hotbar. Its height is capped at `100dvh` minus its top offset, the shared
+`--hotbar-bottom` and `--hotbar-height`, and a Today-card clearance: 108px, or
+160px below 360px, where the Today card wraps to 125px. The clearance covers
+the Today card's height, its 14px title tab, its 10px gap and a 10px margin.
+The cap never goes below 200px. When the lines don't fit, they scroll inside
+the card, with padding that keeps row lips and focus rings in view. The spot
+notice (`z-index` 20) and the Today card sit above the card. An expanded Today
+list can cover it, because the member opened that list.
+
 ## Motion
 
 The card drops in over 280ms in four steps. On each new batch of news, 20
@@ -191,7 +206,8 @@ sheet's trigger.
 Tests cover the diff for blooms, unlocks, partner care for either member,
 rollover and badges. They also cover your own action's bloom, unlock and badge
 being absorbed while partner care still shows (through the real garden client
-and check-in), and partner care held while a sheet is open. They cover an own
+and check-in, with the sheet opened by a tap, the Today card and a spot
+request), and partner care held while a sheet is open. They cover an own
 badge staying silent when you leave before the read, when a read fails, and
 when another change restarts the read timer. They also cover the first visit
 showing nothing, storage read and write failures, stored content, dismissal
