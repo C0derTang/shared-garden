@@ -140,9 +140,23 @@ grows from 1.1rem to 1.25rem. 0.75rem remains the floor for visible text.
   plain slot it sits on the parchment face, and the slot's pale frame rim is
   its halo. On the current slot, `box-shadow: inset 0 0 0 2px var(--rust),
   inset 0 0 0 4px var(--focus-ring-halo)` keeps the berry rim with a 2px
-  `--paper-light` halo inside it, then the ink outline on gold. In forced
-  colors the current slot uses `Highlight` and `HighlightText`
+  `--paper-light` halo inside it, then the ink outline on gold.
+  **Clearance rule:** a slot's icon and label boxes stay at least 1px inside
+  the ring's inner edge on every side, in both states. With the ring 6–9px
+  in, that is 10px from every slot edge. A plain slot has a 6px frame and
+  `4px 4px 5px` padding. The current slot has a 2px border and `8px 8px 9px`
+  padding. The extra bottom pixel keeps descenders clear. Anyone changing
+  slot padding, labels or the ring must keep this rule.
+  Four slots with 10px clearance don't fit below 380px. There, the slot art
+  drops to 1px per art pixel: a 3px slot frame with `5px 5px 6px` padding,
+  and a current slot with a 1px border, 1px berry rim, 1px halo and
+  `7px 7px 8px` padding. The ring sits 3–6px in
+  (`calc(-3px - var(--focus-ring-width))`), and clearance is 8px. That keeps
+  "Achievements" whole at 320px.
+  In forced colors the current slot uses `Highlight` and `HighlightText`
   (`forced-color-adjust: none`), and its focus outline is `HighlightText`.
+  Plain slots set their border to `Canvas`, so the focus ring is the only
+  outline and stands out.
 - **Sheets and route panels:** the wood frame on a parchment body, with a
   darker overlay tint. The title sits on a `--wood-deep` plaque with
   `--paper-light` text. The flower and seed sheet close is a 30px red ×
@@ -217,7 +231,7 @@ Controls, the focus ring and state indicators need 3:1.
 | Care tag `--ink` border on base grass / darkest texture | 5.00 / 4.13 |
 | Filled `--forest` / `--rust` dot on the tag | 4.73 / 5.20 |
 | Empty dot `--ink` border on the tag | 13.28 |
-| Hotbar focus outline on a plain slot: against the frame rim `#ead3a0` / its parchment face `--paper-light` | 9.93 / 13.28 |
+| Hotbar focus outline on a plain slot: against the frame rim `#ead3a0` / its parchment face `--paper-light` (all widths) | 9.93 / 13.28 |
 | Hotbar focus outline on the current slot: against its halo `--paper-light` / the `--gold` face | 13.28 / 8.68 |
 | Current-slot halo against the `--rust` rim | 5.20 |
 | Hotbar focus change, unfocused to focused, in the ring band (plain / current) | 13.28 / 8.68 |

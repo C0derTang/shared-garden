@@ -500,7 +500,11 @@ p {
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  padding: 4px 2px 3px;
+  /* Clearance rule: the icon and label boxes stay at least 1px inside the
+     focus ring's inner edge: 10px from every slot edge (one extra pixel of
+     padding at the bottom for descenders), 8px in the compact slots below
+     380px. */
+  padding: 4px 4px 5px;
   gap: 2px;
   border: 6px solid var(--paper-light);
   border-image: var(--frame-slot) 3 fill / 6px stretch;
@@ -521,7 +525,7 @@ p {
   translate: 0 2px;
 }
 .garden-navigation a[aria-current="page"] {
-  padding: 8px 6px 7px;
+  padding: 8px 8px 9px;
   border: var(--border-pixel) solid var(--wood-dark);
   border-image-source: none;
   background: var(--gold);
@@ -531,8 +535,8 @@ p {
 .garden-navigation a[aria-current="page"] .pixel-icon {
   color: var(--forest-dark);
 }
-/* Slot focus ring, drawn inside the slot so it never lands on the wood frame
-   or leaves the screen at 320px. A plain slot's ring sits on its parchment
+/* Slot focus ring, drawn inside the slot (6-9px in) so it never lands on the
+   wood frame or leaves the screen. A plain slot's ring sits on its parchment
    face, whose pale frame rim is the halo. The current slot keeps its berry
    rim with the paper halo inside it, then the ink outline on gold. */
 .garden-navigation a:focus-visible {
@@ -541,6 +545,27 @@ p {
 }
 .garden-navigation a[aria-current="page"]:focus-visible {
   box-shadow: inset 0 0 0 2px var(--rust), inset 0 0 0 4px var(--focus-ring-halo);
+}
+/* Below 380px four slots with 10px clearance cannot fit, so the slot art
+   drops to 1px per art pixel: a 3px slot frame, a 1px berry rim and 1px
+   halo, and the ring 3-6px in. Labels keep 8px clearance (9px at the bottom). */
+@media (max-width: 379px) {
+  .garden-navigation a {
+    border-width: 3px;
+    border-image-width: 3px;
+    padding: 5px 5px 6px;
+  }
+  .garden-navigation a[aria-current="page"] {
+    border-width: 1px;
+    padding: 7px 7px 8px;
+    box-shadow: inset 0 0 0 1px var(--rust);
+  }
+  .garden-navigation a:focus-visible {
+    outline-offset: calc(-3px - var(--focus-ring-width));
+  }
+  .garden-navigation a[aria-current="page"]:focus-visible {
+    box-shadow: inset 0 0 0 1px var(--rust), inset 0 0 0 2px var(--focus-ring-halo);
+  }
 }
 /* Below 360px the framed bar cannot hold "Achievements", so the hotbar
    becomes a full-width shelf with only its top wood edge. */
@@ -745,6 +770,8 @@ p {
   .route-panel,
   .garden-navigation,
   .garden-navigation a { border-image-source: none; }
+  /* Plain slots drop their thick system border so the focus ring stands out. */
+  .garden-navigation a:not([aria-current="page"]) { border-color: Canvas; }
   /* The current slot uses the system selection colours; focus keeps its
      inset outline on top. */
   .garden-navigation a[aria-current="page"] { forced-color-adjust: none; background: Highlight; color: HighlightText; border-color: HighlightText; box-shadow: none; }
