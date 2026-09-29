@@ -1,4 +1,5 @@
 "use client";
+import { usePartnerName } from "@/components/auth/member-names";
 import { useRef, useState, type FormEvent } from "react";
 import {
   canEditAt,
@@ -38,6 +39,7 @@ export function EntryForm({
   onCancel?: () => void;
   unavailable?: string;
 }) {
+  const partnerName = usePartnerName();
   const [draft, setDraft] = useState<Record<string, string>>(
     editing?.payload ?? {},
   );
@@ -212,7 +214,7 @@ export function EntryForm({
             />
             <small>
               {Array.from(draft.text ?? "").length} / 4,000 characters · Visible
-              to your partner as soon as you share.
+              to {partnerName.object} as soon as you share.
             </small>
           </label>
         )

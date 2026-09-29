@@ -1,4 +1,5 @@
 "use client";
+import { usePartnerName } from "@/components/auth/member-names";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { readPeony, mutatePeony, type PeonyResult } from "@/lib/peony/actions";
 import {
@@ -38,6 +39,7 @@ export function PeonyPanel({
   busy: boolean;
   mutate: Mutate;
 }) {
+  const partnerName = usePartnerName();
   const [state, setState] = useState<PeonyState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [readError, setReadError] = useState<string | null>(null);
@@ -171,7 +173,7 @@ export function PeonyPanel({
       )}
       {pending && <p role="status">Saving your shared step…</p>}
       {saved && (
-        <p role="status">Your step is saved and visible to your partner.</p>
+        <p role="status">Your step is saved and visible to {partnerName.object}.</p>
       )}
       {!state ? (
         <p>Loading your shared milestones…</p>
@@ -227,7 +229,7 @@ export function PeonyPanel({
                               <strong>
                                 {member === state.member_id
                                   ? "You"
-                                  : "Your partner"}
+                                  : partnerName.subject}
                               </strong>
                               {c ? (
                                 <>
@@ -319,7 +321,7 @@ export function PeonyPanel({
                               <p key={member}>
                                 {member === state.member_id
                                   ? "You"
-                                  : "Your partner"}{" "}
+                                  : partnerName.subject}{" "}
                                 ·{" "}
                                 {state.plan!.acceptances.some(
                                   (a) => a.author_id === member,

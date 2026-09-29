@@ -1,4 +1,5 @@
 "use client";
+import { usePartnerName } from "@/components/auth/member-names";
 import Link from "next/link";
 import { useCallback, useRef, useState } from "react";
 import { GardenGuide } from "@/components/settings/garden-guide";
@@ -106,6 +107,7 @@ function GardenSpot({
   onCloseAutoFocus: (event: Event) => void;
   visit: (spot: number) => void;
 }) {
+  const partnerName = usePartnerName();
   const [picking, setPicking] = useState(!plant);
   // Set by a successful plant, which turns this sheet into the new flower's.
   const [planted, setPlanted] = useState(false);
@@ -152,7 +154,7 @@ function GardenSpot({
             className={plant ? styles.flowerButton : styles.emptyButton}
             aria-label={
               plant
-                ? `${item!.display_name}, spot ${spot}, ${plant.flower.fulfilled_at ? "fulfilled wish" : bloom ? "permanent bloom" : `${plant.flower.growth_units} of ${item!.growth_target} ${plant.flower.type_key === "peony" ? "milestones" : "growth units"}`}${plant.flower.type_key === "peony" ? "" : `, ${cared} of 2 cared today`}${cueLabel(cue)}`
+                ? `${item!.display_name}, spot ${spot}, ${plant.flower.fulfilled_at ? "fulfilled wish" : bloom ? "permanent bloom" : `${plant.flower.growth_units} of ${item!.growth_target} ${plant.flower.type_key === "peony" ? "milestones" : "growth units"}`}${plant.flower.type_key === "peony" ? "" : `, ${cared} of 2 cared today`}${cueLabel(cue, partnerName.object)}`
                 : `Plant in spot ${spot}`
             }
           >
@@ -221,6 +223,7 @@ function GardenSpot({
   );
 }
 export function GardenClient({ initial, guideEnabled = true }: { initial: GardenResult; guideEnabled?: boolean }) {
+  const partnerName = usePartnerName();
   const [openSpot, setOpenSpot] = useState<number | null>(null);
   // The away card waits while the guide wants the screen (decision 0056).
   // This repeats the guide's own condition in the same render, from the
@@ -314,8 +317,8 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
             <p>{state.plants.length} planted · {blooms} blooms · beds grow as needed.</p>
             <p>Garden day {state.garden_day} · starts 4 a.m. Pacific.</p>
             <p>{state.moonflower_open ? "Moonflower · open until 4 a.m." : "Moonflower · 10 p.m.–4 a.m. Pacific"}</p>
-            <p>Dots · you left, partner right; filled means cared today.</p>
-            <p>An outlined dot · your partner cared. Sparkle · blooms at 4 a.m. Empty drop · may lose growth.</p>
+            <p>Dots · you left, {partnerName.short} right; filled means cared today.</p>
+            <p>An outlined dot · {partnerName.object} cared. Sparkle · blooms at 4 a.m. Empty drop · may lose growth.</p>
             <p>{connected ? "Live updates on" : "Checking updates…"}</p>
             <button type="button" className={styles.refreshButton} onClick={() => void refresh()} disabled={busy}>Refresh</button>
           </div>

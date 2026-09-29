@@ -1,4 +1,5 @@
 "use client";
+import { usePartnerName } from "@/components/auth/member-names";
 import Link from "next/link";
 import { useCallback, useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { useMemberPreferences } from "@/components/settings/member-preferences";
@@ -141,6 +142,7 @@ export function SinceLastVisit({
       make room for it (issue #137). */
   onCard?: (card: HTMLElement | null) => void;
 }) {
+  const partnerName = usePartnerName();
   const titleId = useId();
   const card = useRef<HTMLElement | null>(null);
   const cardRef = useCallback((element: HTMLElement | null) => {
@@ -305,8 +307,8 @@ export function SinceLastVisit({
   if (news?.partnerCare.length)
     lines.push({
       key: "care",
-      kicker: "Partner care",
-      text: `Your partner cared for ${names(news.partnerCare)}`,
+      kicker: `${partnerName.label} care`,
+      text: `${partnerName.subject} cared for ${names(news.partnerCare)}`,
       glyph: <PixelIcon name="heart" className={styles.iconCare} />,
       action: "Visit",
       targets: flowerTargets(news.partnerCare),

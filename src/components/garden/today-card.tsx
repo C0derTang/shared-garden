@@ -1,4 +1,5 @@
 "use client";
+import { usePartnerName } from "@/components/auth/member-names";
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import type { GardenState } from "@/lib/garden/model";
 import { sheetCue, todayPlan, type CareStatus, type FlowerCue } from "./due-today";
@@ -8,19 +9,19 @@ import styles from "./today-card.module.css";
 /** Opens a spot's sheet. `restoreFocus` returns focus to the card when it closes. */
 export type VisitFromCard = (spot: number, restoreFocus: () => boolean) => void;
 
-function rowNote(status: CareStatus) {
+function rowNote(status: CareStatus, name: ReturnType<typeof usePartnerName>) {
   if (status.later) return "Opens 10 p.m.";
-  if (!status.dueForYou) return "Waiting on your partner";
-  if (status.partner) return "Partner cared · add yours";
+  if (!status.dueForYou) return `Waiting on ${name.object}`;
+  if (status.partner) return `${name.label} cared · add yours`;
   if (status.cue === "at-risk") return "Not cared yet · may lose growth";
   return "Not cared yet today";
 }
 
-function count(label: "You" | "Partner", due: number) {
+function count(label: string, due: number, who: "you" | "partner") {
   return (
-    <span className={styles.count} data-who={label === "You" ? "you" : "partner"}>
+    <span className={styles.count} data-who={who}>
       <i aria-hidden="true" />
-      {label} {due ? `${due} to tend` : "all tended"}
+      <span className={styles.countText}>{label} {due ? `${due} to tend` : "all tended"}</span>
     </span>
   );
 }
@@ -47,6 +48,7 @@ export function TodayCard({
   visit: VisitFromCard;
   away?: HTMLElement | null;
 }) {
+  const partnerName = usePartnerName();
   const plan = todayPlan(state);
   const [expanded, setExpanded] = useState(false);
   const listId = useId();
@@ -182,7 +184,7 @@ export function TodayCard({
                     <span className={styles.rowText}>
                       <strong>{item.display_name}</strong>{" "}
                       <span>
-                        {rowNote(status)}
+                        {rowNote(status, partnerName)}
                         <span className={styles.srOnly}>, spot {plant.flower.spot}</span>
                       </span>
                     </span>
@@ -205,7 +207,7 @@ export function TodayCard({
             <p className={styles.srOnly}>
               {laterOnly
                 ? "All tended for now. Moonflower opens 10 p.m."
-                : `You ${plan.you ? `${plan.you} to tend` : "all tended"}. Partner ${plan.partner ? `${plan.partner} to tend` : "all tended"}.`}
+                : `You ${plan.you ? `${plan.you} to tend` : "all tended"}. ${partnerName.label} ${plan.partner ? `${plan.partner} to tend` : "all tended"}.`}
             </p>
           ) : (
             <button
@@ -227,8 +229,8 @@ export function TodayCard({
                   </>
                 ) : (
                   <>
-                    {count("You", plan.you)}
-                    {count("Partner", plan.partner)}
+                    {count("You", plan.you, "you")}
+                    {count(partnerName.label, plan.partner, "partner")}
                   </>
                 )}
               </span>
@@ -277,7 +279,8 @@ export function FlowerCueMark({ cue }: { cue: FlowerCue }) {
 
 /** The flower sheet heading's one-line cue for the same three states. */
 export function SheetCue({ status }: { status: CareStatus | null }) {
-  const text = sheetCue(status);
+  const partnerName = usePartnerName();
+  const text = sheetCue(status, partnerName.subject);
   if (!text) return null;
   return (
     <p className={styles.sheetCue} data-cue={status!.cue}>

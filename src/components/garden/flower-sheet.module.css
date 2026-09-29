@@ -1,5 +1,7 @@
 .sheet {
   gap: 0.75rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 /* Two-person flower sheet (decision 0053) in the Harvest Handheld skin
@@ -23,6 +25,7 @@
 
 .growth {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   flex: 1;
   gap: 0.45rem;
   min-width: 0;
@@ -150,6 +153,7 @@
 }
 
 .cardHead h4 {
+  min-width: 0;
   grid-area: name;
 }
 

@@ -1,4 +1,5 @@
 "use client";
+import { usePartnerName } from "@/components/auth/member-names";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { gardenBrowserClient } from "@/lib/auth/browser";
 import { subscribeGarden } from "@/lib/garden/realtime";
@@ -28,6 +29,7 @@ export function AchievementsClient({
 }: {
   initial: AchievementResult;
 }) {
+  const partnerName = usePartnerName();
   const [state, setState] = useState(initial.state);
   const [error, setError] = useState(initial.error);
   const [busy, setBusy] = useState(false);
@@ -119,7 +121,7 @@ export function AchievementsClient({
           {earned === 26 && <span className={styles.complete}>All milestones earned<span aria-hidden="true"> ✿</span></span>}
         </div>}
         <div className={styles.refresh}>
-          <span className={styles.live} data-live={connected} aria-label={connected ? "Partner updates connected" : "Refresh to check for partner updates"}>{connected ? "Live" : "Not live"}</span>
+          <span className={styles.live} data-live={connected} aria-label={connected ? `${partnerName.label} updates connected` : `Refresh to check for ${partnerName.short} updates`}>{connected ? "Live" : "Not live"}</span>
           <button type="button" className="pixel-button" aria-label="Refresh achievements" onClick={() => void refresh()} disabled={busy}>
             {busy ? "Refreshing…" : "Refresh"}
           </button>

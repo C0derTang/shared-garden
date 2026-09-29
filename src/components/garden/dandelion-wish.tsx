@@ -1,4 +1,5 @@
 "use client";
+import { usePartnerName } from "@/components/auth/member-names";
 import { useRef, useState } from "react";
 import type { Plant } from "@/lib/garden/model";
 import type { Mutate } from "./seed-picker";
@@ -7,6 +8,7 @@ import styles from "./garden.module.css";
 export function DandelionWish({ flower, memberId, busy, mutate }: {
   flower: Plant["flower"]; memberId: 1 | 2; busy: boolean; mutate: Mutate;
 }) {
+  const partnerName = usePartnerName();
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const lock = useRef(false);
@@ -26,7 +28,7 @@ export function DandelionWish({ flower, memberId, busy, mutate }: {
     <span className="eyebrow">OUR SHARED WISH</span>
     <p className={styles.entryText}>{flower.shared_wish}</p>
     {flower.fulfilled_at ? <p role="status">
-      {flower.fulfilled_by === memberId ? "You fulfilled" : "Your partner fulfilled"} this wish · <time dateTime={flower.fulfilled_at}>{new Intl.DateTimeFormat("en-US", { timeZone:"America/Los_Angeles", dateStyle:"medium", timeStyle:"short" }).format(new Date(flower.fulfilled_at))} Pacific</time>.
+      {flower.fulfilled_by === memberId ? "You fulfilled" : `${partnerName.subject} fulfilled`} this wish · <time dateTime={flower.fulfilled_at}>{new Intl.DateTimeFormat("en-US", { timeZone:"America/Los_Angeles", dateStyle:"medium", timeStyle:"short" }).format(new Date(flower.fulfilled_at))} Pacific</time>.
       {" "}Seeds scattered. Your wish and its memories stay here.
     </p> : flower.first_bloom_at ? confirming ? <div className={styles.stack}>
       <p>Has your shared wish come true? Blowing the seeds marks it fulfilled permanently. This flower stays as a permanent keepsake with all its memories. Seeds are decorative and create no new plants. This cannot be undone.</p>

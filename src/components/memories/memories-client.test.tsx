@@ -484,3 +484,12 @@ it("keeps filters, refresh and the update state together in one toolbar", () => 
   expect(refresh.parentElement).toBe(toggle.parentElement);
   expect(toggle.parentElement).toHaveTextContent("Manual refresh");
 });
+
+import { MemberNamesProvider } from "@/components/auth/member-names";
+it("preserves the configured name capitalization in inline wish and planter attribution", () => {
+  const original = memoryFixture();
+  const wish: MemoryItem = { ...original, kind: "wish", entry: null, flower: { ...original.flower, type_key: "dandelion", planted_by: 2, fulfilled_by: 2, fulfilled_at: original.at, shared_wish: "A quiet day" } };
+  render(<MemberNamesProvider partnerName="Élodie-Anne"><MemoriesClient memberId={1} initial={page([wish])} /></MemberNamesProvider>);
+  expect(screen.getByText(/Wish fulfilled by Élodie-Anne/)).toBeInTheDocument();
+  expect(screen.getByText("Planted by Élodie-Anne")).toBeInTheDocument();
+});

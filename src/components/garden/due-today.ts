@@ -134,9 +134,9 @@ export function todayPlan(state: GardenState): TodayPlan {
 }
 
 /** Words appended to a flower button's accessible name for its cue. */
-export function cueLabel(cue: FlowerCue) {
+export function cueLabel(cue: FlowerCue, partnerName = "your partner") {
   return cue === "partner-cared"
-    ? ", your partner cared, add yours"
+    ? `, ${partnerName} cared, add yours`
     : cue === "blooms"
       ? ", blooms at 4 a.m."
       : cue === "at-risk"
@@ -145,12 +145,12 @@ export function cueLabel(cue: FlowerCue) {
 }
 
 /** The one-line cue under the flower sheet heading, or null for none. */
-export function sheetCue(status: CareStatus | null) {
+export function sheetCue(status: CareStatus | null, partnerName = "Your partner") {
   if (!status?.cue) return null;
   if (status.cue === "partner-cared")
     return status.plant.flower.first_bloom_at
-      ? "Your partner checked in today. Add yours before 4 a.m. to check in together."
-      : "Your partner cared today. Add yours before 4 a.m. to grow.";
+      ? `${partnerName} checked in today. Add yours before 4 a.m. to check in together.`
+      : `${partnerName} cared today. Add yours before 4 a.m. to grow.`;
   if (status.cue === "blooms") return "You both cared today. It blooms at 4 a.m.";
   return status.later
     ? "No care yet today. It opens at 10 p.m. and needs you both by 4 a.m., or it loses a growth unit."

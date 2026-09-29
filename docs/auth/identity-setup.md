@@ -124,3 +124,14 @@ membership table, switches to the real Auth role for hook and identity writes,
 checks the Google insertion-before-confirmation sequence, returning sign-in,
 spoofed claims, and revocation, then verifies fixture rollback. It runs only
 against the disposable local container; do not run it against a hosted project.
+
+## Private display first names
+
+After verifying the stable slot mapping, set `GARDEN_MEMBER_1_NAME` for slot 1
+(owner) and `GARDEN_MEMBER_2_NAME` for slot 2 (member) in the private deployment
+environment, then redeploy. Never commit values or use `NEXT_PUBLIC_` variables.
+Names affect presentation only and do not alter account identity or access.
+Missing or invalid values retain generic partner wording. See
+[decision 0058](../decisions/0058-private-member-display-names.md) for validation
+and the authenticated disclosure boundary. Use synthetic names in local fixtures
+and public validation evidence.

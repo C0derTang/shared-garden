@@ -1,4 +1,5 @@
 "use client";
+import { usePartnerName } from "@/components/auth/member-names";
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -20,6 +21,7 @@ export function SongCollection({
   initial: SongPage;
   memberId: 1 | 2;
 }) {
+  const partnerName = usePartnerName();
   const [entries, setEntries] = useState(initial.entries);
   const [more, setMore] = useState(initial.more);
   const [oldest, setOldest] = useState(initial.entries.at(-1)?.id ?? null);
@@ -160,7 +162,7 @@ export function SongCollection({
             <div className={styles.entryBody}>
               <div className={styles.meta}>
                 <strong>
-                  {entry.author_id === memberId ? "You" : "Your partner"}
+                  {entry.author_id === memberId ? "You" : partnerName.subject}
                 </strong>
                 <time dateTime={entry.original_posted_at}>
                   {entry.garden_day} · {pacificTime(entry.original_posted_at)}

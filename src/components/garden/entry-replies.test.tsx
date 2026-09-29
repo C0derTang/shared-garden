@@ -115,3 +115,13 @@ it("a newly sent reply cannot mask a disconnected gap in the last successful his
   fireEvent.click(earlier);
   await waitFor(() => expect(read).toHaveBeenLastCalledWith(9, 52));
 });
+
+import { MemberNamesProvider } from "@/components/auth/member-names";
+it.each([1, 2] as const)("uses the configured opposite-slot name and keeps You for viewer %s", async memberId => {
+  read.mockResolvedValue({ replies: [reply, { ...reply, id: 2, author_id: 1, body: "Another reply" }], error: null });
+  const partnerName = memberId === 1 ? "Rowan" : "Avery";
+  render(<MemberNamesProvider partnerName={partnerName}><EntryReplies entryId={9} authorId={1} memberId={memberId} refreshKey="one" /></MemberNamesProvider>);
+  expect(await screen.findByText(partnerName)).toBeInTheDocument();
+  expect(screen.getByText("You")).toBeInTheDocument();
+  expect(screen.queryByText("Your partner")).toBeNull();
+});

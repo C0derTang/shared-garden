@@ -165,3 +165,10 @@ it("continues through multiple new batches without losing the older browsing cur
     expect(loadSongs).toHaveBeenLastCalledWith({ kind: "older", id: 21 }),
   );
 });
+
+import { MemberNamesProvider } from "@/components/auth/member-names";
+it.each([1, 2] as const)("keeps self label and names the other song author for viewer %s", memberId => {
+  render(<MemberNamesProvider partnerName="Rowan"><SongCollection memberId={memberId} initial={{ entries: [song(22), song(21)], more: false, error: null }} /></MemberNamesProvider>);
+  expect(screen.getByText("You")).toBeInTheDocument();
+  expect(screen.getByText("Rowan")).toBeInTheDocument();
+});

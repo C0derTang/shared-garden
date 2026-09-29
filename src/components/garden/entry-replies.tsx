@@ -1,4 +1,5 @@
 "use client";
+import { usePartnerName } from "@/components/auth/member-names";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { readReplies, saveReply } from "@/lib/replies/actions";
 import type { Reply } from "@/lib/replies/model";
@@ -12,6 +13,7 @@ function combine(old: Reply[], rows: Reply[]) {
 export function EntryReplies({ entryId, authorId, memberId, refreshKey }: {
   entryId: number; authorId: number; memberId: number; refreshKey: string;
 }) {
+  const partnerName = usePartnerName();
   const inputId = useId();
   const [page, setPage] = useState<{
     replies: Reply[];
@@ -109,7 +111,7 @@ export function EntryReplies({ entryId, authorId, memberId, refreshKey }: {
     <h5>Replies</h5>
     {more && <button type="button" className="button button-secondary" disabled={loading} onClick={() => void load(page.beforeId)}>Earlier replies</button>}
     {replies.length > 0 && <ol className={styles.messages}>{replies.map(reply => <li key={reply.id}>
-      <div className={styles.meta}><strong>{reply.author_id === memberId ? "You" : "Your partner"}</strong>{" · "}<time dateTime={reply.created_at}>{new Intl.DateTimeFormat("en-US", { timeZone: "America/Los_Angeles", month: "short", day: "numeric" }).format(new Date(reply.created_at))} · {pacificTime(reply.created_at)}</time></div>
+      <div className={styles.meta}><strong>{reply.author_id === memberId ? "You" : partnerName.subject}</strong>{" · "}<time dateTime={reply.created_at}>{new Intl.DateTimeFormat("en-US", { timeZone: "America/Los_Angeles", month: "short", day: "numeric" }).format(new Date(reply.created_at))} · {pacificTime(reply.created_at)}</time></div>
       <p>{reply.body}</p>
     </li>)}</ol>}
     {readError && <div><p role="alert">{readError}</p><button type="button" className="button button-secondary" disabled={loading} onClick={() => void load()}>Reload replies</button></div>}

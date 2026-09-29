@@ -1,4 +1,5 @@
 "use client";
+import { usePartnerName } from "@/components/auth/member-names";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import {
   canEditAt,
@@ -155,6 +156,7 @@ function CareCard({
   closed?: boolean;
   children: ReactNode;
 }) {
+  const partnerName = usePartnerName();
   const id = useId();
   const you = card.who === "you";
   const opens = you && closed && !card.cared;
@@ -179,7 +181,7 @@ function CareCard({
             aria-hidden="true"
           />
         )}
-        <h4 id={id}>{you ? "You" : "Partner"}</h4>
+        <h4 id={id}>{you ? "You" : partnerName.label}</h4>
         {dailyCare && (
           <span
             className={sheetStyles.cardStatus}
@@ -213,6 +215,7 @@ export function FlowerSheet({
   onVisit?: (spot: number) => void;
   onClose?: () => void;
 }) {
+  const partnerName = usePartnerName();
   const [editing, setEditing] = useState<Entry | null>(null);
   // "share" after a new entry (offers the next flower), "edit" after an edit.
   const [saved, setSaved] = useState<"share" | "edit" | null>(null);
@@ -515,7 +518,7 @@ export function FlowerSheet({
           {saved && (
             <div className={sheetStyles.saved}>
               <p role="status" className={styles.notice}>
-                Saved · your partner can see it now.
+                Saved · {partnerName.object} can see it now.
               </p>
               {saved === "share" &&
                 (next && nextItem && onVisit ? (
@@ -559,7 +562,7 @@ export function FlowerSheet({
                   <strong>
                     {entry.author_id === state.member_id
                       ? "You"
-                      : "Your partner"}
+                      : partnerName.subject}
                   </strong>
                   <time dateTime={entry.original_posted_at}>
                     {entry.garden_day} · {pacificTime(entry.original_posted_at)}
