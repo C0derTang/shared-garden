@@ -163,3 +163,17 @@ it("turns compact while a crowded While-you-were-away card is open, and keeps fo
   heights.mockRestore();
   rects.mockRestore();
 });
+
+import { MemberNamesProvider } from "@/components/auth/member-names";
+it("uses the configured name in care counts, accessible cues, cards and sheet prose", async () => {
+  const user = userEvent.setup();
+  const state = garden(1);
+  refreshGarden.mockResolvedValue({ state, error: null });
+  render(<MemberNamesProvider partnerName="Rowan"><GardenClient initial={{ state, error: null }} guideEnabled={false} /></MemberNamesProvider>);
+  expect(within(card()).getByRole("button", { name: /You 2 to tend.*Rowan 1 to tend/ })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /Tulip, spot 3.*Rowan cared, add yours/ })).toBeInTheDocument();
+  await user.click(within(card()).getByRole("button", { name: "Tend Tulip in spot 3" }));
+  expect(screen.getByText("Rowan cared today. Add yours before 4 a.m. to grow.")).toBeInTheDocument();
+  expect(screen.getByRole("article", { name: "Rowan" })).toBeInTheDocument();
+  expect(screen.getByRole("article", { name: "You" })).toBeInTheDocument();
+});

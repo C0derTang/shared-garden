@@ -150,6 +150,7 @@
 }
 
 .cardHead h4 {
+  min-width: 0;
   grid-area: name;
 }
 

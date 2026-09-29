@@ -1,4 +1,5 @@
 "use client";
+import { usePartnerName } from "@/components/auth/member-names";
 import { useId, useState } from "react";
 import {
   FlowerSprite,
@@ -14,8 +15,8 @@ import type { MemoryItem, MemoryPeony } from "@/lib/memories/model";
 import styles from "./memories.module.css";
 export const flowerName = (type: string) =>
   type.charAt(0).toUpperCase() + type.slice(1);
-const authorName = (id: 1 | 2, memberId: 1 | 2) =>
-  id === memberId ? "You" : "Your partner";
+const authorName = (id: 1 | 2, memberId: 1 | 2, name: ReturnType<typeof usePartnerName>, inline = false) =>
+  id === memberId ? (inline ? "you" : "You") : (inline ? name.object : name.subject);
 const dateTime = (value: string, short = false) =>
   new Intl.DateTimeFormat("en-US", {
     timeZone: "America/Los_Angeles",
@@ -132,6 +133,7 @@ function PeonyHistory({
   peony: MemoryPeony;
   memberId: 1 | 2;
 }) {
+  const partnerName = usePartnerName();
   const completedCount = peony.completed.length;
   const [open, setOpen] = useState(false);
   const historyId = useId();
@@ -171,13 +173,13 @@ function PeonyHistory({
                   </p>
                   <p className={styles.quiet}>
                     Plan version {peony.plan.version} · Last saved by{" "}
-                    {authorName(peony.plan.updated_by, memberId).toLowerCase()}{" "}
+                    {authorName(peony.plan.updated_by, memberId, partnerName, true)}{" "}
                     <Posted at={peony.plan.updated_at} />
                   </p>
                   {peony.plan.acceptances.length ? (
                     peony.plan.acceptances.map((a) => (
                       <p key={a.author_id}>
-                        <strong>{authorName(a.author_id, memberId)}</strong>{" "}
+                        <strong>{authorName(a.author_id, memberId, partnerName)}</strong>{" "}
                         accepted ·{" "}
                         <Posted at={a.original_posted_at} day={a.garden_day} />
                       </p>
@@ -193,7 +195,7 @@ function PeonyHistory({
               contributions.map((c) => (
                 <div key={c.author_id} className={styles.contribution}>
                   <p className={styles.meta}>
-                    <strong>{authorName(c.author_id, memberId)}</strong>
+                    <strong>{authorName(c.author_id, memberId, partnerName)}</strong>
                     <Posted at={c.original_posted_at} day={c.garden_day} />
                   </p>
                   <p className={styles.text}>
@@ -233,6 +235,7 @@ export function MemoryCard({
   item: MemoryItem;
   memberId: 1 | 2;
 }) {
+  const partnerName = usePartnerName();
   const f = item.flower,
     entry = item.entry;
   const mood =
@@ -284,7 +287,7 @@ export function MemoryCard({
           {f.fulfilled_at && f.fulfilled_by ? (
             <>
               Wish fulfilled by{" "}
-              {authorName(f.fulfilled_by, memberId).toLowerCase()} ·{" "}
+              {authorName(f.fulfilled_by, memberId, partnerName, true)} ·{" "}
               <Posted at={f.fulfilled_at} />. Its scattered seeds remain part of
               this one flower.
             </>
@@ -338,9 +341,9 @@ export function MemoryCard({
         <div className={styles.meta}>
           <strong>
             {entry
-              ? authorName(entry.author_id, memberId)
+              ? authorName(entry.author_id, memberId, partnerName)
               : f.planted_by
-                ? `Planted by ${authorName(f.planted_by, memberId).toLowerCase()}`
+                ? `Planted by ${authorName(f.planted_by, memberId, partnerName, true)}`
                 : "Our garden"}
           </strong>
           <Posted at={item.at} short />

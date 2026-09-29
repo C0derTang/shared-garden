@@ -21,7 +21,7 @@ export async function saveReply(entryId: number, body: string, requestId: string
     if (!db) throw Error("Unavailable");
     const { data, error } = await db.rpc("reply_to_entry", { p_entry_id: entryId, p_body: body, p_request_id: requestId });
     if (error) {
-      if (error.code === "22023" || error.code === "42501") return { reply: null, rejected: true, error: "This reply could not be saved. Check your access and use 1–4,000 characters on your partner’s entry." };
+      if (error.code === "22023" || error.code === "42501") return { reply: null, rejected: true, error: "This reply could not be saved. Check your access and use 1–4,000 characters on the other member’s entry." };
       throw Error("Unconfirmed");
     }
     return { reply: parseReply(data), error: null };

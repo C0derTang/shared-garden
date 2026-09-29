@@ -95,8 +95,9 @@
   gap: 6px;
   font: 600 var(--text-xs)/1.3 var(--font-pixel);
   letter-spacing: 0.02em;
-  white-space: nowrap;
+  min-width: 0;
 }
+.countText { min-width: 0; overflow-wrap: anywhere; }
 /* The same you-green and partner-berry squares as the care dots. */
 .count > i {
   flex: none;
