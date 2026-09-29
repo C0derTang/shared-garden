@@ -20,6 +20,7 @@ import { VoiceViewer } from "@/components/media/voice-player";
 import { PhotoViewer } from "@/components/media/photo-viewer";
 import { DandelionWish } from "./dandelion-wish";
 import { PeonyPanel } from "./peony-panel";
+import { EntryReplies } from "./entry-replies";
 import { EntryForm } from "./entry-form";
 import { flowerCards, nextDueFlower, type FlowerCard } from "./flower-cards";
 import { careStatus } from "./due-today";
@@ -362,6 +363,12 @@ export function FlowerSheet({
           {pacificTime(entry.original_posted_at)}
         </time>
         <EntryContent entry={entry} type={item.type_key} />
+        <EntryReplies
+          entryId={entry.id}
+          authorId={entry.author_id}
+          memberId={state.member_id}
+          refreshKey={state.server_now}
+        />
         {mine &&
           (canEditAt(entry, state, now) ? (
             <div className={styles.editRow}>
@@ -559,6 +566,12 @@ export function FlowerSheet({
                   </time>
                 </div>
                 <EntryContent entry={entry} type={item.type_key} />
+                <EntryReplies
+                  entryId={entry.id}
+                  authorId={entry.author_id}
+                  memberId={state.member_id}
+                  refreshKey={state.server_now}
+                />
               </article>
             ))}
             {history?.length === 0 && <p>No earlier entries yet.</p>}

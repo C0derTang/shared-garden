@@ -1,3 +1,4 @@
+vi.mock("@/lib/replies/actions", () => ({ readReplies: vi.fn().mockResolvedValue({ replies: [], error: null }), saveReply: vi.fn() }));
 vi.mock("@/lib/peony/actions", () => ({
   readPeony: vi.fn(),
   mutatePeony: vi.fn(),
@@ -89,4 +90,21 @@ it("keeps Daisy history answers without exposing raw question ids", async () => 
   expect(await within(past).findByText("A slow breakfast.")).toBeInTheDocument();
   expect(past).not.toHaveTextContent("light-042");
   expect(past).not.toHaveTextContent(/Question/);
+});
+it.each(["rose", "marigold"] as const)("offers partner replies on %s today and bloomed history without requiring own care", async type => {
+  const state = gardenFixture();
+  const plant = state.plants[0];
+  plant.flower.type_key = type;
+  plant.entries = [{ ...entryFixture(), author_id: 2 }];
+  load.mockResolvedValue({ entries: [history({ text: "Earlier partner note" })], error: null });
+  const props = { state, plant, item: state.catalog.find(item => item.type_key === type)!, now: Date.parse(state.server_now), busy: false, mutate: vi.fn() };
+  const { rerender } = render(<FlowerSheet {...props} />);
+  const today = screen.getByRole("region", { name: "Today's entries" });
+  expect(within(today).getByRole("textbox", { name: "Reply" })).toBeInTheDocument();
+  expect(props.mutate).not.toHaveBeenCalled();
+  plant.flower.first_bloom_at = state.server_now;
+  rerender(<FlowerSheet {...props} />);
+  fireEvent.click(screen.getByRole("button", { name: "Read history" }));
+  const past = screen.getByRole("region", { name: "Flower history" });
+  expect(await within(past).findByRole("textbox", { name: "Reply" })).toBeInTheDocument();
 });

@@ -56,6 +56,8 @@ insert into expected_function_grants values
   ('public.edit_flower_entry(bigint,jsonb)', 'authenticated'),
   ('public.edit_peony_contribution(bigint,jsonb)', 'authenticated'),
   ('public.entry_history(uuid,integer,bigint)', 'authenticated'),
+  ('public.entry_reply_history(bigint,integer,bigint)', 'authenticated'),
+  ('public.reply_to_entry(bigint,text,uuid)', 'authenticated'),
   ('public.fulfill_dandelion(uuid)', 'authenticated'),
   ('public.get_daily_daisy_question()', 'authenticated'),
   ('public.initialize_garden()', 'authenticated'),
