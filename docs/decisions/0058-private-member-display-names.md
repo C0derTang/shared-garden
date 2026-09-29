@@ -31,3 +31,14 @@ long, control-containing, markup, URL, and email-like values fall back to the
 existing generic wording without blocking the garden. Rendering remains escaped
 React text. Narrow care labels wrap rather than forcing horizontal scrolling.
 Only the operator may change these private settings; there is no profile editor.
+
+## Possessive wording
+
+[Issue #145](https://github.com/C0derTang/shared-garden/issues/145) records the
+user's explicit rule: wherever a configured name expresses ownership, append
+one ASCII apostrophe followed by s, including names ending in s (`Avery's`,
+`James's`). The shared display-name helper supplies this form for visible care
+headings, the care-dot legend, and live-update accessibility labels. Missing-name
+fallbacks use `Your partner's` or `your partner's` as appropriate. Subject, object,
+and standalone author labels remain unchanged. This presentation rule does not
+change private name configuration, authentication, or user-authored content.

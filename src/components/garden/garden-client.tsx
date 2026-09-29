@@ -317,7 +317,7 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
             <p>{state.plants.length} planted · {blooms} blooms · beds grow as needed.</p>
             <p>Garden day {state.garden_day} · starts 4 a.m. Pacific.</p>
             <p>{state.moonflower_open ? "Moonflower · open until 4 a.m." : "Moonflower · 10 p.m.–4 a.m. Pacific"}</p>
-            <p>Dots · you left, {partnerName.short} right; filled means cared today.</p>
+            <p>Dots · your dot on the left, {partnerName.possessive} on the right; filled means cared today.</p>
             <p>An outlined dot · {partnerName.object} cared. Sparkle · blooms at 4 a.m. Empty drop · may lose growth.</p>
             <p>{connected ? "Live updates on" : "Checking updates…"}</p>
             <button type="button" className={styles.refreshButton} onClick={() => void refresh()} disabled={busy}>Refresh</button>

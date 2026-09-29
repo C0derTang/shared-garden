@@ -141,7 +141,7 @@ it("does not scroll again when a refresh keeps the open badge", async () => {
 });
 it("labels the offline connection state as a status, not an action", () => {
   render(<AchievementsClient initial={{ state: fixture(), error: null }} />);
-  expect(screen.getByText("Not live")).toHaveAttribute("aria-label", "Refresh to check for partner updates");
+  expect(screen.getByText("Not live")).toHaveAttribute("aria-label", "Refresh to check for your partner's updates");
   expect(screen.queryByText("Check for updates")).not.toBeInTheDocument();
 });
 
