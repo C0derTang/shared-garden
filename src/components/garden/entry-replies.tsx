@@ -13,7 +13,12 @@ export function EntryReplies({ entryId, authorId, memberId, refreshKey }: {
   entryId: number; authorId: number; memberId: number; refreshKey: string;
 }) {
   const inputId = useId();
-  const [page, setPage] = useState<{ replies: Reply[]; more: boolean }>({ replies: [], more: false });
+  const [page, setPage] = useState<{
+    replies: Reply[];
+    more: boolean;
+    historyNewestId: number | null;
+    beforeId: number | null;
+  }>({ replies: [], more: false, historyNewestId: null, beforeId: null });
   const { replies, more } = page;
   const [readError, setReadError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -42,15 +47,20 @@ export function EntryReplies({ entryId, authorId, memberId, refreshKey }: {
       if (!result.error) {
         setPage(old => {
           const rows = result.replies;
-          // If a disconnected interval fills an entire new page, reset to that
-          // page so Earlier follows its contiguous cursor instead of skipping
-          // the unseen gap between it and previously loaded replies.
+          // Only successful reads establish a history range. A local send may
+          // arrive before the first read, or beyond an unseen disconnected gap.
+          const firstHistory = old.historyNewestId === null;
           const gap = beforeId === null && rows.length === 50 &&
-            (!old.replies.length || old.replies.at(-1)!.id < rows[0].id);
+            (firstHistory || old.historyNewestId! < rows[0].id);
+          const resetCursor = beforeId !== null || firstHistory || gap;
           return {
-            replies: gap ? rows : combine(old.replies, rows),
-            more: beforeId !== null || !old.replies.length || gap
-              ? rows.length === 50 : old.more,
+            replies: gap
+              ? combine(rows, old.replies.filter(reply => reply.id > rows.at(-1)!.id))
+              : combine(old.replies, rows),
+            more: resetCursor ? rows.length === 50 : old.more,
+            historyNewestId: beforeId === null
+              ? rows.at(-1)?.id ?? old.historyNewestId : old.historyNewestId,
+            beforeId: resetCursor ? rows[0]?.id ?? old.beforeId : old.beforeId,
           };
         });
       }
@@ -97,7 +107,7 @@ export function EntryReplies({ entryId, authorId, memberId, refreshKey }: {
   }
   return <section className={styles.thread} aria-label="Replies">
     <h5>Replies</h5>
-    {more && <button type="button" className="button button-secondary" disabled={loading} onClick={() => void load(replies[0]?.id ?? null)}>Earlier replies</button>}
+    {more && <button type="button" className="button button-secondary" disabled={loading} onClick={() => void load(page.beforeId)}>Earlier replies</button>}
     {replies.length > 0 && <ol className={styles.messages}>{replies.map(reply => <li key={reply.id}>
       <div className={styles.meta}><strong>{reply.author_id === memberId ? "You" : "Your partner"}</strong>{" · "}<time dateTime={reply.created_at}>{new Intl.DateTimeFormat("en-US", { timeZone: "America/Los_Angeles", month: "short", day: "numeric" }).format(new Date(reply.created_at))} · {pacificTime(reply.created_at)}</time></div>
       <p>{reply.body}</p>

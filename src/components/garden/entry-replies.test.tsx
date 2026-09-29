@@ -70,3 +70,48 @@ it("keeps unseen replies reachable after a disconnected interval fills a fresh p
   fireEvent.click(await screen.findByRole("button", { name: "Earlier replies" }));
   await waitFor(() => expect(read).toHaveBeenLastCalledWith(9, 52));
 });
+it("retains earlier pagination when sending before the initial read resolves", async () => {
+  let resolveRead!: (value: unknown) => void;
+  read.mockReturnValueOnce(new Promise(resolve => { resolveRead = resolve; }));
+  save.mockResolvedValueOnce({ reply: { ...reply, id: 52, body: "Just sent" }, error: null });
+  render(<EntryReplies entryId={9} authorId={1} memberId={2} refreshKey="one" />);
+  await waitFor(() => expect(read).toHaveBeenCalled());
+  fireEvent.change(screen.getByRole("textbox"), { target: { value: "Just sent" } });
+  fireEvent.click(screen.getByRole("button", { name: "Send reply" }));
+  await screen.findByText("Reply saved.");
+  resolveRead({ replies: Array.from({ length: 50 }, (_, i) => ({ ...reply, id: i + 2, body: `Reply ${i + 2}` })), error: null });
+  await screen.findByText("Reply 2");
+  expect(screen.getByRole("button", { name: "Earlier replies" })).toBeInTheDocument();
+});
+it("recovers earlier pagination after a failed first read and a successful send", async () => {
+  read.mockResolvedValueOnce({ replies: [], error: "Replies unavailable" });
+  save.mockResolvedValueOnce({ reply: { ...reply, id: 52, body: "Just sent" }, error: null });
+  render(<EntryReplies entryId={9} authorId={1} memberId={2} refreshKey="one" />);
+  await screen.findByRole("button", { name: "Reload replies" });
+  fireEvent.change(screen.getByRole("textbox"), { target: { value: "Just sent" } });
+  fireEvent.click(screen.getByRole("button", { name: "Send reply" }));
+  await screen.findByText("Reply saved.");
+  read.mockResolvedValueOnce({ replies: Array.from({ length: 50 }, (_, i) => ({ ...reply, id: i + 3, body: `Reply ${i + 3}` })), error: null });
+  fireEvent.click(screen.getByRole("button", { name: "Reload replies" }));
+  const earlier = await screen.findByRole("button", { name: "Earlier replies" });
+  read.mockResolvedValueOnce({ replies: [reply], error: null });
+  fireEvent.click(earlier);
+  expect(await screen.findByText(reply.body)).toBeInTheDocument();
+  expect(read).toHaveBeenLastCalledWith(9, 3);
+  expect(screen.queryByRole("button", { name: "Earlier replies" })).toBeNull();
+});
+it("a newly sent reply cannot mask a disconnected gap in the last successful history page", async () => {
+  read.mockResolvedValueOnce({ replies: [reply], error: null });
+  save.mockResolvedValueOnce({ reply: { ...reply, id: 102, body: "Just sent" }, error: null });
+  const { rerender } = render(<EntryReplies entryId={9} authorId={1} memberId={2} refreshKey="one" />);
+  await screen.findByText(reply.body);
+  fireEvent.change(screen.getByRole("textbox"), { target: { value: "Just sent" } });
+  fireEvent.click(screen.getByRole("button", { name: "Send reply" }));
+  await screen.findByText("Reply saved.");
+  read.mockResolvedValueOnce({ replies: Array.from({ length: 50 }, (_, i) => ({ ...reply, id: i + 52, body: `Reply ${i + 52}` })), error: null });
+  rerender(<EntryReplies entryId={9} authorId={1} memberId={2} refreshKey="two" />);
+  const earlier = await screen.findByRole("button", { name: "Earlier replies" });
+  expect(screen.getByText("Just sent")).toBeInTheDocument();
+  fireEvent.click(earlier);
+  await waitFor(() => expect(read).toHaveBeenLastCalledWith(9, 52));
+});
