@@ -1,3 +1,4 @@
+vi.mock("@/lib/replies/actions", () => ({ readReplies: vi.fn().mockResolvedValue({ replies: [], error: null }), saveReply: vi.fn() }));
 import {
   cleanup,
   fireEvent,

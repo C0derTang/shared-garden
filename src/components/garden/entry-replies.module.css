@@ -1,0 +1,10 @@
+.thread { border-top: 2px dashed var(--line-strong); margin-top: 0.8rem; padding-top: 0.65rem; min-width: 0; }
+.thread h5 { font-family: var(--font-pixel); font-size: 1rem; margin: 0 0 0.5rem; }
+.messages { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.7rem; }
+.messages li { border-left: 2px solid var(--line-strong); padding-left: 0.6rem; min-width: 0; }
+.messages p { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0.25rem 0; }
+.meta { font-size: 0.8rem; color: var(--muted); overflow-wrap: anywhere; }
+.form { display: grid; gap: 0.5rem; margin-top: 0.6rem; }
+.form textarea { width: 100%; min-width: 0; box-sizing: border-box; resize: vertical; }
+.form small { color: var(--muted); }
+.form button { justify-self: start; }

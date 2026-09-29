@@ -23,6 +23,7 @@ function openGardenChannel(
   for (const table of [
     "flowers",
     "flower_entries",
+    "entry_replies",
     "flower_unlocks",
     "peony_contributions",
     "peony_plans",
