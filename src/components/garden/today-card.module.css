@@ -187,7 +187,7 @@
 .row:hover { background: var(--paper-deep); }
 .row:not([data-due]) { background: var(--paper); }
 .rowSprite { width: 32px; height: 32px; }
-.rowText { display: grid; min-width: 0; }
+.rowText { display: grid; min-width: 0; overflow-wrap: anywhere; }
 .rowText strong { font: 700 var(--text-sm)/1.2 var(--font-pixel); }
 .rowText > span { color: var(--muted); font-size: var(--text-xs); line-height: 1.3; }
 
@@ -275,6 +275,8 @@
 
 /* The one-line cue under the flower sheet heading. */
 .sheetCue {
+  min-width: 0;
+  overflow-wrap: anywhere;
   margin-top: 0.4rem;
   color: var(--ink);
   font-size: var(--text-sm);
