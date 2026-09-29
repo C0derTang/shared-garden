@@ -13,5 +13,7 @@ export function usePartnerName() {
     subject: name ?? "Your partner",
     object: name ?? "your partner",
     short: name ?? "partner",
+    possessive: `${name ?? "your partner"}'s`,
+    possessiveLabel: `${name ?? "Your partner"}'s`,
   };
 }

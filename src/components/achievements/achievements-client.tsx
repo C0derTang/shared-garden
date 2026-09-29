@@ -121,7 +121,7 @@ export function AchievementsClient({
           {earned === 26 && <span className={styles.complete}>All milestones earned<span aria-hidden="true"> ✿</span></span>}
         </div>}
         <div className={styles.refresh}>
-          <span className={styles.live} data-live={connected} aria-label={connected ? `${partnerName.label} updates connected` : `Refresh to check for ${partnerName.short} updates`}>{connected ? "Live" : "Not live"}</span>
+          <span className={styles.live} data-live={connected} aria-label={connected ? `${partnerName.possessiveLabel} updates connected` : `Refresh to check for ${partnerName.possessive} updates`}>{connected ? "Live" : "Not live"}</span>
           <button type="button" className="pixel-button" aria-label="Refresh achievements" onClick={() => void refresh()} disabled={busy}>
             {busy ? "Refreshing…" : "Refresh"}
           </button>

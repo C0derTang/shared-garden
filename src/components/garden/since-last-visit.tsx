@@ -307,7 +307,7 @@ export function SinceLastVisit({
   if (news?.partnerCare.length)
     lines.push({
       key: "care",
-      kicker: `${partnerName.label} care`,
+      kicker: `${partnerName.possessiveLabel} care`,
       text: `${partnerName.subject} cared for ${names(news.partnerCare)}`,
       glyph: <PixelIcon name="heart" className={styles.iconCare} />,
       action: "Visit",
