@@ -5,6 +5,7 @@ import {
   FlowerSprite,
   type FlowerType,
 } from "@/components/garden/flower-sprite";
+import { EntryReplies } from "@/components/garden/entry-replies";
 import { GardenSpotLink } from "@/components/garden/spot-request";
 import { PhotoViewer } from "@/components/media/photo-viewer";
 import { VoiceViewer } from "@/components/media/voice-player";
@@ -71,6 +72,20 @@ function LazyPhoto({ mediaId }: { mediaId: string }) {
       </button>
     </div>
   );
+}
+function ReplyHistory({ item, memberId }: { item: MemoryItem; memberId: 1 | 2 }) {
+  const [open, setOpen] = useState(false);
+  const historyId = useId();
+  return <div className={styles.replyHistory}>
+    <button type="button" className={styles.historyToggle} aria-expanded={open}
+      aria-controls={historyId} onClick={() => setOpen(expanded => !expanded)}>
+      <span>Reply history</span><span aria-hidden="true">{open ? "−" : "+"}</span>
+    </button>
+    <div id={historyId} hidden={!open} className={styles.historyBody}>
+      {open && <EntryReplies entryId={item.source_id} authorId={item.entry!.author_id}
+        memberId={memberId} refreshKey={item.read_at} readOnly />}
+    </div>
+  </div>;
 }
 const PREVIEW_LENGTH = 170;
 function preview(text: string) {
@@ -335,6 +350,7 @@ export function MemoryCard({
           )}
         </div>
       )}
+      {item.kind === "entry" && entry && <ReplyHistory key={item.key} item={item} memberId={memberId} />}
       {item.peony && <PeonyHistory peony={item.peony} memberId={memberId} />}
       </div>
       <footer className={styles.cardFooter}>

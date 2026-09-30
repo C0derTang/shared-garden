@@ -15,6 +15,7 @@ const { load, media, subscribe } = vi.hoisted(() => ({
   media: vi.fn(),
   subscribe: vi.fn(),
 }));
+vi.mock("@/lib/replies/actions", () => ({ readReplies: vi.fn(), saveReply: vi.fn() }));
 vi.mock("@/lib/memories/actions", () => ({ loadMemories: load }));
 vi.mock("@/lib/auth/browser", () => ({ gardenBrowserClient: () => ({}) }));
 vi.mock("@/lib/garden/realtime", () => ({ subscribeGarden: subscribe }));

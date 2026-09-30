@@ -10,8 +10,8 @@ function combine(old: Reply[], rows: Reply[]) {
   return [...new Map([...old, ...rows].map(row => [row.id, row])).values()].sort((a, b) => a.id - b.id);
 }
 
-export function EntryReplies({ entryId, authorId, memberId, refreshKey }: {
-  entryId: number; authorId: number; memberId: number; refreshKey: string;
+export function EntryReplies({ entryId, authorId, memberId, refreshKey, readOnly = false }: {
+  entryId: number | string; authorId: number; memberId: number; refreshKey: string; readOnly?: boolean;
 }) {
   const partnerName = usePartnerName();
   const inputId = useId();
@@ -27,7 +27,7 @@ export function EntryReplies({ entryId, authorId, memberId, refreshKey }: {
   const [text, setText] = useState("");
   const [pending, setPending] = useState(false);
   const [retry, setRetry] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
   const request = useRef<{ body: string; id: string } | null>(null);
   const sending = useRef(false);
@@ -84,7 +84,7 @@ export function EntryReplies({ entryId, authorId, memberId, refreshKey }: {
     return () => clearTimeout(timer);
   }, [load, refreshKey]);
   async function send() {
-    if (sending.current || !text.trim() || Array.from(text.trim()).length > 4000) return;
+    if (readOnly || typeof entryId !== "number" || sending.current || !text.trim() || Array.from(text.trim()).length > 4000) return;
     sending.current = true;
     setPending(true); setError(null); setSaved(false);
     request.current ??= { body: text.trim(), id: crypto.randomUUID() };
@@ -107,15 +107,17 @@ export function EntryReplies({ entryId, authorId, memberId, refreshKey }: {
       if (mounted.current) setPending(false);
     }
   }
-  return <section className={styles.thread} aria-label="Replies">
+  return <section className={styles.thread} aria-label="Replies" aria-busy={loading}>
     <h5>Replies</h5>
     {more && <button type="button" className="button button-secondary" disabled={loading} onClick={() => void load(page.beforeId)}>Earlier replies</button>}
     {replies.length > 0 && <ol className={styles.messages}>{replies.map(reply => <li key={reply.id}>
-      <div className={styles.meta}><strong>{reply.author_id === memberId ? "You" : partnerName.subject}</strong>{" · "}<time dateTime={reply.created_at}>{new Intl.DateTimeFormat("en-US", { timeZone: "America/Los_Angeles", month: "short", day: "numeric" }).format(new Date(reply.created_at))} · {pacificTime(reply.created_at)}</time></div>
+      <div className={styles.meta}><strong>{reply.author_id === memberId ? "You" : partnerName.subject}</strong>{" · "}<time dateTime={reply.created_at}>{new Intl.DateTimeFormat("en-US", { timeZone: "America/Los_Angeles", year: "numeric", month: "short", day: "numeric" }).format(new Date(reply.created_at))} · {pacificTime(reply.created_at)}</time></div>
       <p>{reply.body}</p>
     </li>)}</ol>}
+    {readOnly && loading && <p role="status">Loading replies…</p>}
+    {readOnly && !loading && !readError && replies.length === 0 && <p>No replies yet.</p>}
     {readError && <div><p role="alert">{readError}</p><button type="button" className="button button-secondary" disabled={loading} onClick={() => void load()}>Reload replies</button></div>}
-    {authorId !== memberId && <form className={styles.form} onSubmit={event => { event.preventDefault(); void send(); }}>
+    {!readOnly && authorId !== memberId && <form className={styles.form} onSubmit={event => { event.preventDefault(); void send(); }}>
       <label htmlFor={inputId}>Reply</label>
       <textarea id={inputId} rows={2} value={text} disabled={pending || retry} onChange={event => { setText(event.target.value); setSaved(false); }} aria-describedby={`${inputId}-hint`} />
       <small id={`${inputId}-hint`}>Replies don’t count toward daily responses or growth. Up to 4,000 characters.</small>

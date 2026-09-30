@@ -49,3 +49,27 @@ changes; UI/action tests cover safe text, both identities, independent reply
 submits, pending and ambiguous retry, pagination and refresh. Existing database
 and web CI remain required before merge. No production content or identities
 are part of fixtures or this public decision.
+
+## Saved reply history in Memories
+
+[Issue #147](https://github.com/C0derTang/shared-garden/issues/147) adds the user's
+requested read-only history to each ordinary entry card in
+[Memories](0018-memories.md), including historical/permanent blooms and Dandelion
+detail entries. Existing durable replies remain with their original parent;
+there is no copy, backfill, new feed item or changed daily response/growth credit.
+Wish and Peony summary cards do not acquire a reply history.
+
+A collapsed Reply history button lazily opens the shared reply reader without
+its composer. It keeps chronological pages, original Pacific dates (including
+year) and times, private member names, and escaped/wrapped text. Loading, empty,
+error/retry and earlier-page states are explicit. Closing unmounts the reader;
+reopening or reloading reads saved data again. Open histories refresh when their
+parent's read timestamp changes through the existing Memories realtime, manual,
+focus, reconnect, visibility and visible-page fallback refresh flow.
+
+Memories' opaque parent IDs pass unchanged to the authenticated history RPC,
+with canonical positive PostgreSQL bigint validation. The RPC already filters
+to that exact parent; its numeric JSON parent echo is replaced with the requested
+ID to avoid precision loss. Existing numeric garden composing remains unchanged.
+Reply IDs/cursors retain the existing safe-JavaScript-integer constraint; this
+change does not migrate the reply sequence or alter database access policies.
