@@ -1,18 +1,20 @@
 "use server";
 import { requireMember } from "@/lib/auth/server";
 import { MemberAccessUnavailableError } from "@/lib/auth/access-error";
-import { parseReply, type Reply } from "./model";
+import { parseReply, validEntryId, type Reply } from "./model";
 async function client() {
   try { return (await requireMember({ unavailable: "throw" })).client; }
   catch (error) { if (error instanceof MemberAccessUnavailableError) return null; throw error; }
 }
-export async function readReplies(entryId: number, beforeId: number | null = null): Promise<{ replies: Reply[]; error: string | null }> {
+export async function readReplies(entryId: number | string, beforeId: number | null = null): Promise<{ replies: Reply[]; error: string | null }> {
   const db = await client();
   try {
-    if (!db) throw Error("Unavailable");
+    if (!db || !validEntryId(entryId)) throw Error("Unavailable");
     const { data, error } = await db.rpc("entry_reply_history", { p_entry_id: entryId, p_limit: 50, p_before_id: beforeId });
     if (error || !Array.isArray(data)) throw Error("Unavailable");
-    return { replies: data.map(parseReply), error: null };
+    // The RPC filters on this exact parent. Preserve its opaque ID instead of
+    // the JSON numeric echo, which can round bigint IDs in historical Memories.
+    return { replies: data.map(row => parseReply({ ...row, entry_id: entryId })), error: null };
   } catch { return { replies: [], error: "Replies could not load. Try again when connected." }; }
 }
 export async function saveReply(entryId: number, body: string, requestId: string): Promise<{ reply: Reply | null; error: string | null; rejected?: boolean }> {
