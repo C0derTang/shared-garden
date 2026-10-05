@@ -189,3 +189,12 @@ describe("flower presentation", () => {
     expect(container.innerHTML).not.toContain("url(");
   });
 });
+
+it.each([0, 1, 4, 7])("renders both saved tones at Hydrangea growth %i, including missing and invalid choices", (growthUnits) => {
+  const { container, rerender } = render(<FlowerSprite type="hydrangea" growthUnits={growthUnits} growthTarget={7} bloomed={growthUnits === 7} moods={["calm", "tense"]} />);
+  expect(container.querySelector('[data-mood-tone="first"]')).toHaveAttribute("fill", "#6f9eab");
+  expect(container.querySelector('[data-mood-tone="second"]')).toHaveAttribute("fill", "#b86b61");
+  rerender(<FlowerSprite type="hydrangea" growthUnits={growthUnits} growthTarget={7} bloomed={growthUnits === 7} moods={[null, "joyful"]} />);
+  expect(container.querySelector('[data-mood-tone="first"]')).toHaveAttribute("fill", "#a39ac2");
+  expect(container.querySelector('[data-mood-tone="second"]')).toHaveAttribute("fill", "#e2b84f");
+});

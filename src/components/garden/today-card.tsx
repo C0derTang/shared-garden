@@ -1,4 +1,5 @@
 "use client";
+import { hydrangeaMoods } from "@/lib/garden/model";
 import { usePartnerName } from "@/components/auth/member-names";
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import type { GardenState } from "@/lib/garden/model";
@@ -174,7 +175,7 @@ export function TodayCard({
                     <FlowerSprite
                       {...(item.type_key === "dandelion"
                         ? { type: "dandelion" as const, fulfilled: !!plant.flower.fulfilled_at }
-                        : { type: item.type_key })}
+                        : item.type_key === "hydrangea" ? { type: "hydrangea" as const, moods: hydrangeaMoods(plant) } : { type: item.type_key })}
                       growthUnits={plant.flower.growth_units}
                       growthTarget={item.growth_target}
                       bloomed={!!plant.flower.first_bloom_at}

@@ -30,7 +30,7 @@ export type FlowerProgress = Readonly<{
 type SpeciesProps =
   | {
       type: "hydrangea";
-      moods?: readonly [HydrangeaMood, HydrangeaMood];
+      moods?: readonly [HydrangeaMood | null, HydrangeaMood | null];
       fulfilled?: never;
     }
   | { type: "dandelion"; fulfilled?: boolean; moods?: never }
@@ -104,8 +104,8 @@ const moodColors: Record<HydrangeaMood, string> = {
   tense: "#b86b61",
 };
 
-function moodColor(mood: HydrangeaMood | undefined, fallback: string) {
-  return mood !== undefined && Object.hasOwn(moodColors, mood)
+function moodColor(mood: HydrangeaMood | null | undefined, fallback: string) {
+  return mood != null && Object.hasOwn(moodColors, mood)
     ? moodColors[mood]
     : fallback;
 }
@@ -166,7 +166,7 @@ function Leaves({ type }: { type: FlowerType }) {
   );
 }
 
-function Sprout({ type }: { type: FlowerType }) {
+function Sprout({ type, moods }: { type: FlowerType; moods?: readonly [HydrangeaMood | null, HydrangeaMood | null] }) {
   if (type === "cactus")
     return (
       <>
@@ -196,7 +196,10 @@ function Sprout({ type }: { type: FlowerType }) {
             : "M10 19h3v1h-3zm10-3h3v2h-3z"
         }
       />
-      <path fill={petals[type][1]} d="M15 18v-3h2v3z" />
+      {type === "hydrangea" ? <>
+        <path data-mood-tone="first" fill={moodColor(moods?.[0], petals.hydrangea[1])} d="M13 18v-3h3v3z" />
+        <path data-mood-tone="second" fill={moodColor(moods?.[1], petals.hydrangea[2])} d="M16 18v-3h3v3z" />
+      </> : <path fill={petals[type][1]} d="M15 18v-3h2v3z" />}
     </>
   );
 }
@@ -239,7 +242,7 @@ function Cactus({ bloom }: { bloom: boolean }) {
   );
 }
 
-function Bud({ type, opening }: { type: FlowerType; opening: boolean }) {
+function Bud({ type, opening, moods }: { type: FlowerType; opening: boolean; moods?: readonly [HydrangeaMood | null, HydrangeaMood | null] }) {
   const [shadow, color, highlight] = petals[type];
   if (type === "cactus") return <Cactus bloom={false} />;
   const heads: Record<Exclude<FlowerType, "cactus">, ReactNode> = {
@@ -271,7 +274,8 @@ function Bud({ type, opening }: { type: FlowerType; opening: boolean }) {
     hydrangea: (
       <>
         <path fill={shadow} d="M8 13V9h3V7h4v3h3V7h4v3h3v5h-4v3H11v-3H8z" />
-        <path fill={color} d="M9 10h4v3H9zm6 2h4v4h-4zm5-3h3v4h-3z" />
+        <path data-mood-tone="first" fill={moodColor(moods?.[0], color)} d="M9 10h4v3H9zm6 2h2v4h-2z" />
+        <path data-mood-tone="second" fill={moodColor(moods?.[1], highlight)} d="M17 12h2v4h-2zm3-3h3v4h-3z" />
       </>
     ),
     sunflower: (
@@ -347,7 +351,7 @@ function Bloom({
   moods,
 }: {
   type: FlowerType;
-  moods?: readonly [HydrangeaMood, HydrangeaMood];
+  moods?: readonly [HydrangeaMood | null, HydrangeaMood | null];
 }) {
   const [shadow, color, highlight] = petals[type];
   if (type === "cactus") return <Cactus bloom />;
@@ -610,15 +614,19 @@ export function FlowerSprite(props: FlowerSpriteProps) {
       {stage === "seed" && (
         <>
           <path fill={soil} d="M13 28v-3h2v-2h4v2h2v3h-2v2h-4v-2z" />
-          <path fill={petals[type][1]} d="M15 24h3v3h-3z" />
+          {type === "hydrangea" ? <>
+            <path data-mood-tone="first" fill={moodColor(props.moods?.[0], petals.hydrangea[1])} d="M14 24h3v4h-3z" />
+            <path data-mood-tone="second" fill={moodColor(props.moods?.[1], petals.hydrangea[2])} d="M17 24h3v4h-3z" />
+          </> : <path fill={petals[type][1]} d="M15 24h3v3h-3z" />}
           <path fill={cream} d="M15 24h1v1h-1z" />
         </>
       )}
-      {stage === "sprout" && <Sprout type={type} />}
+      {stage === "sprout" && <Sprout type={type} moods={props.moods} />}
       {stage === "bud" && (
         <Bud
           type={type}
           opening={props.growthUnits === props.growthTarget - 1}
+          moods={props.moods}
         />
       )}
       {stage === "bloom" && <Bloom type={type} moods={props.moods} />}

@@ -82,7 +82,8 @@ export function parseSnapshot(raw: string | null): VisitSnapshot | null {
 }
 
 const partnerCared = (state: GardenState, plant: Plant) =>
-  state.member_id === 1 ? plant.member2_submitted : plant.member1_submitted;
+  !(plant.flower.type_key === "hydrangea" && plant.flower.first_bloom_at) &&
+  (state.member_id === 1 ? plant.member2_submitted : plant.member1_submitted);
 
 /**
  * The snapshot after this visit. Badges keep their previous value until the
