@@ -70,7 +70,7 @@ select public.current_garden_state();
 select is((select growth_units from public.flowers where type_key='hydrangea'),7::smallint,'optional and skipped days preserve permanent growth');
 select is((select count(*) from public.flower_day_facts where type_key='hydrangea'),1::bigint,'optional days never create growth, recovery or matching-mood facts');
 select is((select current_streak from public.garden),0,'optional pair does not keep streak alive');
-select is((select qualifying_days from public.garden),1,'only the real growing pair qualifies');
+select is((select qualifying_days from public.garden),1::bigint,'only the real growing pair qualifies');
 select is((select progress from public.achievement_progress where achievement_id='mood-match-3'),1,'no optional matching-mood credit');
 select is((select progress from public.achievement_progress where achievement_id='ten-minutes'),0,'no retroactive optional timing credit');
 select is((select count(*) from public.before_noon_snapshots where flower_id=pg_temp.flower('hydrangea') and garden_day>'2026-10-01'),0::bigint,'optional plant excluded from before-noon requirements');
