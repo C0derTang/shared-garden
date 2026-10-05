@@ -49,6 +49,8 @@ export type Plant = ClockState & {
     fulfilled_by: 1 | 2 | null;
   };
   entries: Entry[];
+  /** Latest saved mood per fixed member slot, independent of today’s care. */
+  hydrangea_moods?: [HydrangeaMood | null, HydrangeaMood | null];
   daisy_question: {
     garden_day: string;
     ordinal: number;
@@ -214,6 +216,10 @@ export function parseGardenState(value: unknown): GardenState {
     spots.add(f.spot);
     ids.add(f.id);
     parseEntries(p.entries);
+    if (p.hydrangea_moods !== undefined) {
+      const savedMoods = array(p.hydrangea_moods);
+      assert(savedMoods.length === 2 && savedMoods.every((mood) => mood === null || moods.some((m) => m.key === mood)));
+    }
     assert(
       typeof p.member1_submitted === "boolean" &&
         typeof p.member2_submitted === "boolean",
@@ -288,3 +294,8 @@ export const pacificTime = (date: string | number) =>
     minute: "2-digit",
     timeZoneName: "short",
   }).format(new Date(date));
+
+/** Fixed member-slot colors; an older server response stays neutral. */
+export function hydrangeaMoods(plant: Plant): readonly [HydrangeaMood | null, HydrangeaMood | null] {
+  return plant.hydrangea_moods ?? [null, null];
+}

@@ -494,3 +494,12 @@ it("preserves the configured name capitalization in inline wish and planter attr
   expect(screen.getByText(/Wish fulfilled by Élodie-Anne/)).toBeInTheDocument();
   expect(screen.getByText("Planted by Élodie-Anne")).toBeInTheDocument();
 });
+
+it.each([1, 2] as const)("colors historical Hydrangea artwork from its own saved entry in author slot %i", author => {
+  const item = memoryFixture();
+  item.flower = { ...item.flower, type_key: "hydrangea" };
+  item.entry = { ...item.entry!, author_id: author, payload: { mood: "energized" } };
+  const { container } = render(<MemoriesClient initial={page([item])} memberId={author === 1 ? 2 : 1} />);
+  expect(container.querySelector(`[data-mood-tone="${author === 1 ? "first" : "second"}"]`)).toHaveAttribute("fill", "#d9854f");
+  expect(container.querySelector(`[data-mood-tone="${author === 1 ? "second" : "first"}"]`)).toHaveAttribute("fill", author === 1 ? "#d3b1c8" : "#a39ac2");
+});

@@ -118,7 +118,7 @@ function ExpandableText({
     </div>
   );
 }
-function FlowerCue({ type }: { type: FlowerType }) {
+function FlowerCue({ type, mood, authorId }: { type: FlowerType; mood?: string; authorId?: number }) {
   const common = {
     growthUnits: 1,
     growthTarget: 1,
@@ -129,7 +129,7 @@ function FlowerCue({ type }: { type: FlowerType }) {
     className: styles.flowerCue,
   };
   if (type === "hydrangea")
-    return <FlowerSprite type="hydrangea" {...common} />;
+    return <FlowerSprite type="hydrangea" moods={[authorId === 1 ? moods.find(m => m.key === mood)?.key ?? null : null, authorId === 2 ? moods.find(m => m.key === mood)?.key ?? null : null]} {...common} />;
   if (type === "dandelion")
     return <FlowerSprite type="dandelion" {...common} />;
   return <FlowerSprite type={type} {...common} />;
@@ -265,7 +265,7 @@ export function MemoryCard({
     >
       <header className={styles.cardHeader}>
         <div className={styles.stamp}>
-          <FlowerCue type={f.type_key} />
+          <FlowerCue type={f.type_key} mood={entry?.payload.mood} authorId={entry?.author_id} />
         </div>
         <div className={styles.cardHeading}>
           <div className={styles.headingRow}>

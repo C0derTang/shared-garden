@@ -5,6 +5,7 @@ import { useCallback, useEffect, useId, useRef, useState, type CSSProperties, ty
 import { useMemberPreferences } from "@/components/settings/member-preferences";
 import { PixelIcon } from "@/components/ui/pixel-icon";
 import type { AchievementResult } from "@/lib/achievements/model";
+import { hydrangeaMoods } from "@/lib/garden/model";
 import type { CatalogItem, GardenResult, GardenState, Plant } from "@/lib/garden/model";
 import type { GardenMutation } from "@/lib/garden/use-garden";
 import {
@@ -34,7 +35,7 @@ function plantSprite(plant: Plant, item: CatalogItem | undefined) {
     <FlowerSprite
       {...(flower.type_key === "dandelion"
         ? { type: "dandelion" as const, fulfilled: !!flower.fulfilled_at }
-        : { type: flower.type_key })}
+        : flower.type_key === "hydrangea" ? { type: "hydrangea" as const, moods: hydrangeaMoods(plant) } : { type: flower.type_key })}
       growthUnits={flower.growth_units}
       growthTarget={item?.growth_target ?? Math.max(1, flower.growth_units)}
       bloomed={!!flower.first_bloom_at}

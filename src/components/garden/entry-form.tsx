@@ -120,7 +120,7 @@ export function EntryForm({
     <form
       className={styles.stack}
       onSubmit={(event) => void submit(event)}
-      aria-label={editing ? "Edit your care" : "Today's care"}
+      aria-label={type === "hydrangea" && plant.flower.first_bloom_at ? (editing ? "Edit your mood" : "Today's optional mood") : editing ? "Edit your care" : "Today's care"}
       aria-busy={pending}
     >
       {editing && <h3>Edit your entry</h3>}
@@ -275,7 +275,7 @@ export function EntryForm({
             ? "Save edit"
             : type === "cactus"
               ? "I’m here · Check in"
-              : "Share care"}
+              : (type === "hydrangea" && plant.flower.first_bloom_at ? "Save mood" : "Share care")}
       </button>
       {editing && (
         <button
