@@ -1,4 +1,4 @@
--- Memories: optional person filter (decision 0059).
+-- Memories: optional person filter (decision 0060).
 -- Entries match their author, wishes match who planted them, and a Peony
 -- keepsake matches when that person contributed a milestone. Same read-only
 -- contract, same ordering, same page bounds; only the signature grows.
