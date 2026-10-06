@@ -42,7 +42,8 @@ microsecond precision. A source-qualified identity prevents independent sequence
 collisions. Plan edits, scheduled dates, and fulfillment never move a card.
 
 Pages have at most 20 records, with one additional row used only to report more.
-Filtering by flower type, stable planting spot, and inclusive garden-day range is
+Filtering by flower type, stable planting spot, inclusive garden-day range, and
+person (see [0060](0060-memories-person-filter.md)) is
 optional. The UI explicitly explains the 4 a.m. Pacific day boundary and that
 wish/Peony dates filter their planting day; individual dates remain visible inside
 a Peony bundle. Filters never query a private question bank or final-event data.

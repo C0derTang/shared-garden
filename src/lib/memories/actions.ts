@@ -33,6 +33,7 @@ export async function loadMemories(
       p_spot: query.filters.spot ?? null,
       p_from: query.filters.from ?? null,
       p_to: query.filters.to ?? null,
+      p_author: query.filters.author ?? null,
     });
     return error ? unavailable : parseMemoryPage(data);
   } catch {

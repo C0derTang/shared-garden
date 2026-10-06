@@ -25,6 +25,8 @@ export type MemoryFilters = {
   spot?: number;
   from?: string;
   to?: string;
+  /** Member slot whose memories to show; entries by author, wishes by planter, Peony by contributor. */
+  author?: 1 | 2;
 };
 export type MemoryQuery = { filters: MemoryFilters } & (
   | { kind: "latest" }
@@ -161,7 +163,8 @@ export function validMemoryQuery(value: unknown): value is MemoryQuery {
       (f.spot !== undefined && (!positive(f.spot) || f.spot > 2147483647)) ||
       (f.from !== undefined && !validDay(f.from)) ||
       (f.to !== undefined && !validDay(f.to)) ||
-      (f.from && f.to && f.from > f.to)
+      (f.from && f.to && f.from > f.to) ||
+      (f.author !== undefined && f.author !== 1 && f.author !== 2)
     )
       return false;
     if (q.kind === "latest") return true;

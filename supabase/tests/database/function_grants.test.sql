@@ -67,7 +67,7 @@ insert into expected_function_grants values
   ('public.media_read_path(uuid)', 'authenticated'),
   ('public.media_upload_allowed(text)', 'authenticated'),
   ('public.media_upload_state(uuid)', 'authenticated'),
-  ('public.memories_page(text,jsonb,text[],text,integer,date,date)', 'authenticated'),
+  ('public.memories_page(text,jsonb,text[],text,integer,date,date,integer)', 'authenticated'),
   ('public.owner_private_interaction(text,boolean)', 'authenticated'),
   ('public.plant_flower(text,text)', 'authenticated'),
   ('public.plant_flower_at(text,numeric,text)', 'authenticated'),
