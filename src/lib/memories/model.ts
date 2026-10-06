@@ -1,5 +1,5 @@
 import type { FlowerType } from "@/components/garden/flower-sprite";
-import { moods } from "@/lib/garden/model";
+import { moodPick } from "@/lib/garden/model";
 import { compareTimestamps } from "@/lib/garden/timestamp";
 
 export const MEMORY_PAGE_SIZE = 20;
@@ -286,9 +286,12 @@ export function parseMemoryPage(value: unknown): MemoryPage {
                 ? ["media_id"]
                 : ["text"];
       for (const key of fields) payload[key] = string(raw[key]);
+      if (flower.type_key === "hydrangea") {
+        for (const key of ["mood2", "note"])
+          if (raw[key] !== undefined) payload[key] = string(raw[key]);
+        assert(moodPick(payload) !== null);
+      }
       if (payload.media_id) assert(uuid.test(payload.media_id));
-      if (flower.type_key === "hydrangea")
-        assert(moods.some((m) => m.key === payload.mood));
       entry = {
         author_id: author(e.author_id),
         updated_at: time(e.updated_at),

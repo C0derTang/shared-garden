@@ -399,3 +399,7 @@
   .list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .wide { grid-column: 1 / -1; }
 }
+.mood .otherSwatch {
+  background: repeating-linear-gradient(45deg, #b8b2a6 0 4px, #d9d3c6 4px 8px);
+}
+.moodNote { margin: 0.35rem 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }

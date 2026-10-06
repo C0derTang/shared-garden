@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { parseGardenState, seedAvailability, canEditAt } from "./model";
+import { parseGardenState, seedAvailability, canEditAt, hydrangeaMoods } from "./model";
 import { gardenFixture, entryFixture } from "@/test/garden-fixture";
 
 it("accepts the complete server snapshot and rejects unsafe progress or duplicate spots", () => {
@@ -85,4 +85,25 @@ it("accepts absent or partial durable mood slots and rejects unsafe palette data
   }
   delete p.hydrangea_moods;
   expect(parseGardenState(state)).toBe(state);
+});
+
+it("prefers full picks for slot tones and rejects malformed picks", () => {
+  const state = gardenFixture();
+  const p = state.plants[0];
+  p.flower.type_key = "hydrangea";
+  p.hydrangea_moods = ["calm", "other"];
+  p.hydrangea_picks = [{ mood: "calm", mood2: "tense" }, { mood: "other", note: "in between" }];
+  expect(hydrangeaMoods(parseGardenState(state).plants[0])).toEqual([["calm", "tense"], "other"]);
+  for (const invalid of [
+    [{ mood: "other" }, null],
+    [{ mood: "calm", mood2: "calm" }, null],
+    [{ mood: "other", mood2: "calm", note: "x" }, null],
+    [{ mood: "calm", note: "x".repeat(141) }, null],
+    [{ mood: "calm", mood2: "url(x)" }, null],
+    [{ mood: "calm" }],
+  ]) {
+    expect(() => parseGardenState({ ...state, plants: [{ ...p, hydrangea_picks: invalid }] })).toThrow();
+  }
+  delete p.hydrangea_picks;
+  expect(hydrangeaMoods(parseGardenState(state).plants[0])).toEqual(["calm", "other"]);
 });

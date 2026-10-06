@@ -3,7 +3,10 @@ import { usePartnerName } from "@/components/auth/member-names";
 import { useRef, useState, type FormEvent } from "react";
 import {
   canEditAt,
+  moodPick,
   moods,
+  MOOD_NOTE_LIMIT,
+  OTHER_MOOD,
   type CatalogItem,
   type Entry,
   type GardenState,
@@ -60,12 +63,28 @@ export function EntryForm({
       setDraftDay(state.garden_day);
     setDraft((old) => ({ ...old, [key]: value }));
   };
+  /** First color is the main tone, second is the accent; Other stands alone. */
+  function toggleMood(key: string) {
+    if (!hasDraft && draftDay !== state.garden_day)
+      setDraftDay(state.garden_day);
+    setDraft((old) => {
+      const { mood, mood2, ...rest } = old;
+      if (key === OTHER_MOOD)
+        return mood === OTHER_MOOD ? rest : { ...rest, mood: OTHER_MOOD };
+      if (mood === key) return mood2 ? { ...rest, mood: mood2 } : rest;
+      if (mood2 === key) return { ...rest, mood: mood! };
+      if (!mood || mood === OTHER_MOOD) return { ...rest, mood: key };
+      if (!mood2) return { ...rest, mood, mood2: key };
+      return old;
+    });
+  }
   const textValid = (value: string | undefined, max: number) =>
     !!value?.trim() && Array.from(value.trim()).length <= max;
+  const pick = type === "hydrangea" ? moodPick(draft) : null;
   const valid =
     type === "cactus" ||
     (type === "hydrangea"
-      ? moods.some((m) => m.key === draft.mood)
+      ? pick !== null
       : type === "tulip"
         ? textValid(draft.title, 200) &&
           textValid(draft.artist, 200) &&
@@ -93,7 +112,7 @@ export function EntryForm({
         : type === "tulip"
           ? { title: draft.title, artist: draft.artist, url: draft.url }
           : type === "hydrangea"
-            ? { mood: draft.mood }
+            ? { ...pick! }
             : type === "daisy"
               ? {
                   text: draft.text,
@@ -179,28 +198,67 @@ export function EntryForm({
           )}
         </>
       ) : type === "hydrangea" ? (
-        <fieldset className={sheetStyles.moodField}>
-          <legend>How are you feeling?</legend>
-          <div className={sheetStyles.moodOptions}>
-            {moods.map((mood) => (
-              <label className={sheetStyles.moodOption} key={mood.key}>
+        <>
+          <fieldset className={sheetStyles.moodField}>
+            <legend>How are you feeling?</legend>
+            <p className={sheetStyles.moodHint}>
+              Pick up to two colors, or Other if none fit.
+            </p>
+            <div className={sheetStyles.moodOptions}>
+              {moods.map((mood) => {
+                const chosen = draft.mood === mood.key || draft.mood2 === mood.key;
+                const full = !!draft.mood2 && !chosen;
+                return (
+                  <label className={sheetStyles.moodOption} key={mood.key}>
+                    <input
+                      type="checkbox"
+                      name="mood"
+                      value={mood.key}
+                      checked={chosen}
+                      disabled={full}
+                      onChange={() => toggleMood(mood.key)}
+                    />
+                    <span
+                      className={sheetStyles.moodSwatch}
+                      style={{ backgroundColor: mood.color }}
+                      aria-hidden="true"
+                    />
+                    <span>{mood.label}</span>
+                  </label>
+                );
+              })}
+              <label className={sheetStyles.moodOption}>
                 <input
-                  type="radio"
+                  type="checkbox"
                   name="mood"
-                  value={mood.key}
-                  checked={draft.mood === mood.key}
-                  onChange={() => change("mood", mood.key)}
+                  value={OTHER_MOOD}
+                  checked={draft.mood === OTHER_MOOD}
+                  onChange={() => toggleMood(OTHER_MOOD)}
                 />
                 <span
-                  className={sheetStyles.moodSwatch}
-                  style={{ backgroundColor: mood.color }}
+                  className={`${sheetStyles.moodSwatch} ${sheetStyles.otherSwatch}`}
                   aria-hidden="true"
                 />
-                <span>{mood.label}</span>
+                <span>Other</span>
               </label>
-            ))}
-          </div>
-        </fieldset>
+            </div>
+          </fieldset>
+          <label className={styles.field}>
+            {draft.mood === OTHER_MOOD ? "Briefly, why?" : "Briefly, why? (optional)"}
+            <textarea
+              aria-label="Briefly, why?"
+              rows={2}
+              required={draft.mood === OTHER_MOOD}
+              maxLength={MOOD_NOTE_LIMIT}
+              value={draft.note ?? ""}
+              onChange={(e) => change("note", e.target.value)}
+            />
+            <small>
+              {Array.from(draft.note ?? "").length} / {MOOD_NOTE_LIMIT} characters
+              {draft.mood === OTHER_MOOD ? " · Needed with Other" : ""} · Visible to {partnerName.object}.
+            </small>
+          </label>
+        </>
       ) : (
         type !== "cactus" && (
           <label className={styles.field}>

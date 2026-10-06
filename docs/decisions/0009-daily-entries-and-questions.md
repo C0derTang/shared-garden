@@ -44,7 +44,7 @@ outside, and limited by Unicode character count:
 | Daisy | `text`, `question_id` | Same text bound; actual assigned question ID |
 | Cactus | Empty object | One tap, no extra content |
 | Tulip | `title`, `artist`, `url` | Title/artist 1–200; URL 1–512 |
-| Hydrangea | `mood` | One of the six keys below |
+| Hydrangea | `mood`, optional `mood2`, optional `note` | `mood` is one of the six keys below or `other`; `mood2` a different key, never with `other`; `note` 1–140 characters, required with `other` (decision 0061) |
 
 Dandelion entries only add text details; its original shared wish remains on the
 flower. Sunflower, Bluebell, and Peony reject generic payloads until their private

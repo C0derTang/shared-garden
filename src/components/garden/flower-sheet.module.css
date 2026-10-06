@@ -440,3 +440,20 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Color of the day (decision 0061): up to two colors or Other with a note. */
+.moodHint {
+  margin: 0 0 0.6rem;
+  font-size: var(--text-sm);
+  color: var(--ink-soft, inherit);
+}
+.otherSwatch {
+  background:
+    repeating-linear-gradient(45deg, #b8b2a6 0 4px, #d9d3c6 4px 8px);
+}
+.moodNote {
+  margin: 0.35rem 0 0;
+  font-size: var(--text-sm);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

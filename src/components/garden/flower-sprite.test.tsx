@@ -198,3 +198,16 @@ it.each([0, 1, 4, 7])("renders both saved tones at Hydrangea growth %i, includin
   expect(container.querySelector('[data-mood-tone="first"]')).toHaveAttribute("fill", "#a39ac2");
   expect(container.querySelector('[data-mood-tone="second"]')).toHaveAttribute("fill", "#e2b84f");
 });
+
+it("blends a two-color pick to the palette midpoint and keeps Other neutral", () => {
+  const { container, rerender } = render(
+    <FlowerSprite type="hydrangea" growthUnits={7} growthTarget={7} bloomed moods={[["calm", "tense"], "other"]} />,
+  );
+  // #6f9eab and #b86b61 average to #948586.
+  expect(container.querySelector('[data-mood-tone="first"]')).toHaveAttribute("fill", "#948586");
+  expect(container.querySelector('[data-mood-tone="second"]')).toHaveAttribute("fill", "#d3b1c8");
+  rerender(
+    <FlowerSprite type="hydrangea" growthUnits={7} growthTarget={7} bloomed moods={[["calm", "__proto__" as HydrangeaMood], null]} />,
+  );
+  expect(container.querySelector('[data-mood-tone="first"]')).toHaveAttribute("fill", "#a39ac2");
+});

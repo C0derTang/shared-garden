@@ -39,19 +39,75 @@ it("names each Hydrangea mood colour in words beside a decorative swatch", () =>
   const p = setup("hydrangea");
   render(<FlowerSheet {...p} />);
   const group = screen.getByRole("group", { name: "How are you feeling?" });
-  const radios = within(group).getAllByRole("radio");
-  expect(radios.map((radio) => radio.getAttribute("value"))).toEqual(
-    moods.map((mood) => mood.key),
-  );
+  const boxes = within(group).getAllByRole("checkbox");
+  expect(boxes.map((box) => box.getAttribute("value"))).toEqual([
+    ...moods.map((mood) => mood.key),
+    "other",
+  ]);
   for (const mood of moods) {
-    const radio = within(group).getByRole("radio", { name: mood.label });
-    const swatch = radio.parentElement!.querySelector('[aria-hidden="true"]');
+    const box = within(group).getByRole("checkbox", { name: mood.label });
+    const swatch = box.parentElement!.querySelector('[aria-hidden="true"]');
     expect(swatch).toHaveStyle({ backgroundColor: mood.color });
   }
   const share = screen.getByRole("button", { name: "Share care" });
   expect(share).toBeDisabled();
-  fireEvent.click(within(group).getByRole("radio", { name: "Low · Lavender" }));
+  fireEvent.click(within(group).getByRole("checkbox", { name: "Low · Lavender" }));
   expect(share).toBeEnabled();
+});
+it("lets a member pick up to two colors in order, with an optional note", async () => {
+  const p = setup("hydrangea");
+  p.mutate.mockResolvedValue({ saved: true, error: null });
+  render(<FlowerSheet {...p} />);
+  const group = screen.getByRole("group", { name: "How are you feeling?" });
+  fireEvent.click(within(group).getByRole("checkbox", { name: "Tender · Pink" }));
+  fireEvent.click(within(group).getByRole("checkbox", { name: "Tense · Red" }));
+  expect(within(group).getByRole("checkbox", { name: "Calm · Blue" })).toBeDisabled();
+  expect(within(group).getByRole("checkbox", { name: "Tender · Pink" })).toBeChecked();
+  // Unchecking the main color promotes the accent.
+  fireEvent.click(within(group).getByRole("checkbox", { name: "Tender · Pink" }));
+  expect(within(group).getByRole("checkbox", { name: "Calm · Blue" })).toBeEnabled();
+  fireEvent.click(within(group).getByRole("checkbox", { name: "Calm · Blue" }));
+  fireEvent.change(screen.getByLabelText("Briefly, why?"), { target: { value: "long day, soft evening" } });
+  fireEvent.click(screen.getByRole("button", { name: "Share care" }));
+  expect(await screen.findByRole("status")).toHaveTextContent("Saved");
+  expect(p.mutate).toHaveBeenCalledWith({
+    kind: "submit",
+    flowerId: p.plant.flower.id,
+    payload: { mood: "tense", mood2: "calm", note: "long day, soft evening" },
+  });
+});
+it("requires a short note with Other and keeps Other exclusive of colors", () => {
+  const p = setup("hydrangea");
+  render(<FlowerSheet {...p} />);
+  const group = screen.getByRole("group", { name: "How are you feeling?" });
+  fireEvent.click(within(group).getByRole("checkbox", { name: "Calm · Blue" }));
+  fireEvent.click(within(group).getByRole("checkbox", { name: "Other" }));
+  expect(within(group).getByRole("checkbox", { name: "Calm · Blue" })).not.toBeChecked();
+  const share = screen.getByRole("button", { name: "Share care" });
+  expect(share).toBeDisabled();
+  expect(screen.getByLabelText("Briefly, why?")).toBeRequired();
+  fireEvent.change(screen.getByLabelText("Briefly, why?"), { target: { value: "  " } });
+  expect(share).toBeDisabled();
+  fireEvent.change(screen.getByLabelText("Briefly, why?"), { target: { value: "somewhere between" } });
+  expect(share).toBeEnabled();
+  fireEvent.click(within(group).getByRole("checkbox", { name: "Joyful · Yellow" }));
+  expect(within(group).getByRole("checkbox", { name: "Other" })).not.toBeChecked();
+  expect(screen.getByLabelText("Briefly, why?")).not.toBeRequired();
+});
+it("shows a two-color pick, an Other pick and notes in today's entries", () => {
+  const p = setup("hydrangea");
+  p.plant.entries = [
+    { ...entryFixture(), payload: { mood: "calm", mood2: "joyful", note: "sunny but sleepy" } },
+    { ...entryFixture(), id: 2, author_id: 2, payload: { mood: "other", note: "hard to name" } },
+  ];
+  render(<FlowerSheet {...p} />);
+  const today = screen.getByRole("region", { name: "Today's entries" });
+  expect(within(today).getByText("Calm · Blue + Joyful · Yellow")).toBeInTheDocument();
+  expect(within(today).getByText("sunny but sleepy")).toBeInTheDocument();
+  expect(within(today).getByText("Other")).toBeInTheDocument();
+  expect(within(today).getByText("hard to name")).toBeInTheDocument();
+  expect(today.querySelectorAll('[data-mood-swatch="calm"], [data-mood-swatch="joyful"]')).toHaveLength(2);
+  expect(screen.getByRole("img", { name: "Today's mood blend: Calm · Blue + Joyful · Yellow and Other" })).toBeInTheDocument();
 });
 it("shows saved Hydrangea moods as a swatch with the colour name today and in history", async () => {
   const p = setup("hydrangea");
@@ -121,7 +177,7 @@ it("keeps mature mood picking optional and uses held-over colors without claimin
   expect(screen.queryByText("Cared today")).not.toBeInTheDocument();
   expect(screen.queryByText("Your turn")).not.toBeInTheDocument();
   expect(screen.getByText(/without growth, streak or achievement credit/)).toBeInTheDocument();
-  fireEvent.click(screen.getByRole("radio", { name: "Tender · Pink" }));
+  fireEvent.click(screen.getByRole("checkbox", { name: "Tender · Pink" }));
   fireEvent.click(screen.getByRole("button", { name: "Save mood" }));
   expect(await screen.findByRole("status")).toHaveTextContent("Saved");
   expect(p.mutate).toHaveBeenCalledWith({ kind: "submit", flowerId: p.plant.flower.id, payload: { mood: "tender" } });

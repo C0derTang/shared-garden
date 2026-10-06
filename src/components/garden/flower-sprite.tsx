@@ -21,6 +21,11 @@ export type FlowerType = keyof typeof flowerNames;
 export type FlowerStage = "seed" | "sprout" | "bud" | "bloom";
 export type HydrangeaMood =
   "calm" | "joyful" | "tender" | "energized" | "low" | "tense";
+/** A member's saved tone: one color, a two-color blend, or Other (neutral). */
+export type MoodTone =
+  | HydrangeaMood
+  | "other"
+  | readonly [HydrangeaMood, HydrangeaMood];
 export type FlowerProgress = Readonly<{
   growthUnits: number;
   growthTarget: number;
@@ -30,7 +35,7 @@ export type FlowerProgress = Readonly<{
 type SpeciesProps =
   | {
       type: "hydrangea";
-      moods?: readonly [HydrangeaMood | null, HydrangeaMood | null];
+      moods?: readonly [MoodTone | null, MoodTone | null];
       fulfilled?: never;
     }
   | { type: "dandelion"; fulfilled?: boolean; moods?: never }
@@ -104,10 +109,26 @@ const moodColors: Record<HydrangeaMood, string> = {
   tense: "#b86b61",
 };
 
-function moodColor(mood: HydrangeaMood | null | undefined, fallback: string) {
-  return mood != null && Object.hasOwn(moodColors, mood)
-    ? moodColors[mood]
-    : fallback;
+const knownMood = (mood: unknown): mood is HydrangeaMood =>
+  typeof mood === "string" && Object.hasOwn(moodColors, mood);
+/** Mid-point of two palette colors, so a blend never leaves the fixed palette's range. */
+export function blendMoodColors(a: HydrangeaMood, b: HydrangeaMood) {
+  const mix = (i: number) =>
+    Math.round(
+      (parseInt(moodColors[a].slice(i, i + 2), 16) +
+        parseInt(moodColors[b].slice(i, i + 2), 16)) /
+        2,
+    )
+      .toString(16)
+      .padStart(2, "0");
+  return `#${mix(1)}${mix(3)}${mix(5)}`;
+}
+export function moodColor(tone: MoodTone | null | undefined, fallback: string) {
+  if (Array.isArray(tone)) {
+    const [a, b] = tone as readonly [unknown, unknown];
+    return knownMood(a) && knownMood(b) ? blendMoodColors(a, b) : fallback;
+  }
+  return knownMood(tone) ? moodColors[tone] : fallback;
 }
 
 function Leaves({ type }: { type: FlowerType }) {
@@ -166,7 +187,7 @@ function Leaves({ type }: { type: FlowerType }) {
   );
 }
 
-function Sprout({ type, moods }: { type: FlowerType; moods?: readonly [HydrangeaMood | null, HydrangeaMood | null] }) {
+function Sprout({ type, moods }: { type: FlowerType; moods?: readonly [MoodTone | null, MoodTone | null] }) {
   if (type === "cactus")
     return (
       <>
@@ -242,7 +263,7 @@ function Cactus({ bloom }: { bloom: boolean }) {
   );
 }
 
-function Bud({ type, opening, moods }: { type: FlowerType; opening: boolean; moods?: readonly [HydrangeaMood | null, HydrangeaMood | null] }) {
+function Bud({ type, opening, moods }: { type: FlowerType; opening: boolean; moods?: readonly [MoodTone | null, MoodTone | null] }) {
   const [shadow, color, highlight] = petals[type];
   if (type === "cactus") return <Cactus bloom={false} />;
   const heads: Record<Exclude<FlowerType, "cactus">, ReactNode> = {
@@ -351,7 +372,7 @@ function Bloom({
   moods,
 }: {
   type: FlowerType;
-  moods?: readonly [HydrangeaMood | null, HydrangeaMood | null];
+  moods?: readonly [MoodTone | null, MoodTone | null];
 }) {
   const [shadow, color, highlight] = petals[type];
   if (type === "cactus") return <Cactus bloom />;
