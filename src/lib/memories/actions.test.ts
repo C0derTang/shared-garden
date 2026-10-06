@@ -25,7 +25,7 @@ it("uses only the bounded read-only RPC with opaque cursor precision and sanitiz
   await loadMemories({
     kind: "newer",
     cursor,
-    filters: { type: "rose", spot: 2, from: "2026-08-01" },
+    filters: { type: "rose", spot: 2, from: "2026-08-01", author: 2 },
   });
   expect(rpc).toHaveBeenCalledWith("memories_page", {
     p_mode: "newer",
@@ -35,6 +35,7 @@ it("uses only the bounded read-only RPC with opaque cursor precision and sanitiz
     p_spot: 2,
     p_from: "2026-08-01",
     p_to: null,
+    p_author: 2,
   });
 });
 it("rejects invalid requests before database and hides backend failure detail", async () => {

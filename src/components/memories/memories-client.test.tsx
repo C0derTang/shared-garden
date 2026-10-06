@@ -493,3 +493,26 @@ it("preserves the configured name capitalization in inline wish and planter attr
   expect(screen.getByText(/Wish fulfilled by Élodie-Anne/)).toBeInTheDocument();
   expect(screen.getByText("Planted by Élodie-Anne")).toBeInTheDocument();
 });
+
+it("filters the album by person so each member can read it as a journal", async () => {
+  const user = userEvent.setup();
+  render(<MemoriesClient initial={page([memoryFixture()])} memberId={1} />);
+  await user.click(screen.getByRole("button", { name: "Filters" }));
+  const person = screen.getByLabelText("Written by");
+  expect(
+    within(person)
+      .getAllByRole("option")
+      .map((o) => o.textContent),
+  ).toEqual(["Both of us", "You", "Partner"]);
+  fireEvent.change(person, { target: { value: "2" } });
+  await user.click(screen.getByRole("button", { name: "Apply filters" }));
+  await screen.findByText("No memories match those filters.");
+  await waitFor(() =>
+    expect(load.mock.calls.at(-1)?.[0]).toEqual({
+      kind: "latest",
+      filters: { author: 2 },
+    }),
+  );
+  const active = screen.getByRole("status", { name: "Active filters" });
+  expect(within(active).getByText("By Partner")).toBeInTheDocument();
+});

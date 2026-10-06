@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState, type FormEvent, type ReactNode } from "react";
+import { usePartnerName } from "@/components/auth/member-names";
 import { GardenSpotLink } from "@/components/garden/spot-request";
 import { PixelIcon } from "@/components/ui/pixel-icon";
 import {
@@ -13,8 +14,14 @@ import { useMemories } from "@/lib/memories/use-memories";
 import { MemoryCard, flowerName } from "./memory-card";
 import styles from "./memories.module.css";
 const all: MemoryFilters = {};
-function activeFilterLabels(filters: MemoryFilters) {
+function activeFilterLabels(
+  filters: MemoryFilters,
+  memberId: 1 | 2,
+  partnerLabel: string,
+) {
   return [
+    filters.author &&
+      (filters.author === memberId ? "By you" : `By ${partnerLabel}`),
     filters.type && flowerName(filters.type),
     filters.spot && `Spot ${filters.spot}`,
     filters.from && `From ${filters.from}`,
@@ -32,7 +39,9 @@ export function MemoriesClient({
   const [filterError, setFilterError] = useState("");
   const [revision, setRevision] = useState(0);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const activeFilters = activeFilterLabels(filters);
+  const partnerName = usePartnerName();
+  const partnerId = memberId === 1 ? 2 : 1;
+  const activeFilters = activeFilterLabels(filters, memberId, partnerName.label);
   function clearFilters() {
     setFilters(all);
     setFilterError("");
@@ -48,6 +57,7 @@ export function MemoriesClient({
     const next = {
       ...selected,
       ...(selected.spot ? { spot: Number(selected.spot) } : {}),
+      ...(selected.author ? { author: Number(selected.author) } : {}),
     } as MemoryFilters;
     if (!validMemoryQuery({ kind: "latest", filters: next })) {
       setFilterError(
@@ -93,6 +103,14 @@ export function MemoriesClient({
         hidden={!filtersOpen}
       >
         <label>
+          Written by
+          <select name="author" defaultValue={filters.author ?? ""}>
+            <option value="">Both of us</option>
+            <option value={memberId}>You</option>
+            <option value={partnerId}>{partnerName.label}</option>
+          </select>
+        </label>
+        <label>
           Flower type
           <select name="type" defaultValue={filters.type ?? ""}>
             <option value="">All flowers</option>
@@ -134,6 +152,8 @@ export function MemoriesClient({
           Clear filters
         </button>
         <p className={styles.filterHelp}>
+          Choose a person to read the album as one journal: their notes and
+          answers, the wishes they planted, and date keepsakes they added to.
           Garden days begin at 4 a.m. Pacific. Wish and Peony history cards are
           browsed by their planting day; each moment inside keeps its own
           original date.

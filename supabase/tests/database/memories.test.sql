@@ -80,10 +80,17 @@ select is(public.memories_page(p_type=>'peony')#>>'{items,0,peony,plan,acceptanc
 select is(jsonb_array_length(public.memories_page(p_type=>'peony')#>'{items,0,peony,contributions}'),2,'both date ideas retain original authored rows');
 select throws_ok($$select public.memories_page(p_mode=>'updates',p_keys=>array_fill('entry:1'::text,array[21]))$$,'22023',null,'update key batch bounded');
 select throws_ok($$select public.memories_page(p_type=>'admin')$$,'22023',null,'unknown content type rejected');
+select throws_ok($$select public.memories_page(p_author=>3)$$,'22023',null,'unknown person rejected');
+-- Person filter: entries by author, wishes by planter, Peony by any contributor.
+select is((select count(*) from jsonb_array_elements(public.memories_page(p_author=>2)->'items') i where i#>>'{entry,author_id}' not in ('2')),0::bigint,'person filter returns only that author''s entries');
+select is((select count(*) from jsonb_array_elements(public.memories_page(p_author=>2)->'items') i where i->>'kind'='wish'),1::bigint,'person filter keeps the wish that person planted');
+select is((select count(*) from jsonb_array_elements(public.memories_page(p_author=>2)->'items') i where i->>'kind'='peony'),1::bigint,'person filter keeps a Peony that person contributed to');
+select is(jsonb_array_length(public.memories_page(p_author=>2,p_type=>'dandelion')->'items'),2,'person and flower filters combine: their Dandelion entry plus the wish they planted');
+select is(jsonb_array_length(public.memories_page(p_author=>1,p_spot=>20)->'items'),0,'person filter excludes a wish the other member planted');
 select throws_ok($$select public.memories_page(p_mode=>'older')$$,'22023',null,'cursor required');
 select throws_ok($$select public.memories_page(p_from=>'2026-09-01',p_to=>'2026-08-01')$$,'22023',null,'invalid date range rejected');
-select is((select provolatile::text from pg_proc where oid='public.memories_page(text,jsonb,text[],text,integer,date,date)'::regprocedure),'s','query declares stable read-only contract');
-select is((select prosecdef from pg_proc where oid='public.memories_page(text,jsonb,text[],text,integer,date,date)'::regprocedure),false,'query preserves caller RLS');
+select is((select provolatile::text from pg_proc where oid='public.memories_page(text,jsonb,text[],text,integer,date,date,integer)'::regprocedure),'s','query declares stable read-only contract');
+select is((select prosecdef from pg_proc where oid='public.memories_page(text,jsonb,text[],text,integer,date,date,integer)'::regprocedure),false,'query preserves caller RLS');
 reset role;
 select is((select data from before_read),jsonb_build_object('garden',(select jsonb_agg(to_jsonb(g)) from public.garden g),'flowers',(select jsonb_agg(to_jsonb(f) order by id) from public.flowers f),'entries',(select jsonb_agg(to_jsonb(e) order by id) from public.flower_entries e),'days',(select jsonb_agg(to_jsonb(d)) from public.garden_days d),'awards',(select jsonb_agg(to_jsonb(a)) from public.achievement_awards a)),'Memories reads leave growth, credit, timestamps and content unchanged');
 delete from public.peony_acceptances;
