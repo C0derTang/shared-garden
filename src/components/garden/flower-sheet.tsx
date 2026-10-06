@@ -4,7 +4,11 @@ import { usePartnerName } from "@/components/auth/member-names";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import {
   canEditAt,
-  moods,
+  moodBlend,
+  moodLabel,
+  moodPick,
+  moodSwatches,
+  OTHER_MOOD,
   pacificTime,
   type CatalogItem,
   type Entry,
@@ -39,17 +43,30 @@ function EntryContent({ entry, type }: { entry: Entry; type: string }) {
     return <VoiceViewer key={payload.media_id} mediaId={payload.media_id} />;
   if (type === "cactus") return <p>Checked in. I’m here.</p>;
   if (type === "hydrangea") {
-    const mood = moods.find((m) => m.key === payload.mood);
-    return mood ? (
-      <p className={sheetStyles.savedMood}>
-        <span
-          className={sheetStyles.savedSwatch}
-          style={{ backgroundColor: mood.color }}
-          aria-hidden="true"
-          data-mood-swatch={mood.key}
-        />
-        {mood.label}
-      </p>
+    const pick = moodPick(payload);
+    return pick ? (
+      <>
+        <p className={sheetStyles.savedMood}>
+          {moodSwatches(pick).map((mood) => (
+            <span
+              key={mood.key}
+              className={sheetStyles.savedSwatch}
+              style={{ backgroundColor: mood.color }}
+              aria-hidden="true"
+              data-mood-swatch={mood.key}
+            />
+          ))}
+          {pick.mood === OTHER_MOOD && (
+            <span
+              className={`${sheetStyles.savedSwatch} ${sheetStyles.otherSwatch}`}
+              aria-hidden="true"
+              data-mood-swatch="other"
+            />
+          )}
+          {moodLabel(pick)}
+        </p>
+        {pick.note && <p className={sheetStyles.moodNote}>{pick.note}</p>}
+      </>
     ) : (
       <p>Mood saved</p>
     );
@@ -281,12 +298,11 @@ export function FlowerSheet({
     item.type_key === "sunflower" || item.type_key === "bluebell";
   const MediaForm = item.type_key === "bluebell" ? VoiceForm : PhotoForm;
   const moonClosed = item.type_key === "moonflower" && !state.moonflower_open;
-  const pair = [1, 2].map((id) =>
-    moods.find(
-      (m) =>
-        m.key === plant.entries.find((e) => e.author_id === id)?.payload.mood,
-    ),
-  );
+  const pair = [1, 2].map((id) => {
+    const payload = plant.entries.find((e) => e.author_id === id)?.payload;
+    const pick = payload && moodPick(payload);
+    return pick ? { label: moodLabel(pick), color: moodBlend(pick) } : undefined;
+  });
   async function readHistory() {
     if (historyLock.current) return;
     historyLock.current = true;
@@ -459,8 +475,8 @@ export function FlowerSheet({
               role="img"
               aria-label={`Today's mood blend: ${pair[0].label} and ${pair[1].label}`}
             >
-              <span style={{ backgroundColor: pair[0].color }} />
-              <span style={{ backgroundColor: pair[1].color }} />
+              <span style={pair[0].color ? { backgroundColor: pair[0].color } : undefined} className={pair[0].color ? undefined : sheetStyles.otherSwatch} />
+              <span style={pair[1].color ? { backgroundColor: pair[1].color } : undefined} className={pair[1].color ? undefined : sheetStyles.otherSwatch} />
               <p>
                 {pair[0].label} + {pair[1].label}
               </p>

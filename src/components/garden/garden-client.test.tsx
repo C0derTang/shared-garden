@@ -360,7 +360,7 @@ it("renders the shared Daisy prompt and category, six moods and honest media sta
   ).toBeInTheDocument();
   plant.entries = [];
   view.rerender(<FlowerSheet {...props} item={state.catalog[5]} />);
-  expect(screen.getAllByRole("radio")).toHaveLength(6);
+  expect(screen.getAllByRole("checkbox")).toHaveLength(7);
   plant.flower.type_key = "bluebell";
   view.rerender(<FlowerSheet {...props} item={state.catalog[9]} />);
   expect(

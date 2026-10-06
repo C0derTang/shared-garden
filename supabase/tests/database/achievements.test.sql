@@ -181,10 +181,25 @@ rollback to scenario;
 savepoint scenario;
 select pg_temp.add_flower('hydrangea',false);
 insert into public.flower_day_facts(flower_id,garden_day,type_key,growth_before,growth_after,paired,qualifying_activity,first_bloom,member1_posted_at,member2_posted_at,member1_mood,member2_mood)
- select f.id,'2026-01-01'::date+i,'hydrangea',0,1,true,true,false,'2026-01-02 20:00Z','2026-01-02 20:20Z',m.mood_key,m.mood_key from public.flowers f cross join generate_series(1,2)i cross join (select mood_key from public.hydrangea_moods limit 1)m where f.type_key='hydrangea';
+ select f.id,'2026-01-01'::date+i,'hydrangea',0,1,true,true,false,'2026-01-02 20:00Z','2026-01-02 20:20Z',m.mood_key,m.mood_key from public.flowers f cross join generate_series(1,2)i cross join (select mood_key from public.hydrangea_moods where mood_key<>'other' order by mood_key limit 1)m where f.type_key='hydrangea';
 select * from pg_temp.check_progress('mood-match-3',2,false,'two matching settled days');
 insert into public.flower_day_facts select flower_id,'2026-01-04',type_key,growth_before,growth_after,paired,qualifying_activity,first_bloom,member1_posted_at,member2_posted_at,member1_mood,member2_mood,daisy_question_id from public.flower_day_facts limit 1;
 select * from pg_temp.check_progress('mood-match-3',3,true,'three matching settled days');
+rollback to scenario;
+-- Combined moods (decision 0061): identical color sets match in either order;
+-- partial overlap and Other never do.
+savepoint scenario;
+select pg_temp.add_flower('hydrangea',false);
+insert into public.flower_day_facts(flower_id,garden_day,type_key,growth_before,growth_after,paired,qualifying_activity,first_bloom,member1_posted_at,member2_posted_at,member1_mood,member2_mood)
+ select f.id,d,'hydrangea',0,1,true,true,false,d+interval '20 hours',d+interval '20 hours 20 minutes',m1,m2 from public.flowers f cross join (values
+  ('2026-01-01'::date,'calm','joyful'),('2026-01-02'::date,'calm','calm'),('2026-01-03'::date,'other','other'),('2026-01-04'::date,'tense','tense')) v(d,m1,m2) where f.type_key='hydrangea';
+insert into public.flower_entries(flower_id,author_id,garden_day,original_posted_at,updated_at,payload)
+ select f.id,a,d,d+interval '20 hours',d+interval '20 hours',p from public.flowers f cross join (values
+  (1,'2026-01-01'::date,'{"mood":"calm","mood2":"joyful"}'::jsonb),(2,'2026-01-01'::date,'{"mood":"joyful","mood2":"calm"}'::jsonb),
+  (1,'2026-01-02'::date,'{"mood":"calm","mood2":"tense"}'::jsonb),(2,'2026-01-02'::date,'{"mood":"calm"}'::jsonb),
+  (1,'2026-01-03'::date,'{"mood":"other","note":"a"}'::jsonb),(2,'2026-01-03'::date,'{"mood":"other","note":"b"}'::jsonb),
+  (1,'2026-01-04'::date,'{"mood":"tense","note":"same color, different words"}'::jsonb),(2,'2026-01-04'::date,'{"mood":"tense"}'::jsonb)) v(a,d,p) where f.type_key='hydrangea';
+select * from pg_temp.check_progress('mood-match-3',2,false,'reversed identical set and single color match; partial overlap and Other do not');
 rollback to scenario;
 savepoint scenario;
 select pg_temp.add_flower('daisy',false);
@@ -262,10 +277,10 @@ rollback to scenario;
 savepoint scenario;
 select pg_temp.add_flower('hydrangea',false);
 insert into public.flower_day_facts(flower_id,garden_day,type_key,growth_before,growth_after,paired,qualifying_activity,first_bloom,member1_posted_at,member2_posted_at,member1_mood,member2_mood)
- select f.id,'2025-12-28'::date+i,'hydrangea',0,1,true,true,false,'2025-12-29 20:00Z','2025-12-29 20:20Z',m.mood_key,m.mood_key from public.flowers f cross join generate_series(1,2)i cross join (select mood_key from public.hydrangea_moods limit 1)m where f.type_key='hydrangea';
+ select f.id,'2025-12-28'::date+i,'hydrangea',0,1,true,true,false,'2025-12-29 20:00Z','2025-12-29 20:20Z',m.mood_key,m.mood_key from public.flowers f cross join generate_series(1,2)i cross join (select mood_key from public.hydrangea_moods where mood_key<>'other' order by mood_key limit 1)m where f.type_key='hydrangea';
 insert into public.flower_entries(flower_id,author_id,garden_day,original_posted_at,updated_at,payload)
  select f.id,a,'2026-01-01','2026-01-01 20:00Z','2026-01-01 20:00Z',jsonb_build_object('mood',m.mood_key)
- from public.flowers f cross join generate_series(1,2)a cross join (select mood_key from public.hydrangea_moods limit 1)m where type_key='hydrangea';
+ from public.flowers f cross join generate_series(1,2)a cross join (select mood_key from public.hydrangea_moods where mood_key<>'other' order by mood_key limit 1)m where type_key='hydrangea';
 select * from pg_temp.check_progress('mood-match-3',2,false,'editable current-day match excluded');
 update public.flower_entries set payload=jsonb_build_object('mood',(select mood_key from public.hydrangea_moods order by mood_key desc limit 1)) where author_id=2;
 select pg_temp.at('2026-01-02 12:00Z');
@@ -301,7 +316,7 @@ rollback to scenario;
 savepoint scenario;
 select pg_temp.add_flower('hydrangea',false) from generate_series(1,2);
 insert into public.flower_day_facts(flower_id,garden_day,type_key,growth_before,growth_after,paired,qualifying_activity,first_bloom,member1_posted_at,member2_posted_at,member1_mood,member2_mood)
- select f.id,'2026-01-02','hydrangea',0,1,true,true,false,'2026-01-02 20:00Z','2026-01-02 20:20Z',m.mood_key,m.mood_key from public.flowers f cross join (select mood_key from public.hydrangea_moods limit 1)m where f.type_key='hydrangea';
+ select f.id,'2026-01-02','hydrangea',0,1,true,true,false,'2026-01-02 20:00Z','2026-01-02 20:20Z',m.mood_key,m.mood_key from public.flowers f cross join (select mood_key from public.hydrangea_moods where mood_key<>'other' order by mood_key limit 1)m where f.type_key='hydrangea';
 select * from pg_temp.check_progress('mood-match-3',1,false,'duplicate matching day across instances');
 rollback to scenario;
 -- Completion requires every catalog item; durable award gate has no final config.

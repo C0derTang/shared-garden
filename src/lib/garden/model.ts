@@ -1,6 +1,8 @@
-import type {
-  FlowerType,
-  HydrangeaMood,
+import {
+  blendMoodColors,
+  type FlowerType,
+  type HydrangeaMood,
+  type MoodTone,
 } from "@/components/garden/flower-sprite";
 
 export type ClockState = {
@@ -50,7 +52,9 @@ export type Plant = ClockState & {
   };
   entries: Entry[];
   /** Latest saved mood per fixed member slot, independent of today’s care. */
-  hydrangea_moods?: [HydrangeaMood | null, HydrangeaMood | null];
+  hydrangea_moods?: [HydrangeaMood | "other" | null, HydrangeaMood | "other" | null];
+  /** Latest full pick per slot (mood, optional second color, optional note). */
+  hydrangea_picks?: [MoodPick | null, MoodPick | null];
   daisy_question: {
     garden_day: string;
     ordinal: number;
@@ -218,7 +222,11 @@ export function parseGardenState(value: unknown): GardenState {
     parseEntries(p.entries);
     if (p.hydrangea_moods !== undefined) {
       const savedMoods = array(p.hydrangea_moods);
-      assert(savedMoods.length === 2 && savedMoods.every((mood) => mood === null || moods.some((m) => m.key === mood)));
+      assert(savedMoods.length === 2 && savedMoods.every((mood) => mood === null || mood === OTHER_MOOD || moods.some((m) => m.key === mood)));
+    }
+    if (p.hydrangea_picks !== undefined) {
+      const picks = array(p.hydrangea_picks);
+      assert(picks.length === 2 && picks.every((pick) => pick === null || moodPick(object(pick)) !== null));
     }
     assert(
       typeof p.member1_submitted === "boolean" &&
@@ -287,6 +295,45 @@ export const moods: { key: HydrangeaMood; label: string; color: string }[] = [
   { key: "low", label: "Low · Lavender", color: "#8b87ab" },
   { key: "tense", label: "Tense · Red", color: "#b86b61" },
 ];
+export const OTHER_MOOD = "other";
+export const MOOD_NOTE_LIMIT = 140;
+export type MoodPick = {
+  mood: HydrangeaMood | typeof OTHER_MOOD;
+  mood2?: HydrangeaMood;
+  note?: string;
+};
+const moodKey = (v: unknown): v is HydrangeaMood =>
+  typeof v === "string" && moods.some((m) => m.key === v);
+/** A saved Hydrangea payload as a validated pick, or null when it is not one. */
+export function moodPick(payload: Record<string, unknown>): MoodPick | null {
+  const { mood, mood2, note } = payload;
+  if (mood !== OTHER_MOOD && !moodKey(mood)) return null;
+  if (note !== undefined && (typeof note !== "string" || !note.trim() || Array.from(note).length > MOOD_NOTE_LIMIT)) return null;
+  if (mood === OTHER_MOOD) {
+    if (mood2 !== undefined || typeof note !== "string") return null;
+    return { mood, note };
+  }
+  if (mood2 !== undefined && (!moodKey(mood2) || mood2 === mood)) return null;
+  return { mood, ...(mood2 ? { mood2 } : {}), ...(note ? { note } : {}) };
+}
+export function moodTone(pick: MoodPick): MoodTone {
+  return pick.mood !== OTHER_MOOD && pick.mood2 ? [pick.mood, pick.mood2] : pick.mood;
+}
+/** Palette entries behind a pick, in the member's chosen order. Other has none. */
+export function moodSwatches(pick: MoodPick) {
+  return [pick.mood, pick.mood2]
+    .map((key) => moods.find((m) => m.key === key))
+    .filter((m): m is (typeof moods)[number] => !!m);
+}
+export function moodLabel(pick: MoodPick) {
+  const named = moodSwatches(pick).map((m) => m.label);
+  return named.length ? named.join(" + ") : "Other";
+}
+/** One color for a pick: the color, the blend, or null for Other. */
+export function moodBlend(pick: MoodPick) {
+  if (pick.mood === OTHER_MOOD) return null;
+  return pick.mood2 ? blendMoodColors(pick.mood, pick.mood2) : moods.find((m) => m.key === pick.mood)!.color;
+}
 export const pacificTime = (date: string | number) =>
   new Intl.DateTimeFormat("en-US", {
     timeZone: "America/Los_Angeles",
@@ -295,7 +342,11 @@ export const pacificTime = (date: string | number) =>
     timeZoneName: "short",
   }).format(new Date(date));
 
-/** Fixed member-slot colors; an older server response stays neutral. */
-export function hydrangeaMoods(plant: Plant): readonly [HydrangeaMood | null, HydrangeaMood | null] {
+/** Fixed member-slot tones; an older server response stays neutral. */
+export function hydrangeaMoods(plant: Plant): readonly [MoodTone | null, MoodTone | null] {
+  if (plant.hydrangea_picks) {
+    const [a, b] = plant.hydrangea_picks;
+    return [a ? moodTone(a) : null, b ? moodTone(b) : null];
+  }
   return plant.hydrangea_moods ?? [null, null];
 }

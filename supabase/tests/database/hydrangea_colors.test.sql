@@ -28,6 +28,7 @@ update public.flowers set growth_units=6 where type_key='hydrangea';
 set local role authenticated;
 select public.submit_flower_entry(pg_temp.flower('hydrangea'),' {"mood":"calm"}');
 select is(public.current_entry_state(pg_temp.flower('hydrangea'))->'hydrangea_moods','["calm",null]'::jsonb,'one saved color and neutral missing member');
+select is(public.current_entry_state(pg_temp.flower('hydrangea'))->'hydrangea_picks','[{"mood":"calm"},null]'::jsonb,'full pick exposed per slot');
 reset role;
 select pg_temp.at('2026-10-01 16:31Z');
 select set_config('request.jwt.claims','{"sub":"22222222-2222-4222-8222-222222222222","role":"authenticated","amr":[{"method":"oauth"}]}',true);

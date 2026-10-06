@@ -56,6 +56,8 @@ insert into public.peony_plans select id,1,'Synthetic picnic','2026-08-05 18:00Z
 insert into public.peony_acceptances select id,1,1,'2026-08-03','2026-08-03 18:01Z' from public.flowers where type_key='peony';
 update public.flowers set planted_at='2026-08-02 17:00:00.000001Z',planted_day='2026-08-02' where type_key in ('peony','dandelion');
 update public.flower_entries set original_posted_at='2026-08-02 17:00:00.000002Z' where id=9;
+update public.flower_entries e set payload=case e.author_id when 1 then '{"mood":"calm","mood2":"tense","note":"mixed"}'::jsonb else '{"mood":"other","note":"unnamed"}'::jsonb end
+ from public.flowers f where f.id=e.flower_id and f.type_key='hydrangea';
 update public.garden set last_settled_day='2026-08-01';
 create temporary table before_read as select jsonb_build_object('garden',(select jsonb_agg(to_jsonb(g)) from public.garden g),'flowers',(select jsonb_agg(to_jsonb(f) order by id) from public.flowers f),'entries',(select jsonb_agg(to_jsonb(e) order by id) from public.flower_entries e),'days',(select jsonb_agg(to_jsonb(d)) from public.garden_days d),'awards',(select jsonb_agg(to_jsonb(a)) from public.achievement_awards a)) data;
 create temporary table pages(n int, data jsonb);
@@ -74,6 +76,8 @@ select is((select i#>>'{entry,question}' from pages,jsonb_array_elements(data->'
 select is((select count(*) from pages,jsonb_array_elements(data->'items') i where i#>>'{flower,spot}'='20'),1::bigint,'unwatered wish independently discoverable');
 select is((select count(*) from pages,jsonb_array_elements(data->'items') i where i#>>'{flower,type_key}'='tulip'),2::bigint,'legitimate repeated partner songs stay distinct');
 select is(jsonb_array_length(public.memories_page(p_type=>'peony')->'items'),1,'type filter selects bundle');
+select is((select jsonb_agg(i#>'{entry,payload}' order by i#>>'{entry,author_id}') from jsonb_array_elements(public.memories_page(p_type=>'hydrangea')->'items') i),
+ '[{"mood":"calm","mood2":"tense","note":"mixed"},{"mood":"other","note":"unnamed"}]'::jsonb,'Hydrangea projection keeps second color and note, nothing else');
 select is(jsonb_array_length(public.memories_page(p_spot=>20)->'items'),1,'flower spot filter finds unwatered wish');
 select is(jsonb_array_length(public.memories_page(p_from=>'2026-08-03',p_to=>'2026-08-03')->'items'),1,'garden-day range filters original record day');
 select is(public.memories_page(p_type=>'peony')#>>'{items,0,peony,plan,acceptances,0,author_id}','1','current plan acceptance included');

@@ -39,7 +39,8 @@ this current array; those remain available in history.
   `original_posted_at`, `updated_at`, `payload`, `daisy_assignment_day`.
 - `daisy_assignments`: `garden_day`, `ordinal`, `question_id`, `category`, `prompt`,
   `assigned_at`. Join `daisy_assignment_day` for exact historical question text.
-- `hydrangea_moods`: `mood_key`, `label`, `color_name`, `color_hex`.
+- `hydrangea_moods`: `mood_key`, `label`, `color_name`, `color_hex`. Includes
+  `other`, a neutral choice that must carry a short `note` (decision 0061).
 
 Both actual members can immediately SELECT every entry and assignment. Anonymous,
 unapproved, and revoked users cannot. All client writes use the guarded RPCs.
@@ -49,8 +50,8 @@ the question bank and six moods are approved static catalog content.
 A later trusted rollover evaluator must acquire the same garden row lock before
 reading final entry facts or changing growth. Group entries by flower/day; the
 unique author/flower/day constraint gives at most one fact per member. Compare
-`original_posted_at` for ten-minute credit, and final `payload.mood` for mood
-matches. Entries never credit growth or achievements themselves and must not be
+`original_posted_at` for ten-minute credit, and the final `payload.mood` and
+`payload.mood2` set for mood matches; `other` never matches. Entries never credit growth or achievements themselves and must not be
 counted again after a day has been settled. The later evaluator owns settlement
 idempotency. Cactus pairs remain activity after bloom; Peony is a separate path.
 

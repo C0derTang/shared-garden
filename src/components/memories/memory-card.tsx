@@ -11,7 +11,7 @@ import { PhotoViewer } from "@/components/media/photo-viewer";
 import { VoiceViewer } from "@/components/media/voice-player";
 import { SongPlayer } from "@/components/music/song-player";
 import { PixelIcon } from "@/components/ui/pixel-icon";
-import { moods } from "@/lib/garden/model";
+import { moodLabel, moodPick, moodSwatches, moodTone, OTHER_MOOD, type MoodPick } from "@/lib/garden/model";
 import type { MemoryItem, MemoryPeony } from "@/lib/memories/model";
 import styles from "./memories.module.css";
 export const flowerName = (type: string) =>
@@ -118,7 +118,7 @@ function ExpandableText({
     </div>
   );
 }
-function FlowerCue({ type, mood, authorId }: { type: FlowerType; mood?: string; authorId?: number }) {
+function FlowerCue({ type, pick, authorId }: { type: FlowerType; pick?: MoodPick | null; authorId?: number }) {
   const common = {
     growthUnits: 1,
     growthTarget: 1,
@@ -129,7 +129,7 @@ function FlowerCue({ type, mood, authorId }: { type: FlowerType; mood?: string; 
     className: styles.flowerCue,
   };
   if (type === "hydrangea")
-    return <FlowerSprite type="hydrangea" moods={[authorId === 1 ? moods.find(m => m.key === mood)?.key ?? null : null, authorId === 2 ? moods.find(m => m.key === mood)?.key ?? null : null]} {...common} />;
+    return <FlowerSprite type="hydrangea" moods={[authorId === 1 && pick ? moodTone(pick) : null, authorId === 2 && pick ? moodTone(pick) : null]} {...common} />;
   if (type === "dandelion")
     return <FlowerSprite type="dandelion" {...common} />;
   return <FlowerSprite type={type} {...common} />;
@@ -254,9 +254,7 @@ export function MemoryCard({
   const f = item.flower,
     entry = item.entry;
   const mood =
-    entry && f.type_key === "hydrangea"
-      ? moods.find((m) => m.key === entry.payload.mood)
-      : null;
+    entry && f.type_key === "hydrangea" ? moodPick(entry.payload) : null;
   return (
     <article
       className={styles.card}
@@ -265,7 +263,7 @@ export function MemoryCard({
     >
       <header className={styles.cardHeader}>
         <div className={styles.stamp}>
-          <FlowerCue type={f.type_key} mood={entry?.payload.mood} authorId={entry?.author_id} />
+          <FlowerCue type={f.type_key} pick={mood} authorId={entry?.author_id} />
         </div>
         <div className={styles.cardHeading}>
           <div className={styles.headingRow}>
@@ -341,10 +339,16 @@ export function MemoryCard({
               <VoiceViewer mediaId={entry.payload.media_id} />
             </div>
           ) : mood ? (
-            <p className={styles.mood}>
-              <span style={{ background: mood.color }} aria-hidden="true" />
-              {mood.label}
-            </p>
+            <>
+              <p className={styles.mood}>
+                {moodSwatches(mood).map((m) => (
+                  <span key={m.key} style={{ background: m.color }} aria-hidden="true" />
+                ))}
+                {mood.mood === OTHER_MOOD && <span className={styles.otherSwatch} aria-hidden="true" />}
+                {moodLabel(mood)}
+              </p>
+              {mood.note && <p className={styles.moodNote}>{mood.note}</p>}
+            </>
           ) : (
             <ExpandableText text={entry.payload.text} />
           )}

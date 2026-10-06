@@ -526,3 +526,19 @@ it.each([1, 2] as const)("colors historical Hydrangea artwork from its own saved
   expect(container.querySelector(`[data-mood-tone="${author === 1 ? "first" : "second"}"]`)).toHaveAttribute("fill", "#d9854f");
   expect(container.querySelector(`[data-mood-tone="${author === 1 ? "second" : "first"}"]`)).toHaveAttribute("fill", author === 1 ? "#d3b1c8" : "#a39ac2");
 });
+
+it("shows combined moods, Other and notes in the album with a blended cue", () => {
+  const blend = memoryFixture("31");
+  blend.flower = { ...blend.flower, type_key: "hydrangea" };
+  blend.entry = { ...blend.entry!, payload: { mood: "calm", mood2: "tense", note: "mixed day" } };
+  const other = memoryFixture("32");
+  other.flower = { ...other.flower, type_key: "hydrangea" };
+  other.entry = { ...other.entry!, author_id: 2, payload: { mood: "other", note: "no color for this" } };
+  const { container } = render(<MemoriesClient initial={page([blend, other])} memberId={1} />);
+  expect(screen.getByText("Calm · Blue + Tense · Red")).toBeInTheDocument();
+  expect(screen.getByText("mixed day")).toBeInTheDocument();
+  expect(screen.getByText("Other")).toBeInTheDocument();
+  expect(screen.getByText("no color for this")).toBeInTheDocument();
+  const tones = container.querySelectorAll('[data-mood-tone="first"]');
+  expect(tones[0]).toHaveAttribute("fill", "#948586");
+});
