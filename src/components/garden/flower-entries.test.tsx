@@ -108,3 +108,22 @@ it.each(["rose", "marigold"] as const)("offers partner replies on %s today and b
   const past = screen.getByRole("region", { name: "Flower history" });
   expect(await within(past).findByRole("textbox", { name: "Reply" })).toBeInTheDocument();
 });
+
+it("keeps mature mood picking optional and uses held-over colors without claiming today's care", async () => {
+  const p = setup("hydrangea");
+  p.plant.flower.first_bloom_at = p.state.server_now;
+  p.plant.flower.growth_units = 7;
+  p.plant.hydrangea_moods = ["calm", "tense"];
+  p.mutate.mockResolvedValue({ saved: true, error: null });
+  const { container } = render(<FlowerSheet {...p} />);
+  expect(container.querySelector('[data-mood-tone="first"]')).toHaveAttribute("fill", "#6f9eab");
+  expect(container.querySelector('[data-mood-tone="second"]')).toHaveAttribute("fill", "#b86b61");
+  expect(screen.queryByText("Cared today")).not.toBeInTheDocument();
+  expect(screen.queryByText("Your turn")).not.toBeInTheDocument();
+  expect(screen.getByText(/without growth, streak or achievement credit/)).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("radio", { name: "Tender · Pink" }));
+  fireEvent.click(screen.getByRole("button", { name: "Save mood" }));
+  expect(await screen.findByRole("status")).toHaveTextContent("Saved");
+  expect(p.mutate).toHaveBeenCalledWith({ kind: "submit", flowerId: p.plant.flower.id, payload: { mood: "tender" } });
+  expect(screen.queryByText("That’s everything for today")).not.toBeInTheDocument();
+});

@@ -15,6 +15,7 @@ const { load, media, subscribe } = vi.hoisted(() => ({
   media: vi.fn(),
   subscribe: vi.fn(),
 }));
+vi.mock("@/lib/replies/actions", () => ({ readReplies: vi.fn(), saveReply: vi.fn() }));
 vi.mock("@/lib/memories/actions", () => ({ loadMemories: load }));
 vi.mock("@/lib/auth/browser", () => ({ gardenBrowserClient: () => ({}) }));
 vi.mock("@/lib/garden/realtime", () => ({ subscribeGarden: subscribe }));
@@ -515,4 +516,13 @@ it("filters the album by person so each member can read it as a journal", async 
   );
   const active = screen.getByRole("status", { name: "Active filters" });
   expect(within(active).getByText("By Partner")).toBeInTheDocument();
+});
+
+it.each([1, 2] as const)("colors historical Hydrangea artwork from its own saved entry in author slot %i", author => {
+  const item = memoryFixture();
+  item.flower = { ...item.flower, type_key: "hydrangea" };
+  item.entry = { ...item.entry!, author_id: author, payload: { mood: "energized" } };
+  const { container } = render(<MemoriesClient initial={page([item])} memberId={author === 1 ? 2 : 1} />);
+  expect(container.querySelector(`[data-mood-tone="${author === 1 ? "first" : "second"}"]`)).toHaveAttribute("fill", "#d9854f");
+  expect(container.querySelector(`[data-mood-tone="${author === 1 ? "second" : "first"}"]`)).toHaveAttribute("fill", author === 1 ? "#d3b1c8" : "#a39ac2");
 });

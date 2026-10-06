@@ -330,6 +330,7 @@
   border: 1px solid var(--line-strong);
   border-radius: 50%;
 }
+.replyHistory { margin-top: 0.75rem; min-width: 0; }
 .peony { margin-top: 0.75rem; }
 .historyToggle {
   width: 100%;

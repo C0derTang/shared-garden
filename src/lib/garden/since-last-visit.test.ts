@@ -162,3 +162,18 @@ describe("waiting news while the guide holds the card", () => {
     expect(later.waiting).toBeUndefined();
   });
 });
+
+it.each([1, 2] as const)("never announces optional mature Hydrangea moods as partner care for member %i", (memberId) => {
+  const state = garden();
+  state.member_id = memberId;
+  const p = plant(state, "hydrangea", "hydrangea", 4);
+  p.flower.first_bloom_at = state.server_now;
+  state.plants.push(p);
+  const before = takeSnapshot(state, [], null);
+  p.member1_submitted = true;
+  p.member2_submitted = true;
+  expect(diffSnapshot(before, state, []).partnerCare).toEqual([]);
+  expect(takeSnapshot(state, [], before).partnerCare).not.toContain(p.flower.id);
+  p.flower.first_bloom_at = null;
+  expect(diffSnapshot(before, state, []).partnerCare).toEqual([p]);
+});

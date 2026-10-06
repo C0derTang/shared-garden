@@ -33,3 +33,15 @@ it("distinguishes definite rejection from ambiguous response without leaking bac
   expect(ambiguous.rejected).toBeUndefined();
   expect(ambiguous.error).toMatch(/Retry/);
 });
+it("preserves exact opaque historical parent IDs through the guarded RPC", async () => {
+  const parent = "9007199254740993";
+  rpc.mockResolvedValue({ data: [{ ...reply, entry_id: Number(parent) }], error: null });
+  const result = await readReplies(parent);
+  expect(result.error).toBeNull();
+  expect(result.replies[0].entry_id).toBe(parent);
+  expect(rpc).toHaveBeenCalledWith("entry_reply_history", { p_entry_id: parent, p_limit: 50, p_before_id: null });
+});
+it.each(["0", "01", "-1", "1e3", "9223372036854775808", 9007199254740992])("rejects invalid or imprecise parent ID %s before querying", async parent => {
+  expect((await readReplies(parent)).error).toMatch(/could not load/);
+  expect(rpc).not.toHaveBeenCalled();
+});

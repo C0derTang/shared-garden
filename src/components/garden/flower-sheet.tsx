@@ -1,4 +1,5 @@
 "use client";
+import { hydrangeaMoods } from "@/lib/garden/model";
 import { usePartnerName } from "@/components/auth/member-names";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import {
@@ -100,7 +101,7 @@ function GrowthSummary({
         <FlowerSprite
           {...(type === "dandelion"
             ? { type: "dandelion" as const, fulfilled: !!flower.fulfilled_at }
-            : { type })}
+            : type === "hydrangea" ? { type: "hydrangea" as const, moods: hydrangeaMoods(plant) } : { type })}
           growthUnits={flower.growth_units}
           growthTarget={target}
           bloomed={bloomed}
@@ -271,10 +272,11 @@ export function FlowerSheet({
   const flower = plant.flower;
   const bloomed = flower.first_bloom_at !== null;
   const ordinaryDone = bloomed && item.type_key !== "cactus";
+  const optionalMood = ordinaryDone && item.type_key === "hydrangea";
   const own = plant.entries.find(
     (entry) => entry.author_id === state.member_id,
   );
-  const cards = flowerCards(plant, state.member_id, !ordinaryDone);
+  const cards = flowerCards(plant, state.member_id, !ordinaryDone || optionalMood);
   const mediaFlower =
     item.type_key === "sunflower" || item.type_key === "bluebell";
   const MediaForm = item.type_key === "bluebell" ? VoiceForm : PhotoForm;
@@ -328,7 +330,7 @@ export function FlowerSheet({
     button.focus({ preventScroll: true });
     button.scrollIntoView?.({ block: "nearest", inline: "nearest" });
   }, [saved]);
-  const next = saved === "share" ? nextDueFlower(state, flower.spot) : null;
+  const next = saved === "share" && !optionalMood ? nextDueFlower(state, flower.spot) : null;
   const nextItem = next
     ? state.catalog.find((c) => c.type_key === next.flower.type_key)
     : undefined;
@@ -403,6 +405,7 @@ export function FlowerSheet({
       <GrowthSummary plant={plant} item={item}>
         <SheetCue status={careStatus(plant, item, state)} />
       </GrowthSummary>
+      {optionalMood && <p className={styles.quiet}>Choose a daily mood whenever you like. Colors stay until you change them. These optional picks save to History and Memories, without growth, streak or achievement credit.</p>}
       <details className={sheetStyles.details}>
         <summary>Details</summary>
         <div>
@@ -483,7 +486,7 @@ export function FlowerSheet({
                         <p className={sheetStyles.placeholder}>
                           {card.cared
                             ? "Shared today."
-                            : "Their care shows up here as soon as they share."}
+                            : optionalMood ? "Their mood appears here if they choose one today." : "Their care shows up here as soon as they share."}
                         </p>
                       )
                     ) : editing && mediaFlower ? (
@@ -507,7 +510,7 @@ export function FlowerSheet({
                         }}
                         onCancel={() => setEditing(null)}
                       />
-                    ) : ordinaryDone || own ? null : (
+                    ) : (ordinaryDone && !optionalMood) || own ? null : (
                       newShare
                     )}
                   </CareCard>
@@ -520,7 +523,7 @@ export function FlowerSheet({
               <p role="status" className={styles.notice}>
                 Saved · {partnerName.object} can see it now.
               </p>
-              {saved === "share" &&
+              {saved === "share" && !optionalMood &&
                 (next && nextItem && onVisit ? (
                   <button
                     ref={nextAction}

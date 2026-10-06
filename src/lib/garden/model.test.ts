@@ -72,3 +72,17 @@ it("accepts fulfillment only as a complete authoritative bloomed Dandelion fact"
   flower.fulfilled_by = null;
   expect(() => parseGardenState(state)).toThrow();
 });
+
+it("accepts absent or partial durable mood slots and rejects unsafe palette data", () => {
+  const state = gardenFixture();
+  const p = state.plants[0];
+  p.flower.type_key = "hydrangea";
+  p.hydrangea_moods = [null, "low"];
+  expect(parseGardenState(state).plants[0].hydrangea_moods).toEqual([null, "low"]);
+  expect(p.member2_submitted).toBe(false);
+  for (const invalid of [["__proto__", "low"], ["calm"], ["calm", "url(https://example.invalid)"]]) {
+    expect(() => parseGardenState({ ...state, plants: [{ ...p, hydrangea_moods: invalid }] })).toThrow();
+  }
+  delete p.hydrangea_moods;
+  expect(parseGardenState(state)).toBe(state);
+});

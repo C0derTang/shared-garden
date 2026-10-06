@@ -5,6 +5,7 @@ import {
   FlowerSprite,
   type FlowerType,
 } from "@/components/garden/flower-sprite";
+import { EntryReplies } from "@/components/garden/entry-replies";
 import { GardenSpotLink } from "@/components/garden/spot-request";
 import { PhotoViewer } from "@/components/media/photo-viewer";
 import { VoiceViewer } from "@/components/media/voice-player";
@@ -72,6 +73,20 @@ function LazyPhoto({ mediaId }: { mediaId: string }) {
     </div>
   );
 }
+function ReplyHistory({ item, memberId }: { item: MemoryItem; memberId: 1 | 2 }) {
+  const [open, setOpen] = useState(false);
+  const historyId = useId();
+  return <div className={styles.replyHistory}>
+    <button type="button" className={styles.historyToggle} aria-expanded={open}
+      aria-controls={historyId} onClick={() => setOpen(expanded => !expanded)}>
+      <span>Reply history</span><span aria-hidden="true">{open ? "−" : "+"}</span>
+    </button>
+    <div id={historyId} hidden={!open} className={styles.historyBody}>
+      {open && <EntryReplies entryId={item.source_id} authorId={item.entry!.author_id}
+        memberId={memberId} refreshKey={item.read_at} readOnly />}
+    </div>
+  </div>;
+}
 const PREVIEW_LENGTH = 170;
 function preview(text: string) {
   if (text.length <= PREVIEW_LENGTH) return text;
@@ -103,7 +118,7 @@ function ExpandableText({
     </div>
   );
 }
-function FlowerCue({ type }: { type: FlowerType }) {
+function FlowerCue({ type, mood, authorId }: { type: FlowerType; mood?: string; authorId?: number }) {
   const common = {
     growthUnits: 1,
     growthTarget: 1,
@@ -114,7 +129,7 @@ function FlowerCue({ type }: { type: FlowerType }) {
     className: styles.flowerCue,
   };
   if (type === "hydrangea")
-    return <FlowerSprite type="hydrangea" {...common} />;
+    return <FlowerSprite type="hydrangea" moods={[authorId === 1 ? moods.find(m => m.key === mood)?.key ?? null : null, authorId === 2 ? moods.find(m => m.key === mood)?.key ?? null : null]} {...common} />;
   if (type === "dandelion")
     return <FlowerSprite type="dandelion" {...common} />;
   return <FlowerSprite type={type} {...common} />;
@@ -250,7 +265,7 @@ export function MemoryCard({
     >
       <header className={styles.cardHeader}>
         <div className={styles.stamp}>
-          <FlowerCue type={f.type_key} />
+          <FlowerCue type={f.type_key} mood={entry?.payload.mood} authorId={entry?.author_id} />
         </div>
         <div className={styles.cardHeading}>
           <div className={styles.headingRow}>
@@ -335,6 +350,7 @@ export function MemoryCard({
           )}
         </div>
       )}
+      {item.kind === "entry" && entry && <ReplyHistory key={item.key} item={item} memberId={memberId} />}
       {item.peony && <PeonyHistory peony={item.peony} memberId={memberId} />}
       </div>
       <footer className={styles.cardFooter}>

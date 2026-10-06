@@ -176,3 +176,10 @@ describe("todayPlan", () => {
     expect(todayPlan(state)).toMatchObject({ you: 0, partner: 0, allTended: true, rows: [] });
   });
 });
+
+it("excludes mature Hydrangea choices from all daily totals and risk cues", () => {
+  const state = gardenFixture();
+  state.plants = [plant(state, "hydrangea", 2, { ...bloomed, growth_units: 7, m2: true })];
+  expect(todayPlan(state)).toMatchObject({ you: 0, partner: 0, rows: [], next: null, allTended: true });
+  expect(careStatus(state.plants[0], item(state, "hydrangea"), state)).toBeNull();
+});

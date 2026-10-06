@@ -433,3 +433,10 @@
     background: CanvasText;
   }
 }
+
+/* Keep the named mood/color pairs readable on the smallest phones. */
+@media (max-width: 360px) {
+  .moodOptions {
+    grid-template-columns: 1fr;
+  }
+}
