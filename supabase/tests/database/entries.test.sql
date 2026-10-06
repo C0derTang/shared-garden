@@ -198,9 +198,11 @@ select * from pg_temp.moon_case('2026-09-19 11:00+00',false,'Moonflower exactly 
 select * from pg_temp.moon_case('2026-11-01 09:30+00',true,'Moonflower repeated DST hour accepted');
 
 select pg_temp.set_entry_clock('2026-09-20 05:00+00');
-update public.flowers set first_bloom_at=greatest(planted_at,'2026-09-19 05:00+00'::timestamptz),first_bloom_day=greatest(planted_day,'2026-09-18'::date) where type_key in ('rose','cactus');
+update public.flowers set first_bloom_at=greatest(planted_at,'2026-09-19 05:00+00'::timestamptz),first_bloom_day=greatest(planted_day,'2026-09-18'::date) where type_key in ('rose','cactus','marigold');
 set local role authenticated;
 select throws_ok($$select public.submit_flower_entry(pg_temp.flower('rose'),'{"text":"More care"}')$$,'22023','This flower has already bloomed','ordinary bloom rejects care');
+select lives_ok($$select public.submit_flower_entry(pg_temp.flower('marigold'),'{"text":"Still kind"}')$$,'bloomed Marigold accepts daily compliments (decision 0062)');
+select throws_ok($$select public.submit_flower_entry(pg_temp.flower('marigold'),'{"text":"Again"}')$$,'22023','Already submitted; edit the original entry','bloomed Marigold still once per day');
 select lives_ok($$select public.submit_flower_entry(pg_temp.flower('cactus'),'{}')$$,'permanent Cactus accepts care after bloom');
 select throws_ok($$select public.submit_flower_entry(pg_temp.flower('cactus'),'{}')$$,'22023','Already submitted; edit the original entry','bloomed Cactus still once per day');
 select ok((select count(*)>0 from public.entry_history(pg_temp.flower('rose'))),'bloom preserves history');

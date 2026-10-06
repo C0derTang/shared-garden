@@ -1,4 +1,5 @@
 import {
+  keepsCareAfterBloom,
   seedAvailability,
   type CatalogItem,
   type GardenState,
@@ -25,13 +26,14 @@ export type CareStatus = {
 /**
  * Whether a flower takes daily care at all. This matches the care dots on the
  * garden surface: Peony has its own milestones, and a bloomed flower is
- * permanent and needs no care, except the Cactus, which keeps its check-ins.
- * A fulfilled Dandelion wish is always bloomed, so it is excluded too.
+ * permanent and needs no care, except the Cactus and Marigold, which keep
+ * their daily entries. A fulfilled Dandelion wish is always bloomed, so it is
+ * excluded too.
  */
 export function takesDailyCare(plant: Plant) {
   const flower = plant.flower;
   if (flower.type_key === "peony" || flower.fulfilled_at) return false;
-  return flower.first_bloom_at === null || flower.type_key === "cactus";
+  return flower.first_bloom_at === null || keepsCareAfterBloom(flower.type_key);
 }
 
 /** Today's care state for one flower, or null when it takes no daily care. */
@@ -149,7 +151,9 @@ export function sheetCue(status: CareStatus | null, partnerName = "Your partner"
   if (!status?.cue) return null;
   if (status.cue === "partner-cared")
     return status.plant.flower.first_bloom_at
-      ? `${partnerName} checked in today. Add yours before 4 a.m. to check in together.`
+      ? status.plant.flower.type_key === "cactus"
+        ? `${partnerName} checked in today. Add yours before 4 a.m. to check in together.`
+        : `${partnerName} cared today. Add yours before 4 a.m. to care together.`
       : `${partnerName} cared today. Add yours before 4 a.m. to grow.`;
   if (status.cue === "blooms") return "You both cared today. It blooms at 4 a.m.";
   return status.later

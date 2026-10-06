@@ -41,7 +41,7 @@ it("finds the next due flower in spot order, wrapping and following the care-dot
   const cactus = state.plants[0];
   const rose = plantAt(state, 2, "rose");
   const peony = plantAt(state, 3, "peony");
-  const bloomed = plantAt(state, 4, "marigold");
+  const bloomed = plantAt(state, 4, "snapdragon");
   bloomed.flower.first_bloom_at = state.server_now;
   const moon = plantAt(state, 5, "moonflower");
   const caredTulip = plantAt(state, 6, "tulip");
@@ -62,4 +62,7 @@ it("finds the next due flower in spot order, wrapping and following the care-dot
   for (const plant of [cactus, rose, moon, caredTulip, daisy])
     plant.member2_submitted = true;
   expect(nextDueFlower(state, 2)).toBeNull();
+  // A bloomed Marigold keeps daily care (decision 0062), unlike other blooms.
+  bloomed.flower.type_key = "marigold";
+  expect(nextDueFlower(state, 2)?.flower.spot).toBe(4);
 });
