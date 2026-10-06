@@ -66,7 +66,8 @@ For ordinary daily growth, both people must submit to the same flower instance
 in the same garden day. At rollover, paired submissions add one growth unit;
 otherwise the flower loses one unit, floored at zero. Settle all intervening
 days when multiple days were missed. There is no backdating or vacation pause.
-Bloomed ordinary flowers are permanent and require no further watering.
+Bloomed ordinary flowers are permanent and require no further watering, except
+Marigold, which keeps daily care after bloom (decision 0062).
 
 Cactus and Peony never lose stages. Cactus grows through paired check-ins at
 rollover and remains waterable after its single bloom. Peony instead gains one

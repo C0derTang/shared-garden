@@ -243,6 +243,9 @@ export function parseGardenState(value: unknown): GardenState {
   }
   return value as GardenState;
 }
+/** Flowers whose daily care continues after permanent bloom (decisions 0004, 0062). */
+export const keepsCareAfterBloom = (type: FlowerType) =>
+  type === "cactus" || type === "marigold";
 export function seedAvailability(item: CatalogItem, state: GardenState) {
   const count = state.plants.filter(
     (p) =>

@@ -37,6 +37,8 @@ describe("takesDailyCare", () => {
     ["bloomed rose", plant(state, "rose", 2, { ...bloomed, growth_units: 5 }), false],
     ["growing cactus", plant(state, "cactus", 1), true],
     ["bloomed cactus", plant(state, "cactus", 1, { ...bloomed, growth_units: 10 }), true],
+    ["growing marigold", plant(state, "marigold", 5), true],
+    ["bloomed marigold", plant(state, "marigold", 5, { ...bloomed, growth_units: 5 }), true],
     ["peony", plant(state, "peony", 3), false],
     ["growing dandelion", plant(state, "dandelion", 4), true],
     ["bloomed, unfulfilled dandelion", plant(state, "dandelion", 4, { ...bloomed, growth_units: 5 }), false],
@@ -182,4 +184,18 @@ it("excludes mature Hydrangea choices from all daily totals and risk cues", () =
   state.plants = [plant(state, "hydrangea", 2, { ...bloomed, growth_units: 7, m2: true })];
   expect(todayPlan(state)).toMatchObject({ you: 0, partner: 0, rows: [], next: null, allTended: true });
   expect(careStatus(state.plants[0], item(state, "hydrangea"), state)).toBeNull();
+});
+
+describe("bloomed Marigold", () => {
+  const state = gardenFixture();
+  const status = (p: Plant) => careStatus(p, item(state, p.flower.type_key), state)!;
+  it("stays due without an at-risk cue and asks for care, not a check-in", () => {
+    const untended = status(plant(state, "marigold", 5, { ...bloomed, growth_units: 5 }));
+    expect(untended.dueForYou).toBe(true);
+    expect(untended.cue).toBeNull();
+    const partnerFirst = status(plant(state, "marigold", 5, { ...bloomed, growth_units: 5, m2: true }));
+    expect(partnerFirst.cue).toBe("partner-cared");
+    expect(sheetCue(partnerFirst)).toBe("Your partner cared today. Add yours before 4 a.m. to care together.");
+    expect(status(plant(state, "marigold", 5, { ...bloomed, growth_units: 5, m1: true, m2: true })).cue).toBeNull();
+  });
 });

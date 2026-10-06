@@ -183,3 +183,18 @@ it("keeps mature mood picking optional and uses held-over colors without claimin
   expect(p.mutate).toHaveBeenCalledWith({ kind: "submit", flowerId: p.plant.flower.id, payload: { mood: "tender" } });
   expect(screen.queryByText("That’s everything for today")).not.toBeInTheDocument();
 });
+
+it("keeps the Marigold compliment form open after bloom as daily care", () => {
+  const p = setup("daisy");
+  p.item = { ...p.item, type_key: "marigold", display_name: "Marigold", action_label: "Compliment or appreciation", growth_target: 5 };
+  p.plant.flower.type_key = "marigold";
+  p.plant.flower.first_bloom_at = p.state.server_now;
+  p.plant.flower.first_bloom_day = p.state.garden_day;
+  p.plant.flower.growth_units = 5;
+  p.plant.daisy_question = null;
+  render(<FlowerSheet {...p} />);
+  expect(screen.getByText("In bloom · daily compliments continue")).toBeInTheDocument();
+  expect(screen.getByRole("form", { name: "Today's care" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Share care" })).toBeInTheDocument();
+  expect(screen.queryByText("No daily care is needed.")).not.toBeInTheDocument();
+});

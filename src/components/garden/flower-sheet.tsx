@@ -1,5 +1,5 @@
 "use client";
-import { hydrangeaMoods } from "@/lib/garden/model";
+import { hydrangeaMoods, keepsCareAfterBloom } from "@/lib/garden/model";
 import { usePartnerName } from "@/components/auth/member-names";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import {
@@ -108,7 +108,9 @@ function GrowthSummary({
     : bloomed
       ? type === "cactus"
         ? "In bloom · check-ins continue"
-        : "In bloom · permanent"
+        : type === "marigold"
+          ? "In bloom · daily compliments continue"
+          : "In bloom · permanent"
       : type === "peony"
         ? `${units} of ${target} milestones`
         : null;
@@ -288,7 +290,7 @@ export function FlowerSheet({
   const historyLock = useRef(false);
   const flower = plant.flower;
   const bloomed = flower.first_bloom_at !== null;
-  const ordinaryDone = bloomed && item.type_key !== "cactus";
+  const ordinaryDone = bloomed && !keepsCareAfterBloom(item.type_key);
   const optionalMood = ordinaryDone && item.type_key === "hydrangea";
   const own = plant.entries.find(
     (entry) => entry.author_id === state.member_id,
@@ -435,7 +437,9 @@ export function FlowerSheet({
                 ? "No daily care is needed."
                 : item.type_key === "cactus"
                   ? "Cactus never loses growth, and you can keep checking in after it blooms."
-                  : "Both people’s care on the same garden day adds one growth unit at rollover. A missed pair loses one unit, down to zero."}
+                  : item.type_key === "marigold" && bloomed
+                    ? "Marigold stays part of daily care after it blooms. A shared compliment each day keeps your streak; growth no longer changes."
+                    : "Both people’s care on the same garden day adds one growth unit at rollover. A missed pair loses one unit, down to zero."}
             </p>
           )}
         </div>
