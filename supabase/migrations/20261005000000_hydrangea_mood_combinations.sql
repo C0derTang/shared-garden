@@ -4,7 +4,7 @@
 -- match; Other never does. No growth, streak or care rules change.
 insert into public.hydrangea_moods values ('other','Other','Neutral','#B8B2A6');
 
-create or replace function private.validate_entry_payload(p_type text, p_payload jsonb, p_day date)
+create or replace function private.validate_nonmedia_entry_payload(p_type text, p_payload jsonb, p_day date)
 returns jsonb
 language plpgsql security invoker set search_path = pg_catalog
 as $$
