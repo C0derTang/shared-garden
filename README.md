@@ -79,11 +79,15 @@ the platform Auth-role harness, the concurrency harnesses and the real Realtime
 verifiers), **Private media** (real HTTP photo storage and the media race) and
 **Private audio** (real HTTP voice storage, the assembled Linux runtime audit and
 the audio media race). Browser flows are checked by hand with CUA against a
-disposable local backend. Hosted deployment is deliberately not part of this
-repository; it is tracked in
-[issue #37](https://github.com/C0derTang/shared-garden/issues/37), and
-[docs/release/configuration.md](docs/release/configuration.md) describes what it
-needs.
+disposable local backend. Once the existing Vercel project is connected and the
+private operator settings are verified, every push or merge to `main` starts an
+automatic production deployment. Other branches do not auto-deploy with the
+checked-in configuration. These four workflows and independent review remain
+merge gates; Vercel starts from the Git push and does not wait for the post-push
+GitHub Actions runs. See [decision 0063](docs/decisions/0063-main-push-deployments.md)
+and the [release guide](docs/release/configuration.md) for activation, failed
+builds and rollback. Live activation evidence is tracked in
+[issue #157](https://github.com/C0derTang/shared-garden/issues/157).
 
 ### Structure
 
