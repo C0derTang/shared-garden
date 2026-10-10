@@ -2,7 +2,10 @@
 
 Status: conservative implementation choices under [0004](0004-finalized-launch-rules.md),
 for [issue #63](https://github.com/C0derTang/shared-garden/issues/63). Source
-preparation only; the hosted launch is issue #37.
+preparation only; the hosted launch is issue #37. The historical prohibition on
+repository-to-host deployment integration below is superseded by
+[decision 0063](0063-main-push-deployments.md), following the owner's explicit
+2026-10-10 request. All other privacy and release boundaries remain in force.
 
 `APP_ORIGIN` is mandatory, server-only and a single canonical origin. It is
 scheme and host with no credentials, no path beyond `/`, no query and no

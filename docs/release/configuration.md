@@ -5,12 +5,14 @@ placeholder. Never put a real origin, account address, project identifier,
 credential or private content in this repository, in a pull request, in a
 comment or in captured output.
 
-This document prepares the launch. Performing it — creating the hosted project,
-applying migrations, configuring the provider, setting environment values and
-deploying — is tracked separately in
-[issue #37](https://github.com/C0derTang/shared-garden/issues/37). The choices
-recorded here are explained in
-[decision 0021](../decisions/0021-release-configuration.md).
+Initial hosted setup is tracked in
+[issue #37](https://github.com/C0derTang/shared-garden/issues/37) and explained in
+[decision 0021](../decisions/0021-release-configuration.md). Automatic deployments
+from `main` to the existing project are now authorized by
+[decision 0063](../decisions/0063-main-push-deployments.md) and tracked in
+[issue #157](https://github.com/C0derTang/shared-garden/issues/157). Source
+configuration alone does not establish that the live integration is active;
+complete the activation gate below and record the actual result in that issue.
 
 ## What is private
 
@@ -98,13 +100,91 @@ signed in at least once: the Google flow still needs to create their Auth users.
   `db:reset`, `db:push` or any seed or fixture command against one. `db:reset`
   discards data; the local commands in this repository are for disposable local
   projects only.
-- Do not add `vercel.json`, a `.vercel` link or a repository-to-host deployment
-  integration. Deployment is an operator action under #37, not a property of the
-  source tree.
+- Do not commit a `.vercel` project link or any hosted identifier. The sanitized
+  `vercel.json` configures automatic deployment; the private project connection
+  and environment values stay in the provider dashboard. Do not create a second
+  project or put deployment credentials into GitHub Actions for this integration.
 - Do not create production activity to make the app look used, and do not seed
   demo content.
 - Do not enable extra services, paid tiers or additional accounts. Anything
   implying a paid upgrade is an escalation, not a configuration choice.
+
+## Automatic deployments from main
+
+The existing Vercel project's native GitHub integration builds each push to
+`main` as Production after the operator completes activation. The root
+[`vercel.json`](../../vercel.json) enables `main`, disables all other branches
+with `**` (including names with slashes), and sets
+`github.autoJobCancelation: false` so newer pushes do not cancel queued builds.
+Vercel gives a matching `true` branch rule precedence over a matching `false`
+rule. `ignoreCommand: "exit 1"` overrides an ignored-build command so an eligible
+commit proceeds even when only documentation changes; see the
+[ignore command reference](https://vercel.com/docs/project-configuration/vercel-json#ignorecommand).
+See the [Git configuration reference](https://vercel.com/docs/project-configuration/git-configuration)
+and [official schema](https://openapi.vercel.sh/vercel.json).
+
+The existing Web, Database, Private media and Private audio workflows stay
+unchanged. Passing PR checks and independent approval are still required before
+merge under [AGENTS.md](../../AGENTS.md). Native deployment reacts to the push;
+it does not wait for post-push GitHub Actions checks. A direct push therefore
+starts deployment too and must not be used to bypass the repository procedure.
+Database migrations remain separate authorized operator work; this integration
+does not apply them.
+
+### Private operator settings and activation gate
+
+Before connecting the existing project, verify all of the following privately:
+
+1. Keep the existing production domain, environment values, Node.js 24 runtime,
+   framework/build settings and two-member access boundary. Set the production
+   branch to `main`. Confirm the source ignore-command override and disable any
+   unaffected-project skip setting that could omit a `main` push, including a
+   documentation-only push.
+2. In the project's Git settings, disable PR/commit comments, GitHub deployment
+   events/records (`deployment_status` events), and commit status publication
+   that exposes project names, domains or dashboard/deployment links. Also keep
+   consolidated statuses off for this project. Verify the saved settings;
+   silencing comments alone is insufficient. The deprecated `github.silent`
+   setting is not a substitute for the dashboard controls. See
+   [Vercel's GitHub settings](https://vercel.com/docs/git/vercel-for-github).
+3. Connect only this repository to the existing project. Confirm `main` is the
+   Production branch, the branch filter is in effect, and production secrets
+   remain scoped to Production. A branch predating `vercel.json` does not carry
+   its restriction: do not push such a branch while connected until it includes
+   the configuration. No preview expansion is authorized.
+4. After the independently reviewed configuration merge, observe the automatic
+   Git-triggered deployment. Verify its commit equals the merge commit, its
+   branch is `main`, its target is Production and its final state is `READY`.
+   Confirm an unauthenticated request to the canonical production origin serves
+   the expected public landing without accessing member content. Inspect the
+   public GitHub surfaces to verify no hosting metadata escaped.
+5. Record only the commit, target, trigger, state and sanitized verification
+   outcomes in issue #157. Keep domains, project IDs, account details, credentials
+   and raw provider responses private. If connection permissions or privacy
+   controls are unavailable, stop activation and report the blocker; do not
+   weaken privacy or enable a paid service.
+
+The source PR can be reviewed before this live gate. Until those observations
+are recorded, repository checks prove configuration only, not a working live
+connection or a successful automatic deployment.
+
+### Failed builds and rollback
+
+A failed build does not replace the last successful production deployment.
+Inspect its private provider logs, correct the source through the normal issue,
+review and merge process, and verify the resulting `main` deployment. A failed
+post-push GitHub Actions check does not automatically undo a deployment; treat it
+as a release incident and assess whether rollback is needed.
+
+If a successful deployment regresses, use the provider's rollback control to
+restore a previously verified production deployment available under the existing
+plan, then verify the public response and affected behavior privately. Follow
+[the rollback guide](https://vercel.com/docs/deployments/rollback-production-deployment)
+and check whether automatic production assignment must be resumed after rollback.
+Revert or fix the source through a reviewed PR so a later push does not restore
+the regression. Rollback changes the served application, not the database or
+secrets; migrations must remain compatible with the restored version. Record
+sanitized commit/outcome evidence without exposing deployment links.
 
 ## First authorized visit
 
