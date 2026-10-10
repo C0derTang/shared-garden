@@ -34,29 +34,54 @@ select public.current_garden_state();
 select is((select first_bloom_day from public.flowers where type_key='marigold'),'2026-10-01'::date,'Marigold bloomed');
 select is((select first_bloom_day from public.flowers where type_key='rose'),'2026-10-01'::date,'Rose bloomed');
 select is((select current_streak from public.garden),1::integer,'bloom day qualifies');
--- Day 2: only the Marigold keeps taking care. A paired day extends the streak
--- without changing growth; the Rose stays closed and silent.
+-- Day 2: completed Marigolds reject new compliments from either member.
 set local role authenticated;
-select lives_ok($$select public.submit_flower_entry(pg_temp.flower('marigold'),'{"text":"Day two"}')$$,'bloomed Marigold accepts member 1');
-select throws_ok($$select public.submit_flower_entry(pg_temp.flower('rose'),'{"text":"Day two"}')$$,'22023','This flower has already bloomed','bloomed Rose stays closed');
-select is(public.current_entry_state(pg_temp.flower('marigold'))->>'member1_submitted','true','sheet reports today''s Marigold care');
+select throws_ok($$select public.submit_flower_entry(pg_temp.flower('marigold'),' {"text":"Day two"}')$$,'22023','This flower has already bloomed','completed Marigold rejects member 1');
+select throws_ok($$select public.submit_flower_entry(pg_temp.flower('rose'),' {"text":"Day two"}')$$,'22023','This flower has already bloomed','completed Rose remains closed');
+select set_config('request.jwt.claims','{"sub":"22222222-2222-4222-8222-222222222222","role":"authenticated","amr":[{"method":"oauth"}]}',true);
+select throws_ok($$select public.submit_flower_entry(pg_temp.flower('marigold'),' {"text":"Day two back"}')$$,'22023','This flower has already bloomed','completed Marigold rejects member 2');
+select is((select count(*) from public.entry_history(pg_temp.flower('marigold'))),2::bigint,'completed Marigold retains bloom-day compliment history');
 reset role;
-insert into public.flower_entries(flower_id,author_id,garden_day,original_posted_at,updated_at,payload)
- values (pg_temp.flower('marigold'),2,'2026-10-02','2026-10-02 17:00Z','2026-10-02 17:00Z','{"text":"Day two back"}');
+-- Synthetic legacy entries model care saved while decision 0062 was active.
+-- They remain readable but cannot create new post-bloom settlement activity.
+select pg_temp.pair(pg_temp.flower('marigold'),'2026-10-02','2026-10-02 16:00Z','2026-10-02 17:00Z');
+create temporary table saved_entries as select * from public.flower_entries where flower_id=pg_temp.flower('marigold');
+create temporary table saved_facts as select * from public.flower_day_facts where type_key='marigold';
+create temporary table saved_awards as select * from public.achievement_awards;
 select pg_temp.at('2026-10-03 16:00Z');
 select public.current_garden_state();
-select is((select count(*) from public.flower_day_facts where type_key='marigold' and garden_day='2026-10-02'),1::bigint,'bloomed Marigold records a day fact');
-select ok((select paired and qualifying_activity from public.flower_day_facts where type_key='marigold' and garden_day='2026-10-02'),'paired bloomed Marigold is qualifying activity');
-select is((select growth_after from public.flower_day_facts where type_key='marigold' and garden_day='2026-10-02'),5::smallint,'bloomed Marigold growth stays at target');
-select is((select count(*) from public.flower_day_facts where type_key='rose' and garden_day='2026-10-02'),0::bigint,'bloomed Rose records nothing');
-select is((select current_streak from public.garden),2::integer,'Marigold pair extends the streak after bloom');
-select is((select count(*) from public.before_noon_snapshots where garden_day='2026-10-03' and flower_id=pg_temp.flower('marigold')),0::bigint,'bloomed Marigold stays out of before-noon snapshots like the Cactus');
--- Day 3: a missed Marigold day never reduces growth and does not count.
+select is((select count(*) from public.flower_day_facts where type_key='marigold' and garden_day='2026-10-02'),0::bigint,'legacy post-bloom pair does not create new Marigold day facts');
+select is((select count(*) from public.flower_day_facts where type_key='rose' and garden_day='2026-10-02'),0::bigint,'completed Rose also records nothing');
+select is((select current_streak from public.garden),0::integer,'legacy post-bloom pair does not extend streak');
+select is((select qualifying_days from public.garden),1::integer,'bloom-day activity remains credited without post-bloom credit');
+select is((select count(*) from public.before_noon_snapshots where garden_day='2026-10-03' and flower_id=pg_temp.flower('marigold')),0::bigint,'completed Marigold stays out of before-noon snapshots');
 select pg_temp.at('2026-10-04 16:00Z');
 select public.current_garden_state();
-select is((select growth_units from public.flowers where type_key='marigold'),5::smallint,'missed day after bloom never decays');
-select ok(not (select paired from public.flower_day_facts where type_key='marigold' and garden_day='2026-10-03'),'missed day recorded unpaired');
-select is((select current_streak from public.garden),0::integer,'missed day resets streak as for any care flower');
-select is((select count(*) from public.flowers where type_key='marigold' and first_bloom_day is not null),1::bigint,'no repeated bloom credit');
+select is((select growth_units from public.flowers where id=pg_temp.flower('marigold')),5::smallint,'missed day after bloom never decays');
+select is((select count(*) from public.flower_day_facts where type_key='marigold' and garden_day>'2026-10-01'),0::bigint,'missed post-bloom days create no Marigold care facts');
+select is((select count(*) from public.flowers where type_key='marigold' and first_bloom_day is not null),1::bigint,'completion remains counted once');
+select results_eq($$select * from public.flower_entries where flower_id=pg_temp.flower('marigold') order by id$$,'select * from saved_entries order by id','existing bloom-day and legacy entries unchanged');
+select results_eq($$select * from public.flower_day_facts where type_key='marigold' order by garden_day$$,'select * from saved_facts order by garden_day','existing settled facts unchanged');
+select is_empty('select * from saved_awards except select * from public.achievement_awards','earned achievements and award timestamps preserved');
+set local role authenticated;
+select is((select count(*) from public.entry_history(pg_temp.flower('marigold'))),4::bigint,'legacy post-bloom compliments remain in history');
+-- Planting another Marigold uses the existing two-unbloomed allowance.
+select lives_ok($$select public.plant_flower('marigold')$$,'another Marigold can be planted after completion');
+select lives_ok($$select public.plant_flower('marigold')$$,'completed Marigold leaves both growing slots available');
+select throws_ok($$select public.plant_flower('marigold')$$,'22023','Unfinished flower limit reached','third unbloomed Marigold still exceeds capacity');
+select is((select count(*) from public.flowers where type_key='marigold'),3::bigint,'completed flower remains alongside two new Marigolds');
+select lives_ok($$select public.submit_flower_entry((select id from public.flowers where type_key='marigold' and first_bloom_at is null order by spot limit 1),' {"text":"A fresh compliment"}')$$,'new growing Marigold accepts member 2 care');
+select throws_ok($$select public.submit_flower_entry((select id from public.flowers where type_key='marigold' and first_bloom_at is null order by spot limit 1),' {"text":"Again"}')$$,'22023','Already submitted; edit the original entry','growing Marigold retains once-per-day rule');
+select set_config('request.jwt.claims','{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated","amr":[{"method":"oauth"}]}',true);
+select lives_ok($$select public.submit_flower_entry((select id from public.flowers where type_key='marigold' and first_bloom_at is null order by spot limit 1),' {"text":"A fresh compliment back"}')$$,'new growing Marigold accepts member 1 care');
+reset role;
+select pg_temp.at('2026-10-05 16:00Z');
+select public.current_garden_state();
+select is((select growth_units from public.flowers where type_key='marigold' and first_bloom_at is null order by spot limit 1),1::smallint,'paired care still grows an unbloomed Marigold');
+select is((select current_streak from public.garden),1::integer,'growing Marigold pair qualifies for streak');
+select pg_temp.at('2026-10-06 16:00Z');
+select public.current_garden_state();
+select is((select growth_units from public.flowers where type_key='marigold' and first_bloom_at is null order by spot limit 1),0::smallint,'missed pair still decays unbloomed Marigold');
+select is((select growth_units from public.flowers where id=pg_temp.flower('marigold')),5::smallint,'completed Marigold remains permanent while new ones grow');
 select * from finish();
 rollback;

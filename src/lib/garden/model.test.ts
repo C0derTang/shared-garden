@@ -107,3 +107,16 @@ it("prefers full picks for slot tones and rejects malformed picks", () => {
   delete p.hydrangea_picks;
   expect(hydrangeaMoods(parseGardenState(state).plants[0])).toEqual(["calm", "other"]);
 });
+
+it("keeps both Marigold growing slots available after completion", () => {
+  const state = gardenFixture();
+  const marigold = state.catalog.find(item => item.type_key === "marigold")!;
+  const completed = { ...state.plants[0], flower: { ...state.plants[0].flower, type_key: "marigold" as const, first_bloom_at: state.server_now, growth_units: 5 } };
+  state.plants = [completed];
+  expect(seedAvailability(marigold, state)).toMatchObject({ available: true, remaining: 2 });
+  const growing = { ...completed, flower: { ...completed.flower, first_bloom_at: null, growth_units: 0 } };
+  state.plants.push(growing);
+  expect(seedAvailability(marigold, state)).toMatchObject({ available: true, remaining: 1 });
+  state.plants.push(growing);
+  expect(seedAvailability(marigold, state)).toMatchObject({ available: false, remaining: 0 });
+});

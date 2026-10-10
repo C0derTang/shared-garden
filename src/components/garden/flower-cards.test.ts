@@ -62,7 +62,7 @@ it("finds the next due flower in spot order, wrapping and following the care-dot
   for (const plant of [cactus, rose, moon, caredTulip, daisy])
     plant.member2_submitted = true;
   expect(nextDueFlower(state, 2)).toBeNull();
-  // A bloomed Marigold keeps daily care (decision 0062), unlike other blooms.
+  // Completed Marigolds stay out of the next-care path (decision 0064).
   bloomed.flower.type_key = "marigold";
-  expect(nextDueFlower(state, 2)?.flower.spot).toBe(4);
+  expect(nextDueFlower(state, 2)).toBeNull();
 });
