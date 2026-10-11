@@ -131,6 +131,57 @@ starts deployment too and must not be used to bypass the repository procedure.
 Database migrations remain separate authorized operator work; this integration
 does not apply them.
 
+### Database readiness and Memories filter repair
+
+A matching production commit and a `READY` web deployment prove source delivery.
+They do not prove the hosted database has the RPC signature that source calls.
+Before deploying source that changes an RPC, compare the hosted migration
+inventory and function contract with its reviewed migration and apply the
+required database change before or with the application release. The Database
+CI workflow verifies a disposable database, not the hosted one.
+
+[Issue #161](https://github.com/C0derTang/shared-garden/issues/161) records the
+Memories failure: the application sends `p_author` even for **Both of us**, while
+the older seven-argument `memories_page` cannot resolve that named argument.
+The repair uses the existing reviewed
+[`20261001000000_memories_person_filter.sql`](../../supabase/migrations/20261001000000_memories_person_filter.sql)
+from [decision 0060](../decisions/0060-memories-person-filter.md). No application
+fallback, history reset or change to the filter rules is needed.
+
+For this specific missing-migration state, the authorized operator must:
+
+1. Inspect only migration history and function metadata first. Confirm the
+   person-filter migration is absent, the seven-argument function exists and
+   the eight-argument function is absent. If that state differs, investigate
+   before applying anything; the migration is not an idempotent repair script.
+2. Review the exact immutable migration bytes and a guarded transaction wrapper
+   independently. Apply only that migration, even if later versions are already
+   recorded. Review those later migrations for compatibility first. Do not use
+   a bulk migration command, apply other missing migrations or rewrite history
+   to make the versions appear sequential.
+3. In one transaction, use bounded lock/statement timeouts, serialize the repair,
+   recheck the expected catalog/history state, execute the unchanged migration,
+   verify the resulting signature and grants, and insert only its actual
+   migration record using the migration-history table's current shape. Any
+   failed precondition or postcondition must roll back the entire transaction.
+4. After commit, run section **5b** of
+   [the read-only release audit](audit-release-schema.sql) and check every row.
+   It requires the current named arguments/defaults, stable security-invoker
+   contract, authenticated-only application execution and no obsolete overload.
+   Confirm the migration record exists, other migration records are unchanged,
+   and the API schema cache resolves the new signature. Refresh that cache
+   through the authorized operator procedure if necessary.
+5. Privately verify person selection combined with the other filters and page
+   modes using a real existing signed-in session when available. Never forge a
+   member identity or create activity to test production. Without that session,
+   report the limitation: catalog/grant checks and unauthenticated API signature
+   resolution establish deployment readiness; disposable database regressions
+   establish member filtering behavior. Publish only sanitized outcomes.
+
+The audit reports boolean results; a successful SQL exit alone is not a pass.
+On an established garden, its explicitly labeled first-use checks may correctly
+show activity. Assess those separately from the structural Memories checks.
+
 ### Private operator settings and activation gate
 
 Before connecting the existing project, verify all of the following privately:
