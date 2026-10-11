@@ -184,7 +184,7 @@ it("keeps mature mood picking optional and uses held-over colors without claimin
   expect(screen.queryByText("That’s everything for today")).not.toBeInTheDocument();
 });
 
-it("keeps the Marigold compliment form open after bloom as daily care", () => {
+it("closes completed Marigold care while retaining compliment history", async () => {
   const p = setup("daisy");
   p.item = { ...p.item, type_key: "marigold", display_name: "Marigold", action_label: "Compliment or appreciation", growth_target: 5 };
   p.plant.flower.type_key = "marigold";
@@ -193,8 +193,12 @@ it("keeps the Marigold compliment form open after bloom as daily care", () => {
   p.plant.flower.growth_units = 5;
   p.plant.daisy_question = null;
   render(<FlowerSheet {...p} />);
-  expect(screen.getByText("In bloom · daily compliments continue")).toBeInTheDocument();
-  expect(screen.getByRole("form", { name: "Today's care" })).toBeInTheDocument();
-  expect(screen.getByRole("button", { name: "Share care" })).toBeInTheDocument();
-  expect(screen.queryByText("No daily care is needed.")).not.toBeInTheDocument();
+  expect(screen.getByText("In bloom · permanent")).toBeInTheDocument();
+  expect(screen.queryByRole("form", { name: "Today's care" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Share care" })).not.toBeInTheDocument();
+  expect(screen.getByText("No daily care is needed.")).toBeInTheDocument();
+  load.mockResolvedValue({ entries: [history({ text: "Saved compliment" })], error: null });
+  fireEvent.click(screen.getByRole("button", { name: "Read history" }));
+  expect(await within(screen.getByRole("region", { name: "Flower history" })).findByText("Saved compliment")).toBeInTheDocument();
+  expect(p.mutate).not.toHaveBeenCalled();
 });

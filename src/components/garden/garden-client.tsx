@@ -1,5 +1,5 @@
 "use client";
-import { hydrangeaMoods, keepsCareAfterBloom } from "@/lib/garden/model";
+import { hydrangeaMoods } from "@/lib/garden/model";
 import { usePartnerName } from "@/components/auth/member-names";
 import Link from "next/link";
 import { useCallback, useRef, useState } from "react";
@@ -178,7 +178,7 @@ function GardenSpot({
                     : `${plant.flower.growth_units} / ${item!.growth_target}`}
                 </span>
                 {plant.flower.type_key !== "peony" &&
-                  (!bloom || keepsCareAfterBloom(plant.flower.type_key)) && (
+                  (!bloom || plant.flower.type_key === "cactus") && (
                     <span className={styles.miniMarkers} aria-hidden="true">
                       <i
                         className={cue === "partner-cared" ? yourDotCue : undefined}

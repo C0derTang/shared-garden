@@ -1,6 +1,8 @@
 # 0062 — Marigold keeps daily care after bloom
 
-Status: approved (owner request, [issue #155](https://github.com/C0derTang/shared-garden/issues/155), 2026-10-06).
+Status: superseded by [decision 0064](0064-completed-marigold-history.md)
+(owner rollback request, [issue #159](https://github.com/C0derTang/shared-garden/issues/159), 2026-10-10).
+Previously approved in [issue #155](https://github.com/C0derTang/shared-garden/issues/155) on 2026-10-06.
 Amends decision 0004 for Marigold only.
 
 ## Decision

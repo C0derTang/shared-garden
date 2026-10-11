@@ -844,3 +844,19 @@ it("shows a loading status without retry, and an alert with Try again only on er
   await userEvent.setup().click(screen.getByRole("button", { name: "Try again" }));
   expect(await screen.findByRole("heading", { name: "cc’s garden" })).toBeInTheDocument();
 });
+
+it("removes completed Marigold care dots while preserving Cactus check-ins", () => {
+  const state = gardenFixture();
+  const cactus = state.plants[0];
+  cactus.flower.first_bloom_at = state.server_now;
+  cactus.flower.growth_units = 10;
+  state.plants.push({
+    ...cactus,
+    flower: { ...cactus.flower, id: "00000000-0000-4000-8000-000000000002", type_key: "marigold", spot: 2, growth_units: 5, is_initial: false },
+    member2_submitted: true,
+  });
+  render(<GardenClient initial={{ state, error: null }} />);
+  const marigold = screen.getByRole("button", { name: "Marigold, spot 2, permanent bloom" });
+  expect(marigold.querySelectorAll("[data-cared]")).toHaveLength(0);
+  expect(screen.getByRole("button", { name: /Cactus, spot 1, permanent bloom/ }).querySelectorAll("[data-cared]")).toHaveLength(2);
+});
