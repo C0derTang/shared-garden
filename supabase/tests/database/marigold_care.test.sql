@@ -53,7 +53,7 @@ select public.current_garden_state();
 select is((select count(*) from public.flower_day_facts where type_key='marigold' and garden_day='2026-10-02'),0::bigint,'legacy post-bloom pair does not create new Marigold day facts');
 select is((select count(*) from public.flower_day_facts where type_key='rose' and garden_day='2026-10-02'),0::bigint,'completed Rose also records nothing');
 select is((select current_streak from public.garden),0::integer,'legacy post-bloom pair does not extend streak');
-select is((select qualifying_days from public.garden),1::integer,'bloom-day activity remains credited without post-bloom credit');
+select is((select qualifying_days from public.garden),1::bigint,'bloom-day activity remains credited without post-bloom credit');
 select is((select count(*) from public.before_noon_snapshots where garden_day='2026-10-03' and flower_id=pg_temp.flower('marigold')),0::bigint,'completed Marigold stays out of before-noon snapshots');
 select pg_temp.at('2026-10-04 16:00Z');
 select public.current_garden_state();
