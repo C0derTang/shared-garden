@@ -241,6 +241,46 @@ where n.nspname = 'public'
   and a.privilege_type = 'EXECUTE'
   and r.rolname in ('anon', 'authenticated', 'service_role', 'supabase_auth_admin');
 
+\echo '== 5b. Memories API contract (decision 0060, issue #161) =='
+-- Anchor on the expected signature so a missing function produces failed rows,
+-- rather than disappearing from a catalog listing. No memories are queried.
+with expected as (
+  select to_regprocedure(
+    'public.memories_page(text,jsonb,text[],text,integer,date,date,integer)'
+  ) as oid
+), contract as (
+  select p.* from expected e left join pg_catalog.pg_proc p on p.oid = e.oid
+)
+select checks."check", checks.observed, checks.expected,
+  coalesce(checks.observed = checks.expected, false) as ok
+from contract p
+cross join lateral (values
+  ('memories current signature present', (p.oid is not null)::text, 'true'),
+  ('memories named arguments', array_to_string(p.proargnames, ','),
+    'p_mode,p_cursor,p_keys,p_type,p_spot,p_from,p_to,p_author'),
+  ('memories argument defaults',
+    p.pronargdefaults::text || ': ' || pg_get_expr(p.proargdefaults, 0),
+    '8: ''latest''::text, NULL::jsonb, NULL::text[], NULL::text, '
+      || 'NULL::integer, NULL::date, NULL::date, NULL::integer'),
+  ('memories stable security invoker with fixed search path',
+    (p.provolatile = 's' and not p.prosecdef
+      and p.proconfig = array['search_path=pg_catalog'])::text, 'true'),
+  ('memories execution restricted to authenticated app role',
+    (has_function_privilege('authenticated', p.oid, 'EXECUTE')
+      and not has_function_privilege('anon', p.oid, 'EXECUTE')
+      and not has_function_privilege('service_role', p.oid, 'EXECUTE')
+      and not has_function_privilege('supabase_auth_admin', p.oid, 'EXECUTE')
+      and not exists (
+        select 1
+        from aclexplode(coalesce(p.proacl, pg_catalog.acldefault('f', p.proowner))) a
+        where a.grantee = 0 and a.privilege_type = 'EXECUTE'
+      ))::text, 'true'),
+  ('memories obsolete seven-argument overload absent',
+    (to_regprocedure(
+      'public.memories_page(text,jsonb,text[],text,integer,date,date)'
+    ) is null)::text, 'true')
+) as checks("check", observed, expected);
+
 \echo '== 6. Private storage buckets =='
 select
   id as bucket,
