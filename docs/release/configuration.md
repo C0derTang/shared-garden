@@ -9,8 +9,8 @@ Initial hosted setup is tracked in
 [issue #37](https://github.com/C0derTang/shared-garden/issues/37) and explained in
 [decision 0021](../decisions/0021-release-configuration.md). Automatic deployments
 from `main` to the existing project are now authorized by
-[decision 0063](../decisions/0063-main-push-deployments.md) and tracked in
-[issue #157](https://github.com/C0derTang/shared-garden/issues/157). Source
+[decision 0065](../decisions/0065-ordered-database-releases.md) and tracked in
+[issue #163](https://github.com/C0derTang/shared-garden/issues/163). Source
 configuration alone does not establish that the live integration is active;
 complete the activation gate below and record the actual result in that issue.
 
@@ -97,13 +97,14 @@ signed in at least once: the Google flow still needs to create their Auth users.
 ## What must not be done
 
 - Do not push a local configuration file to a hosted project, and do not run
-  `db:reset`, `db:push` or any seed or fixture command against one. `db:reset`
-  discards data; the local commands in this repository are for disposable local
-  projects only.
+  `db:reset` or any seed or fixture command against one. `db:reset`
+  discards data. Only the reviewed release pipeline below may apply ordinary
+  forward migrations with `supabase db push --skip-vault`.
 - Do not commit a `.vercel` project link or any hosted identifier. The sanitized
   `vercel.json` configures automatic deployment; the private project connection
   and environment values stay in the provider dashboard. Do not create a second
-  project or put deployment credentials into GitHub Actions for this integration.
+  project. Keep release credentials only in the protected GitHub `production`
+  environment described below.
 - Do not create production activity to make the app look used, and do not seed
   demo content.
 - Do not enable extra services, paid tiers or additional accounts. Anything
@@ -111,25 +112,29 @@ signed in at least once: the Google flow still needs to create their Auth users.
 
 ## Automatic deployments from main
 
-The existing Vercel project's native GitHub integration builds each push to
-`main` as Production after the operator completes activation. The root
-[`vercel.json`](../../vercel.json) enables `main`, disables all other branches
-with `**` (including names with slashes), and sets
-`github.autoJobCancelation: false` so newer pushes do not cancel queued builds.
-Vercel gives a matching `true` branch rule precedence over a matching `false`
-rule. `ignoreCommand: "exit 1"` overrides an ignored-build command so an eligible
-commit proceeds even when only documentation changes; see the
-[ignore command reference](https://vercel.com/docs/project-configuration/vercel-json#ignorecommand).
-See the [Git configuration reference](https://vercel.com/docs/project-configuration/git-configuration)
-and [official schema](https://openapi.vercel.sh/vercel.json).
+[Production release](../../.github/workflows/release.yml) handles every `main`
+push at its exact commit. It waits for that commit's successful Web, Database,
+Private media and Private audio push checks, verifies the production project
+and database target, builds a production artifact, applies pending forward
+migrations through Supabase's standard runner, checks the resulting inventory
+and Memories API contract, then deploys that same prebuilt artifact. No pending
+migrations is a successful case and still deploys. Required PR checks and fresh
+independent review remain merge gates under [AGENTS.md](../../AGENTS.md).
 
-The existing Web, Database, Private media and Private audio workflows stay
-unchanged. Passing PR checks and independent approval are still required before
-merge under [AGENTS.md](../../AGENTS.md). Native deployment reacts to the push;
-it does not wait for post-push GitHub Actions checks. A direct push therefore
-starts deployment too and must not be used to bypass the repository procedure.
-Database migrations remain separate authorized operator work; this integration
-does not apply them.
+`queue: max` serializes releases without canceling an active migration and
+retains up to 100 pending runs; [GitHub cancels overflow](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency).
+A stale rerun cannot replace a newer production commit. Do not cancel an active
+migration manually. The job's 60-minute platform timeout still applies; if a run
+is interrupted, inspect history privately before retrying. A failure retains the
+previous site, but completed migrations are not automatically rolled back.
+Migrations must remain compatible with the currently served application and
+available rollback versions. Use additive changes and separate later removal.
+
+[`vercel.json`](../../vercel.json) disables native Git deployments on all
+branches to prevent a second release bypassing these gates. CLI production
+releases remain enabled. Only merge this configuration after credential and
+existing-history activation checks below are ready. Production environment
+values remain in Vercel; no previews or new hosting project are introduced.
 
 ### Database readiness and Memories filter repair
 
@@ -184,48 +189,58 @@ show activity. Assess those separately from the structural Memories checks.
 
 ### Private operator settings and activation gate
 
-Before connecting the existing project, verify all of the following privately:
+Before merging the activation PR, verify all of the following privately:
 
-1. Keep the existing production domain, environment values, Node.js 24 runtime,
-   framework/build settings and two-member access boundary. Set the production
-   branch to `main`. Confirm the source ignore-command override and disable any
-   unaffected-project skip setting that could omit a `main` push, including a
-   documentation-only push.
-2. In the project's Git settings, disable PR/commit comments, GitHub deployment
-   events/records (`deployment_status` events), and commit status publication
-   that exposes project names, domains or dashboard/deployment links. Also keep
-   consolidated statuses off for this project. Verify the saved settings;
-   silencing comments alone is insufficient. The deprecated `github.silent`
-   setting is not a substitute for the dashboard controls. See
-   [Vercel's GitHub settings](https://vercel.com/docs/git/vercel-for-github).
-3. Connect only this repository to the existing project. Confirm `main` is the
-   Production branch, the branch filter is in effect, and production secrets
-   remain scoped to Production. A branch predating `vercel.json` does not carry
-   its restriction: do not push such a branch while connected until it includes
-   the configuration. No preview expansion is authorized.
-4. After the independently reviewed configuration merge, observe the automatic
-   Git-triggered deployment. Verify its commit equals the merge commit, its
-   branch is `main`, its target is Production and its final state is `READY`.
-   Confirm an unauthenticated request to the canonical production origin serves
-   the expected public landing without accessing member content. Inspect the
-   public GitHub surfaces to verify no hosting metadata escaped.
-5. Record only the commit, target, trigger, state and sanitized verification
-   outcomes in issue #157. Keep domains, project IDs, account details, credentials
-   and raw provider responses private. If connection permissions or privacy
-   controls are unavailable, stop activation and report the blocker; do not
-   weaken privacy or enable a paid service.
+1. Keep the existing project, domain, environment values, Node.js 24 runtime,
+   framework settings, `main` production branch and two-member access boundary.
+   Keep Vercel Git comments, deployment records/events and commit statuses
+   (including consolidated statuses) disabled so no hosting metadata appears
+   on GitHub. The CLI does not print provider output or publish deployment URLs.
+2. Create a GitHub environment named `production` restricted to the exact
+   `main` branch. Store five environment secrets there: `SUPABASE_ACCESS_TOKEN`,
+   `SUPABASE_PROJECT_ID`, `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`.
+   Use dedicated appropriately scoped provider tokens, not expiring local OAuth
+   sessions. No production credentials belong in PR jobs or repository files.
+   The pinned Supabase CLI obtains its temporary database login using its access
+   token; no persistent database password is required for this configuration.
+   Verify token access privately before changing the working native trigger.
+3. Compare committed and hosted migration history. Reconcile pre-existing gaps
+   only through an independently reviewed, explicitly authorized operation
+   against immutable migration bytes. In particular, activation of issue #163
+   requires reconciling the already committed Hydrangea migration
+   `20261005000000`, while preserving the later Memories and Marigold fixes.
+   The normal runner requires hosted versions to be an exact prefix of committed
+   versions. It refuses remote-only versions and older gaps; it never passes
+   `--include-all`, syncs Vault, seeds, resets or repairs migration history.
+4. Independently review the exact source candidate and require all four CI checks.
+   Merge only when credentials and database reconciliation are ready. Observe
+   the real main-push release succeed, verify the deployed commit is that merge,
+   verify migration history and schema metadata, and check the unauthenticated
+   landing/auth/private-media boundaries without impersonating a member.
+5. Record sanitized results in [issue #163](https://github.com/C0derTang/shared-garden/issues/163).
+   Keep hosted identifiers, account details, provider logs, deployment URLs,
+   build artifacts and environment files out of public output/artifacts. Source
+   tests and a reviewed PR are not evidence that live activation happened.
+   Missing credentials or provider access block activation, not a reason to
+   weaken privacy or introduce an unapproved cost.
 
-The source PR can be reviewed before this live gate. Until those observations
-are recorded, repository checks prove configuration only, not a working live
-connection or a successful automatic deployment.
+The release prints only fixed stage outcomes. Underlying errors are deliberately
+suppressed, including command arguments, environment values and provider response
+bodies. The ephemeral runner deletes pulled environment/build files on completion
+and uploads no artifacts. Diagnose failures through private provider tools; do
+not enable shell tracing or publish a failed command's captured output. Rotate
+and update tokens in the protected environment when they expire.
 
 ### Failed builds and rollback
 
 A failed build does not replace the last successful production deployment.
 Inspect its private provider logs, correct the source through the normal issue,
 review and merge process, and verify the resulting `main` deployment. A failed
-post-push GitHub Actions check does not automatically undo a deployment; treat it
-as a release incident and assess whether rollback is needed.
+CI check or build stops the release before database changes. A migration or
+post-migration audit failure prevents deployment. Inspect any already committed
+migrations and correct forward through review; never reset production or blindly
+retry an unknown state. A deploy failure may leave the new compatible schema
+with the previous site. The pipeline performs no automatic database rollback.
 
 If a successful deployment regresses, use the provider's rollback control to
 restore a previously verified production deployment available under the existing
