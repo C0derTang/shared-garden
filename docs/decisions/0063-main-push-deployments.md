@@ -4,6 +4,9 @@ Status: approved by the owner's explicit 2026-10-10 request, for
 [issue #157](https://github.com/C0derTang/shared-garden/issues/157). Live activation
 requires the separate operator evidence described below.
 
+The source-only ordering and native trigger below are superseded by
+[0065](0065-ordered-database-releases.md) at its separately verified activation.
+
 ## Decision
 
 Connect the existing production Vercel project to this GitHub repository through
