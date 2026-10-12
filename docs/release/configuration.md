@@ -195,7 +195,7 @@ Before merging the activation PR, verify all of the following privately:
    framework settings, `main` production branch and two-member access boundary.
    Keep Vercel Git comments, deployment records/events and commit statuses
    (including consolidated statuses) disabled so no hosting metadata appears
-   on GitHub. The CLI does not print provider output or publish deployment URLs.
+   on GitHub. The release does not print provider output or publish deployment URLs.
 2. Create a GitHub environment named `production` restricted to the exact
    `main` branch. Store five environment secrets there: `SUPABASE_ACCESS_TOKEN`,
    `SUPABASE_PROJECT_ID`, `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`.
@@ -204,6 +204,12 @@ Before merging the activation PR, verify all of the following privately:
    The pinned Supabase CLI obtains its temporary database login using its access
    token; no persistent database password is required for this configuration.
    Verify token access privately before changing the working native trigger.
+   The pinned Vercel `pull` command needs team metadata outside a project-scoped
+   token's access. The release instead reads `/v9/projects/{id}` and
+   `/v3/env/pull/{id}/production` using the project token, writes equivalent
+   ignored project settings, and supplies the unchanged environment map directly
+   to the build process. Keep the narrower token scope. Privately validate this
+   configuration and a real production build before activation.
 3. Compare committed and hosted migration history. Reconcile pre-existing gaps
    only through an independently reviewed, explicitly authorized operation
    against immutable migration bytes. In particular, activation of issue #163
@@ -226,7 +232,7 @@ Before merging the activation PR, verify all of the following privately:
 
 The release prints only fixed stage outcomes. Underlying errors are deliberately
 suppressed, including command arguments, environment values and provider response
-bodies. The ephemeral runner deletes pulled environment/build files on completion
+bodies. The ephemeral runner deletes project settings and build files on completion
 and uploads no artifacts. Diagnose failures through private provider tools; do
 not enable shell tracing or publish a failed command's captured output. Rotate
 and update tokens in the protected environment when they expire.

@@ -1,26 +1,32 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { release, inventory } from './production.mjs';
+import { release, inventory, buildConfiguration } from './production.mjs';
 
 const sha = 'a'.repeat(40);
 const version = '20261001000000';
 function fixture() {
-  const calls = [], reports = [];
+  const calls = [], reports = [], written = [];
   let historyReads = 0, projectReads = 0;
   const env = { GITHUB_SHA: sha, GITHUB_EVENT_NAME: 'push', GITHUB_REF: 'refs/heads/main',
     GITHUB_REPOSITORY: 'example/garden', GITHUB_TOKEN: 'github-secret',
     SUPABASE_ACCESS_TOKEN: 'db-secret', SUPABASE_PROJECT_ID: 'a'.repeat(20),
     VERCEL_TOKEN: 'host-secret', VERCEL_ORG_ID: 'private-team', VERCEL_PROJECT_ID: 'private-project' };
-  const f = { env, calls, reports, remote: [], complete: [version], failedCI: false,
+  const f = { env, calls, reports, written, remote: [], complete: [version], failedCI: false,
     failedCommand: '', badContract: false, wrongTarget: false,
-    run(command, args) {
+    run(command, args, buildEnv) {
+      if (buildEnv) f.buildEnv = buildEnv;
       calls.push([command, ...args]);
       const name = args[0];
       if (name === f.failedCommand) throw new Error('host-secret private.domain account@example.test');
       if (name === 'rev-parse') return sha;
       if (name === 'api') {
+        if (args[1].startsWith('/v3/env/pull/')) return JSON.stringify({ env: {
+          NEXT_PUBLIC_SUPABASE_URL: `https://${f.wrongTarget ? 'wrong' : env.SUPABASE_PROJECT_ID}.supabase.co`,
+          APP_ORIGIN: 'https://private.example.test',
+          PRESERVED_VALUE: 'literal \\n with "quotes"',
+        } });
         projectReads++;
-        return JSON.stringify({ id: env.VERCEL_PROJECT_ID, accountId: env.VERCEL_ORG_ID,
+        return JSON.stringify({ id: env.VERCEL_PROJECT_ID, accountId: env.VERCEL_ORG_ID, name: 'private-project-name', nodeVersion: '24.x', framework: 'nextjs',
           link: { productionBranch: 'main' }, targets: { production: {
             meta: { githubCommitSha: projectReads === 1 ? 'b'.repeat(40) : sha }, readyState: 'READY',
           } } });
@@ -35,10 +41,7 @@ function fixture() {
       if (body.query.includes('schema_migrations')) return (historyReads++ ? f.complete : f.remote).map(version => ({ version }));
       return [{ ok: !f.badContract }];
     },
-    read(file) {
-      if (file.endsWith('project.json')) return JSON.stringify({ projectId: env.VERCEL_PROJECT_ID, orgId: env.VERCEL_ORG_ID });
-      return `NEXT_PUBLIC_SUPABASE_URL="https://${f.wrongTarget ? 'wrong' : env.SUPABASE_PROJECT_ID}.supabase.co"\n`;
-    },
+    write(file, contents) { written.push([file, contents]); },
     list: () => [`${version}_test.sql`], sleep: async () => {}, report: message => reports.push(message),
   };
   return f;
@@ -85,7 +88,7 @@ test('wrong SHA, event, branch, missing secret or wrong production target stop m
 test('stale rerun cannot replace a newer production commit', async () => {
   const f = fixture(); f.failedCommand = 'merge-base';
   await assert.rejects(release(f), /production target/);
-  assert(!commands(f).includes('vercel pull'));
+  assert.equal(f.written.length, 0);
 });
 
 test('failed build prevents migration; failed migration prevents deployment; neither leaks provider output', async () => {
@@ -154,4 +157,38 @@ test('a deployment failure is reported without logging private provider output',
   const f = fixture(); f.failedCommand = 'deploy';
   await assert.rejects(release(f), /^Error: Release stopped at production deployment\. Inspect privately; do not publish provider logs\.$/);
   assert(!JSON.stringify(f.reports).includes('host-secret'));
+});
+
+
+test('project-scoped configuration skips team lookup and passes environment only to build', async () => {
+  const f = fixture();
+  await release(f);
+  assert(!commands(f).includes('vercel pull'));
+  assert(f.calls.some(c => c[1] === 'api' && c[2].startsWith('/v3/env/pull/')));
+  assert.equal(f.written.length, 1);
+  assert.equal(f.written[0][0], '.vercel/project.json');
+  const link = JSON.parse(f.written[0][1]);
+  assert.equal(link.projectId, f.env.VERCEL_PROJECT_ID);
+  assert.equal(link.orgId, f.env.VERCEL_ORG_ID);
+  assert.equal(link.projectName, 'private-project-name');
+  assert.equal(link.settings.nodeVersion, '24.x');
+  assert.equal(link.settings.framework, 'nextjs');
+  assert.equal(f.buildEnv.APP_ORIGIN, 'https://private.example.test');
+  assert(!f.written[0][1].includes('APP_ORIGIN'));
+  assert(!JSON.stringify(f.reports).includes('private.example'));
+});
+
+test('project configuration preserves CLI settings and rejects invalid environment values', () => {
+  const project = { id: 'project', accountId: 'team', name: 'garden',
+    createdAt: 1, framework: 'nextjs', devCommand: null, buildCommand: 'npm run build',
+    installCommand: 'npm ci', outputDirectory: null, rootDirectory: null,
+    directoryListing: false, nodeVersion: '24.x', analytics: { id: 'analytics', enabledAt: 2, disabledAt: 1 } };
+  const values = { QUOTED: `both ' and " quotes`, MULTILINE: 'first\nsecond', LITERAL: String.raw`backslash\n` };
+  const config = buildConfiguration(project, { env: values });
+  assert.equal(config.env, values);
+  assert.equal(config.link.settings.analyticsId, 'analytics');
+  for (const key of ['createdAt','framework','devCommand','buildCommand','installCommand',
+    'outputDirectory','rootDirectory','directoryListing','nodeVersion']) assert.equal(config.link.settings[key], project[key]);
+  assert.throws(() => buildConfiguration(project, {}));
+  assert.throws(() => buildConfiguration(project, { env: { VALUE: null } }));
 });

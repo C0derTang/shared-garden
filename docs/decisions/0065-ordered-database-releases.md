@@ -22,6 +22,13 @@ migrations with pinned Supabase 2.117.0 using `db push --skip-vault`, verifies t
 complete inventory and anchored Memories contract, and deploys the same artifact
 with pinned Vercel 59.20.0 `deploy --prebuilt --prod`. The CLI's access-token
 flow creates a temporary database login; a permanent DB password is not stored.
+Project configuration and production environment values are read through the
+project-only Vercel API endpoints used by the pinned CLI. Its `pull` command also
+looks up team metadata, which a project-scoped token cannot access. The release
+writes only the CLI-equivalent project settings locally and passes the unchanged
+production environment map directly to the build child process. It does not
+broaden token scope or write an environment file to work around that limitation.
+
 No-op migrations still lead to a deployment. Old missing migrations, unknown
 remote versions, failed builds, failed migrations and failed audits stop release.
 No reset, seed, Vault synchronization, history repair or down-migration is allowed.
