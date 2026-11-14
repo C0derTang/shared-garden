@@ -31,10 +31,12 @@ wire entry and session behavior. Decision 0066 records approved details.
 - [x] Run focused checks, then lint, typecheck, complete tests and production build.
 - [x] Inspect synthetic browser member/visitor views at desktop and phone widths, motion and overflow; record OAuth limitations.
 - [x] Inspect diff/private-content boundaries.
-- [ ] Commit, push and open the issue PR for fresh independent review. Keep the checkout and branch available; no merge.
+- [x] Commit, push and open the issue PR for fresh independent review. Keep the checkout and branch available; no merge.
 
 ## Verification outcome
 
 Lint, typecheck, production build and the full test command passed. Vitest: 812 passed, 2 opt-in integration tests skipped; Daisy content: 27 passed; release orchestration: 13 passed. A first test run lacked local macOS audio executables; building the pinned minimal source into the ignored development directory resolved all six failures. A first build rejected an external dependency symlink; a local dependency copy resolved it without dependency changes.
 
-Synthetic browser checks covered desktop 1440px, phone 390px, narrow 320px and 200% text, keyboard/manual navigation, auto-advance, hover/focus/stop pauses and reduced motion. Hidden-tab pause is covered by automated tests. Real localhost rendered login only; its POST reached the existing Google provider with the exact localhost callback and PKCE. A local production build verified private/no-store and same-origin headers. No real member Google login or content mutation was performed.
+Synthetic browser checks covered desktop 1440px, phone 390px, narrow 320px and 200% text, keyboard/manual navigation, auto-advance, hover/focus/stop pauses and reduced motion. Hidden-tab pause is covered by automated tests. Real localhost rendered login only; its POST reached the existing Google provider with the exact localhost callback and PKCE. A local production build verified private/no-store and same-origin headers. The authenticated localhost homepage subsequently rendered authorized existing Rose, Marigold and Tulip entries. Real content is excluded from public evidence and fixtures; no content mutation was performed.
+
+Candidate: [PR #166](https://github.com/C0derTang/shared-garden/pull/166), intentionally unmerged pending independent review and explicit localhost approval.
