@@ -25,7 +25,20 @@ right. The slender stem bends diagonally down-right so the bloom is upper-left
 of its base. Layered red petals have golden light along their rims; elongated
 green leaves branch from the stem. The anchored base, upper stem, bloom and
 leaves have separate, restrained wind motion to feel flexible and wispy. The
-private reference image itself is not copied into the repository. The only visible text outside the carousel panels is one bottom-right
+private reference image itself is not copied into the repository.
+
+The user then approved more natural shaping and depth in
+[this refinement](https://github.com/C0derTang/shared-garden/issues/165#issuecomment-6885172744).
+The bloom uses an oblique opening and recessed spiral behind overlapping,
+asymmetric front petals. Individual petal surfaces receive local directional
+light, narrow occlusion shadows and thin turned-back lips; fine marks accent
+veins and selected lit edges. Varied leaf silhouettes have curved folds with
+distinct upper and lower surfaces. The landscape uses uneven ridge silhouettes,
+eroded faces and sparse ravines, with reduced contrast at distance, softened
+mountain reflections, broken sunset highlights and irregular shore contours.
+These remain original lightweight SVG illustrations with the existing restrained
+wind motion, rather than imported photographic assets. All interaction and
+privacy behavior remains unchanged. The only visible text outside the carousel panels is one bottom-right
 `old garden` link to `/garden`. Existing garden routes and features are unchanged.
 Phone layouts stack the composition without horizontal scrolling.
 

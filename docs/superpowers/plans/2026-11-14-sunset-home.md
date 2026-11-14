@@ -52,3 +52,13 @@ Candidate: [PR #166](https://github.com/C0derTang/shared-garden/pull/166), inten
 Revised screenshots confirmed the continuous backdrop and explicit rose orientation. All local checks passed again with the same totals above. Final browser rechecks of 44px control targets, foreground-link contrast and layered motion are being recorded on the PR separately; no further code changes are planned.
 
 Remote CI for the initial candidate was unavailable before jobs could start. Local validation is supplied; release and merge remain held. Local optional Spotify search credentials are unavailable, so no real end-to-end song-search claim is made. Existing provider behavior is unchanged.
+
+## Natural shape and depth refinement
+
+- [x] Rebuild the rose cup with an oblique recessed center, asymmetric overlapping petal surfaces, local light and occlusion, narrow folded rims, and varied curled leaves.
+- [x] Replace terrain meshes with irregular silhouettes, eroded faces and sparse ravines, atmospheric distance, softened reflections and uneven shore detail.
+- [x] Inspect synthetic desktop and phone screenshots; run applicable web checks and update PR #166.
+
+Natural shape/depth screenshots were reviewed at desktop and phone sizes before the final commit. Focused home tests, lint, typecheck, the full test command (812 Vitest, 27 content, 13 release; 2 integration skips), and build passed. The live local homepage still returned 200 with only the login control for an anonymous request. Browser measurements confirmed foreground-link contrast above 4.5:1 at 320/390/768/1440px; final motion and screenshot evidence is recorded separately on the PR. No database checks, private configuration changes or hosted mutations were performed for this artwork revision.
+
+This refinement changes only SVG presentation and its documentation. The existing database/Auth/concurrency/Realtime validation from candidate `9d150541462ef7561f3ed3d7ec4d5b552800f056` remains evidence for unchanged backend code; database suites are not repeated for these artwork changes. Hosted check execution remains an external blocker.
