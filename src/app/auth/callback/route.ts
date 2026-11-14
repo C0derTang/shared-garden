@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
         redirectTo(
           config,
           access.status === "allowed"
-            ? "/garden"
+            ? "/"
             : `/auth/error?reason=${access.status}`,
         ),
       );

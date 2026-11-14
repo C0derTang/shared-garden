@@ -197,7 +197,7 @@ describe("Google sign-in boundaries", () => {
         },
       }),
     );
-    expect(response.headers.get("location")).toBe(`${origin}/garden`);
+    expect(response.headers.get("location")).toBe(`${origin}/`);
     expect(response.cookies.get("sg-auth")?.value).toBeTruthy();
     expect(response.cookies.get("sg-auth-code-verifier")?.value).toBe("");
     expect(response.headers.get("cache-control")).toContain("no-store");
@@ -343,7 +343,7 @@ describe("protected destination", () => {
       expect(response.headers.get("cache-control")).toContain("no-store");
     },
   );
-  it.each(["/garden", "/api/media/finalize"])(
+  it.each(["/", "/garden", "/api/media/finalize"])(
     "refreshes expired cookies for downstream %s and the browser",
     async (path) => {
       const response = await proxy(
@@ -523,4 +523,49 @@ it("keeps catalog failures JSON even with a forged action header", async () => {
   userStatus = 503;
   const response = await proxy(request("/api/music/search?q=song", { method: "POST", headers: { cookie: cookie(), "next-action": "forged" } }));
   expect(response.status).toBe(503); expect(await response.json()).toEqual({ error: "unavailable" });
+});
+
+describe("public home session refresh", () => {
+  it("passes anonymous visitors through without calling Auth", async () => {
+    const response = await proxy(request("/"));
+    expect(response.headers.get("location")).toBeNull();
+    expect(response.status).toBe(200);
+    expect(calls).toHaveLength(0);
+    expect(response.headers.get("Cache-Control")).toContain("no-store");
+    expect(response.headers.get("Referrer-Policy")).toBe("same-origin");
+  });
+  it("passes through without redirecting when setup is incomplete", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "");
+    const response = await proxy(request("/", { headers: { cookie: cookie() } }));
+    expect(response.headers.get("location")).toBeNull();
+    expect(calls).toHaveLength(0);
+  });
+  it("persists a refreshed session instead of redirecting", async () => {
+    const response = await proxy(
+      request("/", { headers: { cookie: cookie(true) } }),
+    );
+    expect(response.headers.get("location")).toBeNull();
+    expect(calls[0].url).toBe(
+      `${service}/auth/v1/token?grant_type=refresh_token`,
+    );
+    expect(response.cookies.get("sg-auth")?.value).toBeTruthy();
+    expect(response.headers.get("Referrer-Policy")).toBe("same-origin");
+    expect(response.headers.get("Cache-Control")).toContain("no-store");
+  });
+  it("never redirects non-members and does not check membership", async () => {
+    memberRows = [];
+    const response = await proxy(request("/", { headers: { cookie: cookie() } }));
+    expect(response.headers.get("location")).toBeNull();
+    expect(
+      calls.some(({ url }) => url.endsWith("/rest/v1/rpc/current_member")),
+    ).toBe(false);
+  });
+  it("clears a rejected session without redirecting", async () => {
+    tokenStatus = 400;
+    const response = await proxy(
+      request("/", { headers: { cookie: cookie(true) } }),
+    );
+    expect(response.headers.get("location")).toBeNull();
+    expect(response.cookies.get("sg-auth")?.value).toBe("");
+  });
 });
