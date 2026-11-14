@@ -36,12 +36,17 @@ it("shows only the native Log in control to visitors without any private visual 
   expect(screen.getByRole("button", { name: "Log in" }).closest("form")).toHaveAttribute("method", "post");
   expect(screen.getByRole("button").closest("form")).toHaveAttribute("action", "/auth/start");
   expect(container.querySelector("svg")).toBeNull();
+  expect(container.querySelector("img")).toBeNull();
   expect(screen.queryByRole("link")).toBeNull();
   expect(screen.queryByRole("region")).toBeNull();
 });
 
 it("immediately displays the member's first three entries and only one old-garden link", () => {
-  render(<SunsetLanding data={member()} />);
+  const { container } = render(<SunsetLanding data={member()} />);
+  const artwork = [...container.querySelectorAll("img")];
+  expect(artwork).toHaveLength(2);
+  expect(artwork.every((image) => image.alt === "")).toBe(true);
+  expect(artwork.map((image) => decodeURIComponent(image.getAttribute("src") ?? "")).join(" ")).toContain("red-spider-lily.png");
   for (const name of ["Rose", "Marigold", "Tulip"])
     expect(slide(name)).toHaveTextContent(`${name.toLowerCase()} note 1`);
   expect(slide("Rose")).toHaveTextContent("Ari · 2026-11-01");

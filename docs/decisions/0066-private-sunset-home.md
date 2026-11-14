@@ -9,38 +9,36 @@ the callback destination and public informational homepage in
 [0008](0008-google-web-session.md). Anonymous, denied, unavailable and unconfigured
 home states contain no artwork, private entries, branding, or garden link.
 
-After inspecting localhost, the user approved a further visual revision: a
-continuous, full-viewport mountain sunset and lake, with foreground shoreline
-and grass linework, behind the three translucent entry carousels at lower left
-and a singular botanical rose at lower right. The background remains present
-while the page scrolls, including behind stacked phone panels. This supersedes
-the initial separate scenery band and plain lower section. Warm parchment,
-peach, rose and mauve, serif reading text, layered etched contours and delicate
-water reflections replace the public pixel homepage. There is no ASCII art.
+The user's latest explicit request is a scene that looks like an actual photograph
+with a painting filter, and a spider lily instead of the decorative rose.
+[This approval](https://github.com/C0derTang/shared-garden/issues/165#issuecomment-6885528265)
+supersedes the earlier fine-line SVG treatment, rose anatomy and terrain
+illustration refinements. Their implementation history remains in Git and issue
+comments; the current homepage uses original raster imagery with a restrained
+painted surface, natural lighting and atmospheric depth.
 
-The user explicitly requested the rose orientation to match the supplied visual
-reference: a three-quarter cupped bloom tilted up and left toward the viewer,
-with its nested spiral on the upper-left surface and deep outer petals at the
-right. The slender stem bends diagonally down-right so the bloom is upper-left
-of its base. Layered red petals have golden light along their rims; elongated
-green leaves branch from the stem. The anchored base, upper stem, bloom and
-leaves have separate, restrained wind motion to feel flexible and wispy. The
-private reference image itself is not copied into the repository.
+The continuous sunset mountain-and-lake background sits behind the translucent
+entry carousels at lower left and a single spider-lily stalk at lower right.
+Keeping the warm red palette with a red Lycoris radiata, using separate image
+layers, and choosing exact crops and motion are conservative implementation
+choices under decision 0004. The bloom is above-left of its slender stem base,
+with the stalk leaning down-right. Gentle base-anchored sway and slight flex
+suggest wind; the lowest stem edge blends into the foreground. Reduced motion
+keeps the image fully still. Phone layouts stack the panels and flower while a
+responsive background crop retains the sunset and lake behind them.
 
-The user then approved more natural shaping and depth in
-[this refinement](https://github.com/C0derTang/shared-garden/issues/165#issuecomment-6885172744).
-The bloom uses an oblique opening and recessed spiral behind overlapping,
-asymmetric front petals. Individual petal surfaces receive local directional
-light, narrow occlusion shadows and thin turned-back lips; fine marks accent
-veins and selected lit edges. Varied leaf silhouettes have curved folds with
-distinct upper and lower surfaces. The landscape uses uneven ridge silhouettes,
-eroded faces and sparse ravines, with reduced contrast at distance, softened
-mountain reflections, broken sunset highlights and irregular shore contours.
-These remain original lightweight SVG illustrations with the existing restrained
-wind motion, rather than imported photographic assets. All interaction and
-privacy behavior remains unchanged. The only visible text outside the carousel panels is one bottom-right
-`old garden` link to `/garden`. Existing garden routes and features are unchanged.
-Phone layouts stack the composition without horizontal scrolling.
+The original landscape and transparent flower were generated from text without
+external source images. Public asset paths, dimensions, hashes and exact sanitized
+generation prompts are recorded in [artwork provenance](../assets/sunset-home.md).
+Next.js supplies responsive image optimization while preserving transparency.
+The signed-out rendering mounts neither image nor its preload. Existing
+Rose/Marigold/Tulip entry categories are unchanged: replacing the decorative
+flower does not rename or alter any garden data.
+
+The only visible text outside the carousel panels is one bottom-right
+`old garden` link to `/garden`. A restrained pale backing keeps its dark text
+readable over photographic foreground detail. Existing garden routes and
+features are unchanged. Phone layouts have no horizontal scrolling.
 
 The Rose, Marigold and Tulip panels use the existing bounded `memories_page`
 routine after Auth and live membership verification. Each keeps up to 12 newest
@@ -53,7 +51,8 @@ passed to the view. There are no database or provider changes.
 The first entry is immediately readable. Multiple entries advance after at least
 six seconds, allowing extra reading time for longer excerpts. Previous, next and
 pause controls use vector icons with at least 44px touch targets. The old-garden
-link uses dark ink for contrast against the foreground. Hover, keyboard focus and hidden tabs pause
+link uses dark ink on a pale backing for contrast over the photograph. Hover,
+keyboard focus and hidden tabs pause
 rotation. Reduced motion disables automatic advance and decorative sway while
 retaining manual navigation. Automatic changes do not trigger live announcements.
 

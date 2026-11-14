@@ -4,9 +4,9 @@
 
 **Goal:** Deliver the approved private sunset homepage as a localhost-reviewable candidate.
 
-**Architecture:** A dynamic server page verifies membership before loading three bounded memory lists. A scoped SVG/CSS presentation renders the scene and client carousels; the existing auth cookie adapter refreshes homepage sessions.
+**Architecture:** A dynamic server page verifies membership before loading three bounded memory lists. Responsive photographic/painterly raster layers and scoped CSS render the scene behind client carousels; the existing auth cookie adapter refreshes homepage sessions.
 
-**Tech stack:** Existing Next.js, React, TypeScript, SVG and CSS modules; no new dependencies.
+**Tech stack:** Existing Next.js image optimization, React, TypeScript and CSS modules; no new dependencies.
 
 **Spec:** [Decision 0066](../../decisions/0066-private-sunset-home.md), [issue #165](https://github.com/C0derTang/shared-garden/issues/165).
 
@@ -22,7 +22,7 @@
 ## Atomic deliverable
 
 Files: `src/lib/landing/{types,entries}.ts` and tests handle private reads;
-`src/components/sunset-home/` owns scene, rose, carousel and scoped styling;
+`src/components/sunset-home/` owns the landscape, spider lily, carousel and scoped styling;
 `src/app/page.tsx`, its test, `src/proxy.ts`, callback route and auth flow tests
 wire entry and session behavior. Decision 0066 records approved details.
 
@@ -62,3 +62,16 @@ Remote CI for the initial candidate was unavailable before jobs could start. Loc
 Natural shape/depth screenshots were reviewed at desktop and phone sizes before the final commit. Focused home tests, lint, typecheck, the full test command (812 Vitest, 27 content, 13 release; 2 integration skips), and build passed. The live local homepage still returned 200 with only the login control for an anonymous request. Browser measurements confirmed foreground-link contrast above 4.5:1 at 320/390/768/1440px; final motion and screenshot evidence is recorded separately on the PR. No database checks, private configuration changes or hosted mutations were performed for this artwork revision.
 
 This refinement changes only SVG presentation and its documentation. The existing database/Auth/concurrency/Realtime validation from candidate `9d150541462ef7561f3ed3d7ec4d5b552800f056` remains evidence for unchanged backend code; database suites are not repeated for these artwork changes. Hosted check execution remains an external blocker.
+
+## Superseding photographic spider-lily presentation
+
+- [x] Copy the original generated landscape and transparent red spider-lily PNGs into public assets; record sanitized exact prompts, dimensions and hashes.
+- [x] Replace decorative SVG modules with responsive raster image components, preserving entry categories and every auth/carousel behavior.
+- [x] Keep a complete photographic sunset behind the panels, responsive crops, a single base-anchored windblown stalk and reduced-motion support.
+- [x] Inspect synthetic desktop/phone composites, transparency, image loading, readable contrast, motion and controls; retain applicable web-check logs for the same PR candidate.
+
+The explicit user request supersedes all earlier fine-line/rose visual tasks above. Red species, crop, layer separation, motion and contrast treatments are implementation details under decision 0004. No backend or private runtime configuration changes belong to this presentation revision.
+
+The portrait background source size accounts for its 3:2 cover footprint against viewport height, keeping the lake sharp on phones. The phone flower overlaps the footer's layout space so its stalk reaches the photographic shoreline; the backdrop stays fixed behind the full scrolling page. The first composite was checked for true transparency and intact stamen tips before these responsive adjustments.
+
+Final raster validation: lint, typecheck, full tests (812 Vitest, 27 content, 13 release; 2 opt-in integration skips), build and diff checks passed. Retained logs and source hashes accompany independent review. Synthetic browser checks passed for optimized image loading, normal wind and reduced motion, immediate entry content, automatic/manual navigation, pause/hover/focus/keyboard behavior, 44px controls and no overflow at 320/390/768/1440px. The single old-garden link's measured contrast was at least 9.78:1 across those widths. The visitor view had only Log in with no images, SVG or links; neither browser page errors nor external requests were observed. An anonymous request to the live localhost app after the build returned 200 with login only and no artwork references. No backend suites were repeated for the raster revision; release and hosted-check gates remain unchanged.
