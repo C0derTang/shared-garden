@@ -28,14 +28,14 @@ function Mountain({ points, floor, fill, stroke, lines }: { points: Point[]; flo
 
 export function Landscape() {
   const id = useId().replaceAll(":", "");
-  return <svg className={styles.landscape} viewBox="0 0 1440 540" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+  return <svg className={styles.landscape} viewBox="0 0 1440 1000" preserveAspectRatio="xMidYMin slice" aria-hidden="true" focusable="false">
     <defs>
       <linearGradient id={`${id}-sky`} x2="0" y2="1"><stop stopColor="#f3e9e2" /><stop offset="0.57" stopColor="#f1cbbd" /><stop offset="1" stopColor="#f7e9d9" /></linearGradient>
       <radialGradient id={`${id}-glow`}><stop stopColor="#f9d8ac" stopOpacity="0.85" /><stop offset="1" stopColor="#f7d7bc" stopOpacity="0" /></radialGradient>
-      <linearGradient id={`${id}-water`} x2="0" y2="1"><stop stopColor="#dec7c6" /><stop offset="0.5" stopColor="#efd6cb" /><stop offset="1" stopColor="#f8eee3" /></linearGradient>
-      <linearGradient id={`${id}-fade`} x2="0" y2="1"><stop stopColor="#f8eee3" stopOpacity="0" /><stop offset="1" stopColor="#f8eee3" /></linearGradient>
+      <linearGradient id={`${id}-water`} x2="0" y2="1"><stop stopColor="#dec7c6" /><stop offset="0.42" stopColor="#e4c6b7" /><stop offset="1" stopColor="#b7b2a0" /></linearGradient>
+      <linearGradient id={`${id}-bank`} x2="0" y2="1"><stop stopColor="#a7a592" stopOpacity="0.15" /><stop offset="1" stopColor="#667e72" stopOpacity="0.55" /></linearGradient>
     </defs>
-    <path d="M0 0h1440v540H0Z" fill={`url(#${id}-sky)`} />
+    <path d="M0 0h1440v1000H0Z" fill={`url(#${id}-sky)`} />
     <ellipse cx="958" cy="199" rx="330" ry="265" fill={`url(#${id}-glow)`} />
     <g fill="none" stroke="#b98979" strokeWidth="0.65" opacity="0.3">
       <path d="M53 109c110-13 156 8 257-1s166-17 242-5M4 117c112-14 162 9 242 0M97 124c83-8 177 5 249-4M594 79c77-8 107 2 194-5M629 86c69-6 122 0 149-4M1117 127c133-12 192 10 292-1M1219 136c87-4 150 2 221-2" />
@@ -52,18 +52,18 @@ export function Landscape() {
     <Mountain points={far} floor={399} fill="#d9c4c7" stroke="#967d90" lines={24} />
     <Mountain points={middle} floor={404} fill="#c9b3bd" stroke="#826e81" lines={27} />
     <Mountain points={near} floor={408} fill="#b7a3af" stroke="#776475" lines={20} />
-    <path d="M0 405c231-8 432 7 718 0s441 6 722-1v136H0Z" fill={`url(#${id}-water)`} />
+    <path d="M0 405c231-8 432 7 718 0s441 6 722-1v596H0Z" fill={`url(#${id}-water)`} />
     <g fill="none" strokeLinecap="round">
-      {Array.from({ length: 76 }, (_, i) => {
-        const y = 411 + i * 1.72;
+      {Array.from({ length: 165 }, (_, i) => {
+        const y = 411 + i * 5.35;
         const x = (i * 137.5) % 1420 - 80;
-        const width = 60 + (i * 51) % 265;
-        return <path key={i} d={`M${x} ${y}q${width / 2} ${Math.sin(i) * 2} ${width} 0`} stroke="#97828d" strokeWidth={i % 3 ? "0.65" : "0.85"} opacity={0.4 - i * 0.0035} />;
+        const width = 60 + (i * 51) % 325;
+        return <path key={i} d={`M${x} ${y}q${width / 2} ${Math.sin(i) * 2} ${width} 0`} stroke="#97828d" strokeWidth={i % 3 ? "0.65" : "0.85"} opacity={0.28 - i * 0.00075} />;
       })}
-      {Array.from({ length: 31 }, (_, i) => {
-        const y = 411 + i * 3.2;
-        const half = 13 + i * 2.4 + Math.sin(i * 1.8) * 12;
-        return <path key={i} d={`M${956 - half} ${y}q${half} ${Math.sin(i) * 2} ${half * 2} 0`} stroke="#fff0d2" strokeWidth={1.8 - i * 0.035} opacity={0.85 - i * 0.019} />;
+      {Array.from({ length: 67 }, (_, i) => {
+        const y = 411 + i * 5.3;
+        const half = 13 + i * 2.05 + Math.sin(i * 1.8) * 12;
+        return <path key={i} d={`M${956 - half} ${y}q${half} ${Math.sin(i) * 2} ${half * 2} 0`} stroke="#fff0d2" strokeWidth={1.8 - i * 0.014} opacity={0.75 - i * 0.009} />;
       })}
       <path d="M0 404q163 7 280 0t244 2M1133 404q176-7 307-2M71 416h214M492 415h155M1216 415h224" stroke="#766775" strokeWidth="0.8" opacity="0.6" />
     </g>
@@ -78,6 +78,23 @@ export function Landscape() {
     <g fill="none" stroke="#866b74" strokeWidth="1" opacity="0.7">
       <path d="M738 164q5-5 10 0 5-5 10 0M779 145q4-3 8 0 4-3 8 0M807 172q4-4 8 0 4-4 8 0" />
     </g>
-    <path d="M0 488h1440v52H0Z" fill={`url(#${id}-fade)`} />
+    <path d="M0 743Q114 760 197 820T437 926Q698 978 906 934T1190 863Q1329 827 1440 757V1000H0Z" fill={`url(#${id}-bank)`} />
+    <g fill="none" stroke="#8f9380" strokeWidth="0.8" opacity="0.35">
+      {Array.from({ length: 24 }, (_, i) => <path key={i} d={`M0 ${768 + i * 8}Q135 ${783 + i * 8} 224 ${844 + i * 5}T489 ${947 + i * 2}`} />)}
+      {Array.from({ length: 17 }, (_, i) => <path key={i} d={`M1440 ${786 + i * 10}Q1317 ${846 + i * 7} 1207 ${896 + i * 5}T951 ${966 + i * 3}`} />)}
+    </g>
+    <g fill="none" strokeLinecap="round" stroke="#667c6b" opacity="0.58">
+      {Array.from({ length: 42 }, (_, i) => {
+        const x = i < 23 ? i * 8 - 20 : 1260 + (i - 23) * 12;
+        const y = 1005 - Math.sin(i * 2.3) * 15;
+        const h = 34 + (i * 47) % 165;
+        const bend = Math.sin(i * 1.4) * 28 - 16;
+        return <g key={i} strokeWidth={i % 3 ? "0.8" : "1.1"}>
+          <path d={`M${x} ${y}q${bend / 3} -${h * 0.56} ${bend} -${h}`} />
+          <path d={`M${x + bend * 0.17} ${y - h * 0.32}q-19 -8 -28 -31M${x + bend * 0.25} ${y - h * 0.47}q16 -11 21 -33`} />
+          {i % 3 === 0 ? <path d={`M${x + bend} ${y - h}l-5 -13m5 13 2-16m-2 16-9-7m9 7 6-10`} /> : null}
+        </g>;
+      })}
+    </g>
   </svg>;
 }

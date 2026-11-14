@@ -40,3 +40,15 @@ Lint, typecheck, production build and the full test command passed. Vitest: 812 
 Synthetic browser checks covered desktop 1440px, phone 390px, narrow 320px and 200% text, keyboard/manual navigation, auto-advance, hover/focus/stop pauses and reduced motion. Hidden-tab pause is covered by automated tests. Real localhost rendered login only; its POST reached the existing Google provider with the exact localhost callback and PKCE. A local production build verified private/no-store and same-origin headers. The authenticated localhost homepage subsequently rendered authorized existing Rose, Marigold and Tulip entries. Real content is excluded from public evidence and fixtures; no content mutation was performed.
 
 Candidate: [PR #166](https://github.com/C0derTang/shared-garden/pull/166), intentionally unmerged pending independent review and explicit localhost approval.
+
+## Approved localhost visual refinement
+
+- [x] Replace the separate scenery band and plain lower section with continuous full-viewport sunset, lake and etched foreground behind translucent reading panels.
+- [x] Reshape the single rose into a tilted up-left/front three-quarter cup with nested spiral, red petals, golden rims and elongated leaves; bend its stem diagonally down-right to its anchored base.
+- [x] Separate upper-stem flex, bloom nod and leaf flutter; stop all of them for reduced motion.
+- [x] Recheck revised desktop/phone composition and run focused tests, full tests, lint, types and build.
+- [x] Update the same PR candidate for fresh independent review.
+
+Revised screenshots confirmed the continuous backdrop and explicit rose orientation. All local checks passed again with the same totals above. Final browser rechecks of 44px control targets, foreground-link contrast and layered motion are being recorded on the PR separately; no further code changes are planned.
+
+Remote CI for the initial candidate was unavailable before jobs could start. Local validation is supplied; release and merge remain held. Local optional Spotify search credentials are unavailable, so no real end-to-end song-search claim is made. Existing provider behavior is unchanged.

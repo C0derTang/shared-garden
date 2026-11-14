@@ -9,12 +9,23 @@ the callback destination and public informational homepage in
 [0008](0008-google-web-session.md). Anonymous, denied, unavailable and unconfigured
 home states contain no artwork, private entries, branding, or garden link.
 
-Members see a wide fine-line mountain sunset and lake across approximately the
-top half of the view, three entry carousels at lower left, and one detailed
-botanical rose gently swaying at lower right. Warm parchment, peach, rose and
-mauve, serif reading text, layered etched vector contours and delicate water
-reflections replace the public pixel homepage presentation. There is no ASCII
-art. The only visible text outside the carousel panels is one bottom-right
+After inspecting localhost, the user approved a further visual revision: a
+continuous, full-viewport mountain sunset and lake, with foreground shoreline
+and grass linework, behind the three translucent entry carousels at lower left
+and a singular botanical rose at lower right. The background remains present
+while the page scrolls, including behind stacked phone panels. This supersedes
+the initial separate scenery band and plain lower section. Warm parchment,
+peach, rose and mauve, serif reading text, layered etched contours and delicate
+water reflections replace the public pixel homepage. There is no ASCII art.
+
+The user explicitly requested the rose orientation to match the supplied visual
+reference: a three-quarter cupped bloom tilted up and left toward the viewer,
+with its nested spiral on the upper-left surface and deep outer petals at the
+right. The slender stem bends diagonally down-right so the bloom is upper-left
+of its base. Layered red petals have golden light along their rims; elongated
+green leaves branch from the stem. The anchored base, upper stem, bloom and
+leaves have separate, restrained wind motion to feel flexible and wispy. The
+private reference image itself is not copied into the repository. The only visible text outside the carousel panels is one bottom-right
 `old garden` link to `/garden`. Existing garden routes and features are unchanged.
 Phone layouts stack the composition without horizontal scrolling.
 
@@ -28,7 +39,8 @@ passed to the view. There are no database or provider changes.
 
 The first entry is immediately readable. Multiple entries advance after at least
 six seconds, allowing extra reading time for longer excerpts. Previous, next and
-pause controls use vector icons. Hover, keyboard focus and hidden tabs pause
+pause controls use vector icons with at least 44px touch targets. The old-garden
+link uses dark ink for contrast against the foreground. Hover, keyboard focus and hidden tabs pause
 rotation. Reduced motion disables automatic advance and decorative sway while
 retaining manual navigation. Automatic changes do not trigger live announcements.
 

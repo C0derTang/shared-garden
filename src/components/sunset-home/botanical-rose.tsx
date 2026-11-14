@@ -1,59 +1,87 @@
+import { useId } from "react";
 import styles from "./sunset-home.module.css";
 
+// Each petal is a separate cupped surface. The spiral sits above and left of
+// the deep outer bowl, so the blossom reads in three-quarter view, not head-on.
 const petals = [
-  "M174 149C132 156 104 133 110 110 85 91 106 65 130 67 130 42 158 36 180 50 202 27 235 43 238 65 269 63 284 86 270 108 283 138 248 159 225 151 210 173 187 167 174 149Z",
-  "M173 146C143 153 113 135 116 112 134 106 146 111 158 127 164 136 167 143 173 146Z",
-  "M118 111C96 94 110 71 132 73 148 77 151 92 149 107 138 101 130 103 118 111Z",
-  "M131 74C130 54 151 43 175 57 190 65 185 83 175 91 159 87 150 75 131 74Z",
-  "M179 55C199 35 229 49 232 68 230 86 214 89 203 94 201 75 190 66 179 55Z",
-  "M233 69C261 67 279 88 265 108 250 118 231 109 218 107 223 93 229 79 233 69Z",
-  "M265 107C279 133 251 151 229 145 214 138 214 124 218 108 234 118 250 116 265 107Z",
-  "M229 144C215 165 188 164 176 147 169 133 174 117 185 110 196 124 208 136 229 144Z",
-  "M151 113C135 101 140 84 156 80 174 79 186 90 185 107 172 103 160 105 151 113Z",
-  "M182 86C186 69 208 70 218 85 226 98 215 110 203 114 201 101 193 91 182 86Z",
-  "M155 114C148 130 165 143 179 139 188 131 189 119 184 108 174 104 163 107 155 114Z",
-  "M204 111C218 104 232 118 224 131 213 141 195 132 188 120 188 115 194 112 204 111Z",
-  "M173 105C164 95 174 85 186 88 197 88 203 99 201 108 191 112 179 113 173 105Z",
-  "M180 97C185 89 197 95 198 104L189 113 179 108C175 104 177 100 180 97Z",
-  "M188 98C194 98 196 103 191 107 186 109 182 106 184 102Z",
+  { d: "M143 146C121 127 123 104 146 98 139 77 164 61 182 71 195 46 218 51 232 75 255 63 274 78 270 103 296 93 305 119 287 141 300 166 275 194 251 207 223 229 191 218 172 199 144 195 123 173 143 146Z", tone: "shadow" },
+  { d: "M147 102C140 82 158 66 181 77 185 90 178 106 163 118Z", tone: "light" },
+  { d: "M179 79C188 55 211 53 228 78 232 97 217 112 199 116 198 99 191 86 179 79Z", tone: "red" },
+  { d: "M224 83C246 64 270 78 264 102 260 121 245 133 231 140 229 117 231 100 224 83Z", tone: "shadow" },
+  { d: "M265 108C286 94 299 110 282 134 283 152 269 174 250 185 253 157 254 133 265 108Z", tone: "red" },
+  { d: "M148 104C121 103 119 128 137 147 146 157 165 162 176 152 159 140 155 123 148 104Z", tone: "light" },
+  { d: "M143 142C123 145 104 154 117 166 129 180 139 182 160 179 176 182 188 194 201 198 189 173 170 151 143 142Z", tone: "red" },
+  { d: "M160 176C143 179 139 192 154 202 177 214 192 216 212 215 221 207 225 192 222 180 201 186 179 189 160 176Z", tone: "light" },
+  { d: "M267 141C288 141 285 164 269 184 254 201 237 216 211 218 225 198 231 180 235 164 247 157 258 149 267 141Z", tone: "shadow" },
+  { d: "M224 151C235 128 252 119 263 121 268 141 256 163 238 181 226 196 211 199 197 194 214 178 218 164 224 151Z", tone: "red" },
+  { d: "M158 107C160 88 184 85 200 99 208 112 199 133 185 141 175 128 170 117 158 107Z", tone: "light" },
+  { d: "M198 99C210 84 230 97 234 114 234 132 219 147 207 154 210 134 206 115 198 99Z", tone: "shadow" },
+  { d: "M157 113C137 113 139 135 153 146 166 154 187 155 199 144 180 139 165 128 157 113Z", tone: "red" },
+  { d: "M154 144C158 158 178 173 195 169 212 164 224 147 226 130 213 143 199 149 184 148 173 149 163 148 154 144Z", tone: "light" },
+  { d: "M174 109C180 96 196 98 205 110 213 123 201 139 186 142 191 131 184 118 174 109Z", tone: "red" },
+  { d: "M173 111C158 113 161 131 176 137 188 141 198 136 201 127 187 132 179 124 173 111Z", tone: "light" },
+  { d: "M180 113C184 104 198 108 200 117 199 125 188 131 181 126 190 125 193 118 188 115Z", tone: "shadow" },
+  { d: "M180 113C173 117 175 125 182 128 190 128 193 123 191 118 186 122 180 121 180 113Z", tone: "red" },
 ];
 
-function Leaf({ x, y, rotate, scale = 1 }: { x: number; y: number; rotate: number; scale?: number }) {
-  return <g transform={`translate(${x} ${y}) rotate(${rotate}) scale(${scale})`} stroke="#647c70" fill="none" strokeWidth="0.85">
-    <path d="M0 0C12-15 27-37 67-42L64-34 72-34 66-27 72-25 65-18 69-15 61-10 63-6 53-3 53 1 43 1 41 5 32 4 28 7C15 8 8 3 0 0Z" fill="#b5c1a8" fillOpacity="0.19" />
-    <path d="M0 0Q35-6 67-42" />
-    {Array.from({ length: 7 }, (_, i) => <g key={i} opacity="0.75">
-      <path d={`M${8 + i * 7} ${-2 - i * i * 0.62}q2 -${8 + i % 3 * 2} ${8 - i * 0.5} -${14 - i * 0.8}`} />
-      <path d={`M${8 + i * 7} ${-2 - i * i * 0.62}q${9 - i * 0.6} 3 ${15 - i * 0.7} ${2 - i * 0.3}`} />
-    </g>)}
+function Leaf({ x, y, rotate, scale = 1, gradient }: { x: number; y: number; rotate: number; scale?: number; gradient: string }) {
+  return <g transform={`translate(${x} ${y}) rotate(${rotate}) scale(${scale})`}>
+    <g className={styles.leafFlutter} stroke="#526c5b" fill="none" strokeWidth="0.8">
+      <path d="M0 0C17-13 29-39 81-48L77-40 85-42 78-33 84-34 76-25 80-25 71-17 75-17 65-9 66-6 54-3 53 1 40 1 36 5 24 3C13 4 5 1 0 0Z" fill={`url(#${gradient})`} />
+      <path d="M0 0Q42-10 81-48" stroke="#d9c58e" strokeWidth="0.9" opacity="0.85" />
+      {Array.from({ length: 9 }, (_, i) => <g key={i} opacity="0.65">
+        <path d={`M${8 + i * 7.6} ${-2 - i * i * 0.48}q1 -${9 + i % 3 * 2} ${8 - i * 0.4} -${15 - i * 0.65}`} />
+        <path d={`M${8 + i * 7.6} ${-2 - i * i * 0.48}q${10 - i * 0.4} 2 ${17 - i * 0.8} ${2 - i * 0.25}`} />
+      </g>)}
+      <path d="M2-2C20-15 31-38 81-48" stroke="#ead59a" opacity="0.85" />
+    </g>
   </g>;
 }
 
 export function BotanicalRose() {
-  return <svg className={styles.rose} viewBox="0 0 350 430" aria-hidden="true" focusable="false">
+  const id = useId().replaceAll(":", "");
+  return <svg className={styles.rose} viewBox="40 30 350 550" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id={`${id}-red`} x1="0" y1="0" x2="1" y2="1"><stop stopColor="#e77c63" /><stop offset="0.34" stopColor="#c8474b" /><stop offset="1" stopColor="#822a43" /></linearGradient>
+      <linearGradient id={`${id}-light`} x1="0" y1="0" x2="0.9" y2="1"><stop stopColor="#f2ae75" /><stop offset="0.16" stopColor="#db6253" /><stop offset="0.68" stopColor="#b73f4b" /><stop offset="1" stopColor="#932b42" /></linearGradient>
+      <linearGradient id={`${id}-shadow`} x1="0" y1="0" x2="1" y2="0.8"><stop stopColor="#c64d4c" /><stop offset="0.4" stopColor="#9e3045" /><stop offset="1" stopColor="#63283d" /></linearGradient>
+      <linearGradient id={`${id}-leaf`} x2="0.8" y2="1"><stop stopColor="#9ca77a" /><stop offset="0.45" stopColor="#728f72" /><stop offset="1" stopColor="#4e7161" /></linearGradient>
+    </defs>
     <g className={styles.roseSway}>
-      <g fill="none" stroke="#61756a" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M164 418C170 366 198 307 190 255S173 190 189 148" strokeWidth="2.1" />
-        <path d="M168 414C176 354 203 302 193 252S178 187 192 151" strokeWidth="0.65" opacity="0.7" />
-        <path d="M190 295C172 282 151 266 125 255M194 274C217 253 243 239 260 216M176 369C152 350 137 331 126 315" strokeWidth="1.1" />
-        <path d="m188 315-7-9 8 2m-11 47 7-7-2 13m6-98-7-9 6 2" fill="#aab49a" strokeWidth="0.7" />
+      <g fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M313 573C289 513 296 463 275 407" stroke="#4f6b59" strokeWidth="3" />
+        <path d="M311 572C287 510 293 463 273 407" stroke="#d7c58c" strokeWidth="0.8" />
+        <path d="M295 493Q317 464 339 438" stroke="#58735d" strokeWidth="1.5" />
       </g>
-      <Leaf x={125} y={255} rotate={197} scale={0.95} />
-      <Leaf x={150} y={272} rotate={242} scale={0.7} />
-      <Leaf x={160} y={277} rotate={173} scale={0.72} />
-      <Leaf x={233} y={236} rotate={-20} scale={0.86} />
-      <Leaf x={222} y={246} rotate={39} scale={0.72} />
-      <Leaf x={126} y={315} rotate={202} scale={0.76} />
-      <Leaf x={142} y={337} rotate={254} scale={0.65} />
-      <g stroke="#74816b" strokeWidth="0.8" fill="#b7b49b" fillOpacity="0.35">
-        <path d="M191 164Q165 171 148 155Q164 160 168 145L189 150Q207 142 228 154Q210 155 204 170L191 164Z" />
-        <path d="M190 155Q185 179 173 189Q178 167 179 155M197 155Q211 174 218 178Q213 161 206 152" />
+      <Leaf x={339} y={438} rotate={-17} scale={0.7} gradient={`${id}-leaf`} />
+      <g className={styles.upperSway}>
+      <g fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M275 407C254 351 235 298 222 211" stroke="#4f6b59" strokeWidth="2.8" />
+        <path d="M273 407C252 351 232 296 220 212" stroke="#d7c58c" strokeWidth="0.8" />
+        <path d="M253 347Q283 322 306 279M278 422Q252 397 219 379M269 397Q257 364 242 345" stroke="#58735d" strokeWidth="1.5" />
+        <path d="m249 341-8-11 6 1m26 76 8-10-3 18m6 32-8-9 6 2" fill="#799071" stroke="#526d5a" strokeWidth="0.8" />
       </g>
-      <g stroke="#a66778" strokeWidth="0.9" strokeLinejoin="round">
-        {petals.map((d, i) => <path key={i} d={d} fill={i < 1 ? "#e6bbc0" : i % 3 === 0 ? "#edc7c8" : i % 3 === 1 ? "#efd2ce" : "#e3afb9"} fillOpacity={i ? "0.72" : "0.8"} />)}
+      <Leaf x={306} y={279} rotate={-8} scale={0.91} gradient={`${id}-leaf`} />
+      <Leaf x={286} y={313} rotate={40} scale={0.72} gradient={`${id}-leaf`} />
+      <Leaf x={219} y={379} rotate={192} scale={1.03} gradient={`${id}-leaf`} />
+      <Leaf x={242} y={345} rotate={199} scale={0.72} gradient={`${id}-leaf`} />
+      <g className={styles.bloomNod}>
+        <g stroke="#58715a" strokeWidth="0.8" fill="#668164">
+          <path d="M217 208Q192 226 177 219Q201 219 205 197L223 196Q242 196 257 185Q249 211 231 221L225 216Q237 240 244 243Q229 236 219 222Q208 242 199 249Q204 228 217 208Z" />
+        </g>
+        <g transform="rotate(-18 220 211)" stroke="#8e3546" strokeWidth="0.85" strokeLinejoin="round">
+          {petals.map(({ d, tone }, i) => <path key={i} d={d} fill={`url(#${id}-${tone})`} />)}
+          <g fill="none" stroke="#f5d295" strokeLinecap="round" strokeWidth="1.2" opacity="0.88">
+            <path d="M147 102C140 82 158 66 181 77M179 79C188 55 211 53 228 78M224 83C246 64 264 74 265 91M148 104C124 104 120 124 133 140M142 143C124 147 109 154 118 165M158 179C148 185 145 191 154 199M158 107C160 88 184 85 200 99M157 113C139 114 141 133 153 144M154 144C166 155 181 156 199 144M178 110C185 101 195 107 200 117M174 113C162 116 165 130 177 135M181 115Q176 122 183 126" />
+          </g>
+          <g fill="none" stroke="#f3b78e" strokeWidth="0.5" opacity="0.5">
+            <path d="M150 91q6-13 20-10m-18 13q7-13 20-11M192 70q16-9 27 10m-25-7q12-5 22 9M137 117q-7 11 8 23m-4-23q-6 9 8 20M125 157q17-1 34 13m-31-10q17 0 31 13M155 191q19 11 36 12m-32-16q19 12 33 12M247 86q13 10 6 29m-9-24q10 11 4 25M277 117q-3 10-13 22M259 148q-4 18-18 30m13-27q-4 17-16 27M269 162q-12 25-34 37m29-34q-10 21-28 30M172 101q13-7 23 8m-20-5q11-3 17 7M171 152q15 10 30-3m-25 7q15 5 26-6" />
+          </g>
+          <g fill="none" stroke="#65283b" strokeWidth="0.65" opacity="0.45">
+            <path d="M200 84q12 16 7 24M235 102q9 18-3 35M226 156q-5 20-22 31M153 151q12 15 23 20M180 202q19 11 33 5M244 180q-9 19-23 28" />
+          </g>
+        </g>
       </g>
-      <g fill="none" stroke="#a96979" strokeLinecap="round" strokeWidth="0.55" opacity="0.7">
-        <path d="M114 113q-2 20 26 29m-24-25q1 15 24 23m-20-23q2 12 20 19M110 85q4-12 21-10m-21 14q9-11 24-7m-22 9q11-8 23-6M140 59q12-11 29 1m-26 2q11-7 23 1m-20 2q10-5 17 1M193 50q22-9 34 14m-32-10q18-5 28 12m-25-9q14-2 22 9M244 76q20 7 20 21m-21-17q17 7 17 16m-17-12q12 5 13 11M267 115q0 20-25 27m21-25q-1 15-21 21m17-20q-1 11-17 16M216 151q-21 15-34-3m29 3q-16 10-26-2m20 1q-11 6-17-2M156 124q3 10 16 10m-12-10q4 7 12 6M143 94q5-9 15-10m-11 12q4-7 12-8M194 78q12-2 20 9m-17-6q8 0 13 7M213 120q7 1 8 7m-10-3q5 2 6 4M179 92q-8 3-5 10m9-7q-7 2-4 7" />
       </g>
     </g>
   </svg>;
