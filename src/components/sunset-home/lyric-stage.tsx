@@ -1,27 +1,30 @@
 "use client";
 
 import { useEffect, useRef, useState, type RefObject } from "react";
-import { advanceLyricView, sameLyricView, sweepOpacities, type LyricCue, type LyricView } from "@/lib/landing/lyrics";
+import { lyricFrame, sameLyricFrame, type LyricCue, type LyricFrame, type LyricPhrase } from "@/lib/landing/lyrics";
 import { lyricFont } from "./lyric-font";
 import styles from "./sunset-home.module.css";
 
-const leaveMilliseconds = 700;
+/**
+ * The display runs 40 ms ahead of the media clock: about one frame of sampling and
+ * compositing delay plus part of each character's ramp, so a character is legible as its
+ * syllable is heard, while staying small enough not to show visibly before the sound.
+ */
+export const visualLeadSeconds = 0.04;
 
-function Phrase({ cue, progress, leaving = false }: { cue: LyricCue; progress: number; leaving?: boolean }) {
-  const chars = Array.from(cue.text);
-  const opacities = sweepOpacities(chars.length, progress);
-  return <p className={`${styles.lyricCue} ${leaving ? styles.lyricLeaving : ""}`}
-    data-lyric={leaving ? "leaving" : "current"} aria-hidden={leaving || undefined}>
-    {!leaving && <span className={styles.srOnly}>{cue.text}</span>}
-    <span aria-hidden="true">{chars.map((char, index) => (
-      <span key={index} data-char="" style={{ opacity: Number(opacities[index].toFixed(3)) }}>{char}</span>
+function Phrase({ cue, phrase, current }: { cue: LyricCue; phrase: LyricPhrase; current: boolean }) {
+  return <p className={styles.lyricCue} data-lyric={current ? "current" : "outgoing"}
+    aria-hidden={current ? undefined : true} style={{ opacity: phrase.opacity }}>
+    {current && <span className={styles.srOnly}>{cue.text}</span>}
+    <span aria-hidden="true">{Array.from(cue.text).map((char, index) => (
+      <span key={index} data-char="" style={{ opacity: phrase.chars[index] }}>{char}</span>
     ))}</span>
   </p>;
 }
 
 /**
- * Floating phrase display. While playing, a frame loop reads the media clock and sweeps
- * each phrase left to right at constant velocity; paused or seeking positions apply directly.
+ * Floating phrase display. While playing, a frame loop reads the media clock; paused or
+ * seeking positions apply directly, since every frame is a pure function of time.
  */
 export function LyricStage({ cues, media, playing, position, visible }: {
   cues: LyricCue[];
@@ -30,46 +33,28 @@ export function LyricStage({ cues, media, playing, position, visible }: {
   position: number;
   visible: boolean;
 }) {
-  const [view, setView] = useState<LyricView | null>(null);
-  const latest = useRef<{ cues: LyricCue[]; view: LyricView | null }>({ cues, view: null });
+  const [frame, setFrame] = useState<LyricFrame | null>(null);
+  const shown = useRef<LyricFrame | null>(null);
 
   useEffect(() => {
-    let frame = 0;
+    let request = 0;
     const tick = () => {
       const audio = media.current;
-      const shown = latest.current.view;
-      const previous = latest.current.cues === cues ? shown : null;
-      const next = visible && cues.length
-        ? advanceLyricView(previous, cues, playing && audio ? audio.currentTime : position)
-        : null;
-      latest.current = { cues, view: next };
-      if (!next ? shown !== null : !sameLyricView(shown, next)) setView(next);
-      if (playing && next) frame = requestAnimationFrame(tick);
+      const time = (playing && audio ? audio.currentTime : position) + visualLeadSeconds;
+      const next = visible && cues.length ? lyricFrame(cues, time) : null;
+      if (!sameLyricFrame(shown.current, next)) { shown.current = next; setFrame(next); }
+      if (playing && next) request = requestAnimationFrame(tick);
     };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
+    request = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(request);
   }, [cues, media, playing, position, visible]);
 
-  const leavingId = view?.leaving?.id;
-  useEffect(() => {
-    if (leavingId === undefined) return;
-    const timer = setTimeout(() => {
-      const current = latest.current.view;
-      if (current?.leaving?.id !== leavingId) return;
-      const next = { ...current, leaving: null };
-      latest.current = { ...latest.current, view: next };
-      setView(next);
-    }, leaveMilliseconds);
-    return () => clearTimeout(timer);
-  }, [leavingId]);
-
-  const current = view && view.index >= 0 ? cues[view.index] : undefined;
-  const leaving = view?.leaving ? cues[view.leaving.index] : undefined;
+  const phrases = frame?.phrases.filter((phrase) => cues[phrase.index]) ?? [];
   return <div className={`${styles.lyrics} ${lyricFont.className}`} aria-label="Synchronized lyrics" aria-live="off">
-    {leaving && view?.leaving && <Phrase key={`leaving-${view.leaving.id}`} cue={leaving} progress={1} leaving />}
-    {current && view && <Phrase key={`cue-${view.index}`} cue={current} progress={view.progress} />}
-    {view && view.resume !== null && <div className={styles.lyricResume} data-lyric="resume" aria-hidden="true">
-      {[1, 2, 3].map((dot) => <span key={dot} data-lit={dot <= (view.resume ?? 0) || undefined} />)}
+    {phrases.map((phrase, i) => <Phrase key={phrase.index} cue={cues[phrase.index]} phrase={phrase}
+      current={i === phrases.length - 1} />)}
+    {frame && frame.resume !== null && <div className={styles.lyricResume} data-lyric="resume" aria-hidden="true">
+      {[1, 2, 3].map((dot) => <span key={dot} data-lit={dot <= (frame.resume ?? 0) || undefined} />)}
     </div>}
   </div>;
 }

@@ -1,5 +1,16 @@
-export type LyricCue = { start: number; end: number; text: string };
+/** `chars` holds optional absolute onset seconds, one per code point of `text`. */
+export type LyricCue = { start: number; end: number; text: string; chars?: number[] };
 export type Lyrics = { version: 1; cues: LyricCue[] };
+
+function validOnsets(value: unknown, start: number, end: number, length: number): value is number[] {
+  if (!Array.isArray(value) || value.length !== length) return false;
+  let previous = start;
+  for (const onset of value) {
+    if (typeof onset !== "number" || !Number.isFinite(onset) || onset < previous || onset >= end) return false;
+    previous = onset;
+  }
+  return true;
+}
 
 /** Validate the private interchange format; unknown fields and file metadata are dropped. */
 export function parseLyrics(value: unknown): Lyrics | null {
@@ -10,83 +21,101 @@ export function parseLyrics(value: unknown): Lyrics | null {
   let previousEnd = 0;
   for (const candidate of data.cues) {
     if (!candidate || typeof candidate !== "object") return null;
-    const { start, end, text } = candidate as Record<string, unknown>;
+    const { start, end, text, chars } = candidate as Record<string, unknown>;
     if (typeof start !== "number" || typeof end !== "number" || !Number.isFinite(start) || !Number.isFinite(end)
       || start < previousEnd || end <= start || end > 3600 || typeof text !== "string"
       || !text.trim() || text.length > 500) return null;
-    cues.push({ start, end, text: text.trim() });
+    const trimmed = text.trim();
+    if (chars === undefined) cues.push({ start, end, text: trimmed });
+    else if (validOnsets(chars, start, end, Array.from(trimmed).length)) {
+      cues.push({ start, end, text: trimmed, chars: [...chars] });
+    } else return null;
     previousEnd = end;
   }
   return { version: 1, cues };
 }
 
-/** Gaps up to this long keep the previous phrase until the next one starts. */
-export const holdGapSeconds = 2;
-/** A phrase before a longer gap stays this long after its sung end. */
-export const lingerSeconds = 0.8;
+/** Longest per-character ramp; a sooner next onset shortens it so held notes never delay later characters. */
+export const charFadeSeconds = 0.12;
+const minCharFadeSeconds = 0.04;
+/** Brief pause after the sung end before a phrase starts fading. */
+export const lingerSeconds = 0.25;
+/** Exit fades leave this much clear time before the next phrase where the gap allows. */
+const clearanceSeconds = 0.05;
 /** Gaps at least this long show the resume indicator before the next phrase. */
 export const resumeGapSeconds = 5;
 /** The indicator lights one dot per second over this final lead-in. */
 export const resumeLeadSeconds = 3;
 const resumeShowSeconds = 6;
 
-/** `progress` is the constant-velocity reveal fraction of the shown phrase (0 to 1). */
-export type LyricFrame = { index: number; progress: number; resume: number | null };
+const round = (value: number) => Math.round(value * 100) / 100;
+const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
-/** Phrase, reveal progress and resume-dot state for one playback time. */
+/** Per-character opacity: onset ramps when onsets exist, else a constant-velocity sweep over the cue. */
+export function charOpacities(cue: LyricCue, time: number): number[] {
+  const count = Array.from(cue.text).length;
+  if (!cue.chars) {
+    const position = clamp01((time - cue.start) / (cue.end - cue.start)) * count;
+    return Array.from({ length: count }, (_, index) => round(clamp01(position - index)));
+  }
+  const onsets = cue.chars;
+  return onsets.map((onset, index) => {
+    const next = onsets[index + 1];
+    const ramp = next === undefined ? charFadeSeconds
+      : Math.min(charFadeSeconds, Math.max(next - onset, minCharFadeSeconds));
+    return round(clamp01((time - onset) / ramp));
+  });
+}
+
+/** When a phrase starts and finishes its in-place exit fade. */
+export function exitFade(cue: LyricCue, next: LyricCue | undefined) {
+  const gap = next ? next.start - cue.end : Infinity;
+  const duration = Math.min(0.5, Math.max(0.12, gap - clearanceSeconds));
+  const start = cue.end + Math.min(lingerSeconds, Math.max(0, gap - clearanceSeconds - duration));
+  return { start, end: start + duration, duration };
+}
+
+export type LyricPhrase = { index: number; opacity: number; chars: number[] };
+/** Visible phrases, oldest first (an outgoing phrase can overlap the next one only in tiny gaps). */
+export type LyricFrame = { phrases: LyricPhrase[]; resume: number | null };
+
+/** Everything the caption stage shows at one playback time; a pure function of time. */
 export function lyricFrame(cues: LyricCue[], time: number): LyricFrame {
-  const none: LyricFrame = { index: -1, progress: 0, resume: null };
-  if (!cues.length || !Number.isFinite(time) || time < 0) return none;
+  const frame: LyricFrame = { phrases: [], resume: null };
+  if (!cues.length || !Number.isFinite(time) || time < 0) return frame;
   let index = -1;
   for (let low = 0, high = cues.length - 1; low <= high;) {
     const middle = (low + high) >> 1;
     if (cues[middle].start <= time) { index = middle; low = middle + 1; } else high = middle - 1;
   }
-  const cue = cues[index];
+  for (const candidate of [index - 1, index]) {
+    const cue = cues[candidate];
+    if (!cue) continue;
+    const fade = exitFade(cue, cues[candidate + 1]);
+    if (time >= fade.end) continue;
+    frame.phrases.push({
+      index: candidate,
+      opacity: round(1 - clamp01((time - fade.start) / fade.duration)),
+      chars: charOpacities(cue, time),
+    });
+  }
   const next = cues[index + 1];
-  if (cue) {
-    const gap = next ? next.start - cue.end : Infinity;
-    if (time < cue.end || gap <= holdGapSeconds || time < cue.end + lingerSeconds) {
-      return { index, progress: Math.min(1, (time - cue.start) / (cue.end - cue.start)), resume: null };
-    }
-  }
-  if (!next) return none;
-  const previousEnd = cue ? cue.end + lingerSeconds : 0;
+  if (frame.phrases.length || !next) return frame;
+  const previous = cues[index];
+  const clearFrom = previous ? exitFade(previous, next).end : 0;
   const remaining = next.start - time;
-  if (next.start - (cue?.end ?? 0) < resumeGapSeconds || time < previousEnd
-    || remaining > Math.min(resumeShowSeconds, next.start - previousEnd)) return none;
+  if (next.start - (previous?.end ?? 0) < resumeGapSeconds
+    || remaining > Math.min(resumeShowSeconds, next.start - clearFrom)) return frame;
   const lit = Math.min(3, Math.max(0, Math.floor((resumeLeadSeconds - remaining) / (resumeLeadSeconds / 3)) + 1));
-  return { index: -1, progress: 0, resume: remaining > resumeLeadSeconds ? 0 : lit };
+  return { ...frame, resume: remaining > resumeLeadSeconds ? 0 : lit };
 }
 
-/**
- * Opacity of each character for a left-to-right sweep at `progress`. The sweep moves
- * at constant velocity in character units with a soft edge one character wide.
- */
-export function sweepOpacities(count: number, progress: number): number[] {
-  const position = Math.min(1, Math.max(0, progress)) * count;
-  return Array.from({ length: count }, (_, index) => Math.min(1, Math.max(0, position - index)));
-}
-
-export type LyricView = LyricFrame & {
-  /** Playback time this view was computed for. */
-  time: number;
-  /** The fully revealed phrase drifting away after a continuous change; `id` is unique per change. */
-  leaving: { index: number; id: number } | null;
-};
-
-/** Advance the display; seeks and other jumps switch phrases without a leaving transition. */
-export function advanceLyricView(previous: LyricView | null, cues: LyricCue[], time: number): LyricView {
-  const frame = lyricFrame(cues, time);
-  const jumped = !previous || time < previous.time - 0.05 || time > previous.time + 0.5;
-  let leaving = jumped ? null : previous.leaving;
-  if (!jumped && previous.index !== frame.index && previous.index >= 0) {
-    leaving = { index: previous.index, id: Math.round(time * 1000) };
-  }
-  return { ...frame, time, leaving };
-}
-
-export function sameLyricView(a: LyricView | null, b: LyricView) {
-  return !!a && a.index === b.index && a.progress === b.progress && a.resume === b.resume
-    && a.leaving?.id === b.leaving?.id;
+export function sameLyricFrame(a: LyricFrame | null, b: LyricFrame | null) {
+  if (!a || !b) return a === b;
+  return a.resume === b.resume && a.phrases.length === b.phrases.length
+    && a.phrases.every((phrase, i) => {
+      const other = b.phrases[i];
+      return phrase.index === other.index && phrase.opacity === other.opacity
+        && phrase.chars.length === other.chars.length && phrase.chars.every((value, k) => value === other.chars[k]);
+    });
 }

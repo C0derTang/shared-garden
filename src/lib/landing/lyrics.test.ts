@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { advanceLyricView, lyricFrame, parseLyrics, sweepOpacities, type LyricCue } from "./lyrics";
+import { charOpacities, exitFade, lyricFrame, parseLyrics, sameLyricFrame, type LyricCue } from "./lyrics";
 
 const cues = [
   { start: 1, end: 3, text: "Synthetic dawn" },
@@ -8,11 +8,14 @@ const cues = [
 
 it("keeps only validated cue fields, preserving deliberate gaps", () => {
   expect(parseLyrics({ version: 1, privateMetadata: "not returned", cues })).toEqual({ version: 1, cues });
+  expect(parseLyrics({ version: 1, cues: [{ ...cues[0], note: "private" }] })).toEqual({ version: 1, cues: [cues[0]] });
 });
 
-it("drops unknown cue fields, including retired per-character timing", () => {
-  expect(parseLyrics({ version: 1, cues: [{ ...cues[0], chars: [1, 2], note: "private" }] }))
-    .toEqual({ version: 1, cues: [cues[0]] });
+it("accepts optional per-character onsets, one per code point, and copies them", () => {
+  const timed = [{ start: 1, end: 2, text: " 晨光 ", chars: [1, 1.4] }, { start: 2, end: 3, text: "ab", chars: [2, 2] }];
+  const parsed = parseLyrics({ version: 1, cues: timed });
+  expect(parsed).toEqual({ version: 1, cues: [{ start: 1, end: 2, text: "晨光", chars: [1, 1.4] }, timed[1]] });
+  expect(parsed!.cues[0].chars).not.toBe(timed[0].chars);
 });
 
 it.each([null, {}, { version: 2, cues }, { version: 1, cues: [{ start: 3, end: 1, text: "test" }] },
@@ -26,34 +29,78 @@ it.each([null, {}, { version: 2, cues }, { version: 1, cues: [{ start: 3, end: 1
   expect(parseLyrics(value)).toBeNull();
 });
 
-it("sweeps characters left to right at constant velocity with a one-character soft edge", () => {
-  expect(sweepOpacities(4, 0)).toEqual([0, 0, 0, 0]);
-  expect(sweepOpacities(4, 0.125)).toEqual([0.5, 0, 0, 0]);
-  expect(sweepOpacities(4, 0.5)).toEqual([1, 1, 0, 0]);
-  expect(sweepOpacities(4, 0.6875)).toEqual([1, 1, 0.75, 0]);
-  expect(sweepOpacities(4, 1)).toEqual([1, 1, 1, 1]);
-  expect(sweepOpacities(2, 7)).toEqual([1, 1]);
-  // Equal time steps advance the sweep by equal amounts.
-  const total = (progress: number) => sweepOpacities(10, progress).reduce((sum, value) => sum + value, 0);
-  expect(total(0.3) - total(0.2)).toBeCloseTo(total(0.8) - total(0.7));
+it.each([
+  ["a non-array", "1"], ["too few onsets", [1]], ["too many onsets", [1, 1.2, 1.4]],
+  ["a non-finite onset", [1, NaN]], ["a string onset", [1, "1.5"]], ["decreasing onsets", [1.5, 1.2]],
+  ["an onset before the cue", [0.9, 1.2]], ["an onset at the cue end", [1, 2]],
+])("rejects the whole file for %s", (_, chars) => {
+  expect(parseLyrics({ version: 1, cues: [{ start: 1, end: 2, text: "ab", chars }] })).toBeNull();
+});
+
+describe("charOpacities", () => {
+  const timed: LyricCue = { start: 10, end: 12, text: "abcd", chars: [10, 10.5, 10.52, 11.5] };
+
+  it("ramps each character linearly from its own onset over at most 120 ms", () => {
+    expect(charOpacities(timed, 9.9)).toEqual([0, 0, 0, 0]);
+    expect(charOpacities(timed, 10.06)).toEqual([0.5, 0, 0, 0]);
+    expect(charOpacities(timed, 10.12)).toEqual([1, 0, 0, 0]);
+    // A held first note does not delay the second character.
+    expect(charOpacities(timed, 10.56)).toEqual([1, 1, 0.33, 0]);
+  });
+
+  it("shortens a ramp to the next onset with a 40 ms floor", () => {
+    expect(charOpacities(timed, 10.52)).toEqual([1, 0.5, 0, 0]);
+    expect(charOpacities(timed, 10.54)).toEqual([1, 1, 0.17, 0]);
+    expect(charOpacities(timed, 11.62)).toEqual([1, 1, 1, 1]);
+  });
+
+  it("falls back to a constant-velocity sweep across the cue without onsets", () => {
+    const plain = { start: 10, end: 14, text: "abcd" };
+    expect(charOpacities(plain, 10)).toEqual([0, 0, 0, 0]);
+    expect(charOpacities(plain, 10.5)).toEqual([0.5, 0, 0, 0]);
+    expect(charOpacities(plain, 12.75)).toEqual([1, 1, 0.75, 0]);
+    expect(charOpacities(plain, 20)).toEqual([1, 1, 1, 1]);
+  });
+});
+
+describe("exitFade", () => {
+  const at = (end: number, nextStart?: number) =>
+    exitFade({ start: 0, end, text: "a" }, nextStart === undefined ? undefined : { start: nextStart, end: nextStart + 1, text: "b" });
+
+  it("lingers briefly then fades for at most 500 ms, finishing 50 ms before the next phrase", () => {
+    expect(at(10)).toEqual({ start: 10.25, end: 10.75, duration: 0.5 });
+    expect(at(10, 12)).toEqual({ start: 10.25, end: 10.75, duration: 0.5 });
+    const medium = at(10, 10.6);
+    expect(medium.start).toBeCloseTo(10.05);
+    expect(medium.end).toBeCloseTo(10.55);
+    const short = at(10, 10.3);
+    expect([short.start, short.end, short.duration].map((value) => +value.toFixed(3))).toEqual([10, 10.25, 0.25]);
+  });
+
+  it("keeps at least a 120 ms fade when phrases nearly touch", () => {
+    const tight = at(10, 10.02);
+    expect([tight.start, +tight.end.toFixed(3), tight.duration]).toEqual([10, 10.12, 0.12]);
+  });
 });
 
 describe("lyricFrame", () => {
   const song: LyricCue[] = [
-    { start: 10, end: 12, text: "abc" },
-    { start: 13, end: 14, text: "de" },
-    { start: 22, end: 23, text: "fg" },
+    { start: 10, end: 12, text: "ab", chars: [10, 11] },
+    { start: 12.02, end: 13, text: "cd", chars: [12.02, 12.5] },
+    { start: 22, end: 23, text: "ef" },
   ];
   const at = (time: number) => lyricFrame(song, time);
 
-  it("reports linear progress across the cue and holds the full phrase across short gaps", () => {
-    expect([10, 10.5, 11, 11.9, 12.5, 13, 13.25].map((time) => [at(time).index, +at(time).progress.toFixed(6)]))
-      .toEqual([[0, 0], [0, 0.25], [0, 0.5], [0, 0.95], [0, 1], [1, 0], [1, 0.25]]);
+  it("shows the phrase from its start and fades it in place, linearly, after the brief linger", () => {
+    expect(at(10.06)).toEqual({ phrases: [{ index: 0, opacity: 1, chars: [0.5, 0] }], resume: null });
+    expect(at(13.25).phrases).toEqual([{ index: 1, opacity: 1, chars: [1, 1] }]);
+    expect(at(13.5).phrases).toEqual([{ index: 1, opacity: 0.5, chars: [1, 1] }]);
+    expect(at(13.75)).toEqual({ phrases: [], resume: null });
   });
 
-  it("lingers briefly before a long gap, then clears", () => {
-    expect(at(14.7)).toEqual({ index: 1, progress: 1, resume: null });
-    expect(at(14.8)).toEqual({ index: -1, progress: 0, resume: null });
+  it("stacks a nearly touching outgoing phrase under the next one only until its short fade ends", () => {
+    expect(at(12.07).phrases.map(({ index, opacity }) => [index, opacity])).toEqual([[0, 0.42], [1, 1]]);
+    expect(at(12.13).phrases.map(({ index }) => index)).toEqual([1]);
   });
 
   it("shows resume dots only before long gaps, lighting one per second over the final three", () => {
@@ -62,30 +109,16 @@ describe("lyricFrame", () => {
     expect(lyricFrame([{ start: 4, end: 5, text: "a" }], 2).resume).toBeNull();
   });
 
-  it("clears after the final phrase and for invalid times", () => {
-    expect(at(23.8).index).toBe(-1);
-    expect(at(30).resume).toBeNull();
-    expect(at(NaN)).toEqual({ index: -1, progress: 0, resume: null });
-    expect(lyricFrame([], 5)).toEqual({ index: -1, progress: 0, resume: null });
-  });
-});
-
-describe("advanceLyricView", () => {
-  const song: LyricCue[] = [{ start: 1, end: 2, text: "ab" }, { start: 2.2, end: 3, text: "cd" }];
-
-  it("applies seeks and first loads directly without a leaving phrase", () => {
-    expect(advanceLyricView(null, song, 1.5)).toMatchObject({ index: 0, progress: 0.5, leaving: null });
-    const before = advanceLyricView(advanceLyricView(null, song, 1.9), song, 1.95);
-    expect(advanceLyricView(before, song, 2.6)).toMatchObject({ index: 1, progress: 0.5, leaving: null });
-    expect(advanceLyricView(before, song, 0.5)).toMatchObject({ index: -1, leaving: null });
+  it("clears after the final fade and for invalid times", () => {
+    expect(at(23.8)).toEqual({ phrases: [], resume: null });
+    expect(at(NaN)).toEqual({ phrases: [], resume: null });
+    expect(lyricFrame([], 5)).toEqual({ phrases: [], resume: null });
   });
 
-  it("sends the previous phrase away when the next begins and keeps a single leaving phrase", () => {
-    let view = advanceLyricView(null, song, 1.9);
-    view = advanceLyricView(view, song, 2.2);
-    expect(view).toMatchObject({ index: 1, progress: 0, leaving: { index: 0 } });
-    const leaving = view.leaving;
-    view = advanceLyricView(view, song, 2.4);
-    expect(view.leaving).toBe(leaving);
+  it("compares frames by value so unchanged frames skip rendering", () => {
+    expect(sameLyricFrame(at(11.5), at(11.6))).toBe(true);
+    expect(sameLyricFrame(at(10.05), at(10.06))).toBe(false);
+    expect(sameLyricFrame(null, null)).toBe(true);
+    expect(sameLyricFrame(null, at(10))).toBe(false);
   });
 });

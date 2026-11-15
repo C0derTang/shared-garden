@@ -105,9 +105,10 @@ Timed lyrics use a separate optional server-only `SUNSET_LYRICS_PATH`, an absolu
 JSON path outside public static storage and version control. The interchange
 format is `{ "version": 1, "cues": [{ "start": 1, "end": 3, "text": "..." }] }`,
 with seconds, sorted non-overlapping intervals and explicit ends. Unknown fields
-are dropped; a per-character onset field briefly added for the caption revision
-was [removed](https://github.com/C0derTang/shared-garden/issues/165#issuecomment-6888069612)
-because nothing uses it. The user
+are dropped. Per the [timing amendment](https://github.com/C0derTang/shared-garden/issues/165#issuecomment-6888161978), a cue may carry an optional
+`chars` array with one absolute onset per code point of the trimmed text,
+finite, nondecreasing and inside `start <= onset < end`; any malformed array
+rejects the whole file, and files without it remain valid version 1 data. The user
 [supplied the authoritative lyric text](https://github.com/C0derTang/shared-garden/issues/165#issuecomment-6887565676)
 and requested only its Mandarin/Chinese lines, excluding romanization. Those
 exact words are aligned locally to the supplied recording; recognition output
@@ -130,21 +131,29 @@ music, a larger different font and any other improvements. Under decision 0004
 the following details were chosen. After viewing the first candidate, the user
 reported that audio-derived per-character timing did not feel synchronized and
 [asked](https://github.com/C0derTang/shared-garden/issues/165#issuecomment-6888069612)
-for a plain constant-velocity slide with no character shadow, which supersedes
-the earlier per-character onsets and ink-bloom reveal. While audio plays, a
+for a plain constant-velocity slide with no character shadow, which superseded
+the ink-bloom reveal. After viewing that, the user [asked](https://github.com/C0derTang/shared-garden/issues/165#issuecomment-6888161978) for better
+individual character timing and for phrases to fade out in place, which
+supersedes the slide for timed cues and the upward drift. While audio plays, a
 frame loop reads the native media clock (rather than the coarse `timeupdate`
-event) and sweeps each phrase left to right at constant velocity across its
-cue interval: progress is `(time - start) / (end - start)`, measured in
-characters, and each character's opacity rises linearly over a soft edge one
-character wide. Characters are plain cream text with no shadow, glow, blur or
-colour change. Unsung characters keep their space, so a centered phrase never
-shifts. Seeking, pausing, delayed cue responses and replay apply native time
-directly, so the sweep shows the exact position at once, and pause preserves it.
-A phrase holds through gaps of up to 2 seconds until the next begins; before
-longer gaps it lingers 0.8 seconds, then clears. When the next phrase starts,
-the previous one drifts upward, shrinks and fades at a constant rate with no
-easing, with at most one leaving phrase. Before gaps of at least 5 seconds,
-including the introduction, three
+event); every displayed state is a pure function of that time, so seeking,
+pausing, delayed cue responses and replay show the exact state at once. Each
+character's opacity rises linearly from its own onset over 120 ms, or by the next
+onset if that is sooner (with a 40 ms floor), so held notes never delay later
+characters. Cues without onsets keep the constant-velocity sweep: progress
+`(time - start) / (end - start)` in characters with a one-character soft edge.
+The display runs a constant 40 ms ahead of the media clock to offset about one
+frame of sampling and compositing delay plus part of the ramp, small enough not
+to show a character visibly before it is heard. Characters are plain cream text
+with no shadow, glow, blur or colour change. Unsung characters keep their space,
+so a centered phrase never shifts. A finished phrase fades out in place, by
+opacity only and linearly, with no translation or scale: after its end it waits
+up to 0.25 seconds, then fades over the gap to the next phrase minus 50 ms,
+clamped to 120–500 ms, so it is gone or nearly gone before the next phrase.
+Outgoing and incoming phrases share one grid cell, so nothing moves; only in
+near-touching gaps does a briefly fading phrase sit under the next one, hidden
+from assistive technology. Before gaps of at least 5 seconds, including the
+introduction, three
 dots appear up to 6 seconds ahead and light one per second over the final 3
 seconds. The ending, errors and unavailable cues stay blank.
 
@@ -157,7 +166,8 @@ horizontal overflow. The earlier hard outline is removed and no halo or backing
 scrim replaces it; contrast over the painting is the user's call. Screen readers
 receive each phrase once as plain text while the per-character spans are hidden
 from them; the region remains non-live. Reduced motion shows each whole phrase
-at its start with no sweep, leaving-phrase or indicator animation.
+at its start with no character ramp, exit fade or indicator animation; phrases
+swap instantly.
 
 The supplied text resolves the word-recognition blocker after inaccurate local
 transcription drafts were withheld. Local alignment preserves all 47 supplied
@@ -179,14 +189,21 @@ For the caption revision, the private cues were regenerated locally from the
 same recording and private timing evidence, keeping the previous line-level file
 as a private backup. Each supplied line is split only where the separated vocal
 track shows a measured breath or rest, giving 59 phrase cues from the 47 lines;
-legato lines without a measurable pause stay whole. The third repeated chorus
-reuses the relative timing of its earlier identical lines. After the amendment
-the private file was regenerated with the same phrase intervals and only start,
-end and text; the onset-bearing file is kept privately as a backup only. The
-concatenated text still equals the supplied 476 characters exactly and the
-application's parser accepts the file. Phrase intervals are acoustic estimates,
-not human-verified timing, and characters within a phrase follow the constant
-sweep rather than individual sung syllables. No lyric text, timing or private
+legato lines without a measurable pause stay whole. For the timing amendment the
+earlier onsets were first measured against the separated vocal: their error was
+random scatter rather than a constant offset or drift, and the earlier reveal
+animation added further visual delay. Onsets were then regenerated locally by
+acoustic forced alignment of the exact supplied characters against the separated
+vocal, refined to detected syllable onsets, with phrase starts and ends moved to
+the aligned first onset and the sung end without overlaps. Where direct alignment
+fails, in the third repeated chorus, timing is mapped acoustically from the two
+earlier choruses, whose mappings agree. The result was checked against an
+onset detector, the earlier recognition timing and the consistency of repeated
+lines; the agreement statistics are recorded privately. All private cue files
+from earlier revisions are kept as private backups. The concatenated text still
+equals the supplied 476 characters exactly and the application's parser accepts
+the file. Onsets remain automatic estimates, not human-verified karaoke timing;
+a private listening aid exists for checking by ear. No lyric text, timing or private
 path is committed or published.
 
 Apart from an active lyric, the only visible text outside that panel is one bottom-right `old garden` link
