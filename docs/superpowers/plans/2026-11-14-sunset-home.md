@@ -176,7 +176,8 @@ before jobs start, and local evidence does not waive repository gates.
 - [x] Fetch cues only after Play; select by native time through delay, seeking, pause, instrumental gaps and end. Keep missing cues independent of audio.
 - [x] Add original synthetic parser/auth/file-boundary and playback synchronization regression tests, first observed failing then passing.
 - [x] Inspect browser layout/contrast and synchronized synthetic cues in Chromium/WebKit, including short screens and reduced motion.
-- [ ] Validate privately derived actual-song cues once supplied; no invented lyrics or timing and no private transcript in Git.
+- [x] Receive the user's authoritative lyric text and Chinese-only direction; keep all words and source files private outside Git.
+- [x] Validate local alignment and authenticated rendering against those supplied words; keep timing estimates explicit and all private text outside Git.
 - [x] Retain full checks and publish the candidate for independent review.
 - [ ] Obtain fresh exact-head review. Keep merge and deployment held.
 
@@ -189,6 +190,21 @@ lines wrap without clipping across eight normal/short viewport sizes. The final
 glyph halo measures at least 15.23:1; play, seek-thumb and backlink contrast remain
 at least 4.43:1, 4.11:1 and 6.16:1 respectively. Anonymous localhost still renders
 only Log in, and its lyric endpoint returns empty 401/private-no-store without a
-redirect. Actual transcript/timing validation remains pending after an inaccurate
-first local transcription was withheld. No real lyrics or private cues are
-included in this candidate or its public evidence.
+redirect. Inaccurate local transcription drafts were withheld; the user's later
+supplied Chinese-only text resolves the word-recognition blocker. The final
+private file preserves all 47 supplied lines and 476 characters exactly, contains
+no romanization, passes the application parser and all 47 midpoint selections,
+and provides sorted non-overlapping cues within the recording. Authenticated
+in-app playback advanced between expected cues, native seeking updated them,
+pause preserved the current line, and sampled intro/internal/outro gaps remained
+blank. Anonymous requests still returned empty 401/private-no-store after real
+cue configuration. Phrase-level timings remain estimates rather than a complete
+human listening audit or word-by-word karaoke. No real lyrics, cue files or
+private source paths appear in this candidate or public evidence.
+
+This source-resolution update changes only the decision and plan. All application
+files remain identical to `d7dd5667197548063b83954c5726eead0a091e31`, so its retained
+lint/typecheck/build and 893 passing test results (2 opt-in skips) still apply.
+Documentation checks cover approval links, local references, consistency and a
+diff inspection for unrelated/private content. Fresh exact-head independent
+review and the existing hosted-check/localhost-approval gates remain required.

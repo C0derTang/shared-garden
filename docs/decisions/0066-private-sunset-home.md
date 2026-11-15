@@ -103,9 +103,11 @@ arbitrary URL proxy, provider credential change or backend data write is added.
 Timed lyrics use a separate optional server-only `SUNSET_LYRICS_PATH`, an absolute
 JSON path outside public static storage and version control. The interchange
 format is `{ "version": 1, "cues": [{ "start": 1, "end": 3, "text": "..." }] }`,
-with seconds, sorted non-overlapping intervals and explicit ends. Only cues
-derived from the supplied recording may be configured; actual transcription and
-timing verification are separate dependencies. Neither full lyrics nor private
+with seconds, sorted non-overlapping intervals and explicit ends. The user
+[supplied the authoritative lyric text](https://github.com/C0derTang/shared-garden/issues/165#issuecomment-6887565676)
+and requested only its Mandarin/Chinese lines, excluding romanization. Those
+exact words are aligned locally to the supplied recording; recognition output
+is not a substitute for the supplied text. Neither full lyrics nor private
 cue paths are committed or included in public fixtures, HTML or server props.
 
 The independent `/api/home/lyrics` guard verifies Auth and live membership before
@@ -124,11 +126,21 @@ Leaving the page cancels lyric work along with releasing audio. The cue floats
 above the player as plain text with a tight dark glyph halo and no backing. Reduced
 motion removes its entrance animation while retaining static synchronized text.
 
-At this candidate, actual cue configuration and song-specific synchronization
-remain pending: the first local transcription failed quality checks and was
-withheld. No guessed transcript, repeated hallucinated text or placeholder cue
-file is installed. Synthetic synchronization tests prove the mechanism only;
-they do not establish the accuracy or availability of the requested lyrics.
+The supplied text resolves the word-recognition blocker after inaccurate local
+transcription drafts were withheld. Local alignment preserves all 47 supplied
+Chinese lines and 476 characters exactly, including repeated lines, without
+romanization. Cues are sorted, non-overlapping and within the recording, with
+explicit intro, outro and internal gaps. Phrase-level timings are estimated;
+this is not word-by-word karaoke or a claim of a complete human listening audit.
+The private file passes the application's validator and all 47 cue-midpoint
+selection checks. Authenticated localhost playback and seeks displayed the
+expected Chinese cues, instrumental/start/end gaps were blank, and pausing
+preserved the current line. Anonymous lyric requests still returned empty
+401/private-no-store with the real file configured. This resolves the source
+availability and rendering blocker while retaining the timing limitations
+above. No guessed transcript, hallucinated text or placeholder cue file is
+installed. Synthetic tests prove the mechanism separately from this private
+source and runtime evidence.
 
 Apart from an active lyric, the only visible text outside that panel is one bottom-right `old garden` link
 to `/garden`, with readable underlined text and no backing. The existing garden,
