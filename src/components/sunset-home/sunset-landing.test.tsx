@@ -44,9 +44,13 @@ it("offers one local audio panel without requesting media or any provider before
   expect(screen.getByRole("link", { name: "old garden" })).toHaveAttribute("href", "/garden");
 });
 
+const phrase = (lyrics: HTMLElement, kind = "current") => lyrics.querySelector<HTMLElement>(`[data-lyric="${kind}"]`);
+const states = (element: HTMLElement | null) =>
+  Array.from(element?.querySelectorAll("[data-state]") ?? [], (char) => char.getAttribute("data-state"));
+
 it("fetches private cues only on play and follows native time through pause, seeks, gaps and end", async () => {
   vi.mocked(fetch).mockResolvedValue({ ok: true, json: async () => ({ version: 1, cues: [
-    { start: 1, end: 3, text: "Synthetic dawn" }, { start: 5, end: 7, text: "Synthetic evening" },
+    { start: 1, end: 3, text: "Synthetic dawn" }, { start: 9, end: 11, text: "Synthetic evening" },
   ] }) } as Response);
   const user = userEvent.setup();
   const { container } = render(<SunsetLanding data={{ status: "member" }} />);
@@ -57,20 +61,54 @@ it("fetches private cues only on play and follows native time through pause, see
   await user.click(screen.getByRole("button", { name: /Play.*愛在/ }));
   await waitFor(() => expect(fetch).toHaveBeenCalledOnce());
   expect(fetch).toHaveBeenCalledWith("/api/home/lyrics", expect.objectContaining({ cache: "no-store", credentials: "same-origin" }));
-  Object.defineProperty(audio, "duration", { value: 10, configurable: true });
+  Object.defineProperty(audio, "duration", { value: 12, configurable: true });
   fireEvent.loadedMetadata(audio);
   audio.currentTime = 1.5;
   fireEvent.timeUpdate(audio);
-  await waitFor(() => expect(lyrics).toHaveTextContent("Synthetic dawn"));
+  await waitFor(() => expect(phrase(lyrics)).toHaveTextContent("Synthetic dawn"));
+  // Joining mid-phrase settles sung characters at once; later ones wait for their onset.
+  expect(states(phrase(lyrics)).filter((state) => state === "settled")).toHaveLength(5);
+  expect(states(phrase(lyrics)).slice(5).every((state) => state === "hidden")).toBe(true);
+  audio.currentTime = 1.75;
+  await waitFor(() => expect(states(phrase(lyrics))).toContain("bloom"));
   fireEvent.pause(audio);
-  expect(lyrics).toHaveTextContent("Synthetic dawn");
-  fireEvent.change(screen.getByRole("slider"), { target: { value: "4" } });
-  expect(lyrics).toBeEmptyDOMElement();
-  audio.currentTime = 5.5;
+  expect(phrase(lyrics)).toHaveTextContent("Synthetic dawn");
+  fireEvent.change(screen.getByRole("slider"), { target: { value: "4.5" } });
+  await waitFor(() => expect(phrase(lyrics)).toBeNull());
+  expect(lyrics.querySelectorAll('[data-lyric="resume"] [data-lit]')).toHaveLength(0);
+  expect(lyrics.querySelectorAll('[data-lyric="resume"] span')).toHaveLength(3);
+  fireEvent.change(screen.getByRole("slider"), { target: { value: "7" } });
+  await waitFor(() => expect(lyrics.querySelectorAll('[data-lyric="resume"] [data-lit]')).toHaveLength(2));
+  audio.currentTime = 10.9;
   fireEvent.seeked(audio);
-  expect(lyrics).toHaveTextContent("Synthetic evening");
+  await waitFor(() => expect(phrase(lyrics)).toHaveTextContent("Synthetic evening"));
+  expect(states(phrase(lyrics)).every((state) => state === "settled")).toBe(true);
+  expect(phrase(lyrics, "resume")).toBeNull();
   fireEvent.ended(audio);
-  expect(lyrics).toBeEmptyDOMElement();
+  await waitFor(() => expect(lyrics).toBeEmptyDOMElement());
+});
+
+it("gives assistive technology whole phrases and sends the previous phrase away as the next begins", async () => {
+  vi.mocked(fetch).mockResolvedValue({ ok: true, json: async () => ({ version: 1, cues: [
+    { start: 1, end: 2, text: "晨光", chars: [1, 1.5] }, { start: 2.2, end: 3, text: "暮色", chars: [2.2, 2.6] },
+  ] }) } as Response);
+  const user = userEvent.setup();
+  const { container } = render(<SunsetLanding data={{ status: "member" }} />);
+  const audio = container.querySelector("audio")!;
+  const lyrics = screen.getByLabelText("Synchronized lyrics");
+  await user.click(screen.getByRole("button", { name: /Play.*愛在/ }));
+  audio.currentTime = 1.9;
+  fireEvent.timeUpdate(audio);
+  await waitFor(() => expect(phrase(lyrics)).toHaveTextContent("晨光"));
+  expect(screen.getByText("晨光")).toBe(phrase(lyrics)!.firstElementChild);
+  expect(phrase(lyrics)!.lastElementChild).toHaveAttribute("aria-hidden", "true");
+  audio.currentTime = 2.25;
+  await waitFor(() => expect(phrase(lyrics, "leaving")).toHaveTextContent("晨光"));
+  expect(phrase(lyrics, "leaving")).toHaveAttribute("aria-hidden", "true");
+  expect(states(phrase(lyrics))).toEqual(["bloom", "hidden"]);
+  expect(screen.getByText("暮色")).toBe(phrase(lyrics)!.firstElementChild);
+  await waitFor(() => expect(phrase(lyrics, "leaving")).toBeNull(), { timeout: 2000 });
+  expect(phrase(lyrics)).toHaveTextContent("暮色");
 });
 
 it("uses current time for delayed cues and cancels lyric work on unmount", async () => {
@@ -85,7 +123,7 @@ it("uses current time for delayed cues and cancels lyric work on unmount", async
   respond({ ok: true, json: async () => ({ version: 1, cues: [
     { start: 1, end: 3, text: "Earlier fixture" }, { start: 5, end: 7, text: "Current fixture" },
   ] }) } as Response);
-  await waitFor(() => expect(screen.getByLabelText("Synchronized lyrics")).toHaveTextContent("Current fixture"));
+  await waitFor(() => expect(phrase(screen.getByLabelText("Synchronized lyrics"))).toHaveTextContent("Current fixture"));
   const options = vi.mocked(fetch).mock.calls[0][1];
   unmount();
   expect(options?.signal?.aborted).toBe(true);

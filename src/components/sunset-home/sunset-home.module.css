@@ -20,8 +20,32 @@
 .nearRipple { animation: near-ripple 6.5s ease-in-out infinite; }
 .content { position: relative; z-index: 1; min-height: 100svh; display: grid; place-items: center; padding: 24svh 24px 8svh; }
 .playerStage { position: relative; width: min(420px, calc(100vw - 48px)); }
-.lyrics { position: absolute; bottom: calc(100% + 28px); left: -12px; right: -12px; pointer-events: none; text-align: center; color: #fff9ed; }
-.lyricCue { margin: 0; white-space: pre-line; overflow-wrap: anywhere; font-size: clamp(1.05rem, 2vw, 1.35rem); line-height: 1.65; letter-spacing: .06em; text-shadow: -1px -1px 0 #102015, 0 -1px 0 #102015, 1px -1px 0 #102015, -1px 0 0 #102015, 1px 0 0 #102015, -1px 1px 0 #102015, 0 1px 0 #102015, 1px 1px 0 #102015, 0 2px 5px #102015, 0 0 14px #172418d9; animation: lyric-arrive 450ms ease-out both; }
+.lyrics {
+  --lyric-ink: #fff8ea;
+  --lyric-shadow: 0 0 1px #0b170ef2, 0 0 3px #0b170ecc, 0 1px 2px #0b170ed9, 0 2px 10px #0d1a10bf, 0 0 26px #132217a6, 0 0 60px #13221773;
+  position: absolute; left: 50%; bottom: calc(100% + 34px); width: min(1200px, 94vw); transform: translateX(-50%);
+  display: grid; align-items: end; justify-items: center; pointer-events: none; text-align: center; color: var(--lyric-ink);
+}
+.lyrics > * { grid-area: 1 / 1; }
+.lyricCue {
+  margin: 0; max-width: 100%; white-space: pre-line; overflow-wrap: anywhere; text-wrap: balance;
+  font-size: clamp(2.4rem, 6vw, 5rem); line-height: 1.3; letter-spacing: .08em;
+  text-shadow: var(--lyric-shadow); transform-origin: 50% 100%;
+}
+.lyricCue [data-state] { position: relative; }
+.lyricCue [data-state="hidden"] { opacity: 0; }
+.lyricCue [data-state="bloom"] { animation: ink-bloom 950ms cubic-bezier(.2, .75, .25, 1) both; }
+/* Top-aligned and lifted by its own height, so it clears a current phrase of any line count. */
+.lyricLeaving { align-self: start; animation: phrase-leave 800ms cubic-bezier(.25, .7, .35, 1) forwards; }
+.lyricResume { display: flex; gap: .6em; padding-bottom: .5em; font-size: clamp(1.5rem, 3vw, 2.3rem); }
+.lyricResume span {
+  width: .34em; height: .34em; border-radius: 50%; background: var(--lyric-ink); opacity: .3;
+  box-shadow: 0 0 0 1px #0b170e40, 0 0 14px #132217a6;
+  animation: resume-breathe 2.4s ease-in-out infinite; transition: opacity 280ms, transform 280ms, background-color 280ms, box-shadow 280ms;
+}
+.lyricResume span:nth-child(2) { animation-delay: .3s; }
+.lyricResume span:nth-child(3) { animation-delay: .6s; }
+.lyricResume span[data-lit] { opacity: 1; background: #ffdca0; box-shadow: 0 0 0 1px #0b170e59, 0 0 12px #ffb45fcc, 0 0 26px #ff9c4a73; animation: resume-lit 900ms ease-out both; }
 .audioPanel {
   position: relative; width: 100%; display: grid; grid-template-rows: auto 44px 44px; gap: 0;
   padding: 24px 28px 18px; border: 0; border-radius: 28px;
@@ -61,7 +85,18 @@
 .home :focus-visible,
 .entrance :focus-visible { outline: 2px solid #714555; outline-offset: 4px; box-shadow: none; }
 @keyframes record-turn { to { transform: rotate(360deg); } }
-@keyframes lyric-arrive { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes ink-bloom {
+  0% { opacity: 0; filter: blur(9px); top: .24em; color: #ffd391; text-shadow: 0 0 2px #0b170e99, 0 0 22px #ffb35ccc; }
+  36% { opacity: 1; filter: blur(0); top: 0; color: #ffe3ad; text-shadow: 0 0 1px #0b170ee6, 0 1px 2px #0b170ed9, 0 0 20px #ffb45fb3, 0 0 46px #ff9c4a80; }
+  100% { opacity: 1; filter: blur(0); top: 0; color: var(--lyric-ink); text-shadow: var(--lyric-shadow); }
+}
+@keyframes phrase-leave {
+  0% { opacity: 1; transform: none; filter: blur(0); }
+  30% { opacity: .5; transform: translateY(-92%) scale(.62); filter: blur(.5px); }
+  100% { opacity: 0; transform: translateY(-118%) scale(.54); filter: blur(3px); }
+}
+@keyframes resume-breathe { 0%, 100% { transform: scale(.85); } 50% { transform: scale(1.08); } }
+@keyframes resume-lit { 0% { transform: scale(.9); } 45% { transform: scale(1.55); } 100% { transform: scale(1.3); } }
 @keyframes cloud-drift { from { transform: translateX(-9px) scale(1.025); } to { transform: translateX(11px) scale(1.025); } }
 @keyframes far-ripple { 0%, 100% { transform: translate(-2px, -.4px) scaleX(1.006); } 50% { transform: translate(3px, .7px) scaleX(1.009); } }
 @keyframes near-ripple { 0%, 100% { transform: translate(3px, -1.2px) scale(1.008, 1.003); } 50% { transform: translate(-4px, 1.5px) scale(1.012, 1.006); } }
@@ -70,6 +105,8 @@
   .landscapeImage { object-position: 68% 50%; }
   .sceneLayer { mask-position: 68% 50%; }
   .playerStage { width: min(360px, calc(100vw - 48px)); }
+  .lyrics { bottom: calc(100% + 24px); }
+  .lyricCue { font-size: clamp(2.1rem, 9.4vw, 3.6rem); line-height: 1.32; letter-spacing: .05em; }
   .audioPanel { padding: 22px 24px 16px; }
   .botanical { width: min(350px, 85vw); right: 3vw; bottom: -4px; }
   .footer { right: 24px; }
@@ -79,13 +116,16 @@
   .audioPanel { padding: 16px 18px 12px; }
   .record { width: min(180px, 100%, max(80px, calc(100svh - 272px))); }
   .lyrics { bottom: calc(100% + 14px); }
-  .lyricCue { font-size: 1rem; line-height: 1.5; }
+  .lyricCue { font-size: clamp(1.75rem, 4.6vw, 3rem); line-height: 1.25; }
 }
 @media (max-height: 600px) and (min-width: 821px) {
   .botanical { width: min(calc((100vw - 420px) / 2 - 4vw), 62svh); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .lilySway, .cloudImage, .farRipple, .nearRipple, .record, .lyricCue { animation: none; }
+  .lilySway, .cloudImage, .farRipple, .nearRipple, .record { animation: none; }
+  .lyricCue [data-state] { opacity: 1; animation: none; }
+  .lyricLeaving { display: none; }
+  .lyricResume span, .lyricResume span[data-lit] { animation: none; transition: none; }
   .sceneLayer { display: none; }
   .login { transition: none; }
 }

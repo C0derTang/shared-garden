@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { lyricAt, parseLyrics, type LyricCue } from "@/lib/landing/lyrics";
+import { parseLyrics, type LyricCue } from "@/lib/landing/lyrics";
+import { LyricStage } from "./lyric-stage";
 import styles from "./sunset-home.module.css";
 
 function clock(seconds: number) {
@@ -20,7 +21,6 @@ export function SongPlayer() {
   const [failed, setFailed] = useState(false);
   const [cues, setCues] = useState<LyricCue[]>([]);
   const [ended, setEnded] = useState(false);
-  const cue = !ended && !failed ? lyricAt(cues, position) : undefined;
 
   useEffect(() => {
     active.current = true;
@@ -78,9 +78,7 @@ export function SongPlayer() {
   }
 
   return <div className={styles.playerStage}>
-    <div className={styles.lyrics} aria-label="Synchronized lyrics" aria-live="off">
-      {cue && <p key={`${cue.start}-${cue.end}`} className={styles.lyricCue}>{cue.text}</p>}
-    </div>
+    <LyricStage cues={cues} media={media} playing={playing} position={position} visible={!ended && !failed} />
     <section className={styles.audioPanel} aria-label="愛在 · Khalil Fong">
     <audio ref={media} preload="none" aria-hidden="true"
       onPlay={() => { setPlaying(true); setEnded(false); }} onPlaying={() => setSpinning(true)}
