@@ -301,6 +301,36 @@ each of which needs its own operator observation.
 configuration was proposed, on which platform, and what was not covered.
 
 
+## Private sunset home media
+
+[Decision 0066](../decisions/0066-private-sunset-home.md) serves the homepage
+recording and timed lyrics in production from the private `home-media` Storage
+bucket. Leave `SUNSET_AUDIO_PATH` and `SUNSET_LYRICS_PATH` unset in production;
+those local paths are for development and take precedence when set.
+
+The `20261115000000_home_media` migration defines the bucket. To load or replace
+the media, run the operator script from a trusted machine with the production
+project origin and server secret in a private, untracked env file (mode 600,
+deleted afterwards), never pasted into a terminal history, issue or log:
+
+```sh
+node --env-file=<private env file> scripts/setup-home-media.mjs \
+  --audio <absolute .mp3 path> --lyrics <absolute .json path>
+```
+
+The env file needs `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SECRET_KEY`. The script
+creates the private bucket if it is missing with settings identical to the
+migration, refuses to change a bucket whose settings differ, validates the
+recording (MPEG, at most 16 MiB) and the lyrics (application parser, at most
+256 KiB), uploads the normalized lyrics and the recording under fixed keys with
+upsert, and verifies both by SHA-256. It prints only sizes, cue counts and
+hashes. Rerunning it replaces the objects. Never upload media to a public
+bucket, commit it, or place it under `public/`.
+
+After deployment, verify that anonymous `GET /api/home/audio` and
+`GET /api/home/lyrics` return an empty 401. Then have a member confirm playback,
+seeking and captions on the production homepage.
+
 ## Optional Spotify catalog search
 
 [Decision 0034](../decisions/0034-tulip-spotify-catalog-search.md) adds catalog-only

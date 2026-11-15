@@ -3,16 +3,17 @@ import * as fs from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { NextRequest, NextResponse } from "next/server";
-import { afterAll, afterEach, beforeAll, beforeEach, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 vi.mock("node:fs/promises", async (original) => {
   const actual = await original<typeof import("node:fs/promises")>();
   return { ...actual, open: vi.fn(actual.open), realpath: vi.fn(actual.realpath) };
 });
-const { config, verify, createClient, finish } = vi.hoisted(() => ({
-  config: vi.fn(), verify: vi.fn(), createClient: vi.fn(), finish: vi.fn(),
+const { config, verify, createClient, finish, serverConfig } = vi.hoisted(() => ({
+  config: vi.fn(), verify: vi.fn(), createClient: vi.fn(), finish: vi.fn(), serverConfig: vi.fn(),
 }));
 vi.mock("@/lib/auth/config", () => ({ getAuthConfig: config }));
+vi.mock("@/lib/config/server", () => ({ getServerConfig: serverConfig }));
 vi.mock("@/lib/auth/member", () => ({ verifyMember: verify }));
 vi.mock("@/lib/auth/client", async (original) => ({ ...await original(), createRequestClient: createClient }));
 import { noStore } from "@/lib/auth/client";
@@ -38,8 +39,10 @@ beforeEach(() => {
     return noStore(response);
   });
   createClient.mockReturnValue({ client: {}, finish });
+  serverConfig.mockReturnValue({ status: "missing" });
+  vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("unexpected storage request"); }));
 });
-afterEach(() => { vi.unstubAllEnvs(); vi.restoreAllMocks(); });
+afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
 it.each([["signin", 401], ["denied", 403], ["unavailable", 503]] as const)("does not inspect a file for %s access", async (status, code) => {
   verify.mockResolvedValue({ status });
@@ -108,4 +111,62 @@ it("rejects oversized, malformed and invalid cue files without leaking their con
     expect(response.status).toBe(503);
     expect(await response.text()).toBe("");
   }
+});
+
+describe("private storage source", () => {
+  const secret = "sb_secret_synthetic_value";
+  const project = "https://project.example.test";
+  const storage = vi.fn(async () => new Response(JSON.stringify({ ...payload, source: "private metadata" }), { status: 200 }));
+  beforeEach(() => {
+    vi.stubEnv("SUNSET_LYRICS_PATH", "");
+    config.mockReturnValue({ appOrigin: "https://app.example.test", supabaseUrl: project });
+    serverConfig.mockReturnValue({ status: "ready", config: { supabaseSecretKey: secret } });
+    storage.mockClear();
+    vi.stubGlobal("fetch", storage);
+  });
+
+  it("serves validated lyrics from the fixed private object without metadata", async () => {
+    const response = await GET(request());
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual(payload);
+    expect(response.headers.get("cache-control")).toContain("no-store");
+    expect(fs.open).not.toHaveBeenCalled();
+    const [url, init] = storage.mock.calls[0] as unknown as [URL, RequestInit];
+    expect(String(url)).toBe(`${project}/storage/v1/object/authenticated/home-media/sunset/lyrics.json`);
+    expect(new Headers(init.headers).get("apikey")).toBe(secret);
+  });
+
+  it("never contacts storage before membership is allowed", async () => {
+    verify.mockResolvedValue({ status: "signin" });
+    expect((await GET(request())).status).toBe(401);
+    expect(storage).not.toHaveBeenCalled();
+  });
+
+  it("prefers a configured local file over storage", async () => {
+    vi.stubEnv("SUNSET_LYRICS_PATH", file);
+    expect(await (await GET(request())).json()).toEqual(payload);
+    expect(storage).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["missing object", () => new Response("Object not found home-media", { status: 400 })],
+    ["declared oversize", () => new Response("{}", { status: 200, headers: { "Content-Length": String(256 * 1024 + 1) } })],
+    ["undeclared oversize", () => new Response(new ReadableStream({ start(c) { c.enqueue(new Uint8Array(256 * 1024 + 1)); c.close(); } }), { status: 200 })],
+    ["invalid JSON", () => new Response("{not json", { status: 200 })],
+    ["invalid cues", () => new Response(JSON.stringify({ version: 1, cues: [{ start: 3, end: 1, text: "x" }] }), { status: 200 })],
+    ["network failure", () => { throw new TypeError(`fetch failed ${project}`); }],
+  ])("hides a %s behind an empty 503", async (_name, reply) => {
+    storage.mockImplementationOnce(async () => reply());
+    const response = await GET(request());
+    expect(response.status).toBe(503);
+    expect(await response.text()).toBe("");
+    const headers = [...response.headers.entries()].flat().join(" ");
+    for (const value of [secret, "project.example.test", "home-media"]) expect(headers).not.toContain(value);
+  });
+
+  it("fails closed without the server secret", async () => {
+    serverConfig.mockReturnValue({ status: "invalid" });
+    expect((await GET(request())).status).toBe(503);
+    expect(storage).not.toHaveBeenCalled();
+  });
 });

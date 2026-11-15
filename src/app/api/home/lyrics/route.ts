@@ -4,12 +4,31 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createRequestClient, noStore } from "@/lib/auth/client";
 import { getAuthConfig } from "@/lib/auth/config";
 import { verifyMember } from "@/lib/auth/member";
+import { HOME_MEDIA_KEYS, boundedBytes, discard, fetchHomeObject, localMediaConfigured } from "@/lib/landing/home-media";
 import { parseLyrics } from "@/lib/landing/lyrics";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const maxBytes = 256 * 1024;
 const empty = (status: number) => noStore(new NextResponse(null, { status }));
+
+function lyricsResponse(bytes: Buffer) {
+  const lyrics = parseLyrics(JSON.parse(bytes.toString("utf8")));
+  if (!lyrics) return empty(503);
+  return NextResponse.json(lyrics, { headers: {
+    "X-Content-Type-Options": "nosniff", "Cross-Origin-Resource-Policy": "same-origin",
+  } });
+}
+
+/** Production copy in private storage, bounded and validated like the local file. */
+async function storageLyrics(signal: AbortSignal) {
+  const response = await fetchHomeObject(HOME_MEDIA_KEYS.lyrics, { signal });
+  if (response.status !== 200) {
+    await discard(response);
+    return empty(503);
+  }
+  return lyricsResponse(await boundedBytes(response, maxBytes));
+}
 
 async function localLyrics() {
   const configured = process.env.SUNSET_LYRICS_PATH?.trim();
@@ -30,11 +49,7 @@ async function localLyrics() {
       length += bytesRead;
     }
     if (length > maxBytes) return empty(503);
-    const lyrics = parseLyrics(JSON.parse(bytes.subarray(0, length).toString("utf8")));
-    if (!lyrics) return empty(503);
-    return NextResponse.json(lyrics, { headers: {
-      "X-Content-Type-Options": "nosniff", "Cross-Origin-Resource-Policy": "same-origin",
-    } });
+    return lyricsResponse(bytes.subarray(0, length));
   } finally { await file.close().catch(() => {}); }
 }
 
@@ -48,7 +63,8 @@ export async function GET(request: NextRequest) {
     if (access.status !== "allowed") return auth.finish(empty(
       access.status === "signin" ? 401 : access.status === "denied" ? 403 : 503,
     ));
-    return auth.finish(await localLyrics());
+    return auth.finish(localMediaConfigured("SUNSET_LYRICS_PATH")
+      ? await localLyrics() : await storageLyrics(request.signal));
   } catch {
     return auth ? auth.finish(empty(503)) : empty(503);
   }
