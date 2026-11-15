@@ -98,8 +98,31 @@ Streaming uses bounded chunks and closes the file on completion/cancellation.
 A conservative 128 MiB limit, regular-file check and audio-extension allowlist
 (MP3, M4A, AAC, WAV, Ogg, FLAC, WebM) reject unsuitable configuration. The route
 rejects configured paths under public/, ignores client-supplied path parameters,
-and uses nosniff/same-origin resource headers. No production storage upload,
-arbitrary URL proxy, provider credential change or backend data write is added.
+and uses nosniff/same-origin resource headers. No arbitrary URL proxy,
+provider credential change or backend data write is added. Production storage
+for exactly these two objects was added later; see the next paragraph.
+
+The owner then requested that the recording and captions also work in
+production ([issue #167](https://github.com/C0derTang/shared-garden/issues/167)).
+That request supersedes the earlier "no production storage upload" exclusion for
+these two objects only. When `SUNSET_AUDIO_PATH` or `SUNSET_LYRICS_PATH` is
+empty, the corresponding route reads a fixed, neutral object key from the private
+`home-media` Supabase Storage bucket (not public, 16 MiB limit, MPEG audio and
+JSON only), using the existing server secret only after the same member check.
+A configured local path always takes precedence, and an invalid local path
+still fails rather than falling back. No storage policy grants anonymous or
+member access. Browsers never receive storage URLs, signed URLs, keys or
+provider errors; every storage failure becomes the same empty 503. The audio route
+learns the object size with a one-byte probe and keeps its own range semantics:
+it forwards only the normalized single range and verifies that the provider's
+status, `Content-Range` and body length match exactly before and while streaming.
+Lyrics use the same 256 KiB bounded read and parser. The idempotent migration
+defines the bucket. Because hosted releases were unavailable at the time, an
+operator script creates the identical bucket if it is missing, validates both
+files, uploads the parser-normalized lyrics (dropping private metadata) and the
+recording with upsert, verifies them by SHA-256, and prints only sizes, counts
+and hashes. Bucket id, key names, probe design and limits are choices under
+[0004](0004-finalized-launch-rules.md); no new provider, plan or cost is added.
 
 Timed lyrics use a separate optional server-only `SUNSET_LYRICS_PATH`, an absolute
 JSON path outside public static storage and version control. The interchange
