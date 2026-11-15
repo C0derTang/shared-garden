@@ -18,39 +18,46 @@
 .cloudImage { animation: cloud-drift 48s ease-in-out infinite alternate; }
 .farRipple { animation: far-ripple 9s ease-in-out infinite; }
 .nearRipple { animation: near-ripple 6.5s ease-in-out infinite; }
-.content { position: relative; z-index: 1; width: min(580px, 48vw); margin-left: max(56px, calc((100vw - 1320px) / 2)); padding-top: 43svh; padding-bottom: 112px; }
-.audioPanel { overflow: hidden; padding: 24px 28px 15px; border: 1px solid #fff6e3b3; border-radius: 3px; background: #f8eee3c4; backdrop-filter: blur(8px); box-shadow: 0 12px 50px #282b2d1f; }
-.audioHeading { display: flex; justify-content: space-between; align-items: center; }
-.audioHeading h1 { font-size: 1.35rem; font-weight: 400; letter-spacing: .2em; }
-.audioHeading p { font-family: Arial, sans-serif; font-size: .7rem; letter-spacing: .07em; margin-top: 7px; }
-.audioPlay { display: grid; place-items: center; margin: 30px auto 16px; width: 76px; height: 76px; border: 0; border-radius: 50%; background: transparent; color: #483d35; cursor: pointer; }
-.audioPlay svg { width: 66px; height: 66px; overflow: visible; }
-.audioPlay circle { fill: #fff8e9b3; stroke: currentColor; stroke-width: .7; }
+.content { position: relative; z-index: 1; min-height: 100svh; display: grid; place-items: center; padding: 64px 24px; }
+.audioPanel {
+  position: relative; width: min(420px, calc(100vw - 48px)); display: grid; grid-template-rows: auto 44px 48px; gap: 4px;
+  padding: 28px; border: 0; border-radius: 28px;
+  background: linear-gradient(135deg, #ffffff3d, #fff6e312 45%, #ffffff21);
+  backdrop-filter: blur(10px) saturate(1.35);
+  box-shadow: 0 18px 46px #17252624;
+}
+.audioPanel::before { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit; background: radial-gradient(ellipse at 30% 15%, #ffffff24, transparent 65%); }
+.recordSlot { display: grid; place-items: center; padding-bottom: 8px; }
+.record { width: min(230px, 100%); aspect-ratio: 1; border-radius: 50%; border: 1px solid #eadccf44;
+  background: radial-gradient(circle, #181b18 0 2%, #eee1c7 2.6% 3.8%, #b18776 4.4% 17%, #583f35 17.8% 19.5%, transparent 20%), conic-gradient(from 35deg, transparent 0deg, #fff8e736 35deg, transparent 75deg 170deg, #fff8e72b 220deg, transparent 275deg), repeating-radial-gradient(circle, #1a2421 0 1px, #3e4840 1.5px 2px, #18211d 2.5px 3.5px);
+  box-shadow: 0 12px 20px #10201840, inset 0 0 0 7px #18221b55;
+  animation: record-turn 12s linear infinite; animation-play-state: paused;
+}
+.recordPlaying { animation-play-state: running; }
+.audioPlay { position: relative; display: grid; place-items: center; justify-self: center; width: 56px; height: 48px; border: 0; background: transparent; color: #142d20; cursor: pointer; }
+.audioPlay svg { width: 48px; height: 48px; overflow: visible; filter: drop-shadow(0 1px 1px #fff5e266); }
 .audioPlay path { fill: currentColor; stroke: none; }
 .audioPlay .pauseIcon { fill: none; stroke: currentColor; stroke-width: 3; }
-.audioPlay:hover circle { fill: #fff8e9; }
-.timeline input { display: block; width: 100%; height: 44px; margin: 0; accent-color: #66534c; cursor: pointer; }
+.audioPlay:hover { color: #071a10; }
+.audioFailed { color: #712c35; }
+.timeline { align-self: end; width: 100%; position: relative; }
+.timeline input { appearance: none; display: block; width: 100%; height: 44px; margin: 0; background: transparent; cursor: pointer; }
+.timeline input::-webkit-slider-runnable-track { height: 3px; border-radius: 3px; background: #fff6e582; box-shadow: 0 1px 2px #253c2b36; }
+.timeline input::-webkit-slider-thumb { appearance: none; width: 14px; height: 14px; margin-top: -5.5px; border: 0; border-radius: 50%; background: #071d12f5; box-shadow: 0 1px 3px #132b2340; }
+.timeline input::-moz-range-track { height: 3px; border: 0; border-radius: 3px; background: #fff6e582; box-shadow: 0 1px 2px #253c2b36; }
+.timeline input::-moz-range-thumb { width: 14px; height: 14px; border: 0; border-radius: 50%; background: #071d12f5; box-shadow: 0 1px 3px #132b2340; }
 .timeline input:disabled { cursor: default; }
-.audioTime { display: flex; justify-content: space-between; align-items: center; min-height: 44px; font: .72rem/1.5 Arial, sans-serif; font-variant-numeric: tabular-nums; }
-.muteControl { display: grid; place-items: center; width: 44px; height: 44px; border: 0; background: transparent; color: #55493f; }
-.muteControl svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
-.audioError { padding-top: 8px; font-size: .84rem; line-height: 1.5; }
-.motionControl { display: inline-flex; justify-content: center; align-items: center; width: 44px; height: 44px; flex: 0 0 44px; border: 0; border-radius: 50%; background: transparent; color: #55493f; }
-.motionControl:hover { background: #fff4df80; }
-.motionControl svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.4; }
-.botanical { position: fixed; right: 5vw; bottom: 0; z-index: -1; width: min(390px, 31vw); pointer-events: none; }
+.srOnly { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.botanical { position: fixed; right: 2vw; bottom: 0; z-index: -1; width: min(390px, calc((100vw - 420px) / 2 - 4vw)); pointer-events: none; }
 .spiderLily { position: relative; width: 100%; aspect-ratio: 2 / 3; }
 .lilySway { position: absolute; inset: 0; transform-origin: 83% 99%; animation: lily-wind 13s ease-in-out infinite; }
 .lilyImage { object-fit: contain; mask-image: linear-gradient(#000 0 96%, transparent 100%); }
 .footer { position: fixed; right: 32px; bottom: max(16px, env(safe-area-inset-bottom)); z-index: 2; display: flex; }
-.oldGarden { display: inline-flex; align-items: center; min-height: 44px; font-size: .79rem; letter-spacing: .05em; text-decoration: none; color: #253329; padding: 0 12px; background: #f8eee3e6; backdrop-filter: blur(5px); border: 1px solid #fff5e442; border-radius: 2px; }
-.oldGarden:hover { text-decoration: underline; text-underline-offset: 5px; }
+.oldGarden { display: inline-flex; align-items: center; min-height: 44px; font-size: .79rem; letter-spacing: .05em; text-decoration: underline; text-underline-offset: 4px; color: #fff7e8; text-shadow: 0 1px 3px #132417, 0 0 8px #13241780; }
+.oldGarden:hover { color: #fff; }
 .home :focus-visible,
 .entrance :focus-visible { outline: 2px solid #714555; outline-offset: 4px; box-shadow: none; }
-.still .lilySway,
-.still .cloudImage,
-.still .farRipple,
-.still .nearRipple { animation-play-state: paused; }
+@keyframes record-turn { to { transform: rotate(360deg); } }
 @keyframes cloud-drift { from { transform: translateX(-9px) scale(1.025); } to { transform: translateX(11px) scale(1.025); } }
 @keyframes far-ripple { 0%, 100% { transform: translate(-2px, -.4px) scaleX(1.006); } 50% { transform: translate(3px, .7px) scaleX(1.009); } }
 @keyframes near-ripple { 0%, 100% { transform: translate(3px, -1.2px) scale(1.008, 1.003); } 50% { transform: translate(-4px, 1.5px) scale(1.012, 1.006); } }
@@ -58,17 +65,19 @@
 @media (max-width: 820px) {
   .landscapeImage { object-position: 68% 50%; }
   .sceneLayer { mask-position: 68% 50%; }
-  .content { width: min(520px, calc(100% - 48px)); margin: 0 auto; padding-top: 36svh; padding-bottom: 112px; }
+  .audioPanel { width: min(360px, calc(100vw - 48px)); padding: 24px; }
   .botanical { width: min(350px, 85vw); right: 3vw; bottom: -4px; }
   .footer { right: 24px; }
 }
+@media (max-height: 600px) {
+  .audioPanel { padding: 18px; }
+  .record { width: min(180px, 100%, max(80px, calc(100svh - 272px))); }
+}
 @media (max-height: 600px) and (min-width: 821px) {
-  .content { padding-top: 22svh; }
-  .botanical { width: min(31vw, 62svh); }
+  .botanical { width: min(calc((100vw - 420px) / 2 - 4vw), 62svh); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .lilySway, .cloudImage, .farRipple, .nearRipple { animation: none; }
+  .lilySway, .cloudImage, .farRipple, .nearRipple, .record { animation: none; }
   .sceneLayer { display: none; }
-  .motionControl { display: none; }
   .login { transition: none; }
 }

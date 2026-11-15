@@ -120,3 +120,49 @@ remain outside the repository. Regional motion samples change cloud/water pixels
 while sampled mountain and shoreline pixels remain identical. Reduced motion,
 manual pause, fixed narrow-screen lily and control hit targets pass. Final
 exact-source browser evidence is recorded separately for independent review.
+
+
+## Superseding square glass player
+
+- [x] Replace the rectangular title/time/mute presentation with one responsive square liquid-glass panel, a grooved playback-driven disk, play/pause and scrub controls.
+- [x] Preserve accessible names/time announcements, screen-reader errors/retry, independent scenery pause and reduced motion without visible panel prose.
+- [x] Recheck desktop/phone square geometry and disk playback/pause/wait/end/reduced-motion behavior in both browsers and actual in-app playback; final contrast is recorded with the refined controls.
+- [x] Retain final web checks for the superseding refined controls; publish the final candidate for independent review.
+
+Audio delivery, the private supplied file, authentication and regional scenery
+motion remain unchanged. No private file/path or new media binary is committed.
+
+
+## Final centered, borderless glass refinements
+
+- [x] Center the panel in both viewport axes and remove its rim/border and corner scenery button.
+- [x] Put the icon-only play/pause target below a translucent seek bar; remove the garden-link box and keep underlined text.
+- [x] Fix the independently reproduced WebKit seek/resume disk state with a guarded native seek-completion check; confirm the regression fails before the correction and passes afterward.
+- [x] Apply the latest spacing approval: replace the square constraint with content-driven height, comfortable responsive record size and balanced padding; darken the seek handle against the glass.
+- [x] Verify final centering, contrast, control order, native playback/disk states and reduced motion; retain current checks and publish the new candidate for fresh review.
+- [ ] Obtain fresh independent approval for the exact final head; keep merge and deployment held.
+
+The operating-system reduced-motion preference remains the decorative motion
+control. Earlier visible scenery/mute controls, rectangular layout, borders and
+boxed backlink are superseded by the user's latest approvals in decision0066.
+The latest approval also supersedes the square aspect constraint; the natural
+height keeps the record comfortably sized on narrow screens without extra blank
+space around the controls.
+
+Final refinement verification: lint, typecheck, build and the full test command
+pass (828 Vitest, 27 content, 13 release; 2 opt-in integration skips). Both
+Chromium and WebKit confirm native playback, pause, seeking, loading/error/end
+states, retry and reduced motion. The reproduced WebKit buffered-seek case now
+keeps the record turning while audio progresses; a paused seek keeps it still.
+The actual in-app browser independently played and sought the privately supplied
+recording, observed the disk continuing afterward, then paused/reset it.
+
+Native screenshots confirm the centered, text-free, borderless panel and the
+natural record/control spacing. Across 320/390/768/1440px widths the final seek
+handle measures at least 3.36:1, the play icon at least 4.60:1 and the shadowed
+garden-link glyphs at least 6.16:1 against their rendered surroundings. Short
+windows down to 320×320 retain reachable, unobstructed 44px seek and 56×48px play
+targets without horizontal overflow. The flower stays fixed during scrolling.
+These browser measurements and screenshots use synthetic fixtures outside the
+product; supplied-recording checks are separate. Remote CI remains unavailable
+before jobs start, and local evidence does not waive repository gates.

@@ -31,8 +31,8 @@ layer. The user [clarified](https://github.com/C0derTang/shared-garden/issues/16
 that it remains beside/right of the player on wide
 screens; on narrow screens it sits behind the panel instead of stacking below.
 Its bloom stays above-left of the stem base with gentle base-anchored wind.
-Decorative layers ignore pointer events. Reduced motion stops all decoration;
-an icon inside the audio panel also pauses/resumes the scenery and flower.
+Decorative layers ignore pointer events. The operating-system reduced-motion
+preference stops all decoration.
 
 The requested recording is Khalil Fong's **愛在 / Love At** from Wonderland / 未來.
 Its identity was corroborated through the [official provider recording](https://www.youtube.com/watch?v=QE1fgMH-bf0)
@@ -40,16 +40,41 @@ and [Apple Music listing](https://music.apple.com/tw/album/%E6%84%9B%E5%9C%A8/27
 The user subsequently requested local audio and custom controls, superseding the
 intermediate official-video choice. No iframe, provider connection, remote
 thumbnail, extracted stream or third-party binary is included in the product.
-Play/pause, elapsed/duration, seeking and mute use the browser's native audio
-engine with custom accessible controls. The source is assigned only after Play;
+Play/pause and seeking use the browser's native audio engine with custom accessible controls. The source is assigned only after Play;
 metadata is not requested beforehand. Leaving the page stops and releases audio.
-Errors remain generic and inside the panel, without server paths or details.
+Errors remain generic, announced to screen readers with a retry indication on
+the play icon, without server paths or details.
+
+The [square-glass approval](https://github.com/C0derTang/shared-garden/issues/165#issuecomment-6887055837)
+and [subsequent layout](https://github.com/C0derTang/shared-garden/issues/165#issuecomment-6887122797)
+and [control refinements](https://github.com/C0derTang/shared-garden/issues/165#issuecomment-6887136665)
+produce one liquid-glass panel centered horizontally and vertically in
+the viewport. The [latest spacing approval](https://github.com/C0derTang/shared-garden/issues/165#issuecomment-6887193137)
+supersedes the square constraint: content determines its height, with balanced
+padding around a responsive record, seek bar and play control. On short screens
+the record contracts while controls retain their touch targets.
+Translucency, soft blur and shadow remain, with no visible border,
+rim or inset outline. A grooved decorative record rotates during actual playback;
+pause, buffering, seeking, end and error stop it. On seek completion the native
+media state resumes the record only if audio is unpaused, not ended/errored and
+ready, including WebKit's buffered seeks without a fresh playing event. Reduced
+motion disables the record and all scenery animation.
+
+The panel has no visible track/artist names, timestamps or prose. A translucent
+scrub bar sits above an icon-only play triangle/pause-bars button with an invisible
+48px target; accessible control names and elapsed/duration announcements remain.
+The corner scenery control and optional mute button are removed at the user's
+request. An error is announced to screen readers with a retry indication on the
+play icon. The single old-garden link is underlined text with no box/background;
+light ink and a restrained text shadow retain contrast over the shore. Responsive
+centering, exact glass styling, disc grooves and control dimensions are choices
+under decision 0004.
 
 The user [supplied a local copy](https://github.com/C0derTang/shared-garden/issues/165#issuecomment-6887023659)
 of the requested recording. Its path and binary
 remain private, outside the public repository; local configuration and real
 playback verification are handled separately from the committed implementation.
-Authenticated localhost playback, pause, seek, mute and resume were verified
+Authenticated localhost playback, pause, seek and resume were verified
 against that file; its observed duration is about 244 seconds.
 Synthetic tones exercise controls only in disposable tests outside product
 output. They are never a substitute track or a product fixture. If a recording
@@ -72,7 +97,7 @@ and uses nosniff/same-origin resource headers. No production storage upload,
 arbitrary URL proxy, provider credential change or backend data write is added.
 
 The only visible text outside that panel is one bottom-right `old garden` link
-to `/garden`, with a pale backing for photographic contrast. The existing garden,
+to `/garden`, with readable underlined text and no backing. The existing garden,
 entry categories, music tools and all other routes remain unchanged. Removing
 the homepage carousels removes their loader and formatter: the homepage verifies
 Auth and live membership, then returns only member/visitor status. It performs

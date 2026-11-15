@@ -26,6 +26,10 @@ it("renders only the native login form for visitors without artwork or media", (
 it("offers one local audio panel without requesting media or any provider before play", () => {
   const { container } = render(<SunsetLanding data={{ status: "member" }} />);
   expect(screen.getAllByRole("region")).toHaveLength(1);
+  expect(screen.getByRole("region").textContent).toBe("");
+  expect(screen.queryByRole("heading")).toBeNull();
+  expect(screen.getAllByRole("button")).toHaveLength(1);
+  expect(screen.queryByRole("button", { name: /Mute/ })).toBeNull();
   expect(screen.getByRole("button", { name: /Play.*愛在.*Khalil Fong/ })).toBeVisible();
   const audio = container.querySelector("audio")!;
   expect(audio).not.toHaveAttribute("src");
@@ -38,7 +42,7 @@ it("offers one local audio panel without requesting media or any provider before
   expect(screen.getByRole("link", { name: "old garden" })).toHaveAttribute("href", "/garden");
 });
 
-it("starts local audio on keyboard activation and supports pause, progress, seek and mute", async () => {
+it("starts local audio on keyboard activation and supports pause, progress and seek", async () => {
   const user = userEvent.setup();
   const { container } = render(<SunsetLanding data={{ status: "member" }} />);
   const audio = container.querySelector("audio")!;
@@ -56,8 +60,6 @@ it("starts local audio on keyboard activation and supports pause, progress, seek
   expect(seek).toHaveAttribute("aria-valuetext", "0:07 of 4:04");
   fireEvent.change(seek, { target: { value: "60" } });
   expect(audio.currentTime).toBe(60);
-  await user.click(screen.getByRole("button", { name: "Mute audio" }));
-  expect(audio.muted).toBe(true);
   await user.click(screen.getByRole("button", { name: /Pause.*愛在/ }));
   expect(HTMLMediaElement.prototype.pause).toHaveBeenCalledOnce();
   expect(screen.getByRole("button", { name: /Play.*愛在/ })).toBeVisible();
@@ -83,13 +85,26 @@ it("pauses audio and releases its source when leaving the page", async () => {
   expect(audio).not.toHaveAttribute("src");
 });
 
-it("pauses and resumes scenery independently without starting audio", async () => {
-  const user = userEvent.setup();
+it("resumes the disk after a playing seek without a second playing event, but not after a paused seek", () => {
   const { container } = render(<SunsetLanding data={{ status: "member" }} />);
-  await user.click(screen.getByRole("button", { name: "Pause scenery motion" }));
-  expect(screen.getByRole("button", { name: "Resume scenery motion" })).toHaveAttribute("aria-pressed", "true");
-  await user.click(screen.getByRole("button", { name: "Resume scenery motion" }));
-  expect(screen.getByRole("button", { name: "Pause scenery motion" })).toHaveAttribute("aria-pressed", "false");
-  expect(container.querySelector("audio")).not.toHaveAttribute("src");
-  expect(HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
+  const audio = container.querySelector("audio")!;
+  const disk = container.querySelector('[class*="recordSlot"] > div')!;
+  const stopped = disk.className;
+  fireEvent.play(audio);
+  fireEvent.playing(audio);
+  const spinning = disk.className;
+  expect(spinning).not.toBe(stopped);
+  fireEvent.seeking(audio);
+  expect(disk.className).toBe(stopped);
+  Object.defineProperty(audio, "paused", { value: false, configurable: true });
+  Object.defineProperty(audio, "readyState", { value: 4, configurable: true });
+  fireEvent.seeked(audio);
+  expect(disk.className).toBe(spinning);
+  fireEvent.pause(audio);
+  Object.defineProperty(audio, "paused", { value: true, configurable: true });
+  fireEvent.seeking(audio);
+  fireEvent.seeked(audio);
+  expect(disk.className).toBe(stopped);
+  fireEvent.error(audio);
+  expect(disk.className).toBe(stopped);
 });
