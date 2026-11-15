@@ -147,12 +147,15 @@ frame of sampling and compositing delay plus part of the ramp, small enough not
 to show a character visibly before it is heard. Characters are plain cream text
 with no shadow, glow, blur or colour change. Unsung characters keep their space,
 so a centered phrase never shifts. A finished phrase fades out in place, by
-opacity only and linearly, with no translation or scale: after its end it waits
-up to 0.25 seconds, then fades over the gap to the next phrase minus 50 ms,
-clamped to 120–500 ms, so it is gone or nearly gone before the next phrase.
-Outgoing and incoming phrases share one grid cell, so nothing moves; only in
-near-touching gaps does a briefly fading phrase sit under the next one, hidden
-from assistive technology. Before gaps of at least 5 seconds, including the
+opacity only and linearly, with no translation or scale. Following the
+independent review, the fade always finishes no later than the next phrase's
+start, so phrases never overlap: within the window between a phrase's end and
+the next start, the linger takes at most 40% of the window (up to 0.25 seconds)
+and the fade the rest (up to 0.5 seconds); a window under 50 ms removes the
+phrase at the next start without a fade. The last phrase and long gaps keep the
+0.25-second linger and 0.5-second fade. Phrases share one grid cell, so nothing
+moves. Pausing applies the media position directly. Before gaps of at least 5
+seconds, including the
 introduction, three
 dots appear up to 6 seconds ahead and light one per second over the final 3
 seconds. The ending, errors and unavailable cues stay blank.

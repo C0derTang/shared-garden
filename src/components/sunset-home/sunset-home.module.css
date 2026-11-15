@@ -107,7 +107,6 @@
 @media (prefers-reduced-motion: reduce) {
   .lilySway, .cloudImage, .farRipple, .nearRipple, .record { animation: none; }
   .lyricCue, .lyricCue [data-char] { opacity: 1 !important; }
-  .lyricCue[data-lyric="outgoing"] { display: none; }
   .lyricResume span, .lyricResume span[data-lit] { animation: none; transition: none; }
   .sceneLayer { display: none; }
   .login { transition: none; }

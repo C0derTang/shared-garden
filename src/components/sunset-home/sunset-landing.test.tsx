@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { SunsetLanding } from "./sunset-landing";
@@ -50,6 +50,8 @@ const opacities = (element: HTMLElement | null) =>
   Array.from(element?.querySelectorAll<HTMLElement>("[data-char]") ?? [], (char) => Number(char.style.opacity));
 // The display leads the media clock by 40 ms; times below subtract it so expectations stay round.
 const lead = 0.04;
+const nextFrames = () => act(() => new Promise<void>((resolve) =>
+  requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
 
 it("fetches private cues only on play and follows native time through pause, seeks, gaps and end", async () => {
   vi.mocked(fetch).mockResolvedValue({ ok: true, json: async () => ({ version: 1, cues: [
@@ -73,7 +75,9 @@ it("fetches private cues only on play and follows native time through pause, see
   expect(opacities(phrase(lyrics))).toEqual([1, 1, 1, 0.5, ...Array(10).fill(0)]);
   audio.currentTime = 2.5 - lead;
   await waitFor(() => expect(opacities(phrase(lyrics)).slice(0, 11)).toEqual([...Array(10).fill(1), 0.5]));
+  // Pausing applies the media position even if no timeupdate preceded it.
   fireEvent.pause(audio);
+  await nextFrames();
   expect(opacities(phrase(lyrics)).slice(0, 11)).toEqual([...Array(10).fill(1), 0.5]);
   fireEvent.change(screen.getByRole("slider"), { target: { value: "4.5" } });
   await waitFor(() => expect(phrase(lyrics)).toBeNull());
@@ -105,8 +109,8 @@ it("reveals characters at their onsets, gives assistive technology whole phrases
   expect(opacities(phrase(lyrics))).toEqual([1, 0.5]);
   expect(screen.getByText("晨光")).toBe(phrase(lyrics)!.firstElementChild);
   expect(phrase(lyrics)!.lastElementChild).toHaveAttribute("aria-hidden", "true");
-  // Gap 0.6 s: a 0.5 s linear fade starting 0.05 s after the end, finished before the next phrase.
-  audio.currentTime = 2.3 - lead;
+  // Window 0.6 s: a 0.24 s linger then a 0.36 s linear fade that ends exactly at the next start.
+  audio.currentTime = 2.42 - lead;
   await waitFor(() => expect(phrase(lyrics)!.style.opacity).toBe("0.5"));
   expect(phrase(lyrics)!.style.transform).toBe("");
   expect(lyrics.querySelectorAll("p")).toHaveLength(1);
@@ -117,7 +121,7 @@ it("reveals characters at their onsets, gives assistive technology whole phrases
   expect(screen.getByText("暮色")).toBe(phrase(lyrics)!.firstElementChild);
 });
 
-it("stacks a nearly touching outgoing phrase in the same place, hidden from assistive technology", async () => {
+it("removes a touching phrase when the next one starts, so phrases never overlap", async () => {
   vi.mocked(fetch).mockResolvedValue({ ok: true, json: async () => ({ version: 1, cues: [
     { start: 1, end: 2, text: "晨光", chars: [1, 1.5] }, { start: 2.02, end: 3, text: "暮色", chars: [2.02, 2.5] },
   ] }) } as Response);
@@ -127,16 +131,15 @@ it("stacks a nearly touching outgoing phrase in the same place, hidden from assi
   const lyrics = screen.getByLabelText("Synchronized lyrics");
   await user.click(screen.getByRole("button", { name: /Play.*愛在/ }));
   fireEvent.pause(audio);
+  audio.currentTime = 2.01 - lead;
+  fireEvent.seeked(audio);
+  await waitFor(() => expect(phrase(lyrics)).toHaveTextContent("晨光"));
+  expect(phrase(lyrics)!.style.opacity).toBe("1");
   audio.currentTime = 2.08 - lead;
   fireEvent.seeked(audio);
-  await waitFor(() => expect(phrase(lyrics, "outgoing")).toHaveTextContent("晨光"));
-  expect(phrase(lyrics, "outgoing")).toHaveAttribute("aria-hidden", "true");
-  expect(phrase(lyrics, "outgoing")!.style.opacity).toBe("0.33");
+  await waitFor(() => expect(phrase(lyrics)).toHaveTextContent("暮色"));
+  expect(lyrics.querySelectorAll("p")).toHaveLength(1);
   expect(opacities(phrase(lyrics))).toEqual([0.5, 0]);
-  audio.currentTime = 2.2 - lead;
-  fireEvent.seeked(audio);
-  await waitFor(() => expect(phrase(lyrics, "outgoing")).toBeNull());
-  expect(phrase(lyrics)).toHaveTextContent("暮色");
 });
 
 it("styles lyrics as plain text that never moves: no shadow, glow, blur, transform or drift animation", () => {

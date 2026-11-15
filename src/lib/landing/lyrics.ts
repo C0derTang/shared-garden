@@ -38,10 +38,12 @@ export function parseLyrics(value: unknown): Lyrics | null {
 /** Longest per-character ramp; a sooner next onset shortens it so held notes never delay later characters. */
 export const charFadeSeconds = 0.12;
 const minCharFadeSeconds = 0.04;
-/** Brief pause after the sung end before a phrase starts fading. */
+/** Longest pause after the sung end before a phrase starts fading. */
 export const lingerSeconds = 0.25;
-/** Exit fades leave this much clear time before the next phrase where the gap allows. */
-const clearanceSeconds = 0.05;
+/** Longest exit fade. */
+export const exitFadeSeconds = 0.5;
+/** Windows shorter than this skip the fade: the phrase is removed when the next one starts. */
+const minExitWindowSeconds = 0.05;
 /** Gaps at least this long show the resume indicator before the next phrase. */
 export const resumeGapSeconds = 5;
 /** The indicator lights one dot per second over this final lead-in. */
@@ -67,16 +69,23 @@ export function charOpacities(cue: LyricCue, time: number): number[] {
   });
 }
 
-/** When a phrase starts and finishes its in-place exit fade. */
+/**
+ * When a phrase starts and finishes its in-place exit fade. The fade always completes no
+ * later than the next phrase's start: within the window between this end and the next start,
+ * the linger takes at most 40% (up to 250 ms) and the fade the rest (up to 500 ms); windows
+ * under 50 ms remove the phrase at the next start without a fade.
+ */
 export function exitFade(cue: LyricCue, next: LyricCue | undefined) {
-  const gap = next ? next.start - cue.end : Infinity;
-  const duration = Math.min(0.5, Math.max(0.12, gap - clearanceSeconds));
-  const start = cue.end + Math.min(lingerSeconds, Math.max(0, gap - clearanceSeconds - duration));
+  const window = next ? next.start - cue.end : Infinity;
+  if (next && window < minExitWindowSeconds) return { start: next.start, end: next.start, duration: 0 };
+  const linger = Math.min(lingerSeconds, window * 0.4);
+  const duration = Math.min(exitFadeSeconds, window - linger);
+  const start = cue.end + linger;
   return { start, end: start + duration, duration };
 }
 
 export type LyricPhrase = { index: number; opacity: number; chars: number[] };
-/** Visible phrases, oldest first (an outgoing phrase can overlap the next one only in tiny gaps). */
+/** Visible phrases: at most one, since an exit fade always ends by the next phrase's start. */
 export type LyricFrame = { phrases: LyricPhrase[]; resume: number | null };
 
 /** Everything the caption stage shows at one playback time; a pure function of time. */
@@ -88,14 +97,12 @@ export function lyricFrame(cues: LyricCue[], time: number): LyricFrame {
     const middle = (low + high) >> 1;
     if (cues[middle].start <= time) { index = middle; low = middle + 1; } else high = middle - 1;
   }
-  for (const candidate of [index - 1, index]) {
-    const cue = cues[candidate];
-    if (!cue) continue;
-    const fade = exitFade(cue, cues[candidate + 1]);
-    if (time >= fade.end) continue;
-    frame.phrases.push({
-      index: candidate,
-      opacity: round(1 - clamp01((time - fade.start) / fade.duration)),
+  const cue = cues[index];
+  if (cue) {
+    const fade = exitFade(cue, cues[index + 1]);
+    if (time < fade.end) frame.phrases.push({
+      index,
+      opacity: fade.duration > 0 ? round(1 - clamp01((time - fade.start) / fade.duration)) : 1,
       chars: charOpacities(cue, time),
     });
   }

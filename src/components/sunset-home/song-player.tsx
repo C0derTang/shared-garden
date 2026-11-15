@@ -90,7 +90,7 @@ export function SongPlayer() {
         setEnded(audio.ended);
         setSpinning(!audio.paused && !audio.ended && !audio.error && audio.readyState >= 3);
       }}
-      onPause={() => { setPlaying(false); setSpinning(false); }}
+      onPause={(event) => { setPlaying(false); setSpinning(false); setPosition(event.currentTarget.currentTime); }}
       onEnded={() => { setPlaying(false); setSpinning(false); setEnded(true); }} onLoadedMetadata={readDuration} onDurationChange={readDuration}
       onTimeUpdate={() => setPosition(media.current?.currentTime ?? 0)}
       onError={() => { setPlaying(false); setSpinning(false); setFailed(true); }} />

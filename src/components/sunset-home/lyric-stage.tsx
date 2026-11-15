@@ -12,10 +12,9 @@ import styles from "./sunset-home.module.css";
  */
 export const visualLeadSeconds = 0.04;
 
-function Phrase({ cue, phrase, current }: { cue: LyricCue; phrase: LyricPhrase; current: boolean }) {
-  return <p className={styles.lyricCue} data-lyric={current ? "current" : "outgoing"}
-    aria-hidden={current ? undefined : true} style={{ opacity: phrase.opacity }}>
-    {current && <span className={styles.srOnly}>{cue.text}</span>}
+function Phrase({ cue, phrase }: { cue: LyricCue; phrase: LyricPhrase }) {
+  return <p className={styles.lyricCue} data-lyric="current" style={{ opacity: phrase.opacity }}>
+    <span className={styles.srOnly}>{cue.text}</span>
     <span aria-hidden="true">{Array.from(cue.text).map((char, index) => (
       <span key={index} data-char="" style={{ opacity: phrase.chars[index] }}>{char}</span>
     ))}</span>
@@ -51,8 +50,7 @@ export function LyricStage({ cues, media, playing, position, visible }: {
 
   const phrases = frame?.phrases.filter((phrase) => cues[phrase.index]) ?? [];
   return <div className={`${styles.lyrics} ${lyricFont.className}`} aria-label="Synchronized lyrics" aria-live="off">
-    {phrases.map((phrase, i) => <Phrase key={phrase.index} cue={cues[phrase.index]} phrase={phrase}
-      current={i === phrases.length - 1} />)}
+    {phrases.map((phrase) => <Phrase key={phrase.index} cue={cues[phrase.index]} phrase={phrase} />)}
     {frame && frame.resume !== null && <div className={styles.lyricResume} data-lyric="resume" aria-hidden="true">
       {[1, 2, 3].map((dot) => <span key={dot} data-lit={dot <= (frame.resume ?? 0) || undefined} />)}
     </div>}

@@ -64,22 +64,26 @@ describe("charOpacities", () => {
 });
 
 describe("exitFade", () => {
-  const at = (end: number, nextStart?: number) =>
-    exitFade({ start: 0, end, text: "a" }, nextStart === undefined ? undefined : { start: nextStart, end: nextStart + 1, text: "b" });
+  const at = (end: number, nextStart?: number) => {
+    const fade = exitFade({ start: 0, end, text: "a" }, nextStart === undefined ? undefined : { start: nextStart, end: nextStart + 1, text: "b" });
+    return [fade.start, fade.end, fade.duration].map((value) => +value.toFixed(3));
+  };
 
-  it("lingers briefly then fades for at most 500 ms, finishing 50 ms before the next phrase", () => {
-    expect(at(10)).toEqual({ start: 10.25, end: 10.75, duration: 0.5 });
-    expect(at(10, 12)).toEqual({ start: 10.25, end: 10.75, duration: 0.5 });
-    const medium = at(10, 10.6);
-    expect(medium.start).toBeCloseTo(10.05);
-    expect(medium.end).toBeCloseTo(10.55);
-    const short = at(10, 10.3);
-    expect([short.start, short.end, short.duration].map((value) => +value.toFixed(3))).toEqual([10, 10.25, 0.25]);
+  it("keeps a 250 ms linger and 500 ms fade for the last phrase and long gaps", () => {
+    expect(at(10)).toEqual([10.25, 10.75, 0.5]);
+    expect(at(10, 12)).toEqual([10.25, 10.75, 0.5]);
+    expect(at(10, 10.75)).toEqual([10.25, 10.75, 0.5]);
   });
 
-  it("keeps at least a 120 ms fade when phrases nearly touch", () => {
-    const tight = at(10, 10.02);
-    expect([tight.start, +tight.end.toFixed(3), tight.duration]).toEqual([10, 10.12, 0.12]);
+  it("shortens the linger, then the fade, so the fade always ends by the next start", () => {
+    expect(at(10, 10.6)).toEqual([10.24, 10.6, 0.36]);
+    expect(at(10, 10.17)).toEqual([10.068, 10.17, 0.102]);
+    expect(at(10, 10.05)).toEqual([10.02, 10.05, 0.03]);
+  });
+
+  it("removes the phrase at the next start without a fade when the phrases touch", () => {
+    expect(at(10, 10)).toEqual([10, 10, 0]);
+    expect(at(10, 10.03)).toEqual([10.03, 10.03, 0]);
   });
 });
 
@@ -98,9 +102,9 @@ describe("lyricFrame", () => {
     expect(at(13.75)).toEqual({ phrases: [], resume: null });
   });
 
-  it("stacks a nearly touching outgoing phrase under the next one only until its short fade ends", () => {
-    expect(at(12.07).phrases.map(({ index, opacity }) => [index, opacity])).toEqual([[0, 0.42], [1, 1]]);
-    expect(at(12.13).phrases.map(({ index }) => index)).toEqual([1]);
+  it("never overlaps phrases: a touching phrase is removed when the next one starts", () => {
+    expect(at(12.01).phrases).toEqual([{ index: 0, opacity: 1, chars: [1, 1] }]);
+    expect(at(12.02).phrases.map(({ index }) => index)).toEqual([1]);
   });
 
   it("shows resume dots only before long gaps, lighting one per second over the final three", () => {
