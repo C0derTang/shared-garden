@@ -1,12 +1,8 @@
-import { PublicLanding } from "@/components/landing/public-landing";
-import { getAuthConfig } from "@/lib/auth/config";
+import { SunsetLanding } from "@/components/sunset-home/sunset-landing";
+import { loadLandingAccess } from "@/lib/landing/access";
 
 export const dynamic = "force-dynamic";
 
-export default function Home() {
-  return (
-    <PublicLanding
-      configurationStatus={getAuthConfig() ? "ready" : "missing"}
-    />
-  );
+export default async function Home() {
+  return <SunsetLanding data={await loadLandingAccess()} />;
 }
