@@ -104,7 +104,7 @@ it.skipIf(!statusPath)(
         new NextRequest(`${origin}/garden`, { headers: { cookie } }),
       );
       expect(denied.headers.get("location")).toBe(
-        `${origin}/auth/error?reason=denied`,
+        `${origin}/`,
       );
       const signedOut = await signOut(
         new NextRequest(`${origin}/auth/sign-out`, {

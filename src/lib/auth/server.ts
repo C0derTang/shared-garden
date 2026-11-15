@@ -9,7 +9,7 @@ import { MemberAccessUnavailableError } from "@/lib/auth/access-error";
 
 export async function requireMember(options?: { unavailable?: "throw" }) {
   const config = getAuthConfig();
-  if (!config) redirect("/auth/error?reason=setup");
+  if (!config) redirect("/");
   const store = await cookies();
   const client = createServerClient(
     config.supabaseUrl,
@@ -31,6 +31,6 @@ export async function requireMember(options?: { unavailable?: "throw" }) {
   if (access.status === "unavailable" && options?.unavailable === "throw")
     throw new MemberAccessUnavailableError();
   if (access.status !== "allowed")
-    redirect(`/auth/error?reason=${access.status}`);
+    redirect("/");
   return { client, member: access.member };
 }

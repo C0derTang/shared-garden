@@ -240,6 +240,10 @@ Observed:
 - Anonymous `/garden` redirected to `/auth/error?reason=signin`; the error page
   offered Continue with Google, Sign out and Return home. Anonymous
   `/api/media/intents` answered `401 {"error":"signin_required"}`.
+  (Historical observation. Since
+  [issue #169](https://github.com/C0derTang/shared-garden/issues/169), every auth
+  error, including this one, redirects to `/` and `/auth/error` no longer
+  renders a page.)
 - The first authorized visit produced one Cactus at spot 1 and nothing else, and
   the header read `1 planted · 0 in bloom`. The audit recipe agreed.
 - The first-login guide opened for each member independently, moved focus into

@@ -9,7 +9,7 @@ import {
 
 export async function POST(request: NextRequest) {
   const config = getAuthConfig();
-  if (!config) return redirectTo(null, "/auth/error?reason=setup");
+  if (!config) return redirectTo(null, "/");
   if (!sameOriginPost(request, config))
     return noStore(
       new NextResponse("Please return to the garden and try again.", {
@@ -43,5 +43,5 @@ export async function POST(request: NextRequest) {
   } catch {
     /* Never render upstream error messages or configuration values. */
   }
-  return auth.finish(redirectTo(config, "/auth/error?reason=unavailable"));
+  return auth.finish(redirectTo(config, "/"));
 }

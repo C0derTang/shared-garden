@@ -159,6 +159,10 @@ The public pages now look like the garden:
   action when sign-in is configured, with Sign out and Return home as secondary
   buttons. The not-found page keeps "Back to the garden gate". The copy, sign-in
   reasons and the sign-out form are unchanged.
+  *Superseded for the sign-in error page by
+  [issue #169](https://github.com/C0derTang/shared-garden/issues/169): every
+  auth error now redirects to the homepage, and `/auth/error` itself redirects
+  there for old links.*
 
 The landing, sign-in error and not-found styles move from `globals.css` into
 one shared `public.module.css`. The shared `.eyebrow` rule that other panels use
