@@ -103,12 +103,11 @@ arbitrary URL proxy, provider credential change or backend data write is added.
 
 Timed lyrics use a separate optional server-only `SUNSET_LYRICS_PATH`, an absolute
 JSON path outside public static storage and version control. The interchange
-format is `{ "version": 1, "cues": [{ "start": 1, "end": 3, "text": "...", "chars": [1, 1.4, 1.9] }] }`,
-with seconds, sorted non-overlapping intervals and explicit ends. The optional
-`chars` array holds one absolute onset per code point of the trimmed text,
-finite, nondecreasing and inside `start <= onset < end`; any malformed array
-rejects the whole file. Files without it remain valid version 1 data, so the
-version is unchanged. The user
+format is `{ "version": 1, "cues": [{ "start": 1, "end": 3, "text": "..." }] }`,
+with seconds, sorted non-overlapping intervals and explicit ends. Unknown fields
+are dropped; a per-character onset field briefly added for the caption revision
+was [removed](https://github.com/C0derTang/shared-garden/issues/165#issuecomment-6888069612)
+because nothing uses it. The user
 [supplied the authoritative lyric text](https://github.com/C0derTang/shared-garden/issues/165#issuecomment-6887565676)
 and requested only its Mandarin/Chinese lines, excluding romanization. Those
 exact words are aligned locally to the supplied recording; recognition output
@@ -128,18 +127,24 @@ missing file never blocks playback. Leaving the page cancels lyric work along
 with releasing audio. The user's [caption revision](https://github.com/C0derTang/shared-garden/issues/165#issuecomment-6887746621)
 asked for character-by-character captions, separate lines at the pauses in the
 music, a larger different font and any other improvements. Under decision 0004
-the following details were chosen. While audio plays, a frame loop reads the
-native media clock (rather than the coarse `timeupdate` event) and reveals each
-character at its onset with a short ink-bloom: it fades in from a soft blur
-with a warm sunset glow that cools to the cream lyric colour. Unsung characters
-keep their space, so a centered phrase never shifts. Cues without onsets reveal
-evenly across the first 80% of the phrase. Seeking, pausing, delayed cue
-responses and replay apply native time directly: characters already sung appear
-at once without replaying the reveal, and pause preserves the current state.
+the following details were chosen. After viewing the first candidate, the user
+reported that audio-derived per-character timing did not feel synchronized and
+[asked](https://github.com/C0derTang/shared-garden/issues/165#issuecomment-6888069612)
+for a plain constant-velocity slide with no character shadow, which supersedes
+the earlier per-character onsets and ink-bloom reveal. While audio plays, a
+frame loop reads the native media clock (rather than the coarse `timeupdate`
+event) and sweeps each phrase left to right at constant velocity across its
+cue interval: progress is `(time - start) / (end - start)`, measured in
+characters, and each character's opacity rises linearly over a soft edge one
+character wide. Characters are plain cream text with no shadow, glow, blur or
+colour change. Unsung characters keep their space, so a centered phrase never
+shifts. Seeking, pausing, delayed cue responses and replay apply native time
+directly, so the sweep shows the exact position at once, and pause preserves it.
 A phrase holds through gaps of up to 2 seconds until the next begins; before
 longer gaps it lingers 0.8 seconds, then clears. When the next phrase starts,
-the previous one drifts upward, shrinks and fades, with at most one leaving
-phrase. Before gaps of at least 5 seconds, including the introduction, three
+the previous one drifts upward, shrinks and fades at a constant rate with no
+easing, with at most one leaving phrase. Before gaps of at least 5 seconds,
+including the introduction, three
 dots appear up to 6 seconds ahead and light one per second over the final 3
 seconds. The ending, errors and unavailable cues stay blank.
 
@@ -148,11 +153,11 @@ The captions use the Ma Shan Zheng brush-kaishu face, self-hosted through
 faces. The lyric stage spans up to 1200px or 94% of the viewport independently
 of the player, at about 2.4–5rem on wide screens, 2.1–3.6rem below the 820px
 breakpoint and 1.75–3rem in short windows, with balanced wrapping and no
-horizontal overflow. A layered soft dark halo replaces the hard outline and keeps
-the light text legible over the painting without a backing card. Screen readers
+horizontal overflow. The earlier hard outline is removed and no halo or backing
+scrim replaces it; contrast over the painting is the user's call. Screen readers
 receive each phrase once as plain text while the per-character spans are hidden
 from them; the region remains non-live. Reduced motion shows each whole phrase
-at its start with no character, leaving-phrase or indicator animation.
+at its start with no sweep, leaving-phrase or indicator animation.
 
 The supplied text resolves the word-recognition blocker after inaccurate local
 transcription drafts were withheld. Local alignment preserves all 47 supplied
@@ -174,14 +179,15 @@ For the caption revision, the private cues were regenerated locally from the
 same recording and private timing evidence, keeping the previous line-level file
 as a private backup. Each supplied line is split only where the separated vocal
 track shows a measured breath or rest, giving 59 phrase cues from the 47 lines;
-legato lines without a measurable pause stay whole. Every cue carries character
-onsets derived from local recognition timing aligned to the exact supplied
-characters, refined against vocal energy; the third repeated chorus reuses the
-relative timing of its earlier identical lines. The concatenated text still
-equals the supplied 476 characters exactly and the application's parser accepts
-the file. Onsets are acoustic estimates, typically within a fraction of a
-second, not human-verified karaoke timing. No lyric text, timing or private path
-is committed or published.
+legato lines without a measurable pause stay whole. The third repeated chorus
+reuses the relative timing of its earlier identical lines. After the amendment
+the private file was regenerated with the same phrase intervals and only start,
+end and text; the onset-bearing file is kept privately as a backup only. The
+concatenated text still equals the supplied 476 characters exactly and the
+application's parser accepts the file. Phrase intervals are acoustic estimates,
+not human-verified timing, and characters within a phrase follow the constant
+sweep rather than individual sung syllables. No lyric text, timing or private
+path is committed or published.
 
 Apart from an active lyric, the only visible text outside that panel is one bottom-right `old garden` link
 to `/garden`, with readable underlined text and no backing. The existing garden,

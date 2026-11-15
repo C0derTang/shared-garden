@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
@@ -45,8 +46,8 @@ it("offers one local audio panel without requesting media or any provider before
 });
 
 const phrase = (lyrics: HTMLElement, kind = "current") => lyrics.querySelector<HTMLElement>(`[data-lyric="${kind}"]`);
-const states = (element: HTMLElement | null) =>
-  Array.from(element?.querySelectorAll("[data-state]") ?? [], (char) => char.getAttribute("data-state"));
+const opacities = (element: HTMLElement | null) =>
+  Array.from(element?.querySelectorAll<HTMLElement>("[data-char]") ?? [], (char) => Number(char.style.opacity));
 
 it("fetches private cues only on play and follows native time through pause, seeks, gaps and end", async () => {
   vi.mocked(fetch).mockResolvedValue({ ok: true, json: async () => ({ version: 1, cues: [
@@ -66,13 +67,12 @@ it("fetches private cues only on play and follows native time through pause, see
   audio.currentTime = 1.5;
   fireEvent.timeUpdate(audio);
   await waitFor(() => expect(phrase(lyrics)).toHaveTextContent("Synthetic dawn"));
-  // Joining mid-phrase settles sung characters at once; later ones wait for their onset.
-  expect(states(phrase(lyrics)).filter((state) => state === "settled")).toHaveLength(5);
-  expect(states(phrase(lyrics)).slice(5).every((state) => state === "hidden")).toBe(true);
-  audio.currentTime = 1.75;
-  await waitFor(() => expect(states(phrase(lyrics))).toContain("bloom"));
+  // A quarter of the way through: 14 characters swept 3.5 characters, left to right.
+  expect(opacities(phrase(lyrics))).toEqual([1, 1, 1, 0.5, ...Array(10).fill(0)]);
+  audio.currentTime = 2.5;
+  await waitFor(() => expect(opacities(phrase(lyrics)).slice(0, 11)).toEqual([...Array(10).fill(1), 0.5]));
   fireEvent.pause(audio);
-  expect(phrase(lyrics)).toHaveTextContent("Synthetic dawn");
+  expect(opacities(phrase(lyrics)).slice(0, 11)).toEqual([...Array(10).fill(1), 0.5]);
   fireEvent.change(screen.getByRole("slider"), { target: { value: "4.5" } });
   await waitFor(() => expect(phrase(lyrics)).toBeNull());
   expect(lyrics.querySelectorAll('[data-lyric="resume"] [data-lit]')).toHaveLength(0);
@@ -82,7 +82,7 @@ it("fetches private cues only on play and follows native time through pause, see
   audio.currentTime = 10.9;
   fireEvent.seeked(audio);
   await waitFor(() => expect(phrase(lyrics)).toHaveTextContent("Synthetic evening"));
-  expect(states(phrase(lyrics)).every((state) => state === "settled")).toBe(true);
+  expect(opacities(phrase(lyrics)).slice(0, 16).every((value) => value === 1)).toBe(true);
   expect(phrase(lyrics, "resume")).toBeNull();
   fireEvent.ended(audio);
   await waitFor(() => expect(lyrics).toBeEmptyDOMElement());
@@ -90,7 +90,7 @@ it("fetches private cues only on play and follows native time through pause, see
 
 it("gives assistive technology whole phrases and sends the previous phrase away as the next begins", async () => {
   vi.mocked(fetch).mockResolvedValue({ ok: true, json: async () => ({ version: 1, cues: [
-    { start: 1, end: 2, text: "晨光", chars: [1, 1.5] }, { start: 2.2, end: 3, text: "暮色", chars: [2.2, 2.6] },
+    { start: 1, end: 2, text: "晨光" }, { start: 2.2, end: 3, text: "暮色" },
   ] }) } as Response);
   const user = userEvent.setup();
   const { container } = render(<SunsetLanding data={{ status: "member" }} />);
@@ -102,13 +102,26 @@ it("gives assistive technology whole phrases and sends the previous phrase away 
   await waitFor(() => expect(phrase(lyrics)).toHaveTextContent("晨光"));
   expect(screen.getByText("晨光")).toBe(phrase(lyrics)!.firstElementChild);
   expect(phrase(lyrics)!.lastElementChild).toHaveAttribute("aria-hidden", "true");
-  audio.currentTime = 2.25;
+  audio.currentTime = 2.4;
   await waitFor(() => expect(phrase(lyrics, "leaving")).toHaveTextContent("晨光"));
   expect(phrase(lyrics, "leaving")).toHaveAttribute("aria-hidden", "true");
-  expect(states(phrase(lyrics))).toEqual(["bloom", "hidden"]);
+  expect(opacities(phrase(lyrics, "leaving"))).toEqual([1, 1]);
+  expect(opacities(phrase(lyrics))).toEqual([0.5, 0]);
   expect(screen.getByText("暮色")).toBe(phrase(lyrics)!.firstElementChild);
   await waitFor(() => expect(phrase(lyrics, "leaving")).toBeNull(), { timeout: 2000 });
   expect(phrase(lyrics)).toHaveTextContent("暮色");
+});
+
+it("styles lyrics as plain text with a linear leaving transition and no shadow, glow or blur", () => {
+  const css = readFileSync("src/components/sunset-home/sunset-home.module.css", "utf8");
+  const rules = [...css.matchAll(/([^{}]*\.(?:lyrics|lyricCue|lyricLeaving)\b[^{}]*)\{([^{}]*)\}/g)];
+  expect(rules.length).toBeGreaterThan(4);
+  for (const [, , body] of rules) expect(body).not.toMatch(/shadow|filter|blur/);
+  const leave = css.match(/@keyframes phrase-leave \{([\s\S]*?)\n\}/)![1];
+  expect(leave).not.toMatch(/shadow|filter|blur/);
+  expect(leave).not.toMatch(/\d%\s*\{/); // only from/to: one constant-rate segment
+  expect(css).toMatch(/\.lyricLeaving \{[^}]*animation: phrase-leave \d+ms linear forwards;/);
+  expect(css).not.toMatch(/ink-bloom|--lyric-shadow/);
 });
 
 it("uses current time for delayed cues and cancels lyric work on unmount", async () => {

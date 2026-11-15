@@ -1,27 +1,27 @@
 "use client";
 
 import { useEffect, useRef, useState, type RefObject } from "react";
-import { advanceLyricView, sameLyricView, type LyricCue, type LyricView } from "@/lib/landing/lyrics";
+import { advanceLyricView, sameLyricView, sweepOpacities, type LyricCue, type LyricView } from "@/lib/landing/lyrics";
 import { lyricFont } from "./lyric-font";
 import styles from "./sunset-home.module.css";
 
-const leaveMilliseconds = 800;
+const leaveMilliseconds = 700;
 
-function Phrase({ cue, revealed, settled, leaving = false }: {
-  cue: LyricCue; revealed: number; settled: number; leaving?: boolean;
-}) {
+function Phrase({ cue, progress, leaving = false }: { cue: LyricCue; progress: number; leaving?: boolean }) {
+  const chars = Array.from(cue.text);
+  const opacities = sweepOpacities(chars.length, progress);
   return <p className={`${styles.lyricCue} ${leaving ? styles.lyricLeaving : ""}`}
     data-lyric={leaving ? "leaving" : "current"} aria-hidden={leaving || undefined}>
     {!leaving && <span className={styles.srOnly}>{cue.text}</span>}
-    <span aria-hidden="true">{Array.from(cue.text).map((char, index) => (
-      <span key={index} data-state={index < settled ? "settled" : index < revealed ? "bloom" : "hidden"}>{char}</span>
+    <span aria-hidden="true">{chars.map((char, index) => (
+      <span key={index} data-char="" style={{ opacity: Number(opacities[index].toFixed(3)) }}>{char}</span>
     ))}</span>
   </p>;
 }
 
 /**
- * Floating phrase display. While playing, a frame loop reads the media clock so each
- * character lands on its onset; paused or seeking positions are applied directly.
+ * Floating phrase display. While playing, a frame loop reads the media clock and sweeps
+ * each phrase left to right at constant velocity; paused or seeking positions apply directly.
  */
 export function LyricStage({ cues, media, playing, position, visible }: {
   cues: LyricCue[];
@@ -66,9 +66,8 @@ export function LyricStage({ cues, media, playing, position, visible }: {
   const current = view && view.index >= 0 ? cues[view.index] : undefined;
   const leaving = view?.leaving ? cues[view.leaving.index] : undefined;
   return <div className={`${styles.lyrics} ${lyricFont.className}`} aria-label="Synchronized lyrics" aria-live="off">
-    {leaving && view?.leaving && <Phrase key={`leaving-${view.leaving.id}`} cue={leaving}
-      revealed={view.leaving.revealed} settled={view.leaving.revealed} leaving />}
-    {current && view && <Phrase key={`cue-${view.index}`} cue={current} revealed={view.revealed} settled={view.settled} />}
+    {leaving && view?.leaving && <Phrase key={`leaving-${view.leaving.id}`} cue={leaving} progress={1} leaving />}
+    {current && view && <Phrase key={`cue-${view.index}`} cue={current} progress={view.progress} />}
     {view && view.resume !== null && <div className={styles.lyricResume} data-lyric="resume" aria-hidden="true">
       {[1, 2, 3].map((dot) => <span key={dot} data-lit={dot <= (view.resume ?? 0) || undefined} />)}
     </div>}
