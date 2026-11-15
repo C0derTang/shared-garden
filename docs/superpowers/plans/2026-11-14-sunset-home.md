@@ -166,3 +166,29 @@ targets without horizontal overflow. The flower stays fixed during scrolling.
 These browser measurements and screenshots use synthetic fixtures outside the
 product; supplied-recording checks are separate. Remote CI remains unavailable
 before jobs start, and local evidence does not waive repository gates.
+
+
+## Lower player and private synchronized lyrics
+
+- [x] Read the latest issue approval; retain the same isolated issue branch and protected recording.
+- [x] Lower the player and tighten record/seek/play spacing while retaining short-screen reachability and the unboxed backlink.
+- [x] Add bounded, member-verified private cue JSON loading with refreshed cookies, no-store, safe failure and no path/metadata disclosure.
+- [x] Fetch cues only after Play; select by native time through delay, seeking, pause, instrumental gaps and end. Keep missing cues independent of audio.
+- [x] Add original synthetic parser/auth/file-boundary and playback synchronization regression tests, first observed failing then passing.
+- [x] Inspect browser layout/contrast and synchronized synthetic cues in Chromium/WebKit, including short screens and reduced motion.
+- [ ] Validate privately derived actual-song cues once supplied; no invented lyrics or timing and no private transcript in Git.
+- [x] Retain full checks and publish the candidate for independent review.
+- [ ] Obtain fresh exact-head review. Keep merge and deployment held.
+
+Lyric implementation verification: lint, typecheck, build and full tests pass
+(853 Vitest, 27 content and 13 release; 2 opt-in integration skips). Both browser
+engines verify lazy requests, delayed cues after seeking, pause retention, 16
+boundary/gap samples, blank ending, reduced motion and continued audio when cues
+are unavailable. The lower player does not move as lyrics appear; long synthetic
+lines wrap without clipping across eight normal/short viewport sizes. The final
+glyph halo measures at least 15.23:1; play, seek-thumb and backlink contrast remain
+at least 4.43:1, 4.11:1 and 6.16:1 respectively. Anonymous localhost still renders
+only Log in, and its lyric endpoint returns empty 401/private-no-store without a
+redirect. Actual transcript/timing validation remains pending after an inaccurate
+first local transcription was withheld. No real lyrics or private cues are
+included in this candidate or its public evidence.

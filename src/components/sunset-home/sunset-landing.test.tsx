@@ -1,9 +1,10 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { SunsetLanding } from "./sunset-landing";
 
 beforeEach(() => {
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false }));
   vi.spyOn(HTMLMediaElement.prototype, "play").mockImplementation(function (this: HTMLMediaElement) {
     fireEvent.play(this);
     return Promise.resolve();
@@ -11,7 +12,7 @@ beforeEach(() => {
   vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(function (this: HTMLMediaElement) { fireEvent.pause(this); });
   vi.spyOn(HTMLMediaElement.prototype, "load").mockImplementation(() => {});
 });
-afterEach(() => { cleanup(); vi.restoreAllMocks(); });
+afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
 it("renders only the native login form for visitors without artwork or media", () => {
   const { container } = render(<SunsetLanding data={{ status: "visitor" }} />);
@@ -36,10 +37,69 @@ it("offers one local audio panel without requesting media or any provider before
   expect(audio).toHaveAttribute("preload", "none");
   expect(audio).not.toHaveAttribute("autoplay");
   expect(HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
+  expect(fetch).not.toHaveBeenCalled();
   expect(container.querySelector("iframe, video")).toBeNull();
   expect(container.innerHTML).not.toMatch(/youtube|ytimg|googlevideo|spotify/);
   expect(screen.getAllByRole("link")).toHaveLength(1);
   expect(screen.getByRole("link", { name: "old garden" })).toHaveAttribute("href", "/garden");
+});
+
+it("fetches private cues only on play and follows native time through pause, seeks, gaps and end", async () => {
+  vi.mocked(fetch).mockResolvedValue({ ok: true, json: async () => ({ version: 1, cues: [
+    { start: 1, end: 3, text: "Synthetic dawn" }, { start: 5, end: 7, text: "Synthetic evening" },
+  ] }) } as Response);
+  const user = userEvent.setup();
+  const { container } = render(<SunsetLanding data={{ status: "member" }} />);
+  const audio = container.querySelector("audio")!;
+  const lyrics = screen.getByLabelText("Synchronized lyrics");
+  expect(lyrics).toBeEmptyDOMElement();
+  expect(fetch).not.toHaveBeenCalled();
+  await user.click(screen.getByRole("button", { name: /Play.*愛在/ }));
+  await waitFor(() => expect(fetch).toHaveBeenCalledOnce());
+  expect(fetch).toHaveBeenCalledWith("/api/home/lyrics", expect.objectContaining({ cache: "no-store", credentials: "same-origin" }));
+  Object.defineProperty(audio, "duration", { value: 10, configurable: true });
+  fireEvent.loadedMetadata(audio);
+  audio.currentTime = 1.5;
+  fireEvent.timeUpdate(audio);
+  await waitFor(() => expect(lyrics).toHaveTextContent("Synthetic dawn"));
+  fireEvent.pause(audio);
+  expect(lyrics).toHaveTextContent("Synthetic dawn");
+  fireEvent.change(screen.getByRole("slider"), { target: { value: "4" } });
+  expect(lyrics).toBeEmptyDOMElement();
+  audio.currentTime = 5.5;
+  fireEvent.seeked(audio);
+  expect(lyrics).toHaveTextContent("Synthetic evening");
+  fireEvent.ended(audio);
+  expect(lyrics).toBeEmptyDOMElement();
+});
+
+it("uses current time for delayed cues and cancels lyric work on unmount", async () => {
+  let respond!: (value: Response) => void;
+  vi.mocked(fetch).mockReturnValue(new Promise((resolve) => { respond = resolve; }));
+  const user = userEvent.setup();
+  const { container, unmount } = render(<SunsetLanding data={{ status: "member" }} />);
+  const audio = container.querySelector("audio")!;
+  await user.click(screen.getByRole("button", { name: /Play.*愛在/ }));
+  audio.currentTime = 6;
+  fireEvent.seeked(audio);
+  respond({ ok: true, json: async () => ({ version: 1, cues: [
+    { start: 1, end: 3, text: "Earlier fixture" }, { start: 5, end: 7, text: "Current fixture" },
+  ] }) } as Response);
+  await waitFor(() => expect(screen.getByLabelText("Synchronized lyrics")).toHaveTextContent("Current fixture"));
+  const options = vi.mocked(fetch).mock.calls[0][1];
+  unmount();
+  expect(options?.signal?.aborted).toBe(true);
+});
+
+it("keeps audio playable when optional lyrics fail", async () => {
+  vi.mocked(fetch).mockRejectedValue(new Error("PRIVATE_CUE_PATH"));
+  const user = userEvent.setup();
+  const { container } = render(<SunsetLanding data={{ status: "member" }} />);
+  await user.click(screen.getByRole("button", { name: /Play.*愛在/ }));
+  expect(screen.getByRole("button", { name: /Pause.*愛在/ })).toBeVisible();
+  expect(screen.getByLabelText("Synchronized lyrics")).toBeEmptyDOMElement();
+  expect(screen.queryByRole("status")).toBeNull();
+  expect(container.textContent).not.toContain("PRIVATE_CUE_PATH");
 });
 
 it("starts local audio on keyboard activation and supports pause, progress and seek", async () => {

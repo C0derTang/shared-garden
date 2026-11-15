@@ -18,23 +18,26 @@
 .cloudImage { animation: cloud-drift 48s ease-in-out infinite alternate; }
 .farRipple { animation: far-ripple 9s ease-in-out infinite; }
 .nearRipple { animation: near-ripple 6.5s ease-in-out infinite; }
-.content { position: relative; z-index: 1; min-height: 100svh; display: grid; place-items: center; padding: 64px 24px; }
+.content { position: relative; z-index: 1; min-height: 100svh; display: grid; place-items: center; padding: 24svh 24px 8svh; }
+.playerStage { position: relative; width: min(420px, calc(100vw - 48px)); }
+.lyrics { position: absolute; bottom: calc(100% + 28px); left: -12px; right: -12px; pointer-events: none; text-align: center; color: #fff9ed; }
+.lyricCue { margin: 0; white-space: pre-line; overflow-wrap: anywhere; font-size: clamp(1.05rem, 2vw, 1.35rem); line-height: 1.65; letter-spacing: .06em; text-shadow: -1px -1px 0 #102015, 0 -1px 0 #102015, 1px -1px 0 #102015, -1px 0 0 #102015, 1px 0 0 #102015, -1px 1px 0 #102015, 0 1px 0 #102015, 1px 1px 0 #102015, 0 2px 5px #102015, 0 0 14px #172418d9; animation: lyric-arrive 450ms ease-out both; }
 .audioPanel {
-  position: relative; width: min(420px, calc(100vw - 48px)); display: grid; grid-template-rows: auto 44px 48px; gap: 4px;
-  padding: 28px; border: 0; border-radius: 28px;
+  position: relative; width: 100%; display: grid; grid-template-rows: auto 44px 44px; gap: 0;
+  padding: 24px 28px 18px; border: 0; border-radius: 28px;
   background: linear-gradient(135deg, #ffffff3d, #fff6e312 45%, #ffffff21);
   backdrop-filter: blur(10px) saturate(1.35);
   box-shadow: 0 18px 46px #17252624;
 }
 .audioPanel::before { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit; background: radial-gradient(ellipse at 30% 15%, #ffffff24, transparent 65%); }
-.recordSlot { display: grid; place-items: center; padding-bottom: 8px; }
+.recordSlot { display: grid; place-items: center; padding-bottom: 4px; }
 .record { width: min(230px, 100%); aspect-ratio: 1; border-radius: 50%; border: 1px solid #eadccf44;
   background: radial-gradient(circle, #181b18 0 2%, #eee1c7 2.6% 3.8%, #b18776 4.4% 17%, #583f35 17.8% 19.5%, transparent 20%), conic-gradient(from 35deg, transparent 0deg, #fff8e736 35deg, transparent 75deg 170deg, #fff8e72b 220deg, transparent 275deg), repeating-radial-gradient(circle, #1a2421 0 1px, #3e4840 1.5px 2px, #18211d 2.5px 3.5px);
   box-shadow: 0 12px 20px #10201840, inset 0 0 0 7px #18221b55;
   animation: record-turn 12s linear infinite; animation-play-state: paused;
 }
 .recordPlaying { animation-play-state: running; }
-.audioPlay { position: relative; display: grid; place-items: center; justify-self: center; width: 56px; height: 48px; border: 0; background: transparent; color: #142d20; cursor: pointer; }
+.audioPlay { position: relative; display: grid; place-items: center; justify-self: center; width: 56px; height: 44px; border: 0; background: transparent; color: #142d20; cursor: pointer; }
 .audioPlay svg { width: 48px; height: 48px; overflow: visible; filter: drop-shadow(0 1px 1px #fff5e266); }
 .audioPlay path { fill: currentColor; stroke: none; }
 .audioPlay .pauseIcon { fill: none; stroke: currentColor; stroke-width: 3; }
@@ -58,6 +61,7 @@
 .home :focus-visible,
 .entrance :focus-visible { outline: 2px solid #714555; outline-offset: 4px; box-shadow: none; }
 @keyframes record-turn { to { transform: rotate(360deg); } }
+@keyframes lyric-arrive { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes cloud-drift { from { transform: translateX(-9px) scale(1.025); } to { transform: translateX(11px) scale(1.025); } }
 @keyframes far-ripple { 0%, 100% { transform: translate(-2px, -.4px) scaleX(1.006); } 50% { transform: translate(3px, .7px) scaleX(1.009); } }
 @keyframes near-ripple { 0%, 100% { transform: translate(3px, -1.2px) scale(1.008, 1.003); } 50% { transform: translate(-4px, 1.5px) scale(1.012, 1.006); } }
@@ -65,19 +69,23 @@
 @media (max-width: 820px) {
   .landscapeImage { object-position: 68% 50%; }
   .sceneLayer { mask-position: 68% 50%; }
-  .audioPanel { width: min(360px, calc(100vw - 48px)); padding: 24px; }
+  .playerStage { width: min(360px, calc(100vw - 48px)); }
+  .audioPanel { padding: 22px 24px 16px; }
   .botanical { width: min(350px, 85vw); right: 3vw; bottom: -4px; }
   .footer { right: 24px; }
 }
 @media (max-height: 600px) {
-  .audioPanel { padding: 18px; }
+  .content { padding: 100px 24px 52px; }
+  .audioPanel { padding: 16px 18px 12px; }
   .record { width: min(180px, 100%, max(80px, calc(100svh - 272px))); }
+  .lyrics { bottom: calc(100% + 14px); }
+  .lyricCue { font-size: 1rem; line-height: 1.5; }
 }
 @media (max-height: 600px) and (min-width: 821px) {
   .botanical { width: min(calc((100vw - 420px) / 2 - 4vw), 62svh); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .lilySway, .cloudImage, .farRipple, .nearRipple, .record { animation: none; }
+  .lilySway, .cloudImage, .farRipple, .nearRipple, .record, .lyricCue { animation: none; }
   .sceneLayer { display: none; }
   .login { transition: none; }
 }

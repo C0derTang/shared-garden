@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { lyricAt, parseLyrics, type LyricCue } from "@/lib/landing/lyrics";
 import styles from "./sunset-home.module.css";
 
 function clock(seconds: number) {
@@ -11,28 +12,55 @@ function clock(seconds: number) {
 export function SongPlayer() {
   const media = useRef<HTMLAudioElement>(null);
   const active = useRef(true);
+  const lyricRequest = useRef<AbortController | null>(null);
   const [playing, setPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [position, setPosition] = useState(0);
   const [spinning, setSpinning] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [cues, setCues] = useState<LyricCue[]>([]);
+  const [ended, setEnded] = useState(false);
+  const cue = !ended && !failed ? lyricAt(cues, position) : undefined;
 
   useEffect(() => {
     active.current = true;
     const audio = media.current;
     return () => {
       active.current = false;
+      lyricRequest.current?.abort();
       audio?.pause();
       audio?.removeAttribute("src");
       audio?.load();
     };
   }, []);
 
+  async function loadLyrics() {
+    if (lyricRequest.current) return;
+    const controller = new AbortController();
+    lyricRequest.current = controller;
+    try {
+      const response = await fetch("/api/home/lyrics", {
+        cache: "no-store", credentials: "same-origin", signal: controller.signal,
+      });
+      if (!response.ok) throw new Error("lyrics_unavailable");
+      const lyrics = parseLyrics(await response.json());
+      if (!lyrics) throw new Error("lyrics_unavailable");
+      if (active.current && !controller.signal.aborted) {
+        setCues(lyrics.cues);
+        setPosition(media.current?.currentTime ?? 0);
+      }
+    } catch {
+      // Optional cues must never prevent playback or reveal a private error.
+      if (lyricRequest.current === controller) lyricRequest.current = null;
+    }
+  }
+
   async function togglePlayback() {
     const audio = media.current;
     if (!audio) return;
     if (playing) { audio.pause(); return; }
     setFailed(false);
+    void loadLyrics();
     // Assign only on activation so even metadata requires the member's action.
     if (!audio.hasAttribute("src")) audio.src = "/api/home/audio";
     if (audio.error) audio.load();
@@ -49,17 +77,23 @@ export function SongPlayer() {
     setDuration(Number.isFinite(value) && value > 0 ? value : 0);
   }
 
-  return <section className={styles.audioPanel} aria-label="愛在 · Khalil Fong">
+  return <div className={styles.playerStage}>
+    <div className={styles.lyrics} aria-label="Synchronized lyrics" aria-live="off">
+      {cue && <p key={`${cue.start}-${cue.end}`} className={styles.lyricCue}>{cue.text}</p>}
+    </div>
+    <section className={styles.audioPanel} aria-label="愛在 · Khalil Fong">
     <audio ref={media} preload="none" aria-hidden="true"
-      onPlay={() => setPlaying(true)} onPlaying={() => setSpinning(true)}
-      onWaiting={() => setSpinning(false)} onSeeking={() => setSpinning(false)}
+      onPlay={() => { setPlaying(true); setEnded(false); }} onPlaying={() => setSpinning(true)}
+      onWaiting={() => setSpinning(false)} onSeeking={(event) => { setSpinning(false); setPosition(event.currentTarget.currentTime); }}
       onSeeked={(event) => {
         // WebKit may resume buffered audio without emitting another playing event.
         const audio = event.currentTarget;
+        setPosition(audio.currentTime);
+        setEnded(audio.ended);
         setSpinning(!audio.paused && !audio.ended && !audio.error && audio.readyState >= 3);
       }}
       onPause={() => { setPlaying(false); setSpinning(false); }}
-      onEnded={() => { setPlaying(false); setSpinning(false); }} onLoadedMetadata={readDuration} onDurationChange={readDuration}
+      onEnded={() => { setPlaying(false); setSpinning(false); setEnded(true); }} onLoadedMetadata={readDuration} onDurationChange={readDuration}
       onTimeUpdate={() => setPosition(media.current?.currentTime ?? 0)}
       onError={() => { setPlaying(false); setSpinning(false); setFailed(true); }} />
     <div className={styles.recordSlot} aria-hidden="true"><div className={`${styles.record} ${spinning ? styles.recordPlaying : ""}`} /></div>
@@ -79,5 +113,6 @@ export function SongPlayer() {
         : <path d="m26 21 17 11-17 11z" />}</svg>
     </button>
     {failed && <p role="status" className={styles.srOnly}>The audio couldn’t load. Try again.</p>}
-  </section>;
+    </section>
+  </div>;
 }

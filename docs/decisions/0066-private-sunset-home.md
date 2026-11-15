@@ -48,11 +48,15 @@ the play icon, without server paths or details.
 The [square-glass approval](https://github.com/C0derTang/shared-garden/issues/165#issuecomment-6887055837)
 and [subsequent layout](https://github.com/C0derTang/shared-garden/issues/165#issuecomment-6887122797)
 and [control refinements](https://github.com/C0derTang/shared-garden/issues/165#issuecomment-6887136665)
-produce one liquid-glass panel centered horizontally and vertically in
-the viewport. The [latest spacing approval](https://github.com/C0derTang/shared-garden/issues/165#issuecomment-6887193137)
+produce one liquid-glass panel centered horizontally in
+the viewport. The [natural-height spacing approval](https://github.com/C0derTang/shared-garden/issues/165#issuecomment-6887193137)
 supersedes the square constraint: content determines its height, with balanced
 padding around a responsive record, seek bar and play control. On short screens
 the record contracts while controls retain their touch targets.
+The [floating-lyrics revision](https://github.com/C0derTang/shared-garden/issues/165#issuecomment-6887351472)
+then moves the player lower, tightens the seek/play spacing evenly and places
+the active lyric above it without a second card. Exact responsive offsets,
+padding and the restrained cue entrance are choices under decision 0004.
 Translucency, soft blur and shadow remain, with no visible border,
 rim or inset outline. A grooved decorative record rotates during actual playback;
 pause, buffering, seeking, end and error stop it. On seek completion the native
@@ -62,12 +66,12 @@ motion disables the record and all scenery animation.
 
 The panel has no visible track/artist names, timestamps or prose. A translucent
 scrub bar sits above an icon-only play triangle/pause-bars button with an invisible
-48px target; accessible control names and elapsed/duration announcements remain.
+44px target; accessible control names and elapsed/duration announcements remain.
 The corner scenery control and optional mute button are removed at the user's
 request. An error is announced to screen readers with a retry indication on the
 play icon. The single old-garden link is underlined text with no box/background;
 light ink and a restrained text shadow retain contrast over the shore. Responsive
-centering, exact glass styling, disc grooves and control dimensions are choices
+placement, exact glass styling, disc grooves and control dimensions are choices
 under decision 0004.
 
 The user [supplied a local copy](https://github.com/C0derTang/shared-garden/issues/165#issuecomment-6887023659)
@@ -96,7 +100,37 @@ rejects configured paths under public/, ignores client-supplied path parameters,
 and uses nosniff/same-origin resource headers. No production storage upload,
 arbitrary URL proxy, provider credential change or backend data write is added.
 
-The only visible text outside that panel is one bottom-right `old garden` link
+Timed lyrics use a separate optional server-only `SUNSET_LYRICS_PATH`, an absolute
+JSON path outside public static storage and version control. The interchange
+format is `{ "version": 1, "cues": [{ "start": 1, "end": 3, "text": "..." }] }`,
+with seconds, sorted non-overlapping intervals and explicit ends. Only cues
+derived from the supplied recording may be configured; actual transcription and
+timing verification are separate dependencies. Neither full lyrics nor private
+cue paths are committed or included in public fixtures, HTML or server props.
+
+The independent `/api/home/lyrics` guard verifies Auth and live membership before
+any file inspection and persists refreshed cookies with private/no-store. It
+rejects public paths (including resolved symlinks), limits bounded file reads to
+256 KiB and validates up to 1024 cues with finite nonnegative times, at most one
+hour and 500 characters per cue. Private source metadata is discarded. Missing,
+invalid or denied data returns an empty generic failure, never a filesystem
+error or login HTML. No client-selected file path or remote request is accepted.
+
+The client requests cues only after explicit Play, independently of audio so a
+missing file never blocks playback. Native time selects each half-open interval
+`start <= currentTime < end`, including delayed responses, seeking and replay;
+instrumental gaps and ending are blank. Pause preserves the current line.
+Leaving the page cancels lyric work along with releasing audio. The cue floats
+above the player as plain text with a tight dark glyph halo and no backing. Reduced
+motion removes its entrance animation while retaining static synchronized text.
+
+At this candidate, actual cue configuration and song-specific synchronization
+remain pending: the first local transcription failed quality checks and was
+withheld. No guessed transcript, repeated hallucinated text or placeholder cue
+file is installed. Synthetic synchronization tests prove the mechanism only;
+they do not establish the accuracy or availability of the requested lyrics.
+
+Apart from an active lyric, the only visible text outside that panel is one bottom-right `old garden` link
 to `/garden`, with readable underlined text and no backing. The existing garden,
 entry categories, music tools and all other routes remain unchanged. Removing
 the homepage carousels removes their loader and formatter: the homepage verifies
