@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { expect, it, vi } from "vitest";
 const { load } = vi.hoisted(() => ({ load: vi.fn() }));
-vi.mock("@/lib/landing/entries", () => ({ loadLandingData: load }));
+vi.mock("@/lib/landing/access", () => ({ loadLandingAccess: load }));
 vi.mock("@/lib/auth/config", () => ({ getAuthConfig: () => null }));
 import Home, { dynamic } from "./page";
 

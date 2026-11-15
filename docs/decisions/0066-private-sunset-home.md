@@ -9,7 +9,7 @@ the callback destination and public informational homepage in
 [0008](0008-google-web-session.md). Anonymous, denied, unavailable and unconfigured
 home states contain no artwork, private entries, branding, or garden link.
 
-The user's latest explicit request is a scene that looks like an actual photograph
+The user approved a scene that looks like an actual photograph
 with a painting filter, and a spider lily instead of the decorative rose.
 [This approval](https://github.com/C0derTang/shared-garden/issues/165#issuecomment-6885528265)
 supersedes the earlier fine-line SVG treatment, rose anatomy and terrain
@@ -17,49 +17,81 @@ illustration refinements. Their implementation history remains in Git and issue
 comments; the current homepage uses original raster imagery with a restrained
 painted surface, natural lighting and atmospheric depth.
 
-The continuous sunset mountain-and-lake background sits behind the translucent
-entry carousels at lower left and a single spider-lily stalk at lower right.
-Keeping the warm red palette with a red Lycoris radiata, using separate image
-layers, and choosing exact crops and motion are conservative implementation
-choices under decision 0004. The bloom is above-left of its slender stem base,
-with the stalk leaning down-right. Gentle base-anchored sway and slight flex
-suggest wind; the lowest stem edge blends into the foreground. Reduced motion
-keeps the image fully still. Phone layouts stack the panels and flower while a
-responsive background crop retains the sunset and lake behind them.
+The user's [scene-motion approval](https://github.com/C0derTang/shared-garden/issues/165#issuecomment-6886807188)
+and [latest local-audio direction](https://github.com/C0derTang/shared-garden/issues/165#issuecomment-6886946085)
+replace the three homepage carousels with exactly one custom local-audio panel.
+The retained photograph has slowly drifting clouds and separate distant/near
+water ripples. Stationary, feathered masks match its responsive cover crop and
+exclude the mountains, sun and shoreline; only duplicated sky/open-water pixels
+move. The original PNGs remain unchanged. Layer timing, masks, opacity and the
+820px narrow breakpoint are implementation choices under decision 0004.
+
+The single red Lycoris radiata stays anchored in a fixed decorative viewport
+layer. The user [clarified](https://github.com/C0derTang/shared-garden/issues/165#issuecomment-6886835387)
+that it remains beside/right of the player on wide
+screens; on narrow screens it sits behind the panel instead of stacking below.
+Its bloom stays above-left of the stem base with gentle base-anchored wind.
+Decorative layers ignore pointer events. Reduced motion stops all decoration;
+an icon inside the audio panel also pauses/resumes the scenery and flower.
+
+The requested recording is Khalil Fong's **愛在 / Love At** from Wonderland / 未來.
+Its identity was corroborated through the [official provider recording](https://www.youtube.com/watch?v=QE1fgMH-bf0)
+and [Apple Music listing](https://music.apple.com/tw/album/%E6%84%9B%E5%9C%A8/272875165?i=272875203).
+The user subsequently requested local audio and custom controls, superseding the
+intermediate official-video choice. No iframe, provider connection, remote
+thumbnail, extracted stream or third-party binary is included in the product.
+Play/pause, elapsed/duration, seeking and mute use the browser's native audio
+engine with custom accessible controls. The source is assigned only after Play;
+metadata is not requested beforehand. Leaving the page stops and releases audio.
+Errors remain generic and inside the panel, without server paths or details.
+
+The user [supplied a local copy](https://github.com/C0derTang/shared-garden/issues/165#issuecomment-6887023659)
+of the requested recording. Its path and binary
+remain private, outside the public repository; local configuration and real
+playback verification are handled separately from the committed implementation.
+Authenticated localhost playback, pause, seek, mute and resume were verified
+against that file; its observed duration is about 244 seconds.
+Synthetic tones exercise controls only in disposable tests outside product
+output. They are never a substitute track or a product fixture. If a recording
+is not configured or becomes unavailable, the player reports a generic load
+failure after Play.
+
+Server-only `SUNSET_AUDIO_PATH` may point to one authorized absolute local file,
+outside public static storage and version control. `.local-media/` is ignored;
+actual paths and credentials never reach client props or errors. The independent
+`/api/home/audio` GET/HEAD guard verifies Auth and live membership before opening
+any file, returns 401/403/503 without login HTML on access failures, and persists
+refreshed cookies. Responses are private/no-store with no media on failure.
+GET supports bounded single byte ranges and 416 for invalid/multiple ranges;
+HEAD returns metadata without a body. Unmatched If-Range receives the full file.
+Streaming uses bounded chunks and closes the file on completion/cancellation.
+A conservative 128 MiB limit, regular-file check and audio-extension allowlist
+(MP3, M4A, AAC, WAV, Ogg, FLAC, WebM) reject unsuitable configuration. The route
+rejects configured paths under public/, ignores client-supplied path parameters,
+and uses nosniff/same-origin resource headers. No production storage upload,
+arbitrary URL proxy, provider credential change or backend data write is added.
+
+The only visible text outside that panel is one bottom-right `old garden` link
+to `/garden`, with a pale backing for photographic contrast. The existing garden,
+entry categories, music tools and all other routes remain unchanged. Removing
+the homepage carousels removes their loader and formatter: the homepage verifies
+Auth and live membership, then returns only member/visitor status. It performs
+no `memories_page` calls and reads no unused entry content or display names.
+Anonymous, denied and unavailable states render only Log in, including no
+artwork, player URL, image preload or provider request.
 
 The original landscape and transparent flower were generated from text without
-external source images. Public asset paths, dimensions, hashes and exact sanitized
-generation prompts are recorded in [artwork provenance](../assets/sunset-home.md).
-Next.js supplies responsive image optimization while preserving transparency.
-The signed-out rendering mounts neither image nor its preload. Existing
-Rose/Marigold/Tulip entry categories are unchanged: replacing the decorative
-flower does not rename or alter any garden data.
-
-The only visible text outside the carousel panels is one bottom-right
-`old garden` link to `/garden`. A restrained pale backing keeps its dark text
-readable over photographic foreground detail. Existing garden routes and
-features are unchanged. Phone layouts have no horizontal scrolling.
-
-The Rose, Marigold and Tulip panels use the existing bounded `memories_page`
-routine after Auth and live membership verification. Each keeps up to 12 newest
-usable entries, with plain text excerpts limited to 220 Unicode code points;
-Tulip displays title and artist. Existing private display names and garden dates
-provide attribution. Missing entries and generic load failures stay inside their
-respective panels. No tokens, Auth profiles, upstream errors, or demo data are
-passed to the view. There are no database or provider changes.
-
-The first entry is immediately readable. Multiple entries advance after at least
-six seconds, allowing extra reading time for longer excerpts. Previous, next and
-pause controls use vector icons with at least 44px touch targets. The old-garden
-link uses dark ink on a pale backing for contrast over the photograph. Hover,
-keyboard focus and hidden tabs pause
-rotation. Reduced motion disables automatic advance and decorative sway while
-retaining manual navigation. Automatic changes do not trigger live announcements.
+external source images. Public paths, dimensions, hashes and exact sanitized
+prompts remain in [artwork provenance](../assets/sunset-home.md). Next.js supplies
+responsive image optimization while preserving transparency. The new SVG files
+are invisible masking geometry, not replacements for the photographic artwork.
+The prior fine-line artwork, decorative rose and three-carousel requirements
+are superseded; their history remains in Git and issue comments.
 
 The homepage remains dynamic and private/no-store. Its proxy persists refreshed
 cookies in both the downstream request and browser response, including failed
-sessions; its server loader independently verifies membership before private
-reads. The native form retains the same-origin referrer policy needed by WebKit.
+sessions; its server loader independently verifies membership before rendering the
+member scene. The native form retains the same-origin referrer policy needed by WebKit.
 
 Production release and merge are explicitly held until the user approves the
 localhost candidate. [0065](0065-ordered-database-releases.md) means a main push

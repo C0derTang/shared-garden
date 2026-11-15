@@ -4,7 +4,7 @@
 
 **Goal:** Deliver the approved private sunset homepage as a localhost-reviewable candidate.
 
-**Architecture:** A dynamic server page verifies membership before loading three bounded memory lists. Responsive photographic/painterly raster layers and scoped CSS render the scene behind client carousels; the existing auth cookie adapter refreshes homepage sessions.
+**Architecture:** A dynamic server page verifies membership and returns only access status. Responsive photographic/painterly layers and scoped CSS render the scene behind one user-initiated custom local-audio panel; the existing auth cookie adapter refreshes homepage sessions.
 
 **Tech stack:** Existing Next.js image optimization, React, TypeScript and CSS modules; no new dependencies.
 
@@ -75,3 +75,48 @@ The explicit user request supersedes all earlier fine-line/rose visual tasks abo
 The portrait background source size accounts for its 3:2 cover footprint against viewport height, keeping the lake sharp on phones. The phone flower overlaps the footer's layout space so its stalk reaches the photographic shoreline; the backdrop stays fixed behind the full scrolling page. The first composite was checked for true transparency and intact stamen tips before these responsive adjustments.
 
 Final raster validation: lint, typecheck, full tests (812 Vitest, 27 content, 13 release; 2 opt-in integration skips), build and diff checks passed. Retained logs and source hashes accompany independent review. Synthetic browser checks passed for optimized image loading, normal wind and reduced motion, immediate entry content, automatic/manual navigation, pause/hover/focus/keyboard behavior, 44px controls and no overflow at 320/390/768/1440px. The single old-garden link's measured contrast was at least 9.78:1 across those widths. The visitor view had only Log in with no images, SVG or links; neither browser page errors nor external requests were observed. An anonymous request to the live localhost app after the build returned 200 with login only and no artwork references. No backend suites were repeated for the raster revision; release and hosted-check gates remain unchanged.
+
+
+## Superseding animated scene and official player
+
+- [x] Record the official-player choice and verified exact recording, preserving the generated artwork.
+- [x] Remove homepage-only entry loading and carousels; retain independent member verification, no-store and cookie refresh.
+- [x] Add one click-to-load privacy-enhanced player with accessible activation and no provider connection beforehand.
+- [x] Mask cloud and separate water motion away from stationary terrain; fix the lily beside the player on wide screens and behind it on narrow screens, with reduced-motion and pause controls.
+- [ ] Inspect desktop/phone stills and motion, verify Chromium/WebKit player activation and network privacy, and obtain actual in-app confirmation.
+- [ ] Run and retain lint/typecheck/full test/build evidence, update the same PR and obtain fresh exact-head review.
+
+Earlier carousel and stacked-flower tasks are historical and superseded by the
+latest approval in decision 0066. No backend/provider/configuration change or
+production data mutation belongs to this revision.
+
+
+## Final superseding custom local-audio candidate
+
+- [x] Remove the intermediate provider iframe and add custom native-audio play/pause, time, seeking and mute with no source/request before Play.
+- [x] Add independently member-verified local-file GET/HEAD streaming, single ranges, private/no-store, refreshed cookies and path-safe generic failures.
+- [x] Keep the previously verified cloud/water motion and responsive fixed lily; use no product fixture audio.
+- [x] Verify controls with disposable synthetic audio in Chromium/WebKit, and actual in-app appearance, initial request privacy and motion controls.
+- [x] Retain final web checks and inspect the complete diff for the candidate; publish it for fresh independent review.
+- [x] Verify the user-supplied local recording's actual playback/seek/duration after private configuration. No binary or private source path is committed.
+
+This supersedes the official-video implementation above. That earlier playback
+observation does not establish local recording availability. Endpoint and UI
+checks use temporary test fixtures only; actual recording verification is
+tracked separately after private configuration. No production
+upload, stream extraction, substitute track, merge or deployment is authorized.
+
+
+Final custom-audio validation: lint, typecheck, production build and full tests
+passed (828 Vitest, 27 content, 13 release; 2 opt-in integration skips). Protected
+streaming checks cover authorization before file access, cookies/no-store,
+GET/HEAD, bounded/suffix/open/malformed ranges, If-Range, public-path rejection
+and cancellation cleanup. Synthetic Chromium/WebKit controls pass independently
+of actual-song evidence. In the authenticated in-app browser the supplied local
+recording reported 243.786 seconds, advanced beyond five seconds, paused, sought
+to 24.4 seconds, muted and resumed beyond 30 seconds, then stopped/reset. No
+iframe or provider request is used. Source bytes, paths and private metadata
+remain outside the repository. Regional motion samples change cloud/water pixels
+while sampled mountain and shoreline pixels remain identical. Reduced motion,
+manual pause, fixed narrow-screen lily and control hit targets pass. Final
+exact-source browser evidence is recorded separately for independent review.
