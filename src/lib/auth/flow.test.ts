@@ -173,7 +173,7 @@ describe("Google sign-in boundaries", () => {
         headers: { origin, host: "evil.example" },
       }),
     );
-    expect(response.headers.get("location")).toBe("/auth/error?reason=setup");
+    expect(response.headers.get("location")).toBe("/");
   });
   it("keeps public setup failures free of configuration values", async () => {
     vi.stubEnv(
@@ -183,10 +183,10 @@ describe("Google sign-in boundaries", () => {
     const response = await start(
       request("/auth/start", { method: "POST", headers: { origin } }),
     );
-    expect(response.headers.get("location")).toBe("/auth/error?reason=setup");
+    expect(response.headers.get("location")).toBe("/");
     expect(await response.text()).not.toContain("private-marker");
   });
-  it("exchanges the code, verifies identity and membership, and carries cookies to a bounded destination", async () => {
+  it("exchanges the code and carries cookies home; the homepage verifies membership", async () => {
     const verifier = await startCookies();
     const response = await callback(
       request("/auth/callback?code=synthetic-code&next=//evil.example", {
@@ -203,11 +203,8 @@ describe("Google sign-in boundaries", () => {
     expect(response.headers.get("cache-control")).toContain("no-store");
     expect(calls.map(({ url }) => url)).toEqual([
       `${service}/auth/v1/token?grant_type=pkce`,
-      `${service}/auth/v1/user`,
-      `${service}/rest/v1/rpc/current_member`,
     ]);
     expect(calls[0].body).toMatchObject({ auth_code: "synthetic-code" });
-    expect(calls[2].authorization).toMatch(/^Bearer /);
   });
   it.each([
     "?error=access_denied&error_description=private-marker",
@@ -219,7 +216,7 @@ describe("Google sign-in boundaries", () => {
     async (query) => {
       const response = await callback(request(`/auth/callback${query}`));
       expect(response.headers.get("location")).toMatch(
-        /^https:\/\/app\.example\.test\/auth\/error\?reason=(cancelled|callback)$/,
+        /^https:\/\/app\.example\.test\/$/,
       );
       expect(response.headers.get("location")).not.toContain("private-marker");
       expect(calls).toHaveLength(0);
@@ -248,7 +245,7 @@ describe("Google sign-in boundaries", () => {
     expect(error).toBeNull();
     expect(data.user?.id).toBe(user.id);
   });
-  it("denies a successful OAuth identity that has no database membership", async () => {
+  it("sends a successful OAuth identity without membership home, where it sees only Log in", async () => {
     memberRows = [];
     const verifier = await startCookies();
     const response = await callback(
@@ -257,7 +254,7 @@ describe("Google sign-in boundaries", () => {
       }),
     );
     expect(response.headers.get("location")).toBe(
-      `${origin}/auth/error?reason=denied`,
+      `${origin}/`,
     );
     expect(response.cookies.get("sg-auth")?.value).toBeTruthy();
   });
@@ -272,7 +269,7 @@ describe("Google sign-in boundaries", () => {
       request("/garden", { headers: { cookie: cookie() } }),
     );
     expect(response.headers.get("location")).toBe(
-      `${origin}/auth/error?reason=unavailable`,
+      `${origin}/`,
     );
     expect(await response.text()).not.toContain("PRIVATE_DATABASE_DETAIL");
   });
@@ -283,7 +280,7 @@ describe("Google sign-in boundaries", () => {
       request("/auth/callback?code=bad", { headers: { cookie: verifier } }),
     );
     expect(response.headers.get("location")).toBe(
-      `${origin}/auth/error?reason=callback`,
+      `${origin}/`,
     );
     expect(response.cookies.get("sg-auth-code-verifier")?.value).toBe("");
   });
@@ -293,7 +290,7 @@ describe("protected destination", () => {
   it("redirects anonymous users without checking membership", async () => {
     const response = await proxy(request("/garden"));
     expect(response.headers.get("location")).toBe(
-      `${origin}/auth/error?reason=signin`,
+      `${origin}/`,
     );
     expect(calls).toHaveLength(0);
   });
@@ -314,7 +311,7 @@ describe("protected destination", () => {
         request("/garden", { headers: { cookie: cookie() } }),
       );
       expect(response.headers.get("location")).toBe(
-        `${origin}/auth/error?reason=denied`,
+        `${origin}/`,
       );
       expect(response.headers.get("x-middleware-next")).toBeNull();
     },
@@ -325,7 +322,7 @@ describe("protected destination", () => {
       request("/garden", { headers: { cookie: cookie() } }),
     );
     expect(response.headers.get("location")).toBe(
-      `${origin}/auth/error?reason=signin`,
+      `${origin}/`,
     );
     expect(calls.some(({ url }) => url.includes("current_member"))).toBe(false);
   });
@@ -365,7 +362,7 @@ describe("protected destination", () => {
       request("/garden", { headers: { cookie: cookie(true) } }),
     );
     expect(response.headers.get("location")).toBe(
-      `${origin}/auth/error?reason=denied`,
+      `${origin}/`,
     );
     expect(response.cookies.get("sg-auth")?.value).toBeTruthy();
   });
@@ -375,7 +372,7 @@ describe("protected destination", () => {
       request("/garden", { headers: { cookie: cookie(true) } }),
     );
     expect(response.headers.get("location")).toBe(
-      `${origin}/auth/error?reason=signin`,
+      `${origin}/`,
     );
     expect(response.cookies.get("sg-auth")?.value).toBe("");
   });
@@ -414,7 +411,7 @@ describe("sign out", () => {
     );
     expect(response.cookies.get("sg-auth")?.value).toBe("");
     expect(response.headers.get("location")).toBe(
-      `${origin}/auth/error?reason=signout`,
+      `${origin}/`,
     );
   });
   it("rejects cross-origin sign out without clearing cookies", async () => {
@@ -451,7 +448,7 @@ it("a forged action header cannot bypass membership denial", async () => {
   );
   expect(response.status).toBe(303);
   expect(response.headers.get("location")).toBe(
-    `${origin}/auth/error?reason=denied`,
+    `${origin}/`,
   );
 });
 

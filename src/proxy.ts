@@ -18,7 +18,7 @@ export async function proxy(request: NextRequest) {
       ? noStore(
           NextResponse.json({ error: musicApi ? "unavailable" : "media_unavailable" }, { status: 503 }),
         )
-      : redirectTo(null, "/auth/error?reason=setup");
+      : redirectTo(null, "/");
   const auth = createRequestClient(request, config);
   const access = await verifyMember(auth.client);
   // A transient action failure must reject in place so an open draft survives.
@@ -53,7 +53,7 @@ export async function proxy(request: NextRequest) {
                     : 503,
             },
           )
-        : redirectTo(config, `/auth/error?reason=${access.status}`),
+        : redirectTo(config, "/"),
     );
   const response = auth.finish(NextResponse.next({ request }));
   // Native same-origin forms must retain their Origin in WebKit. External
