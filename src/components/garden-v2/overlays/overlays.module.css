@@ -1,0 +1,1181 @@
+/*
+ * The new garden's menu and overlays (#183): handwritten words floating in
+ * the sky, and soft painterly translucent sheets over the painted world.
+ * Text sits on dark umber washes (cream #fbf3e4 is above 10:1 on them), so
+ * every overlay meets WCAG AA. Colors and tokens come from the garden's
+ * `.theme` (garden-v2.module.css).
+ */
+
+/* ---------------------------------------------------------------------------
+ * The menu: floating words */
+
+.nav {
+  position: absolute;
+  top: max(0.9rem, env(safe-area-inset-top));
+  left: max(1.1rem, env(safe-area-inset-left));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.1rem 0.45rem;
+  max-width: calc(100vw - 13rem);
+  font-size: 1.35rem;
+  line-height: 1.2;
+}
+
+.navWord {
+  padding: 0.1em 0.15em;
+  border-radius: 0.6em;
+  color: rgb(255 250 240 / 0.92);
+  text-decoration: none;
+  /* A warm glow, and a soft dark halo so the words read over a pale sky. */
+  text-shadow:
+    0 0 0.5em rgb(255 236 200 / 0.45),
+    0 1px 3px rgb(30 20 10 / 0.7),
+    0 0 1.2em rgb(40 28 16 / 0.35);
+  transition:
+    color 250ms ease,
+    text-shadow 250ms ease;
+  animation: word-drift 7s ease-in-out infinite;
+}
+
+.navWord:nth-of-type(2) {
+  animation-delay: -1.8s;
+}
+
+.navWord:nth-of-type(3) {
+  animation-delay: -3.5s;
+}
+
+.navWord:nth-of-type(4) {
+  animation-delay: -5.2s;
+}
+
+.navWord:hover,
+.navWord:focus-visible {
+  color: #fff;
+  text-shadow:
+    0 0 0.4em rgb(255 244 214 / 0.95),
+    0 0 1.1em rgb(255 214 150 / 0.7);
+}
+
+.navWord:focus-visible {
+  outline: 2px solid rgb(255 250 240 / 0.9);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 5px rgb(40 30 20 / 0.35);
+}
+
+.navDot {
+  color: rgb(255 250 240 / 0.7);
+  text-shadow: 0 1px 3px rgb(30 20 10 / 0.7);
+}
+
+/* The guide's last page points here: the words glow brighter. */
+.nav[data-glow] .navWord {
+  color: #fff;
+  text-shadow:
+    0 0 0.45em rgb(255 244 214 / 1),
+    0 0 1.4em rgb(255 205 130 / 0.95),
+    0 1px 3px rgb(30 20 10 / 0.7);
+  animation: word-drift 7s ease-in-out infinite, coach-glow 1.6s ease-in-out infinite;
+}
+
+/* ---------------------------------------------------------------------------
+ * The sheet */
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  background:
+    radial-gradient(90% 80% at 50% 45%, rgb(20 14 8 / 0.18), rgb(14 10 6 / 0.55));
+  backdrop-filter: blur(2px);
+  animation: fade-in 500ms ease both;
+}
+
+.scrim[data-size="narrow"] {
+  background: radial-gradient(90% 80% at 50% 40%, transparent, rgb(14 10 6 / 0.4));
+  backdrop-filter: none;
+}
+
+.sheet {
+  --sheet-brush: 34px 46px 38px 52px / 44px 34px 50px 40px;
+
+  position: fixed;
+  z-index: 26;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  width: min(46rem, calc(100vw - 3rem));
+  max-height: min(86dvh, calc(100dvh - 4rem));
+  translate: -50% -50%;
+  border-radius: var(--sheet-brush);
+  /* Canvas grain over warm umber washes, translucent enough to feel the painting behind. */
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85 0.32' numOctaves='3' seed='11'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 0.93 0 0 0 0 0.82 0 0 0 0.08 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(80% 55% at 100% 0%, rgb(255 196 140 / 0.16), transparent 70%),
+    radial-gradient(70% 50% at 0% 100%, rgb(150 190 140 / 0.1), transparent 70%),
+    linear-gradient(165deg, rgb(44 34 23 / 0.8), rgb(24 19 13 / 0.88));
+  backdrop-filter: blur(22px) saturate(1.15);
+  box-shadow:
+    0 0 4rem rgb(255 200 140 / 0.16),
+    0 1.5rem 4rem rgb(0 0 0 / 0.35),
+    inset 0 0 0 1px rgb(255 236 200 / 0.12),
+    inset 0 0 3rem rgb(255 214 160 / 0.05);
+  outline: none;
+  animation: sheet-in 650ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.sheet[data-size="wide"] {
+  width: min(70rem, calc(100vw - 3rem));
+  height: min(86dvh, calc(100dvh - 4rem));
+}
+
+/* The guide is a little card low in the sky, leaving the garden in view. */
+.sheet[data-size="narrow"] {
+  top: auto;
+  bottom: max(2rem, env(safe-area-inset-bottom));
+  width: min(29rem, calc(100vw - 2rem));
+  translate: -50% 0;
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: clamp(1.1rem, 3vw, 2rem) clamp(1.1rem, 3.4vw, 2.6rem) 0.6rem;
+}
+
+.headWords {
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--hand), cursive;
+  font-size: clamp(2.2rem, 4.4vw, 3.3rem);
+  font-weight: 400;
+  line-height: 1;
+  color: #fffaf0;
+  text-shadow: 0 0 0.6em rgb(255 220 170 / 0.35);
+  outline: none;
+}
+
+.sheet[data-size="narrow"] .title {
+  font-size: 1.35rem;
+  color: var(--v2-gold);
+}
+
+/* The title takes focus only so screen readers announce the view; it is not a control. */
+.title:focus,
+.title:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.lede {
+  margin: 0.3rem 0 0;
+  font-family: var(--hand), cursive;
+  font-size: 1.2rem;
+  color: var(--v2-soft);
+}
+
+.close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.9rem;
+  height: 2.9rem;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(255 240 214 / 0.08);
+  color: var(--v2-ink);
+  font: 400 2rem/1 var(--hand), cursive;
+  cursor: pointer;
+  transition:
+    background 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.close:hover,
+.close:focus-visible {
+  background: rgb(255 240 214 / 0.16);
+  box-shadow: 0 0 1.4rem rgb(255 214 160 / 0.45);
+}
+
+.notices:not(:empty) {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0.4rem clamp(1.1rem, 3.4vw, 2.6rem) 0.8rem;
+}
+
+.body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.6rem clamp(1.1rem, 3.4vw, 2.6rem) clamp(1.4rem, 3vw, 2.4rem);
+  font-family: var(--font-body);
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.stack {
+  display: grid;
+  gap: 1.1rem;
+  min-width: 0;
+}
+
+.meta {
+  margin: 0;
+  color: var(--v2-dim);
+  font-size: 0.85rem;
+}
+
+.empty {
+  margin: 0;
+  padding: 1.4rem 1.2rem;
+  border-radius: var(--v2-brush);
+  background: var(--v2-wash);
+  font-family: var(--hand), cursive;
+  font-size: 1.3rem;
+  line-height: 1.3;
+  color: var(--v2-soft);
+  text-align: center;
+}
+
+.footnote {
+  margin: 0.4rem 0 0;
+  color: var(--v2-dim);
+  font-size: 0.85rem;
+}
+
+/* Refresh, live state and loading words for each feed. */
+.feedBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem 1.1rem;
+}
+
+.live {
+  font-family: var(--hand), cursive;
+  font-size: 1.1rem;
+  color: var(--v2-dim);
+}
+
+.live::before {
+  content: "";
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-right: 0.4rem;
+  border-radius: 50%;
+  background: rgb(255 236 200 / 0.3);
+  vertical-align: 0.1em;
+}
+
+.live[data-live]::before {
+  background: var(--v2-you);
+  box-shadow: 0 0 0.6rem var(--v2-you);
+}
+
+.feedStatus {
+  margin: 0;
+  min-height: 1.2em;
+  color: var(--v2-dim);
+  font-size: 0.85rem;
+}
+
+.feedStatus:empty {
+  display: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * Memories */
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 1rem;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.chip {
+  min-height: 2.5rem;
+  padding: 0.25rem 1rem 0.35rem;
+  border: 0;
+  border-radius: 999px 900px 999px 950px;
+  background: rgb(255 240 214 / 0.06);
+  box-shadow: inset 0 0 0 1px rgb(255 236 200 / 0.2);
+  color: var(--v2-soft);
+  font: 400 1.2rem/1 var(--hand), cursive;
+  cursor: pointer;
+  transition:
+    background 200ms ease,
+    box-shadow 250ms ease;
+}
+
+.chip:hover {
+  background: rgb(255 240 214 / 0.12);
+}
+
+.chip[aria-pressed="true"] {
+  background: rgb(255 240 214 / 0.16);
+  color: #fffaf0;
+  box-shadow:
+    inset 0 0 0 2px #fff3dc,
+    0 0 1rem rgb(255 214 160 / 0.3);
+}
+
+.chip:focus-visible,
+.select select:focus-visible,
+.mediaToggle:focus-visible,
+.textToggle:focus-visible,
+.visit:focus-visible,
+.badge:focus-visible {
+  outline: 3px solid var(--focus-ring-color);
+  outline-offset: 2px;
+}
+
+.select select {
+  min-height: 2.5rem;
+  padding: 0.3rem 2rem 0.4rem 0.9rem;
+  border: 1px solid var(--control-border);
+  border-radius: 999px;
+  background: rgb(36 29 21 / 0.9);
+  color: var(--v2-ink);
+  font: 400 1.15rem/1 var(--hand), cursive;
+}
+
+.album {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  columns: 17.5rem;
+  column-gap: 1rem;
+}
+
+.album > li {
+  break-inside: avoid;
+  margin-bottom: 1rem;
+}
+
+.memory {
+  --tint: #f4c983;
+
+  position: relative;
+  display: grid;
+  gap: 0.7rem;
+  min-width: 0;
+  padding: 1.05rem 1.2rem 0.9rem;
+  overflow: hidden;
+  border-radius: var(--v2-brush);
+  background:
+    radial-gradient(120% 70% at 0% 0%, color-mix(in srgb, var(--tint) 24%, transparent), transparent 62%),
+    radial-gradient(90% 60% at 100% 100%, color-mix(in srgb, var(--tint) 10%, transparent), transparent 70%),
+    rgb(255 240 214 / 0.05);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--tint) 26%, transparent),
+    0 0.6rem 1.6rem rgb(0 0 0 / 0.18);
+}
+
+/* A soft bloom of the flower's colour in the corner, like a dab of paint. */
+.memory::before {
+  content: "";
+  position: absolute;
+  top: -2.2rem;
+  right: -1.6rem;
+  width: 6.5rem;
+  height: 6.5rem;
+  border-radius: 46% 54% 42% 58% / 52% 44% 56% 48%;
+  background: radial-gradient(circle at 40% 40%, color-mix(in srgb, var(--tint) 60%, #fff), var(--tint) 45%, transparent 70%);
+  opacity: 0.32;
+  filter: blur(6px);
+  pointer-events: none;
+}
+
+.memoryHead {
+  position: relative;
+  display: grid;
+  gap: 0.1rem;
+}
+
+.eyebrow {
+  margin: 0;
+  font-family: var(--hand), cursive;
+  font-size: 1rem;
+  color: var(--v2-dim);
+}
+
+.memoryTitle {
+  margin: 0;
+  font-family: var(--hand), cursive;
+  font-size: 1.9rem;
+  font-weight: 400;
+  line-height: 1;
+  color: color-mix(in srgb, var(--tint) 45%, #fffaf0);
+  text-shadow: 0 0 0.6em color-mix(in srgb, var(--tint) 40%, transparent);
+}
+
+.memoryDay {
+  margin: 0;
+  font-family: var(--hand), cursive;
+  font-size: 1.05rem;
+  color: var(--v2-soft);
+}
+
+.memoryBody {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.memoryText {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.question {
+  margin: 0;
+  color: var(--v2-soft);
+  font-family: var(--font-display);
+  font-style: italic;
+  line-height: 1.45;
+}
+
+.wish {
+  margin: 0;
+  padding-left: 0.9rem;
+  border-left: 2px solid color-mix(in srgb, var(--tint) 60%, transparent);
+}
+
+.mood {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-family: var(--hand), cursive;
+  font-size: 1.25rem;
+}
+
+.textToggle,
+.mediaToggle {
+  justify-self: start;
+  padding: 0.15rem 0;
+  border: 0;
+  background: none;
+  color: var(--v2-soft);
+  font: 400 1.1rem/1.2 var(--hand), cursive;
+  text-decoration: underline wavy rgb(255 236 200 / 0.4);
+  text-underline-offset: 0.3em;
+  cursor: pointer;
+}
+
+.textToggle:hover,
+.mediaToggle:hover {
+  color: #fff;
+}
+
+.mediaToggle:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.replyToggle {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.memoryFoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.7rem;
+  padding-top: 0.55rem;
+  border-top: 1px dashed rgb(255 236 200 / 0.16);
+}
+
+.who {
+  font-family: var(--hand), cursive;
+  font-size: 1.2rem;
+  color: var(--v2-soft);
+}
+
+.who[data-who="you"] {
+  color: var(--v2-you);
+}
+
+.who[data-who="partner"] {
+  color: var(--v2-partner);
+}
+
+.visit {
+  margin-left: auto;
+  border-radius: 0.5em;
+  color: var(--v2-soft);
+  font-family: var(--hand), cursive;
+  font-size: 1.1rem;
+  text-decoration: none;
+  transition:
+    color 200ms ease,
+    text-shadow 200ms ease;
+}
+
+.visit:hover,
+.visit:focus-visible {
+  color: #fff;
+  text-shadow: 0 0 0.6em rgb(255 220 170 / 0.7);
+}
+
+/* Photos: a painted frame until asked; the loaded photo is never cropped (0012). */
+.photo,
+.voice {
+  display: grid;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.photoPlaceholder {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  border-radius: 18px 24px 20px 26px / 22px 18px 26px 20px;
+  background:
+    radial-gradient(60% 60% at 50% 45%, color-mix(in srgb, var(--tint) 30%, transparent), transparent 70%),
+    rgb(255 240 214 / 0.05);
+  box-shadow: inset 0 0 0 1px rgb(255 236 200 / 0.14);
+  color: color-mix(in srgb, var(--tint) 60%, #fff);
+  font-size: 2.4rem;
+}
+
+.photoFrame {
+  display: grid;
+  place-items: center;
+  gap: 0.4rem;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 18px 24px 20px 26px / 22px 18px 26px 20px;
+  background: rgb(12 9 6 / 0.55);
+}
+
+.photoFrame img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-orientation: from-image;
+}
+
+.mediaStatus {
+  margin: 0;
+  padding: 0.4rem;
+  color: var(--v2-dim);
+  font-size: 0.85rem;
+}
+
+/* Peony keepsakes: four painted steps, details on request. */
+.peony {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.peonySteps {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-family: var(--hand), cursive;
+  font-size: 1.1rem;
+  color: var(--v2-soft);
+}
+
+.peonySteps i {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 46% 54% 50% 50% / 55% 45% 55% 45%;
+  border: 1.5px solid rgb(255 236 200 / 0.45);
+}
+
+.peonySteps i[data-done] {
+  border-color: transparent;
+  background: radial-gradient(circle at 35% 35%, #fff4f7, var(--tint) 60%);
+  box-shadow: 0 0 0.6rem color-mix(in srgb, var(--tint) 60%, transparent);
+}
+
+.peonyDetail {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.milestone {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.milestone h5 {
+  margin: 0;
+  font-family: var(--hand), cursive;
+  font-size: 1.2rem;
+  font-weight: 400;
+  color: var(--v2-gold);
+}
+
+/* ---------------------------------------------------------------------------
+ * Songs */
+
+.songs {
+  display: grid;
+  gap: 0.9rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.song {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+  padding: 0.9rem 1.1rem;
+  border-radius: var(--v2-brush);
+  background:
+    radial-gradient(120% 90% at 0% 0%, rgb(240 138 122 / 0.14), transparent 60%),
+    rgb(255 240 214 / 0.05);
+  box-shadow: inset 0 0 0 1px rgb(255 236 200 / 0.1);
+}
+
+/* A painted record with its track number. */
+.record {
+  display: grid;
+  place-items: center;
+  width: 3.6rem;
+  height: 3.6rem;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #f6a294 0 30%, #2a1d14 31% 34%, transparent 35%),
+    repeating-radial-gradient(circle, #1a130d 0 2px, #2b2118 2px 4px);
+  box-shadow:
+    0 0 1.2rem rgb(240 138 122 / 0.25),
+    inset 0 0 0 1px rgb(255 236 200 / 0.12);
+}
+
+.record span {
+  font-family: var(--hand), cursive;
+  font-size: 0.85rem;
+  line-height: 1;
+  color: #3a2216;
+}
+
+.songBody {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.songMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.7rem;
+  margin: 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * Achievements: painted medals */
+
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 1.1rem;
+  margin: 0 auto 0 0;
+  font-family: var(--hand), cursive;
+  font-size: 1.45rem;
+  color: var(--v2-soft);
+}
+
+.summary strong {
+  font-weight: 400;
+  color: var(--v2-gold);
+}
+
+.badges {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.6rem, 1fr));
+  gap: 0.7rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.badgeItem {
+  min-width: 0;
+}
+
+.badgeItem[data-open] {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(8.6rem, 11rem) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+  padding: 0.6rem;
+  border-radius: var(--v2-brush);
+  background: var(--v2-wash);
+  box-shadow: inset 0 0 0 1px rgb(255 236 200 / 0.12);
+}
+
+.badge {
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  width: 100%;
+  padding: 0.7rem 0.4rem 0.8rem;
+  border: 0;
+  border-radius: var(--v2-brush);
+  background: transparent;
+  color: var(--v2-ink);
+  text-align: center;
+  cursor: pointer;
+  transition: background 200ms ease;
+}
+
+.badge:hover {
+  background: rgb(255 240 214 / 0.06);
+}
+
+/* The medal: a ring of paint that fills with progress. */
+.medal {
+  --fill: 0deg;
+
+  display: grid;
+  place-items: center;
+  width: 4.4rem;
+  height: 4.4rem;
+  border-radius: 48% 52% 50% 50% / 52% 48% 52% 48%;
+  background: conic-gradient(from -90deg, rgb(244 201 131 / 0.85) var(--fill), rgb(255 236 200 / 0.12) 0);
+  transition: box-shadow 300ms ease;
+}
+
+.medal span {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50% 46% 52% 48% / 48% 52% 46% 54%;
+  background: radial-gradient(circle at 40% 35%, #3a2e21, #221a12);
+  color: var(--v2-dim);
+  font-size: 1.6rem;
+}
+
+.badgeItem[data-earned] .medal {
+  background: radial-gradient(circle at 35% 30%, #fff4d6, #f4c983 55%, #d99a4e);
+  box-shadow:
+    0 0 1.4rem rgb(255 200 120 / 0.55),
+    0 0 3rem rgb(255 200 120 / 0.2);
+}
+
+.badgeItem[data-earned] .medal span {
+  background: radial-gradient(circle at 40% 35%, #fff8e6, #f6d79e 70%);
+  color: #6b4417;
+}
+
+.badge:hover .medal,
+.badge:focus-visible .medal {
+  box-shadow: 0 0 1.6rem rgb(255 214 160 / 0.5);
+}
+
+.badgeTitle {
+  font-family: var(--hand), cursive;
+  font-size: 1.15rem;
+  line-height: 1.05;
+}
+
+.badgeProgress {
+  font-size: 0.8rem;
+  color: var(--v2-dim);
+}
+
+.badgeItem[data-earned] .badgeProgress {
+  color: var(--v2-gold);
+}
+
+.badgeDetail {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+  padding: 0.6rem 0.4rem;
+}
+
+.badgeDetail p {
+  margin: 0;
+}
+
+.detailTitle {
+  margin: 0;
+  font-family: var(--hand), cursive;
+  font-size: 1.6rem;
+  font-weight: 400;
+  color: var(--v2-gold);
+}
+
+.progress {
+  width: 100%;
+  max-width: 22rem;
+  height: 0.6rem;
+  accent-color: var(--v2-gold);
+}
+
+.earned {
+  font-family: var(--hand), cursive;
+  font-size: 1.2rem;
+  color: var(--v2-gold);
+}
+
+/* ---------------------------------------------------------------------------
+ * Settings */
+
+.group {
+  display: grid;
+  gap: 0.6rem;
+  padding: 1rem 1.2rem;
+  border-radius: var(--v2-brush);
+  background: var(--v2-wash);
+  box-shadow: inset 0 0 0 1px rgb(255 236 200 / 0.08);
+}
+
+.groupTitle {
+  margin: 0;
+  font-family: var(--hand), cursive;
+  font-size: 1.5rem;
+  font-weight: 400;
+  line-height: 1.1;
+  color: var(--v2-gold);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem 1.2rem;
+}
+
+.row > :first-child {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.rowTitle {
+  margin: 0;
+  font-family: var(--hand), cursive;
+  font-size: 1.3rem;
+  font-weight: 400;
+}
+
+.rowCopy {
+  margin: 0;
+  color: var(--v2-soft);
+  font-size: 0.92rem;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2.75rem;
+  font-family: var(--hand), cursive;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.toggle input {
+  width: 1.3rem;
+  height: 1.3rem;
+  accent-color: var(--v2-you);
+}
+
+.toggle input:focus-visible {
+  outline: 3px solid var(--focus-ring-color);
+  outline-offset: 2px;
+}
+
+/* The private moment's owner controls (decision 0020), re-toned. */
+.owner:empty {
+  display: none;
+}
+
+.owner > div {
+  margin: 0;
+  padding: 1rem 1.2rem;
+  border: 0;
+  border-radius: var(--v2-brush);
+  background: var(--v2-wash);
+  box-shadow: inset 0 0 0 1px rgb(255 236 200 / 0.08);
+}
+
+.owner h2 {
+  font-family: var(--hand), cursive;
+  font-size: 1.5rem;
+  font-weight: 400;
+  color: var(--v2-gold);
+}
+
+/* ---------------------------------------------------------------------------
+ * The guide */
+
+.guide {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.guideCount {
+  display: flex;
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.guideCount i {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: rgb(255 236 200 / 0.25);
+}
+
+.guideCount i[data-current] {
+  background: var(--v2-gold);
+  box-shadow: 0 0 0.6rem rgb(255 200 120 / 0.7);
+}
+
+.guideTitle:focus,
+.guideTitle:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.guideTitle {
+  margin: 0;
+  font-family: var(--hand), cursive;
+  font-size: 2.1rem;
+  font-weight: 400;
+  line-height: 1.05;
+  color: #fffaf0;
+  outline: none;
+  text-shadow: 0 0 0.6em rgb(255 220 170 / 0.35);
+}
+
+.guideBody {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.08rem;
+  line-height: 1.55;
+  color: var(--v2-soft);
+}
+
+.guideActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.4rem;
+}
+
+/* ---------------------------------------------------------------------------
+ * The private moment over the new garden: same behaviour, painted washes. */
+
+.momentHost {
+  --wood: rgb(255 236 200 / 0.16);
+  --wood-dark: transparent;
+  --shadow-frame: 0 0 2.5rem rgb(255 210 150 / 0.2);
+}
+
+.momentHost [data-private-notice-host="garden"] > div > * {
+  border-width: 1px;
+  border-radius: var(--v2-brush);
+  background: rgb(28 22 15 / 0.86);
+  backdrop-filter: blur(12px);
+}
+
+:global(.sheet-overlay).momentSheet {
+  z-index: 45;
+  background: rgb(14 10 6 / 0.5);
+}
+
+:global(.sheet-content).momentSheet {
+  z-index: 46;
+  border: 0;
+  border-radius: 34px 46px 0 0 / 40px 34px 0 0;
+  background:
+    radial-gradient(80% 55% at 100% 0%, rgb(255 196 140 / 0.16), transparent 70%),
+    linear-gradient(165deg, rgb(44 34 23 / 0.94), rgb(24 19 13 / 0.96));
+  backdrop-filter: blur(20px);
+  box-shadow: 0 0 4rem rgb(255 200 140 / 0.18);
+  font-family: var(--font-body);
+}
+
+.momentSheet :global(.sheet-title) {
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  color: #fffaf0;
+  font: 400 2rem/1.05 var(--hand), cursive;
+  text-shadow: 0 0 0.6em rgb(255 220 170 / 0.35);
+}
+
+.momentSheet :global(.sheet-handle) {
+  background: rgb(255 236 200 / 0.3);
+  box-shadow: none;
+  border-radius: 999px;
+}
+
+.momentSheet :global(.sheet-close span) {
+  border: 0;
+  border-radius: 50%;
+  background: rgb(255 240 214 / 0.1);
+  box-shadow: none;
+  color: var(--v2-ink);
+  font: 400 1.6rem/1 var(--hand), cursive;
+}
+
+@media (min-width: 640px) {
+  :global(.sheet-content).momentSheet {
+    border-radius: 34px 46px 38px 52px / 44px 34px 50px 40px;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Phones and portrait screens */
+
+@media (max-width: 760px) {
+  .nav {
+    gap: 0 0.35rem;
+    max-width: calc(100vw - 10.5rem);
+    font-size: 1.08rem;
+  }
+
+  /* A sheet rising from the bottom, the painted sky still in view above it. */
+  .sheet,
+  .sheet[data-size="wide"] {
+    top: max(3.4rem, env(safe-area-inset-top));
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+    max-height: none;
+    translate: none;
+    border-radius: 34px 42px 0 0 / 36px 32px 0 0;
+    animation-name: sheet-up;
+  }
+
+  .sheet[data-size="narrow"] {
+    top: auto;
+    bottom: max(1rem, env(safe-area-inset-bottom));
+    left: 50%;
+    width: calc(100vw - 1.5rem);
+    translate: -50% 0;
+    border-radius: var(--sheet-brush);
+  }
+
+  .body {
+    padding-bottom: max(1.6rem, env(safe-area-inset-bottom));
+  }
+
+  .album {
+    columns: 1;
+  }
+
+  .badges {
+    grid-template-columns: repeat(auto-fill, minmax(6.8rem, 1fr));
+  }
+
+  .badgeItem[data-open] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .song {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .record {
+    display: none;
+  }
+}
+
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    filter: blur(6px);
+    transform: translateY(0.8rem) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+}
+
+@keyframes sheet-up {
+  from {
+    opacity: 0;
+    transform: translateY(6%);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes word-drift {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes coach-glow {
+  50% {
+    text-shadow:
+      0 0 0.3em rgb(255 244 214 / 0.8),
+      0 0 0.8em rgb(255 205 130 / 0.5);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navWord,
+  .nav[data-glow] .navWord,
+  .scrim,
+  .sheet {
+    animation: none;
+  }
+
+  .navWord,
+  .chip,
+  .close,
+  .visit,
+  .badge,
+  .medal {
+    transition: none;
+  }
+}

@@ -17,6 +17,8 @@ type BottomSheetProps = {
   onCloseAutoFocus?: (event: Event) => void;
   triggerContainer?: HTMLElement | null;
   hideDescription?: boolean;
+  /** Extra classes for the overlay and the sheet, e.g. the new garden's washes. */
+  className?: string;
 };
 
 export function BottomSheet({
@@ -29,6 +31,7 @@ export function BottomSheet({
   onCloseAutoFocus,
   triggerContainer,
   hideDescription = false,
+  className,
 }: BottomSheetProps) {
   const id = useId();
   const scope = useSheetScope();
@@ -51,8 +54,8 @@ export function BottomSheet({
         ? triggerNode
         : triggerContainer && createPortal(triggerNode, triggerContainer)}
       <Dialog.Portal>
-        <Dialog.Overlay className="sheet-overlay" />
-        <Dialog.Content className="sheet-content" onCloseAutoFocus={onCloseAutoFocus}>
+        <Dialog.Overlay className={className ? `sheet-overlay ${className}` : "sheet-overlay"} />
+        <Dialog.Content className={className ? `sheet-content ${className}` : "sheet-content"} onCloseAutoFocus={onCloseAutoFocus}>
           <div className="sheet-handle" aria-hidden="true" />
           <Dialog.Title className="sheet-title">{title}</Dialog.Title>
           <Dialog.Description
