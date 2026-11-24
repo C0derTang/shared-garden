@@ -3,7 +3,6 @@ import { usePartnerName } from "@/components/auth/member-names";
 import { useRef, useState, type FormEvent } from "react";
 import {
   canEditAt,
-  moodPick,
   moods,
   MOOD_NOTE_LIMIT,
   OTHER_MOOD,
@@ -12,9 +11,10 @@ import {
   type GardenState,
   type Plant,
 } from "@/lib/garden/model";
+import { draftHasContent, draftValid, entryPayload } from "@/lib/garden/entry-draft";
+import { toggleMood as toggledMood } from "@/lib/garden/moods";
 import { SpotifyPicker } from "@/components/music/spotify-picker";
 import { SongPlayer } from "@/components/music/song-player";
-import { parseSongLink } from "@/lib/music/song-link";
 import type { Mutate } from "./seed-picker";
 import styles from "./garden.module.css";
 import sheetStyles from "./flower-sheet.module.css";
@@ -53,9 +53,7 @@ export function EntryForm({
   const songTitle = useRef<HTMLInputElement>(null);
   const type = item.type_key;
   const expired = editing && !canEditAt(editing, state, now);
-  const hasDraft = Object.values(draft).some(
-    (value) => value.trim().length > 0,
-  );
+  const hasDraft = draftHasContent(draft);
   const newDay = draftDay !== state.garden_day && hasDraft;
   const unresolvedRollover = now >= Date.parse(state.next_rollover_at);
   const change = (key: string, value: string) => {
@@ -67,30 +65,10 @@ export function EntryForm({
   function toggleMood(key: string) {
     if (!hasDraft && draftDay !== state.garden_day)
       setDraftDay(state.garden_day);
-    setDraft((old) => {
-      const { mood, mood2, ...rest } = old;
-      if (key === OTHER_MOOD)
-        return mood === OTHER_MOOD ? rest : { ...rest, mood: OTHER_MOOD };
-      if (mood === key) return mood2 ? { ...rest, mood: mood2 } : rest;
-      if (mood2 === key) return { ...rest, mood: mood! };
-      if (!mood || mood === OTHER_MOOD) return { ...rest, mood: key };
-      if (!mood2) return { ...rest, mood, mood2: key };
-      return old;
-    });
+    setDraft((old) => toggledMood(old, key));
   }
-  const textValid = (value: string | undefined, max: number) =>
-    !!value?.trim() && Array.from(value.trim()).length <= max;
-  const pick = type === "hydrangea" ? moodPick(draft) : null;
-  const valid =
-    type === "cactus" ||
-    (type === "hydrangea"
-      ? pick !== null
-      : type === "tulip"
-        ? textValid(draft.title, 200) &&
-          textValid(draft.artist, 200) &&
-          parseSongLink(draft.url?.trim() ?? "").kind !== "invalid"
-        : textValid(draft.text, 4000) &&
-          (type !== "daisy" || !!plant.daisy_question));
+  const draftContext = { daisyQuestionId: plant.daisy_question?.question_id };
+  const valid = draftValid(type, draft, draftContext);
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (
@@ -106,19 +84,7 @@ export function EntryForm({
     lock.current = true;
     setPending(true);
     setError(null);
-    const payload: Record<string, string> =
-      type === "cactus"
-        ? {}
-        : type === "tulip"
-          ? { title: draft.title, artist: draft.artist, url: draft.url }
-          : type === "hydrangea"
-            ? { ...pick! }
-            : type === "daisy"
-              ? {
-                  text: draft.text,
-                  question_id: plant.daisy_question!.question_id,
-                }
-              : { text: draft.text };
+    const payload = entryPayload(type, draft, draftContext);
     try {
       const result = await mutate(
         editing

@@ -16,7 +16,7 @@ vi.mock("@/components/world/renderer", () => ({
   },
 }));
 
-const { CROSSFADE_MS, GARDEN_PATH, LakesideLanding } = await import("./lakeside-landing");
+const { CROSSFADE_MS, GARDEN_PATH, LakesideLanding, WALK_SAFETY_MS } = await import("./lakeside-landing");
 
 async function flush() {
   await act(async () => {
@@ -90,9 +90,13 @@ describe("with WebGPU", () => {
     expect(prefetch).toHaveBeenCalledWith(GARDEN_PATH);
     act(() => world.callbacks.onReady());
 
-    await user.click(screen.getByRole("button", { name: "come in" }));
+    // "come in" is a real link to the garden that scripts enhance into the walk-through.
+    const link = screen.getByRole("link", { name: "come in" });
+    expect(link).toHaveAttribute("href", GARDEN_PATH);
+    await user.click(link);
     expect(world.states.at(-1)).toMatchObject({ entering: true, doorInvite: false });
-    expect(screen.queryByRole("button", { name: "come in" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "come in" })).toBeNull();
+    expect(screen.getByText(/Walking into the garden/)).toHaveAttribute("aria-live", "polite");
     expect(push).not.toHaveBeenCalled();
 
     act(() => world.callbacks.onFrame?.({ viewProjection: new Float32Array(16), width: 100, height: 100, entryFade: 0.5 }));
@@ -118,12 +122,42 @@ describe("with WebGPU", () => {
     await flush();
     const world = created[0]!;
     act(() => world.callbacks.onReady());
-    act(() => screen.getByRole("button", { name: "come in" }).click());
+    act(() => screen.getByRole("link", { name: "come in" }).click());
     expect(screen.getByRole("main")).toHaveAttribute("data-phase", "fading");
     expect(world.states.at(-1)?.entering).toBe(false);
     expect(push).not.toHaveBeenCalled();
     act(() => vi.advanceTimersByTime(CROSSFADE_MS));
     expect(push).toHaveBeenCalledWith(GARDEN_PATH);
+  });
+
+  it("navigates after the safety delay if the walk-through never reports its end", async () => {
+    stubReducedMotion(false);
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    render(<LakesideLanding member />);
+    await flush();
+    act(() => created[0]!.callbacks.onReady());
+    act(() => screen.getByRole("link", { name: "come in" }).click());
+    expect(screen.getByRole("main")).toHaveAttribute("data-phase", "walking");
+    act(() => vi.advanceTimersByTime(WALK_SAFETY_MS - 1));
+    expect(push).not.toHaveBeenCalled();
+    act(() => vi.advanceTimersByTime(1));
+    expect(push).toHaveBeenCalledTimes(1);
+    expect(push).toHaveBeenCalledWith(GARDEN_PATH);
+  });
+
+  it("navigates once when the walk-through ends and the safety timer also fires", async () => {
+    stubReducedMotion(false);
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    render(<LakesideLanding member />);
+    await flush();
+    const world = created[0]!;
+    act(() => world.callbacks.onReady());
+    act(() => screen.getByRole("link", { name: "come in" }).click());
+    act(() => vi.advanceTimersByTime(WALK_SAFETY_MS - 5));
+    act(() => world.callbacks.onEntered?.());
+    act(() => vi.advanceTimersByTime(10));
+    act(() => world.callbacks.onEntered?.());
+    expect(push).toHaveBeenCalledTimes(1);
   });
 
   it("shows members links if the painting stops", async () => {

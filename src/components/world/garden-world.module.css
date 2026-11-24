@@ -64,9 +64,38 @@
 }
 
 button.caption,
+a.caption,
 .captionButton {
   pointer-events: auto;
   cursor: pointer;
+}
+
+a.caption {
+  text-decoration: none;
+}
+
+.quiet {
+  color: rgb(255 250 240 / 0.8);
+}
+
+/* Faded by distance or out of view: not clickable, but a focused caption always shows. */
+.caption[data-faded] {
+  pointer-events: none;
+}
+
+.caption[data-offscreen] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.caption:focus-visible,
+.caption:focus-within {
+  opacity: 1 !important;
+}
+
+.quiet:hover,
+.quiet:focus-visible {
+  color: #fffaf0;
 }
 
 .captionButton {
@@ -91,6 +120,8 @@ form.caption {
 
 button.caption:hover,
 button.caption:focus-visible,
+a.caption:hover,
+a.caption:focus-visible,
 form.caption:hover,
 form.caption:focus-within {
   color: #fff;
@@ -99,6 +130,16 @@ form.caption:focus-within {
     0 0 0.35em rgb(255 244 214 / 0.95),
     0 0 1.1em rgb(255 214 150 / 0.75),
     0 1px 2px rgb(40 30 20 / 0.3);
+}
+
+/* Keyboard focus also gets a soft hand-drawn ring, not only the glow. */
+button.caption:focus-visible,
+a.caption:focus-visible,
+form.caption:focus-within:has(:focus-visible) {
+  outline: 2px solid rgb(255 250 240 / 0.9);
+  outline-offset: 3px;
+  border-radius: 0.6em;
+  box-shadow: 0 0 0 5px rgb(40 30 20 / 0.35);
 }
 
 .notice {

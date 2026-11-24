@@ -310,6 +310,10 @@ struct FragOut {
 }
 
 // Dithered 4x coverage mask, rotated per pixel so partial edges blend smoothly.
+// Assumes 4x MSAA: both the world's scene target and the flower studio's
+// target are created with `msaa: true`, which vgpu maps to 4 samples, so only
+// the low four mask bits exist. On a 1-sample target bit 0 alone decides, and
+// petal margins would alias (cover >= ~0.25 draws, less is dropped).
 fn coverageMask(cover: f32, pixel: vec2f) -> u32 {
   let jitter = fract(sin(dot(floor(pixel), vec2f(12.9898, 78.233))) * 43758.5453);
   let samples = u32(clamp(floor(cover * 4.0 + jitter * 0.999), 0.0, 4.0));

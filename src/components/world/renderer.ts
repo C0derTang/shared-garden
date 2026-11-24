@@ -16,7 +16,7 @@ import {
   type Target,
 } from "vgpu";
 import { invert, lookAt, multiply, orthographic, perspective, rayFromNdc } from "@/lib/world/camera";
-import { journeyPose, type JourneyPose } from "@/lib/world/journey";
+import { blendPoses, focusPose, journeyPose, type FocusTarget, type JourneyPose } from "@/lib/world/journey";
 import {
   DOOR_HINGE,
   DOOR_OPEN_ANGLE,
@@ -33,7 +33,7 @@ import {
   walkThroughAt,
 } from "@/lib/world/landing";
 import { bedEdgingRocks, buildMountainMesh, buildRockMesh, shoreRocks } from "@/lib/world/landforms";
-import { WATER_LEVEL, bedCountFor, layoutPlantingSpots, type Vec3 } from "@/lib/world/layout";
+import { BED_RADIUS, WATER_LEVEL, bedAt, bedCountFor, layoutPlantingSpots, type Vec3 } from "@/lib/world/layout";
 import { pickAlongRay, type FlowerAnchor, type PickResult } from "@/lib/world/picking";
 import {
   buildBedMesh,
@@ -76,6 +76,8 @@ const SHADOW_CENTER: Vec3 = [0, 0, 3];
 const SHADOW_EXTENT = 30;
 const LANDING_SHADOW_CENTER: Vec3 = [1.5, 0, -3];
 const CLICK_SLOP_PX = 6;
+/** World units walked sideways for a drag across the whole canvas. */
+const PAN_PER_WIDTH = 7;
 const RGB_ONLY: ("r" | "g" | "b")[] = ["r", "g", "b"];
 
 /** Which scene the world paints: the garden meadow, or the landing's lakeside house. */
@@ -95,6 +97,13 @@ export interface WorldSceneState {
   /** Fixed sky time; null follows the live clock. */
   readonly time: Date | null;
   readonly reducedMotion: boolean;
+  /** Garden: the camera glides to this flower (and back when it becomes null). */
+  readonly focus?: FocusTarget | null;
+  /**
+   * Stop painting new frames once the camera has settled (e.g. while a
+   * full-screen view covers the world). The last frame stays on the canvas.
+   */
+  readonly paused?: boolean;
 }
 
 /** Per-frame camera handed to DOM overlays (e.g. floating captions). */
@@ -125,6 +134,8 @@ export interface WorldRenderer {
   update(state: WorldSceneState): void;
   /** Moves along the camera journey by `delta` (0 = overview .. 1 = among the beds). */
   travel(delta: number): void;
+  /** Garden: walks sideways along the beds by `delta` world units (clamped to the open beds). */
+  pan(delta: number): void;
   dispose(): void;
 }
 
@@ -179,8 +190,10 @@ export function createWorldRenderer(
   const setUpLayers = new Set<WorldLayer>();
   const readyLayers = new Set<WorldLayer>();
 
-  const pointer = { x: 0, y: 0, smoothX: 0, smoothY: 0, downX: 0, downY: 0, down: false, touchY: 0 };
-  const journey = { target: 0, value: 0 };
+  const pointer = { x: 0, y: 0, smoothX: 0, smoothY: 0, downX: 0, downY: 0, down: false, touchY: 0, dragX: 0 };
+  const journey = { target: 0, value: 0, panTarget: 0, pan: 0 };
+  // Glide toward a picked flower; the last target is kept so closing glides back from it.
+  const focus: { value: number; target: FocusTarget | null } = { value: 0, target: null };
   const entry = { seconds: 0, active: false, finished: false };
   let doorHover = 0;
   let hovered: PickResult | null = null;
@@ -214,6 +227,18 @@ export function createWorldRenderer(
     journey.target = Math.min(1, Math.max(0, journey.target + delta));
   };
 
+  // Sideways reach: as far as the outermost open bed, so every spot can be brought into view.
+  const panLimit = () => {
+    let reach = 0;
+    for (let bed = 0; bed < bedCountFor(state.spotCapacity); bed += 1) reach = Math.max(reach, Math.abs(bedAt(bed).center[0]));
+    return reach === 0 ? 0 : reach + BED_RADIUS;
+  };
+  const pan = (delta: number) => {
+    if (landing) return;
+    const limit = panLimit();
+    journey.panTarget = Math.min(limit, Math.max(-limit, journey.panTarget + delta));
+  };
+
   const onPointerMove = (event: PointerEvent) => {
     const rect = canvas.getBoundingClientRect();
     pointer.x = ((event.clientX - rect.left) / Math.max(rect.width, 1)) * 2 - 1;
@@ -221,6 +246,11 @@ export function createWorldRenderer(
     if (pointer.down && event.pointerType === "touch") {
       travel((pointer.touchY - event.clientY) / Math.max(rect.height, 1));
       pointer.touchY = event.clientY;
+    }
+    if (pointer.down) {
+      // Dragging sideways walks along the beds (the scene follows the finger).
+      pan(((pointer.dragX - event.clientX) / Math.max(rect.width, 1)) * PAN_PER_WIDTH);
+      pointer.dragX = event.clientX;
     }
     hovered = pickAt(event.clientX, event.clientY);
     canvas.style.cursor = hovered ? "pointer" : "";
@@ -230,6 +260,7 @@ export function createWorldRenderer(
     pointer.downX = event.clientX;
     pointer.downY = event.clientY;
     pointer.touchY = event.clientY;
+    pointer.dragX = event.clientX;
   };
   const onPointerUp = (event: PointerEvent) => {
     if (!pointer.down) return;
@@ -248,8 +279,9 @@ export function createWorldRenderer(
   const onWheel = (event: WheelEvent) => {
     if (landing) return;
     event.preventDefault();
-    const pixels = event.deltaMode === 1 ? event.deltaY * 16 : event.deltaY;
-    travel(pixels / 1400);
+    const scale = event.deltaMode === 1 ? 16 : 1;
+    travel((event.deltaY * scale) / 1400);
+    if (event.deltaX) pan((event.deltaX * scale) / 260);
   };
   canvas.addEventListener("pointermove", onPointerMove);
   canvas.addEventListener("pointerdown", onPointerDown);
@@ -571,6 +603,13 @@ export function createWorldRenderer(
         pointer.smoothX += ((still ? 0 : pointer.x) - pointer.smoothX) * follow;
         pointer.smoothY += ((still ? 0 : pointer.y) - pointer.smoothY) * follow;
         journey.value += (journey.target - journey.value) * (still ? 1 : Math.min(1, dt * 2));
+        journey.pan += (journey.panTarget - journey.pan) * (still ? 1 : Math.min(1, dt * 3));
+        if (state.focus) focus.target = state.focus;
+        const focusGoal = state.focus ? 1 : 0;
+        focus.value = still ? focusGoal : focus.value + (focusGoal - focus.value) * Math.min(1, dt * 3.2);
+        if (Math.abs(focus.value - focusGoal) < 0.002) focus.value = focusGoal;
+        // Covered by a full-screen view: keep the settled frame and save the GPU.
+        if (state.paused && focus.value === focusGoal && cameraReady) return;
 
         const [w, h] = scene.size;
         const aspect = output.size[0] / Math.max(output.size[1], 1);
@@ -593,11 +632,13 @@ export function createWorldRenderer(
           }
           pose = walk ?? home;
         } else {
-          pose = journeyPose(journey.value);
+          const walked = journeyPose(journey.value);
+          pose = { eye: [walked.eye[0] + journey.pan, walked.eye[1], walked.eye[2]], look: [walked.look[0] + journey.pan, walked.look[1], walked.look[2]] };
+          if (focus.target && focus.value > 0) pose = blendPoses(pose, focusPose(focus.target, aspect, fovY), focus.value);
         }
         const t = motionTime;
         // Idle drift and pointer parallax settle while the walk-through takes over.
-        const settle = walk ? Math.max(0, 1 - entry.seconds / 1.2) : 1;
+        const settle = (walk ? Math.max(0, 1 - entry.seconds / 1.2) : 1) * (1 - focus.value);
         const sway = landing ? 0.45 : 0.6;
         const eye: Vec3 = [
           pose.eye[0] + (Math.sin(t * 0.11) * 0.25 + pointer.smoothX * sway) * settle,
@@ -605,7 +646,7 @@ export function createWorldRenderer(
           pose.eye[2],
         ];
         // Portrait screens tilt down a little so the garden, not the sky, fills the frame.
-        const portraitTilt = landing ? 0 : (1 - Math.min(aspect, 1)) * 7;
+        const portraitTilt = landing ? 0 : (1 - Math.min(aspect, 1)) * 7 * (1 - focus.value);
         const look: Vec3 = [
           pose.look[0] + (Math.sin(t * 0.09 + 1) * 0.1 + pointer.smoothX * 0.12) * settle,
           pose.look[1] - portraitTilt + pointer.smoothY * 0.06 * settle,
@@ -811,6 +852,7 @@ export function createWorldRenderer(
       emptySpots = emptySpotTargets();
     },
     travel,
+    pan,
     dispose,
   };
 }

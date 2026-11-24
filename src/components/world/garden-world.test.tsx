@@ -5,14 +5,16 @@ import type { WorldRendererCallbacks } from "./renderer";
 // The real renderer needs WebGPU and .wgsl imports; record its callbacks instead.
 const created: WorldRendererCallbacks[] = [];
 const disposals = vi.fn();
+const moves = { travel: vi.fn(), pan: vi.fn() };
+const updates: unknown[] = [];
 vi.mock("./renderer", () => ({
   createWorldRenderer: (_canvas: HTMLCanvasElement, _state: unknown, callbacks: WorldRendererCallbacks) => {
     created.push(callbacks);
-    return { update: vi.fn(), travel: vi.fn(), dispose: disposals };
+    return { update: (next: unknown) => updates.push(next), travel: moves.travel, pan: moves.pan, dispose: disposals };
   },
 }));
 
-const { DEVICE_LOSS_RECOVERIES, GardenWorld, hasWebGpu } = await import("./garden-world");
+const { captionFade, DEVICE_LOSS_RECOVERIES, GardenWorld, hasWebGpu } = await import("./garden-world");
 
 const lost = { reason: "unknown", message: "test loss" } as GPUDeviceLostInfo;
 
@@ -92,5 +94,63 @@ describe("GardenWorld with WebGPU", () => {
     await flush();
     unmount();
     expect(disposals).toHaveBeenCalled();
+  });
+
+  it("shows the stopped notice, not the unsupported one, when the restart after a loss finds no GPU", async () => {
+    render(<GardenWorld />);
+    await flush();
+    act(() => created[0]!.onReady());
+    act(() => created[0]!.onLost(lost));
+    await flush();
+    act(() => created[1]!.onUnsupported(new Error("no adapter after the loss")));
+    expect(screen.getByRole("alert")).toHaveTextContent("The painted garden stopped.");
+    expect(screen.queryByText("This garden is painted with WebGPU.")).not.toBeInTheDocument();
+  });
+
+  it("walks in with up and down and along the beds with left and right", async () => {
+    render(<GardenWorld />);
+    await flush();
+    act(() => created[0]!.onReady());
+    moves.travel.mockClear();
+    moves.pan.mockClear();
+    const world = screen.getByLabelText(/left and right to walk along the beds/);
+    act(() => {
+      world.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true }));
+      world.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }));
+      world.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    });
+    expect(moves.travel).toHaveBeenCalledWith(expect.any(Number));
+    expect(moves.pan.mock.calls.map(([d]) => Math.sign(d as number))).toEqual([-1, 1]);
+  });
+
+  it("passes the camera focus and pause to the renderer", async () => {
+    const focus = { position: [1, 0, 2] as [number, number, number], height: 0.8 };
+    const { rerender } = render(<GardenWorld />);
+    await flush();
+    updates.length = 0;
+    rerender(<GardenWorld focus={focus} paused />);
+    expect(updates.at(-1)).toMatchObject({ focus, paused: true });
+  });
+
+  it("renders link captions that still work as links and run their handler on a plain click", async () => {
+    const select = vi.fn();
+    render(<GardenWorld captions={[{ id: "rose", text: "rose", position: [0, 1, 0], href: "/garden?flower=x", onSelect: select, ariaLabel: "Rose, in bloom" }]} />);
+    await flush();
+    const link = screen.getByRole("link", { name: "Rose, in bloom" });
+    expect(link).toHaveAttribute("href", "/garden?flower=x");
+    expect(link).toHaveAttribute("data-caption", "rose");
+    act(() => link.click());
+    expect(select).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("captionFade", () => {
+  // A perspective matrix whose clip w is the distance along -z.
+  const viewProjection = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, -1, 0, 0, 0, 0]);
+  it("is fully visible near the camera and gone well beyond the fade distance", () => {
+    expect(captionFade(viewProjection, [0, 0, -3], 6)).toBe(1);
+    expect(captionFade(viewProjection, [0, 0, -6.9], 6)).toBeGreaterThan(0);
+    expect(captionFade(viewProjection, [0, 0, -6.9], 6)).toBeLessThan(1);
+    expect(captionFade(viewProjection, [0, 0, -9], 6)).toBe(0);
   });
 });

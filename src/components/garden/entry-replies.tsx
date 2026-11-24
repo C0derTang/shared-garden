@@ -10,9 +10,18 @@ function combine(old: Reply[], rows: Reply[]) {
   return [...new Map([...old, ...rows].map(row => [row.id, row])).values()].sort((a, b) => a.id - b.id);
 }
 
-export function EntryReplies({ entryId, authorId, memberId, refreshKey, readOnly = false }: {
+/** Where a thread reads and saves replies; the new garden passes its own actions. */
+export type ReplyActions = {
+  read: typeof readReplies;
+  save: typeof saveReply;
+};
+const legacyReplies: ReplyActions = { read: readReplies, save: saveReply };
+
+export function EntryReplies({ entryId, authorId, memberId, refreshKey, readOnly = false, actions = legacyReplies }: {
   entryId: number | string; authorId: number; memberId: number; refreshKey: string; readOnly?: boolean;
+  actions?: ReplyActions;
 }) {
+  const { read: readThread, save: saveThreadReply } = actions;
   const partnerName = usePartnerName();
   const inputId = useId();
   const [page, setPage] = useState<{
@@ -43,7 +52,7 @@ export function EntryReplies({ entryId, authorId, memberId, refreshKey, readOnly
     const token = ++generation.current;
     setLoading(true);
     try {
-      const result = await readReplies(entryId, beforeId);
+      const result = await readThread(entryId, beforeId);
       if (!mounted.current || token !== generation.current) return;
       setReadError(result.error);
       if (!result.error) {
@@ -74,7 +83,7 @@ export function EntryReplies({ entryId, authorId, memberId, refreshKey, readOnly
         if (mounted.current) setLoading(false);
       }
     }
-  }, [entryId]);
+  }, [entryId, readThread]);
   useEffect(() => {
     mounted.current = true;
     return () => { mounted.current = false; };
@@ -89,7 +98,7 @@ export function EntryReplies({ entryId, authorId, memberId, refreshKey, readOnly
     setPending(true); setError(null); setSaved(false);
     request.current ??= { body: text.trim(), id: crypto.randomUUID() };
     try {
-      const result = await saveReply(entryId, request.current.body, request.current.id);
+      const result = await saveThreadReply(entryId, request.current.body, request.current.id);
       if (!mounted.current) return;
       if (result.reply) {
         merge([result.reply]); setText(""); setSaved(true); setRetry(false); request.current = null;

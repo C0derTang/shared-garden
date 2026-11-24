@@ -281,7 +281,9 @@ export function createStudioRenderer(canvas: HTMLCanvasElement, initial: StudioS
         if (batch) {
           batch.setWorld(world);
           // The aura glows brighter as night falls.
-          batch.setParams({ hovered: -1, sway: still ? 0 : state.sway, detailNear: 1e6, aura: state.aura * (1 + 0.6 * lighting.night) });
+          const params = { hovered: -1, sway: still ? 0 : state.sway, detailNear: 1e6, aura: state.aura * (1 + 0.6 * lighting.night) };
+          batch.setParams(params);
+          batch.setShadowParams(params);
         }
         frame.pass({ target: shadowMap, clear: [1, 1, 1, 1], clearDepth: 1 }, (pass) => batch?.encodeShadow(pass));
         frame.pass({ target: scene, clear: [0, 0, 0, 1], clearDepth: 1 }, (pass) => {

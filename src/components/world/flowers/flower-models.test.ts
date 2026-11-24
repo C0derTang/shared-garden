@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { flowerModel, placeWorldFlowers, worldFlowerAnchors } from "./flower-models";
+import { flowerModel, placeWorldFlowers, quantisedGrowth, worldFlowerAnchors } from "./flower-models";
 
 describe("world flower models", () => {
   const flowers = [
@@ -24,5 +24,16 @@ describe("world flower models", () => {
     const placed = placeWorldFlowers(flowers);
     expect(placeWorldFlowers(flowers).map((p) => p.placement)).toEqual(placed.map((p) => p.placement));
     for (const p of placed) expect(Math.abs(p.placement.yaw)).toBeLessThanOrEqual(0.55);
+  });
+
+  it("never rounds a growing flower up into the next stage", () => {
+    expect(flowerModel({ type: "rose", seed: 3, growth: 0.9996 }).stage).toBe("opening");
+    expect(flowerModel({ type: "rose", seed: 3, growth: 0.2499 }).stage).toBe("seedling");
+    expect(quantisedGrowth(0.4999)).toBeLessThan(0.5);
+  });
+
+  it("keeps exact stage thresholds", () => {
+    for (const [units, target] of [[1, 4], [2, 4], [5, 10], [7, 7]] as const) expect(quantisedGrowth(units / target)).toBe(units / target);
+    expect(flowerModel({ type: "tulip", seed: 3, growth: 1 }).stage).toBe("bloom");
   });
 });

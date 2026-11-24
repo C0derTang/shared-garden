@@ -1,33 +1,25 @@
-import Link from "next/link";
-import { FlowerSprite } from "@/components/garden/flower-sprite";
-import { PublicSign } from "@/components/landing/public-sign";
-import styles from "@/components/landing/public.module.css";
+import type { Metadata } from "next";
+import { MemberNamesProvider } from "@/components/auth/member-names";
+import { GardenV2 } from "@/components/garden-v2/garden-v2";
+import { partnerDisplayName } from "@/lib/auth/display-names";
 import { requireMember } from "@/lib/auth/server";
-import { legacyPath } from "@/lib/legacy/routes";
+import { refreshGardenV2 } from "@/lib/garden-v2/actions";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = { title: "our garden · cc’s garden" };
 
-/** Members-only placeholder until the new garden replaces it (decision 0067). */
-export default async function GardenPage() {
-  await requireMember();
+/** A flower id from `?flower=`: a UUID, or nothing. */
+function flowerParam(value: string | string[] | undefined) {
+  return typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value) ? value : null;
+}
+
+/** The new garden (decision 0067): members only; `?flower=<id>` opens that flower. */
+export default async function GardenPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const { member } = await requireMember();
+  const [initial, params] = await Promise.all([refreshGardenV2(), searchParams]);
   return (
-    <div className={styles.page}>
-      <PublicSign />
-      <main id="main-content" className={styles.main}>
-        <section className={`${styles.card} ${styles.notice}`} aria-labelledby="garden-heading">
-          <div className={styles.noticeArt}>
-            <FlowerSprite type="rose" growthUnits={1} growthTarget={5} bloomed={false} size={64} />
-          </div>
-          <p className={styles.eyebrow}>Still growing</p>
-          <h1 id="garden-heading">A new garden is coming.</h1>
-          <p className={styles.lead}>The old garden is still here in the meantime.</p>
-          <div className={styles.actions}>
-            <Link href={legacyPath} className="button button-primary">
-              Visit the old garden
-            </Link>
-          </div>
-        </section>
-      </main>
-    </div>
+    <MemberNamesProvider partnerName={partnerDisplayName(member.member_id)}>
+      <GardenV2 initial={initial} initialFlowerId={flowerParam(params.flower)} />
+    </MemberNamesProvider>
   );
 }
