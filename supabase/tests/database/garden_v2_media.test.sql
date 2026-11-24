@@ -113,7 +113,12 @@ insert into storage.objects(bucket_id,name,metadata) values('garden-media',(sele
 select throws_ok($$select public.v2_attest_media_upload(pg_temp.media('original'),(select (value->>'lease_id')::uuid from claim_result),100,10,10,repeat('a',64))$$,'22023','media_object_missing','an object in the legacy bucket cannot attest v2 media');
 insert into storage.objects(bucket_id,name,metadata) values('garden-v2-media',(select value->>'final_path' from claim_result),'{"size":100,"mimetype":"image/png"}');
 select throws_ok($$select public.v2_attest_audio_upload(pg_temp.media('original'),(select (value->>'lease_id')::uuid from claim_result),100,28,1,repeat('a',64))$$,'22023','media_invalid_metadata','audio attestation cannot attest a photo');
+-- The frozen legacy garden (#176) refuses legacy attestation outright; with the
+-- freeze lifted inside this rolled-back test, registry isolation still holds.
+select throws_ok($$select public.attest_media_upload(pg_temp.media('original'),(select (value->>'lease_id')::uuid from claim_result),100,10,10,repeat('a',64))$$,'55000','The legacy garden is archived and read-only','frozen legacy attestation refuses v2 media');
+delete from private.legacy_garden_freeze;
 select throws_ok($$select public.attest_media_upload(pg_temp.media('original'),(select (value->>'lease_id')::uuid from claim_result),100,10,10,repeat('a',64))$$,'22023','media_expired_or_changed','legacy attestation cannot attest v2 media');
+insert into private.legacy_garden_freeze default values;
 select lives_ok($$select public.v2_attest_media_upload(pg_temp.media('original'),(select (value->>'lease_id')::uuid from claim_result),100,10,10,repeat('a',64))$$,'trusted server attests the v2 photo');
 select lives_ok($$update private.v2_media_uploads set width=5712,height=4284 where id=pg_temp.media('original')$$,'nominal 24MP phone dimensions fit trusted bound');
 select lives_ok($$update private.v2_media_uploads set width=5000,height=5000 where id=pg_temp.media('original')$$,'exactly 25 million pixels fit trusted bound');

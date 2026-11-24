@@ -72,7 +72,9 @@ Choices made under the discretion below for the freeze
   their own disposable fixtures.
 - While frozen, reads never create the garden or initial Cactus, unlock types,
   assign a Daisy question, settle days, decay growth or evaluate achievements.
-  Days still unsettled at freeze time stay unsettled. A never-initialized
+  Days still unsettled at freeze time stay unsettled, so before the production
+  deploy that ships the freeze, a member should open the legacy garden after the
+  last 4 a.m. rollover to settle the final day. A never-initialized
   archive reads as an empty twelve-spot garden with no achievement progress.
 - Every legacy write (planting, entries, edits, replies, fulfilment, Peony
   steps and plans, and new photo or voice uploads) refuses with SQLSTATE

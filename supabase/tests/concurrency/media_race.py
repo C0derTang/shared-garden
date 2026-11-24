@@ -89,7 +89,10 @@ empty = "select (select count(*) from public.flower_day_facts) + (select count(*
 assert sql(empty) == "0", "Refusing a configured database; reset the dedicated local project"
 try:
     # Legacy rules fixture: lift the #176 archive freeze for this run; restored in finally.
-    sql("delete from private.legacy_garden_freeze;")
+    # The --v2 run keeps the legacy garden frozen: new-garden media must not need it.
+    if not args.v2:
+        sql("delete from private.legacy_garden_freeze;")
+    assert sql("select count(*) from private.legacy_garden_freeze;") == ("1" if args.v2 else "0")
     sql("""
     begin;
     select private.bootstrap_members('owner@example.test','member@example.test');
