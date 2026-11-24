@@ -133,6 +133,8 @@ def rollover_clock():
 
 
 try:
+    # Legacy rules fixture: lift the #176 archive freeze for this run; restored in finally.
+    sql("delete from private.legacy_garden_freeze;")
     sql("""
     begin;
     select private.bootstrap_members('owner@example.test','member@example.test');
@@ -241,6 +243,7 @@ try:
     assert sql("select last_settled_day from public.garden;") == before
     print("PASS: queued paired completion uses the post-lock garden day, keeps cross-day originals and settles the previous empty day")
 finally:
+    sql("insert into private.legacy_garden_freeze default values on conflict do nothing;")
     sql(original_clock)
     clear_garden()
     sql("""

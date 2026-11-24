@@ -56,6 +56,36 @@ or settlement, no decay, no planting, entries, edits, replies, fulfilment or
 milestones. Everything stays browsable, including flowers, entries, memories,
 achievements and songs.
 
+The private final interaction ([decision 0020](0020-private-interaction.md))
+keeps its legacy gate, all 26 ordinary achievements of the legacy garden; the
+new garden's achievements do not affect it. After the freeze, the gate reads
+the frozen legacy awards, and delivery, answer, owner controls and
+acknowledgment keep working (user decision on
+[issue #176](https://github.com/C0derTang/shared-garden/issues/176)).
+
+Choices made under the discretion below for the freeze
+([issue #176](https://github.com/C0derTang/shared-garden/issues/176)):
+
+- The freeze is a private singleton marker (`private.legacy_garden_freeze`)
+  that the migration installs, so existing and fresh databases are frozen alike.
+  Only a database administrator can remove it; legacy rule tests lift it inside
+  their own disposable fixtures.
+- While frozen, reads never create the garden or initial Cactus, unlock types,
+  assign a Daisy question, settle days, decay growth or evaluate achievements.
+  Days still unsettled at freeze time stay unsettled, so before the production
+  deploy that ships the freeze, a member should open the legacy garden after the
+  last 4 a.m. rollover to settle the final day. A never-initialized
+  archive reads as an empty twelve-spot garden with no achievement progress.
+- Every legacy write (planting, entries, edits, replies, fulfilment, Peony
+  steps and plans, and new photo or voice uploads) refuses with SQLSTATE
+  `55000` and the message "The legacy garden is archived and read-only", after
+  the usual membership check. Signed reads of existing entry media continue.
+  Member settings and the private interaction stay writable.
+- `/legacy` shows "Archived garden · read-only" in its clock and settings, hides
+  bare-soil planting, care cues, the Today card, the guide, and every entry,
+  edit, reply, fulfilment, Peony and capture control, and keeps history,
+  replies, photos, voice notes, songs, memories and achievements readable.
+
 ## New garden data
 
 The new garden uses tables and functions separate from the legacy garden, not

@@ -92,6 +92,8 @@ def clear_garden():
 
 
 try:
+    # Legacy rules fixture: lift the #176 archive freeze for this run; restored in finally.
+    sql("delete from private.legacy_garden_freeze;")
     sql("""
     begin;
     select private.bootstrap_members('owner@example.test','member@example.test');
@@ -130,6 +132,7 @@ try:
     assert sql("select count(*) from public.peony_activity;") == '0'
     print("PASS: observed garden-lock waits for competing members and same-member repeat; identical once-only fact, original time, no plant/growth/bloom/activity effects")
 finally:
+    sql("insert into private.legacy_garden_freeze default values on conflict do nothing;")
     sql(original_clock)
     clear_garden()
     sql("""

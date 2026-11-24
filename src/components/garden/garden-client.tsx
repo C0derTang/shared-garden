@@ -26,6 +26,7 @@ import { FlowerCueMark, TodayCard, yourDotCue, type VisitFromCard } from "./toda
 import { SpotNotice, useSpotRequest } from "./spot-request";
 import { SinceLastVisit, useOwnActions } from "./since-last-visit";
 import { legacyPanelHref } from "@/lib/legacy/routes";
+import { archiveNote, useArchived } from "./archive";
 import styles from "./garden.module.css";
 
 // Short weekday and date for the clock plate, from the YYYY-MM-DD garden day.
@@ -110,6 +111,7 @@ function GardenSpot({
   visit: (spot: number) => void;
 }) {
   const partnerName = usePartnerName();
+  const archived = useArchived();
   const [picking, setPicking] = useState(!plant);
   // Set by a successful plant, which turns this sheet into the new flower's.
   const [planted, setPlanted] = useState(false);
@@ -123,7 +125,9 @@ function GardenSpot({
   const cared = plant
     ? Number(plant.member1_submitted) + Number(plant.member2_submitted)
     : 0;
-  const cue = plant && item ? careStatus(plant, item, state)?.cue ?? null : null;
+  const cue = plant && item && !archived ? careStatus(plant, item, state)?.cue ?? null : null;
+  // The archive has nothing to plant: bare soil stays scenery.
+  if (archived && !plant) return null;
   return (
     <div
       className={styles.spot}
@@ -146,7 +150,9 @@ function GardenSpot({
         }
         description={
           plant
-            ? `${item!.action_label}. Your shared progress, today’s care, and memories.`
+            ? archived
+              ? `${archiveNote}. Its progress, entries and memories.`
+              : `${item!.action_label}. Your shared progress, today’s care, and memories.`
             : "Every seed has its own small ritual."
         }
         hideDescription={!!plant}
@@ -156,7 +162,7 @@ function GardenSpot({
             className={plant ? styles.flowerButton : styles.emptyButton}
             aria-label={
               plant
-                ? `${item!.display_name}, spot ${spot}, ${plant.flower.fulfilled_at ? "fulfilled wish" : bloom ? "permanent bloom" : `${plant.flower.growth_units} of ${item!.growth_target} ${plant.flower.type_key === "peony" ? "milestones" : "growth units"}`}${(plant.flower.type_key === "peony" || (bloom && plant.flower.type_key !== "cactus")) ? "" : `, ${cared} of 2 cared today`}${cueLabel(cue, partnerName.object)}`
+                ? `${item!.display_name}, spot ${spot}, ${plant.flower.fulfilled_at ? "fulfilled wish" : bloom ? "permanent bloom" : `${plant.flower.growth_units} of ${item!.growth_target} ${plant.flower.type_key === "peony" ? "milestones" : "growth units"}`}${(archived || plant.flower.type_key === "peony" || (bloom && plant.flower.type_key !== "cactus")) ? "" : `, ${cared} of 2 cared today`}${cueLabel(cue, partnerName.object)}`
                 : `Plant in spot ${spot}`
             }
           >
@@ -178,7 +184,7 @@ function GardenSpot({
                     ? "In bloom"
                     : `${plant.flower.growth_units} / ${item!.growth_target}`}
                 </span>
-                {plant.flower.type_key !== "peony" &&
+                {!archived && plant.flower.type_key !== "peony" &&
                   (!bloom || plant.flower.type_key === "cactus") && (
                     <span className={styles.miniMarkers} aria-hidden="true">
                       <i
@@ -226,6 +232,7 @@ function GardenSpot({
 }
 export function GardenClient({ initial, guideEnabled = true }: { initial: GardenResult; guideEnabled?: boolean }) {
   const partnerName = usePartnerName();
+  const archived = useArchived();
   const [openSpot, setOpenSpot] = useState<number | null>(null);
   // The away card waits while the guide wants the screen (decision 0056).
   // This repeats the guide's own condition in the same render, from the
@@ -233,7 +240,7 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
   // never sees a stale value between commits.
   const preferences = useMemberPreferences();
   const [guideClosedRequest, setGuideClosedRequest] = useState<number | null>(null);
-  const guideUp = guideEnabled && preferences?.state?.guide === "open" && openSpot === null &&
+  const guideUp = guideEnabled && !archived && preferences?.state?.guide === "open" && openSpot === null &&
     !(guideClosedRequest !== null && guideClosedRequest === preferences.guideRequest);
   const heading = useRef<HTMLHeadingElement>(null);
   const focusGarden = useCallback(() => heading.current?.focus(), []);
@@ -308,13 +315,18 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
           </span>
           <span className={styles.clockTime}>
             <span>Pacific <span className={styles.clockNow}>· <strong suppressHydrationWarning>{pacificTime(now)}</strong></span></span>
-            <span>{remaining > 0 ? `New day in ${hours}h ${minutes}m` : "Refreshing day…"}</span>
+            <span data-archive-note={archived || undefined}>{archived ? archiveNote : remaining > 0 ? `New day in ${hours}h ${minutes}m` : "Refreshing day…"}</span>
           </span>
         </div>
       </header>
       <div className={styles.tools}>
         <HelpDisclosure className={styles.help} summaryClassName={styles.chip}>
-          <div>
+          {archived ? <div>
+            <p>{archiveNote}. Nothing grows, decays or rolls over here anymore.</p>
+            <p>Tap a flower to read its entries, replies, photos, voice notes and songs.</p>
+            <p>{state.plants.length} planted · {blooms} blooms.</p>
+            <button type="button" className={styles.refreshButton} onClick={() => void refresh()} disabled={busy}>Refresh</button>
+          </div> : <div>
             <p>Tap a flower to care. Tap bare soil to plant.</p>
             <p>{state.plants.length} planted · {blooms} blooms · beds grow as needed.</p>
             <p>Garden day {state.garden_day} · starts 4 a.m. Pacific.</p>
@@ -323,12 +335,12 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
             <p>An outlined dot · {partnerName.object} cared. Sparkle · blooms at 4 a.m. Empty drop · may lose growth.</p>
             <p>{connected ? "Live updates on" : "Checking updates…"}</p>
             <button type="button" className={styles.refreshButton} onClick={() => void refresh()} disabled={busy}>Refresh</button>
-          </div>
+          </div>}
         </HelpDisclosure>
         <Link href={legacyPanelHref("songs")} scroll={false} className={styles.chip}>Songs</Link>
       </div>
       <SpotNotice {...spotRequest} />
-      <div className={styles.guide}><GardenGuide state={state} paused={busy || !!error} visit={setOpenSpot} actionOpen={openSpot !== null} enabled={guideEnabled} focusGarden={focusGarden} closedRequest={guideClosedRequest} onClosedRequestChange={setGuideClosedRequest} /></div>
+      {!archived && <div className={styles.guide}><GardenGuide state={state} paused={busy || !!error} visit={setOpenSpot} actionOpen={openSpot !== null} enabled={guideEnabled} focusGarden={focusGarden} closedRequest={guideClosedRequest} onClosedRequestChange={setGuideClosedRequest} /></div>}
       <SinceLastVisit state={state} openSpot={setOpenSpot} focusGarden={focusGarden} quiet={openSpot !== null} hold={guideUp} ownResult={own.result} onCard={setAwayCard} />
       <div className={styles.workspace}>
         <section className={styles.beds} aria-label="Your flower beds">
@@ -376,7 +388,7 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
           ))}
         </section>
       </div>
-      <TodayCard state={state} visit={visitFromCard} away={awayCard} />
+      {!archived && <TodayCard state={state} visit={visitFromCard} away={awayCard} />}
       <GardenAmbience light={light} />
     </div>
   );

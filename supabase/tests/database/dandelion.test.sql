@@ -1,4 +1,6 @@
 begin;
+-- Legacy rules fixture: lift the #176 archive freeze inside this rolled-back test.
+delete from private.legacy_garden_freeze;
 create extension if not exists pgtap with schema extensions;
 set local search_path=extensions,public,pg_catalog;
 select no_plan();

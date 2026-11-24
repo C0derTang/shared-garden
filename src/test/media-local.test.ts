@@ -159,6 +159,8 @@ it.skipIf(!statusPath)(
       };
     };
     try {
+      // Legacy rules fixture: lift the #176 archive freeze for this run; restored in finally.
+      sql("delete from private.legacy_garden_freeze;");
       for (let attempt = 0; attempt < 60; attempt++) {
         if (web.exitCode !== null)
           throw new Error(
@@ -671,6 +673,7 @@ it.skipIf(!statusPath)(
         (await post("read", { mediaId: replacement.id }, null)).status,
       ).toBe(401);
     } finally {
+      sql("insert into private.legacy_garden_freeze default values on conflict do nothing;");
       web.kill("SIGTERM");
       closeSync(log);
       // Remove only objects from this previously empty dedicated local fixture.

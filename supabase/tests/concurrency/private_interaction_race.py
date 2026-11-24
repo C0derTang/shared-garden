@@ -86,6 +86,8 @@ TABLES = PRIVATE + ["private.garden_members", "auth.users"] + ["public." + table
 empty = "select " + "+".join(f"(select count(*) from {table})" for table in TABLES) + ";"
 assert sql(empty) == "0", "Refusing configured database; reset the dedicated local project"
 try:
+    # Legacy rules fixture: lift the #176 archive freeze for this run; restored in finally.
+    sql("delete from private.legacy_garden_freeze;")
     sql("""
     begin;
     select private.bootstrap_members('owner@example.test','member@example.test');
@@ -119,6 +121,7 @@ try:
     assert sql("select count(*) from public.flower_day_facts;") == "0"
     print("PASS: observed garden-lock waits for concurrent delivery, disarm versus answer, differing/same answer retries, and acknowledgment; once-only history and no growth effects")
 finally:
+    sql("insert into private.legacy_garden_freeze default values on conflict do nothing;")
     sql("begin;" + "".join(f"delete from {table};" for table in PRIVATE) + "".join(f"delete from public.{table};" for table in DOMAIN) + "delete from private.garden_members; delete from auth.users where email in ('owner@example.test','member@example.test');commit;")
 assert sql(empty) == "0"
 print("PASS: synthetic configuration, delivery, notifications, garden and Auth fixtures removed")

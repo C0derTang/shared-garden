@@ -83,6 +83,7 @@ export function checkRpc(error: { code?: string; message: string } | null) {
   if (!error) return;
   if (error.message === "media_processing")
     throw new MediaError("media_processing", 409);
+  if (error.code === "55000") throw new MediaError("garden_archived", 409);
   if (error.code === "42501") throw new MediaError("media_not_available", 403);
   if (error.code === "22023") {
     const code = /^media_[a-z_]+$/.test(error.message)
