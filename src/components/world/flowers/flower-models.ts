@@ -14,9 +14,14 @@ export interface WorldFlower {
 
 const modelCache = new Map<string, FlowerModel>();
 
-/** Growth is quantised to 1/1000 so near-identical fractions share one model. */
-function quantisedGrowth(growth: number): number {
-  return Number.isFinite(growth) ? Math.round(Math.min(1, Math.max(0, growth)) * 1000) / 1000 : 0;
+/**
+ * Growth is quantised to 1/1000 so near-identical fractions share one model.
+ * It rounds down, so a fraction just below a stage threshold (25%, 50%, 100%)
+ * never jumps into the next stage; the tiny epsilon keeps exact thresholds
+ * (e.g. 1/4 or 2/4) from falling below themselves through float error.
+ */
+export function quantisedGrowth(growth: number): number {
+  return Number.isFinite(growth) ? Math.floor(Math.min(1, Math.max(0, growth)) * 1000 + 1e-6) / 1000 : 0;
 }
 
 function modelKey(spec: FlowerSpec): string {

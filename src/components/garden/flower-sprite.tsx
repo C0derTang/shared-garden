@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { blendMoodColors, isMoodKey, moodColorOf } from "@/lib/garden/moods";
 import styles from "./flower-sprite.module.css";
 
 const flowerNames = {
@@ -100,35 +101,15 @@ const petals: Record<FlowerType, readonly [string, string, string]> = {
   peony: ["#aa6176", "#d88da1", "#f0bac1"],
 };
 
-const moodColors: Record<HydrangeaMood, string> = {
-  calm: "#6f9eab",
-  joyful: "#e2b84f",
-  tender: "#d88798",
-  energized: "#d9854f",
-  low: "#8b87ab",
-  tense: "#b86b61",
-};
-
-const knownMood = (mood: unknown): mood is HydrangeaMood =>
-  typeof mood === "string" && Object.hasOwn(moodColors, mood);
-/** Mid-point of two palette colors, so a blend never leaves the fixed palette's range. */
-export function blendMoodColors(a: HydrangeaMood, b: HydrangeaMood) {
-  const mix = (i: number) =>
-    Math.round(
-      (parseInt(moodColors[a].slice(i, i + 2), 16) +
-        parseInt(moodColors[b].slice(i, i + 2), 16)) /
-        2,
-    )
-      .toString(16)
-      .padStart(2, "0");
-  return `#${mix(1)}${mix(3)}${mix(5)}`;
-}
+const knownMood = (mood: unknown): mood is HydrangeaMood => isMoodKey(mood);
+/** Mid-point of two palette colors (the palette is shared with the new garden). */
+export { blendMoodColors };
 export function moodColor(tone: MoodTone | null | undefined, fallback: string) {
   if (Array.isArray(tone)) {
     const [a, b] = tone as readonly [unknown, unknown];
     return knownMood(a) && knownMood(b) ? blendMoodColors(a, b) : fallback;
   }
-  return knownMood(tone) ? moodColors[tone] : fallback;
+  return knownMood(tone) ? moodColorOf(tone) : fallback;
 }
 
 function Leaves({ type }: { type: FlowerType }) {

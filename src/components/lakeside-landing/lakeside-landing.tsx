@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { DOOR_CAPTION } from "@/lib/world/landing";
+import { DOOR_CAPTION } from "@/lib/world/landing-frame";
 import { legacyPath } from "@/lib/legacy/routes";
 import { GardenWorld, usePrefersReducedMotion, type WorldCaption, type WorldStatus } from "@/components/world/garden-world";
 import { handFont } from "@/components/world/hand-font";
@@ -83,7 +83,8 @@ export function LakesideLanding({ member, time }: LakesideLandingProps) {
   const captions: WorldCaption[] = useMemo(() => {
     if (phase !== "idle") return [];
     if (!member) return [{ id: "log-in", text: "log in", position: DOOR_CAPTION, formAction: "/auth/start", standby: true }];
-    return [{ id: "come-in", text: "come in", position: DOOR_CAPTION, onSelect: enter, standby: true }];
+    // A real link to the garden (works before scripts run); a plain click plays the walk-through.
+    return [{ id: "come-in", text: "come in", position: DOOR_CAPTION, href: GARDEN_PATH, onSelect: enter, standby: true }];
     // `enter` reads the latest state through refs and the current render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [member, phase, status, reducedMotion]);
@@ -144,6 +145,9 @@ export function LakesideLanding({ member, time }: LakesideLandingProps) {
         </Link>
       )}
       <div ref={lightRef} className={styles.light} aria-hidden="true" />
+      <p className={styles.announce} aria-live="polite">
+        {phase === "idle" ? "" : "Opening the door. Walking into the garden…"}
+      </p>
     </main>
   );
 }

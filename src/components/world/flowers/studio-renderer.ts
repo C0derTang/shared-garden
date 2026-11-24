@@ -29,6 +29,12 @@ export interface StudioState {
   readonly aura: number;
   /** Wind sway amount. */
   readonly sway: number;
+  /**
+   * The ground behind the flower: a deep botanical plate (default), or a
+   * darkened, painted impression of the garden's sky and meadow for the time
+   * of day ("sky").
+   */
+  readonly backdrop?: "plate" | "sky";
 }
 
 export interface StudioView {
@@ -265,23 +271,14 @@ export function createStudioRenderer(canvas: HTMLCanvasElement, initial: StudioS
           lamp: [0, 0, 0],
           lampLevel: 0,
         };
-        const z = lighting.zenith;
-        const hz = lighting.horizon;
-        backdrop.set({
-          backdrop: {
-            top: [z[0] * 0.04 + 0.004, z[1] * 0.04 + 0.0035, z[2] * 0.04 + 0.004],
-            grain: 1,
-            bottom: [hz[0] * 0.012 + 0.002, hz[1] * 0.012 + 0.002, hz[2] * 0.012 + 0.002],
-            pad: 0,
-            glow: [hz[0] * 0.03, hz[1] * 0.025, hz[2] * 0.022],
-            glowY: 0.38,
-          },
-        });
+        backdrop.set({ backdrop: state.backdrop === "sky" ? skyBackdrop(lighting) : plateBackdrop(lighting) });
 
         if (batch) {
           batch.setWorld(world);
           // The aura glows brighter as night falls.
-          batch.setParams({ hovered: -1, sway: still ? 0 : state.sway, detailNear: 1e6, aura: state.aura * (1 + 0.6 * lighting.night) });
+          const params = { hovered: -1, sway: still ? 0 : state.sway, detailNear: 1e6, aura: state.aura * (1 + 0.6 * lighting.night) };
+          batch.setParams(params);
+          batch.setShadowParams(params);
         }
         frame.pass({ target: shadowMap, clear: [1, 1, 1, 1], clearDepth: 1 }, (pass) => batch?.encodeShadow(pass));
         frame.pass({ target: scene, clear: [0, 0, 0, 1], clearDepth: 1 }, (pass) => {
@@ -326,5 +323,42 @@ export function createStudioRenderer(canvas: HTMLCanvasElement, initial: StudioS
       state = next;
     },
     dispose,
+  };
+}
+
+type BackdropLighting = Pick<ReturnType<typeof worldLightingFor>, "zenith" | "horizon" | "night">;
+
+/** The deep botanical plate, tinted by the sky. */
+function plateBackdrop({ zenith: z, horizon: hz }: BackdropLighting) {
+  return {
+    top: [z[0]! * 0.04 + 0.004, z[1]! * 0.04 + 0.0035, z[2]! * 0.04 + 0.004],
+    grain: 1,
+    bottom: [hz[0]! * 0.012 + 0.002, hz[1]! * 0.012 + 0.002, hz[2]! * 0.012 + 0.002],
+    style: 0,
+    glow: [hz[0]! * 0.03, hz[1]! * 0.025, hz[2]! * 0.022],
+    glowY: 0.38,
+    ground: [0, 0, 0],
+    horizonY: 0.6,
+  };
+}
+
+/**
+ * A darkened, colour-graded impression of the garden behind the flower: the
+ * time of day's sky over a hazy horizon and a dim meadow. Kept well below the
+ * flower's own brightness so its colours and aura still lead.
+ */
+function skyBackdrop({ zenith: z, horizon: hz, night }: BackdropLighting) {
+  const sky = 0.2 + 0.08 * night;
+  const haze = 0.16 + 0.06 * night;
+  const meadow = 1 - 0.6 * night;
+  return {
+    top: [z[0]! * sky + 0.003, z[1]! * sky + 0.003, z[2]! * sky + 0.004],
+    grain: 1,
+    bottom: [hz[0]! * haze + 0.004, hz[1]! * haze + 0.004, hz[2]! * haze + 0.004],
+    style: 1,
+    glow: [hz[0]! * 0.05, hz[1]! * 0.04, hz[2]! * 0.035],
+    glowY: 0.5,
+    ground: [0.012 * meadow + hz[0]! * 0.01, 0.022 * meadow + hz[1]! * 0.01, 0.008 * meadow + hz[2]! * 0.008],
+    horizonY: 0.66,
   };
 }

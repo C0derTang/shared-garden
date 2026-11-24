@@ -1,3 +1,5 @@
+import { moodPick, type MoodPick } from "@/lib/garden/moods";
+
 /**
  * New-garden (v2) data model. Independent of the legacy garden UI: the server
  * snapshot from `v2_current_garden_state` is validated here before rendering.
@@ -19,11 +21,8 @@ export const flowerTypes = [
 ] as const;
 export type FlowerType = (typeof flowerTypes)[number];
 
-export const moodKeys = ["calm", "joyful", "tender", "energized", "low", "tense"] as const;
-export type MoodKey = (typeof moodKeys)[number];
-export const OTHER_MOOD = "other";
-export const MOOD_NOTE_LIMIT = 140;
-export type MoodPick = { mood: MoodKey | typeof OTHER_MOOD; mood2?: MoodKey; note?: string };
+// Hydrangea moods are shared with the legacy garden (one palette, one rule).
+export { moodKeys, moodPick, MOOD_NOTE_LIMIT, OTHER_MOOD, type MoodKey, type MoodPick } from "@/lib/garden/moods";
 
 export type ClockState = {
   server_now: string;
@@ -124,7 +123,6 @@ const nonNegative = (v: unknown) => typeof v === "number" && Number.isSafeIntege
 const timestamp = (v: unknown) => typeof v === "string" && Number.isFinite(Date.parse(v));
 const member = (v: unknown) => v === 1 || v === 2;
 const isType = (v: unknown): v is FlowerType => flowerTypes.includes(v as FlowerType);
-const isMood = (v: unknown): v is MoodKey => moodKeys.includes(v as MoodKey);
 
 function clock(value: Record<string, unknown>) {
   assert(
@@ -134,20 +132,6 @@ function clock(value: Record<string, unknown>) {
       typeof value.garden_day === "string" &&
       typeof value.moonflower_open === "boolean",
   );
-}
-
-/** A saved Hydrangea payload as a validated pick, or null when it is not one. */
-export function moodPick(payload: Record<string, unknown>): MoodPick | null {
-  const { mood, mood2, note } = payload;
-  if (mood !== OTHER_MOOD && !isMood(mood)) return null;
-  if (note !== undefined && (typeof note !== "string" || !note.trim() || Array.from(note).length > MOOD_NOTE_LIMIT))
-    return null;
-  if (mood === OTHER_MOOD) {
-    if (mood2 !== undefined || typeof note !== "string") return null;
-    return { mood, note };
-  }
-  if (mood2 !== undefined && (!isMood(mood2) || mood2 === mood)) return null;
-  return { mood, ...(mood2 ? { mood2 } : {}), ...(note ? { note } : {}) };
 }
 
 export function parseEntries(value: unknown): Entry[] {

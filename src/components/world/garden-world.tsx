@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { projectToNdc } from "@/lib/world/camera";
 import { SPOTS_PER_BED, type Vec3 } from "@/lib/world/layout";
+import type { FocusTarget } from "@/lib/world/journey";
 import type { FlowerAnchor } from "@/lib/world/picking";
 import { handFont } from "./hand-font";
 import type { WorldComposition, WorldRenderer, WorldSceneState, WorldView } from "./renderer";
@@ -17,8 +18,23 @@ export interface WorldCaption {
   readonly position: Vec3;
   /** "title" is large display type; "label" is small. */
   readonly size?: "title" | "label";
-  /** Makes the caption a button. */
+  /** Makes the caption a button (or, with `href`, enhances the link). */
   readonly onSelect?: () => void;
+  /**
+   * Makes the caption a real link to this same-origin path, so it works
+   * before scripts run. With `onSelect`, a plain click runs `onSelect` instead.
+   */
+  readonly href?: string;
+  /** Accessible name when it should say more than the visible words. */
+  readonly ariaLabel?: string;
+  /** "quiet" captions are dimmer until hovered or focused. */
+  readonly tone?: "quiet";
+  /**
+   * Fades the caption out beyond this camera depth (world units), so small
+   * labels only show up close. Faded captions stay keyboard-focusable and
+   * reappear while focused.
+   */
+  readonly fadeBeyond?: number;
   /** Makes the caption a submit button of a POST form to this same-origin path (works without JavaScript). */
   readonly formAction?: string;
   /**
@@ -61,6 +77,10 @@ export interface GardenWorldProps {
   readonly className?: string;
   /** Accessible description of the scene. */
   readonly label?: string;
+  /** Garden: the camera glides to this flower, and back when it becomes null. */
+  readonly focus?: FocusTarget | null;
+  /** Stop painting once the camera settles (a full-screen view covers the world). */
+  readonly paused?: boolean;
 }
 
 export type WorldStatus = "loading" | "ready" | "unsupported" | "stopped";
@@ -69,6 +89,8 @@ type Status = WorldStatus;
 const EMPTY: readonly never[] = [];
 /** Journey step for one key press. */
 const KEY_STEP = 0.2;
+/** Sideways step (world units) for one left or right arrow press. */
+const PAN_STEP = 1.6;
 /** Device losses the world recovers from by recreating its GPU context before giving up. */
 export const DEVICE_LOSS_RECOVERIES = 1;
 
@@ -83,6 +105,17 @@ export function usePrefersReducedMotion(): boolean {
     return () => query.removeEventListener("change", update);
   }, []);
   return reduced;
+}
+
+/**
+ * Opacity of a caption at `position`: 1 within `fadeBeyond` of the camera
+ * (view depth), fading to 0 over the next 30% of that distance.
+ */
+export function captionFade(viewProjection: Float32Array, position: Vec3, fadeBeyond: number): number {
+  // Clip-space w of a perspective projection is the view depth.
+  const w = viewProjection[3]! * position[0] + viewProjection[7]! * position[1] + viewProjection[11]! * position[2] + viewProjection[15]!;
+  const span = Math.max(0.01, fadeBeyond * 0.3);
+  return Math.min(1, Math.max(0, 1 - (w - fadeBeyond) / span));
 }
 
 /** True when the browser exposes WebGPU at all (the adapter is checked on start). */
@@ -114,6 +147,8 @@ export function GardenWorld({
   onPickFlower,
   className,
   label = "A painted garden meadow beside a lake, with planting beds",
+  focus = null,
+  paused = false,
 }: GardenWorldProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<WorldRenderer | null>(null);
@@ -140,6 +175,8 @@ export function GardenWorld({
     layers,
     time: timeValue === null ? null : new Date(timeValue),
     reducedMotion,
+    focus,
+    paused,
   };
   const stateRef = useRef(sceneState);
   const motionRef = useRef(reducedMotion);
@@ -156,7 +193,7 @@ export function GardenWorld({
     rendererRef.current?.update(sceneState);
     // sceneState is rebuilt from these inputs every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [spotCapacity, occupiedSpots, flowers, layers, timeValue, reducedMotion, doorInvite, entering]);
+  }, [spotCapacity, occupiedSpots, flowers, layers, timeValue, reducedMotion, doorInvite, entering, focus, paused]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -177,8 +214,35 @@ export function GardenWorld({
         if (!element) return;
         const ndc = projectToNdc(view.viewProjection, caption.position);
         const visible = ndc !== null && Math.abs(ndc[0]) < 1.2 && Math.abs(ndc[1]) < 1.2 && ndc[2] < 1;
+        const control = Boolean(caption.onSelect || caption.href || caption.formAction);
+        if (!visible && control) {
+          // Out of view, a control stays reachable by keyboard: invisible, pinned
+          // inside the edge, and shown there while focused.
+          element.style.visibility = "visible";
+          element.dataset.offscreen = "";
+          element.style.opacity = "0";
+          const [cx, cy] = ndc && ndc[2] < 1 ? [ndc[0], ndc[1]] : [0, -0.8];
+          // Clamp by the caption's own size so its focus ring stays on screen.
+          const margin = 12;
+          const halfW = element.offsetWidth / 2 + margin;
+          const halfH = element.offsetHeight / 2 + margin;
+          const x = Math.min(Math.max(((cx + 1) / 2) * view.width, halfW), Math.max(halfW, view.width - halfW));
+          const y = Math.min(Math.max(((1 - cy) / 2) * view.height, halfH), Math.max(halfH, view.height - halfH));
+          element.style.transform = `translate(-50%, -50%) translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+          return;
+        }
+        if (element.dataset.offscreen !== undefined) {
+          delete element.dataset.offscreen;
+          element.style.opacity = "";
+        }
         element.style.visibility = visible ? "visible" : "hidden";
         if (!ndc || !visible) return;
+        if (caption.fadeBeyond !== undefined) {
+          const opacity = captionFade(view.viewProjection, caption.position, caption.fadeBeyond);
+          element.style.opacity = opacity.toFixed(2);
+          if (opacity < 0.1) element.dataset.faded = "";
+          else delete element.dataset.faded;
+        }
         // A gentle float, like type drifting on warm air.
         const driftX = Math.sin(t * 0.5 + index * 1.7) * 3;
         const driftY = Math.sin(t * 0.7 + index * 2.3) * 4;
@@ -197,7 +261,9 @@ export function GardenWorld({
             },
             onUnsupported: (error) => {
               console.warn("Painted garden unavailable", error);
-              if (!cancelled) setStatus("unsupported");
+              // After a device loss this browser did have WebGPU: failing to get
+              // it back means the painting stopped, not that it is unsupported.
+              if (!cancelled) setStatus(recoveries > 0 ? "stopped" : "unsupported");
             },
             onError: (error) => {
               console.error("Painted garden stopped", error);
@@ -231,7 +297,7 @@ export function GardenWorld({
         })
         .catch((error: unknown) => {
           console.warn("Painted garden failed to load", error);
-          if (!cancelled) setStatus("unsupported");
+          if (!cancelled) setStatus(recoveries > 0 ? "stopped" : "unsupported");
         });
     };
     launch();
@@ -245,9 +311,11 @@ export function GardenWorld({
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.target !== event.currentTarget) return;
     const step = event.key === "ArrowUp" || event.key === "PageDown" ? KEY_STEP : event.key === "ArrowDown" || event.key === "PageUp" ? -KEY_STEP : 0;
-    if (step === 0) return;
+    const side = event.key === "ArrowRight" ? PAN_STEP : event.key === "ArrowLeft" ? -PAN_STEP : 0;
+    if (step === 0 && side === 0) return;
     event.preventDefault();
-    rendererRef.current?.travel(step);
+    if (step) rendererRef.current?.travel(step);
+    if (side) rendererRef.current?.pan(side);
   };
 
   const classes = [styles.world, handFont.className, className].filter(Boolean).join(" ");
@@ -294,14 +362,22 @@ export function GardenWorld({
     <div
       className={classes}
       data-status={status}
+      data-garden-world=""
       tabIndex={composition === "garden" ? 0 : undefined}
       onKeyDown={composition === "garden" ? onKeyDown : undefined}
-      aria-label={composition === "garden" ? `${label}. Use the up and down arrow keys to walk closer or step back.` : undefined}
+      aria-label={
+        composition === "garden" ? `${label}. Use the up and down arrow keys to walk closer or step back, and left and right to walk along the beds.` : undefined
+      }
     >
       <canvas ref={canvasRef} className={styles.canvas} role="img" aria-label={label} />
       <div className={styles.captions}>
         {captions.map((caption) => {
-          const className = [styles.caption, caption.size === "title" ? styles.title : styles.label, caption.standby ? styles.standby : ""]
+          const className = [
+            styles.caption,
+            caption.size === "title" ? styles.title : styles.label,
+            caption.standby ? styles.standby : "",
+            caption.tone === "quiet" ? styles.quiet : "",
+          ]
             .filter(Boolean)
             .join(" ");
           const ref = (element: HTMLElement | null) => {
@@ -310,19 +386,44 @@ export function GardenWorld({
           };
           if (caption.formAction) {
             return (
-              <form key={caption.id} ref={ref} className={className} action={caption.formAction} method="post">
+              <form key={caption.id} ref={ref} className={className} action={caption.formAction} method="post" data-caption={caption.id}>
                 <button type="submit" className={styles.captionButton}>
                   {caption.text}
                 </button>
               </form>
             );
           }
+          if (caption.href) {
+            const select = caption.onSelect;
+            return (
+              <a
+                key={caption.id}
+                ref={ref}
+                className={className}
+                data-caption={caption.id}
+                href={caption.href}
+                aria-label={caption.ariaLabel}
+                onClick={
+                  select
+                    ? (event) => {
+                        // Let modified clicks open the link normally.
+                        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                        event.preventDefault();
+                        select();
+                      }
+                    : undefined
+                }
+              >
+                {caption.text}
+              </a>
+            );
+          }
           return caption.onSelect ? (
-            <button key={caption.id} ref={ref} type="button" className={className} onClick={caption.onSelect}>
+            <button key={caption.id} ref={ref} type="button" className={className} onClick={caption.onSelect} aria-label={caption.ariaLabel} data-caption={caption.id}>
               {caption.text}
             </button>
           ) : (
-            <span key={caption.id} ref={ref} className={className}>
+            <span key={caption.id} ref={ref} className={className} data-caption={caption.id}>
               {caption.text}
             </span>
           );

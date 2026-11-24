@@ -29,3 +29,38 @@ export function journeyPose(progress: number): JourneyPose {
   const t = smooth(p - i);
   return { eye: mix(KEYS[i]!.eye, KEYS[i + 1]!.eye, t), look: mix(KEYS[i]!.look, KEYS[i + 1]!.look, t) };
 }
+
+/** A flower the camera glides to before its detail view opens. */
+export interface FocusTarget {
+  /** Base of the stem in world space. */
+  readonly position: Vec3;
+  /** Height of the plant above its base. */
+  readonly height: number;
+}
+
+/** Blends two poses (t = 0 gives `a`, 1 gives `b`), eased. */
+export function blendPoses(a: JourneyPose, b: JourneyPose, t: number): JourneyPose {
+  const s = smooth(t);
+  return { eye: mix(a.eye, b.eye, s), look: mix(a.look, b.look, s) };
+}
+
+/**
+ * A close, slightly raised look at one flower. The flower is framed where the
+ * detail view will show its large render: the left half on landscape screens,
+ * the top of a portrait screen. `fovY` is the camera's vertical field of view.
+ */
+export function focusPose(target: FocusTarget, aspect: number, fovY: number): JourneyPose {
+  const h = Math.min(1.6, Math.max(0.25, Number.isFinite(target.height) ? target.height : 0.6));
+  const [x, y, z] = target.position;
+  const centre: Vec3 = [x, y + h * 0.55, z];
+  const distance = 1.5 + h * 1.9;
+  const eye: Vec3 = [x + 0.15, centre[1] + 0.45 + h * 0.4, z + distance];
+  const reach = Math.hypot(eye[1] - centre[1], eye[2] - centre[2]);
+  const tanY = Math.tan(fovY / 2);
+  const landscape = aspect >= 1;
+  // Shift the look point so the flower lands at NDC x = -0.5 (landscape) or y = +0.45 (portrait).
+  const look: Vec3 = landscape
+    ? [centre[0] + 0.5 * reach * tanY * aspect, centre[1], centre[2]]
+    : [centre[0], centre[1] - 0.45 * reach * tanY, centre[2]];
+  return { eye, look };
+}

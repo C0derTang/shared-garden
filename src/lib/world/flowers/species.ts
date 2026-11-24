@@ -406,7 +406,7 @@ const marigold: Builder = (b) => {
   const height = range(t, 0.42, 0.56);
   const leaf = leafColors(b.stream("leaf-colors"), { base: "#253f19", tip: "#4f6d2a", accent: "#88a060" });
   const stemColor = stemPaint(t, "#3d5a22", "#5d7a2c");
-  const rings = int(t, 6, 8);
+  const rings = int(t, 5, 7);
   const spin = t() * Math.PI * 2;
   if (b.growth.stage === "seedling") return seedling(b, leaf, "dicot", { teeth: 5, toothDepth: 0.25 });
   const g = b.growth;
@@ -438,12 +438,13 @@ const marigold: Builder = (b) => {
         cup: 0.35,
         curl: lerp(-0.1, 0.5, k),
         twist: jitter(pr, 0.1),
-        ruffle: range(pr, 0.1, 0.16),
-        ruffleFreq: range(pr, 2, 2.8),
-        widthPos: 0.7,
-        tipShape: 0.28,
+        // Soft, rounded ruffles read as petals rather than shards at hero size.
+        ruffle: range(pr, 0.06, 0.1),
+        ruffleFreq: range(pr, 1.8, 2.4),
+        widthPos: 0.66,
+        tipShape: 0.42,
         teeth: 3,
-        toothDepth: 0.05,
+        toothDepth: 0.03,
         baseWidth: 0.3,
         base: vary(paint.base, pr, 0.06),
         tip: vary(scaleRgb(paint.tip, lerp(1, 0.9, k)), pr, 0.06),
@@ -1139,7 +1140,7 @@ const peony: Builder = (b) => {
   const leaf = leafColors(b.stream("leaf-colors"), { base: "#284a20", tip: "#5a7a32", accent: "#9a7a5a" });
   const stemColor = stemPaint(t, "#4f4a2a", "#5f7230");
   const semiDouble = t() < 0.35;
-  const innerCount = semiDouble ? int(t, 16, 22) : int(t, 34, 46);
+  const innerCount = semiDouble ? int(t, 16, 22) : int(t, 28, 38);
   const guardCount = int(t, 7, 10);
   const spin = t() * Math.PI * 2;
   if (b.growth.stage === "seedling") return seedling(b, leaf, "dicot", { widthPos: 0.4 });
@@ -1180,11 +1181,12 @@ const peony: Builder = (b) => {
       curl: 0.5,
       tipCurl: -0.3 * g.open,
       twist: jitter(pr, 0.2),
-      ruffle: range(pr, 0.18, 0.28),
-      ruffleFreq: range(pr, 2.5, 3.5),
-      widthPos: 0.62,
-      tipShape: 0.45,
-      notch: pr() < 0.3 ? range(pr, 0.02, 0.04) : 0,
+      // Broad, softly waved guard petals (sharper ruffles read as crumpled paper).
+      ruffle: range(pr, 0.1, 0.16),
+      ruffleFreq: range(pr, 2, 2.8),
+      widthPos: 0.6,
+      tipShape: 0.6,
+      notch: pr() < 0.3 ? range(pr, 0.015, 0.03) : 0,
       baseWidth: 0.25,
       base: vary(paint.base, pr, 0.05),
       tip: vary(paint.tip, pr, 0.05),
@@ -1209,11 +1211,11 @@ const peony: Builder = (b) => {
       curl: range(pr, 0.4, 0.6),
       tipCurl: jitter(pr, 0.12),
       twist: jitter(pr, 0.1),
-      ruffle: range(pr, 0.1, 0.18),
-      ruffleFreq: range(pr, 2.5, 3.5),
-      widthPos: 0.64,
-      tipShape: 0.35,
-      notch: pr() < 0.2 ? range(pr, 0.03, 0.06) : 0,
+      ruffle: range(pr, 0.06, 0.11),
+      ruffleFreq: range(pr, 2, 2.8),
+      widthPos: 0.62,
+      tipShape: 0.52,
+      notch: pr() < 0.2 ? range(pr, 0.02, 0.04) : 0,
       baseWidth: 0.25,
       base: vary(scaleRgb(paint.base, shade), pr, 0.06),
       tip: vary(scaleRgb(paint.tip, lerp(1, 0.94, k)), pr, 0.05),

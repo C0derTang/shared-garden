@@ -16,17 +16,19 @@ export type HeroFraming = "plant" | "bloom";
  * Camera that keeps the plant large in frame, slightly from above: the whole
  * plant, or a close-up of its bloom (falls back to the plant before a head forms).
  */
-export function heroCamera(model: FlowerModel, framing: HeroFraming = "plant"): StudioCamera {
+export function heroCamera(model: FlowerModel, framing: HeroFraming = "plant", minExtent = 0.08): StudioCamera {
   const fovY = (30 * Math.PI) / 180;
   const aura = model.aura;
   if (framing === "bloom" && aura) {
     const extent = Math.max(aura.radius * 0.55, 0.05);
     return { kind: "orbit", target: aura.center, distance: extent / Math.tan(fovY / 2), elevation: (18 * Math.PI) / 180, fovY, spin: HERO_SPIN };
   }
-  const extent = Math.max(model.height * 0.56, model.radius * 1.25, 0.08);
+  const natural = Math.max(model.height * 0.56, model.radius * 1.25, 0.08);
+  const extent = Math.max(natural, minExtent);
   return {
     kind: "orbit",
-    target: [0, model.height * 0.54, 0],
+    // A plant smaller than the frame rises from near its bottom edge, as if from the soil.
+    target: [0, extent > natural ? Math.max(model.height * 0.54, extent * 0.6) : model.height * 0.54, 0],
     distance: extent / Math.tan(fovY / 2),
     elevation: (10 * Math.PI) / 180,
     fovY,
@@ -43,6 +45,13 @@ export interface FlowerHeroProps {
   readonly label?: string;
   /** Whole plant (default) or a close-up of the bloom. */
   readonly framing?: HeroFraming;
+  /**
+   * Smallest half-height of the plant framing (flower-local units), so a
+   * seedling can look small instead of filling the frame. Defaults to 0.08.
+   */
+  readonly minExtent?: number;
+  /** The ground behind the flower: a deep botanical plate (default) or the garden's painted sky ("sky"). */
+  readonly backdrop?: "plate" | "sky";
 }
 
 /**
@@ -50,7 +59,7 @@ export interface FlowerHeroProps {
  * plate, slowly turning, with its soft coloured aura. For the flower detail
  * split view. Motion stops under reduced motion. Requires WebGPU.
  */
-export function FlowerHero({ spec, time, className, label, framing = "plant" }: FlowerHeroProps) {
+export function FlowerHero({ spec, time, className, label, framing = "plant", minExtent = 0.08, backdrop = "plate" }: FlowerHeroProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const reducedMotion = usePrefersReducedMotion();
   const key = `${spec.type}|${spec.seed}|${spec.growth}|${spec.puff ? 1 : 0}|${(spec.moodColors ?? []).join(",")}`;
@@ -58,10 +67,10 @@ export function FlowerHero({ spec, time, className, label, framing = "plant" }: 
   const state: StudioState = useMemo(() => {
     const model = flowerModel(spec);
     const flowers: PlacedFlower[] = [{ model, placement: { position: [0, 0, 0], yaw: 0, scale: 1 }, phase: flowerPhase(spec.seed) }];
-    return { flowers, camera: heroCamera(model, framing), time: timeValue === null ? null : new Date(timeValue), reducedMotion, aura: 0.55, sway: 0.5 };
+    return { flowers, camera: heroCamera(model, framing, minExtent), time: timeValue === null ? null : new Date(timeValue), reducedMotion, aura: 0.55, sway: 0.5, backdrop };
     // `key` captures every field of `spec`.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, timeValue, reducedMotion, framing]);
+  }, [key, timeValue, reducedMotion, framing, minExtent, backdrop]);
   const status = useStudio(canvasRef, state);
   const classes = [styles.studio, className].filter(Boolean).join(" ");
   const description = label ?? `A painted ${spec.type.replace(/-/g, " ")}`;

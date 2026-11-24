@@ -60,8 +60,12 @@ interface PartDraws {
 
 /** Every flower of a layer (or the studio), drawn with three instanced templates plus auras. */
 export interface FlowerBatch {
+  /** Shared camera and light for every draw of the batch (once per frame). */
   setWorld(world: WorldUniforms): void;
+  /** Parameters of the lit petals and the auras. */
   setParams(params: FlowerParamsValue): void;
+  /** Parameters of the shadow casters (only when created with `castShadows`). */
+  setShadowParams(params: FlowerParamsValue): void;
   /** Petals, leaves, stalks and seed heads. */
   encode(pass: FramePass): void;
   /** The additive auras; draw after everything opaque. */
@@ -150,11 +154,12 @@ export function createFlowerBatch(gpu: Gpu, packed: PackedFlowers, options: Flow
     },
     setParams(params) {
       const value = { hovered: params.hovered, sway: params.sway, detailNear: params.detailNear, aura: params.aura };
-      for (const part of parts) {
-        part.lit.set({ flowers: value });
-        part.caster?.set({ flowers: value });
-      }
+      for (const part of parts) part.lit.set({ flowers: value });
       aura?.set({ flowers: value });
+    },
+    setShadowParams(params) {
+      const value = { hovered: params.hovered, sway: params.sway, detailNear: params.detailNear, aura: params.aura };
+      for (const part of parts) part.caster?.set({ flowers: value });
     },
     encode(pass) {
       for (const part of parts) pass.draw(part.lit, { instances: part.count });

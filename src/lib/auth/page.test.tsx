@@ -21,13 +21,13 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllEnvs());
 it("rechecks authorization in the page even if the proxy is bypassed", async () => {
-  await expect(GardenPage()).rejects.toThrow(
+  await expect(GardenPage({ searchParams: Promise.resolve({ flower: "00000000-0000-4000-8000-000000000001" }) })).rejects.toThrow(
     /^redirect:\/$/,
   );
 });
 it("never renders a member shell without complete configuration", async () => {
   vi.stubEnv("APP_ORIGIN", "");
-  await expect(GardenPage()).rejects.toThrow(
+  await expect(GardenPage({ searchParams: Promise.resolve({ flower: "00000000-0000-4000-8000-000000000001" }) })).rejects.toThrow(
     /^redirect:\/$/,
   );
 });

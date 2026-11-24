@@ -153,11 +153,13 @@ amendments conflict with "New garden look and interaction" above, they win.
     depth and camera movement under a painterly finish.
   - The UI/UX feel follows the reference site: white handwritten type floating
     in the scene, minimal chrome, camera-journey navigation and soft hover
-    glows. Distant mountains are allowed; the "no mounds" rule concerns the
-    mound-field composition.
+    glows.
 
 Conservative choices made for the world renderer (#174, PR #189):
 
+- **Mountains:** distant mountain ranges are allowed. This is an orchestrator
+  clarification, not the user's words: the "no mounds" rule concerns a
+  mound-field composition, not hazy ranges on the far horizon.
 - **Composition:** an original lakeside garden meadow. Beds of soil edged with
   mossy stones sit in a meadow with long golden grass, reeds, boulders and
   wildflowers. Our shore has framing trees with branches. A reflective lake
@@ -184,14 +186,17 @@ Conservative choices made for the world renderer (#174, PR #189):
     rings.
 - **Navigation:** scroll, swipe or the arrow keys walk the camera from the
   overview in among the beds, and the pointer adds parallax. Reduced motion
-  removes drift, sway and easing.
+  removes drift, sway and easing. A sideways drag, a horizontal scroll or the
+  left and right arrow keys walk along the beds, as far as the outermost open
+  bed, so every spot can be reached on narrow screens (added in #181).
 - **Type:** Gochi Hand (SIL Open Font License 1.1), bundled in the repository
   and loaded with `next/font/local`; there are no remote font requests.
   Captions glow softly and drift gently.
 - **Fallbacks:** browsers without WebGPU see "This garden is painted with
   WebGPU." with a link to `/legacy`. A runtime failure shows "The painted
   garden stopped." with Reload and `/legacy`. After a GPU device loss the world
-  recreates its GPU context once before showing that notice.
+  recreates its GPU context once before showing that notice; if that restart
+  finds no GPU, it shows the "stopped" notice rather than the unsupported one.
 - **Development showcase:** `/dev/world` is available in development only and
   returns 404 in production.
 
@@ -363,6 +368,10 @@ device-loss handling.
   - For members, the door's edges and its little window breathe with warm light,
     and "come in" floats above the porch. A small "old garden" link sits in the
     corner.
+  - "come in" is a real link to `/garden`, so it works before scripts run;
+    scripts turn a plain click into the walk-through, and its start is
+    announced to screen readers ("Opening the door. Walking into the
+    garden…").
   - Tapping the words or the painted door plays a 4.8-second walk-through. The
     camera walks up the path and the door swings about 104° inward as warm light
     spills out. The camera then climbs onto the porch and pushes through the
@@ -386,3 +395,108 @@ device-loss handling.
 - **Development preview:** `/dev/landing?sky=dusk&member=1` shows a fixed sky
   and the member view without a session. It is available in development only
   and returns 404 in production.
+
+### Recorded choice: the garden page and flower activities ([#181](https://github.com/C0derTang/shared-garden/issues/181))
+
+Conservative choices for the new `/garden`, made under this decision's
+discretion and the look in "World look":
+
+- **The page:** `/garden` is the full-screen painted world, fed by
+  `v2_current_garden_state` and its Realtime channel with the same sync rules
+  as the legacy garden (shared through `useGardenSync`: Realtime invalidation,
+  focus and 30-second reads, a server-calibrated clock, boundary refreshes and
+  one guarded save at a time). The only chrome is "our garden" floating over
+  the lake and two small handwritten links in the corner, "home" (`/`) and
+  "old garden" (`/legacy`). A hint, "scroll to wander closer · tap a flower to
+  visit", floats at the bottom until the first scroll, drag, key or tap. The
+  page is members-only (`requireMember`); `/garden?flower=<id>` opens that
+  flower directly. No development showcase controls appear on the page;
+  `/dev/world`, `/dev/flowers` and `/dev/landing` are unchanged and still 404 in
+  production.
+- **Floating words:** every flower has its lower-case name floating above it
+  (Gochi Hand, soft glow). Names fade in as the camera walks closer (within
+  about 6.4 world units) so the overview stays a painting; a focused name always
+  shows (names outside the view are pinned inside the screen edge, by their own
+  size, while focused). A flower whose care is open for you is bright; the rest are quieter,
+  and "♡" follows the name when your partner cared and you have not yet. Each
+  name is a real link to `?flower=<id>` with an accessible name that says the
+  stage, growth and who has cared today. "plant a seed" floats above the next
+  empty spot ("tap a glowing seed to plant" while the garden is empty). Names
+  outside the view stay keyboard-reachable (invisible until focused).
+- **Visiting a flower:** tapping a flower or its name glides the camera to a
+  close, raised look at it (about 0.95 s) that frames it where the painting
+  will appear, then the split view opens and the world stops painting new
+  frames behind it. Closing glides back. Reduced motion and arrival by link
+  open at once.
+- **The split view:** a modal dialog (Radix) with the flower's own procedural
+  render (`FlowerHero`, the exact type, seed, growth, mood colours and puff) on
+  the left half and its activity on the right half, over a translucent dark
+  umber wash with canvas grain. Behind the flower the painting shows a darkened,
+  colour-graded impression of the garden for the time of day: the sky over a
+  hazy, ragged horizon and a dim meadow in loose dabs and leaning brush
+  strokes, under the studio's canvas tooth and vignette, kept well below the
+  flower so its colours and aura lead. Focus starts at the flower's name, stays inside,
+  and returns to the flower's floating name; Escape, "×" or "back to the
+  garden" close it. Seedlings stay small in the painting (a minimum framing) and
+  grow into the frame. Text is cream on the dark wash (above WCAG AA); headings
+  and controls are handwritten, entries are set in the display serif.
+- **Phones and portrait screens** (up to 760 px wide, or portrait up to
+  1100 px): the split view stacks, with the painting on top at 45% of the
+  viewport height and the panel scrolling below it. The panel's title names the
+  flower, so the painting keeps only its stage words there.
+- **The panel:** growth as "x of y" with painted dots and "It grows by one when
+  you both care on the same garden day. Nothing is ever lost."; who has cared
+  today; one cue from the shared care rules without decay; today's cards (your
+  partner's first once it has something) with the shared entry form, your entry
+  with "edit" during the 30-minute window, your partner's entry and reply
+  threads; then "earlier days" on request, each with its replies. After a
+  share, "next: <flower>" offers the next flower waiting for you. Bloomed
+  flowers that need no more care say so and show only today's entries.
+- **Per flower:** Rose, Marigold, Snapdragon, Moonflower, Dandelion and
+  Forget-me-not take a note with a type-specific placeholder; the Cactus is a
+  one-tap "I'm here"; the Tulip has Spotify search, manual song fields and the
+  song player; the Daisy shows today's light or deeper question; the Hydrangea
+  shows each member's latest colour and today's blend ("color of the day"), and
+  its florets in the world and the painting take both members' colours; the
+  Moonflower shows "opens at 10 p.m." and keeps a draft outside its window; the
+  Dandelion shows its wish and, once bloomed, "our wish came true" then "blow
+  the seeds" after a confirmation. Sunflower, Bluebell and Peony grow and show
+  their painting with "coming soon" for their activity (#182). Until then they
+  are never treated as due: their names stay quiet, their accessible names say
+  nothing about care, and "next" never offers them. One predicate
+  (`hasCareActivity` in `lib/garden-v2/flowers.ts`) decides this, so #182 only
+  adds each type to it.
+- **The Dandelion in the world:** growing, it shows its golden head; bloomed
+  and waiting on its wish, a seed puff; once fulfilled, its seeds have flown and
+  it shows its golden head again as a keepsake.
+- **Planting:** tapping a glowing seed mark or "plant a seed" glides to the spot
+  and opens the same split view: the left half paints the chosen type in bloom
+  from a fixed preview seed ("every seed grows its own way"), the right half
+  lists all 13 flowers with a line about each activity and how long they take
+  to bloom. The Dandelion asks for its shared wish (1–500 characters). After
+  planting, the new flower opens so today's care is one tap away.
+- **While you were away:** a handwritten note floats over the scene listing
+  what your partner planted and cared for today, what grew, bloomed or had its
+  wish come true since your last visit in this browser. It keeps only flower ids
+  and growth numbers in local storage per member; a first visit or unreadable
+  storage shows nothing. "lovely, thanks" dismisses it.
+- **Shared logic:** the legacy and new gardens share the mood palette and pick
+  rules (`lib/garden/moods.ts`), entry validation and payloads
+  (`lib/garden/entry-draft.ts`), today's care rules with decay only for the
+  legacy garden (`lib/garden/care.ts`), the sync hook and the reply thread,
+  which now takes its read and save actions. The legacy garden's behaviour is
+  unchanged.
+- **Flower rendering follow-ups:** a changed flower set is generated, packed,
+  uploaded and compiled in a task outside the frame callbacks (the previous
+  flowers keep drawing) and swapped in when ready; the shared camera uniform is
+  written once per frame; growth is quantised downward so a fraction just below
+  a stage threshold never rounds into the next stage. A bloomed flower averages
+  about 21,700 triangles at world detail. On the real page on a desktop Apple
+  GPU, both 15 and 100 bloomed flowers held the display's 120 fps (95th
+  percentile frame 9.5 ms), with no dropped frame when a flower was planted
+  live, so no distance level of detail was added. Phones were not measured;
+  revisit level of detail if a phone garden grows past about 60 flowers.
+- **Softer Peony and Marigold blooms:** their petals have smaller, broader
+  ruffles and rounder tips, the Marigold has five to seven rings and a full
+  Peony 28 to 38 inner petals, so the hero blooms read as petals rather than
+  shards.
