@@ -13,7 +13,7 @@ export interface FlowerLayer extends WorldLayer {
   /**
    * Replaces the flowers. The new set is generated, packed, uploaded and its
    * pipelines compiled in a task outside the frame callbacks; the previous
-   * flowers keep drawing until it is ready, so a change never stalls a frame.
+   * flowers keep drawing until it is ready.
    */
   setFlowers(flowers: readonly WorldFlower[]): void;
 }
@@ -44,24 +44,29 @@ export function createFlowerLayer(initial: readonly WorldFlower[] = []): FlowerL
   const rebuild = () => {
     scheduled = undefined;
     if (!gpu || !shadow || !sceneTarget) return;
-    const token = ++generation;
     const set = flowers;
     let next: FlowerBatch;
     try {
       next = build(set);
     } catch (error) {
-      // A lost device or bad data: keep drawing the previous flowers.
+      // A lost device or bad data: keep drawing the previous flowers. A
+      // failed build does not supersede a rebuild already compiling.
       console.error("Garden flowers could not be rebuilt", error);
       return;
     }
+    const token = ++generation;
     const nextIds = set.map((flower) => flower.id);
-    void next
-      .compile(sceneTarget)
-      .catch(() => undefined)
-      .then(() => {
+    void next.compile(sceneTarget).then(
+      () => {
         if (token !== generation || !gpu) next.dispose();
         else swap(next, nextIds);
-      });
+      },
+      (error: unknown) => {
+        // Never swap in flowers whose pipelines failed to compile.
+        console.error("Garden flowers could not be compiled", error);
+        next.dispose();
+      },
+    );
   };
 
   const schedule = () => {

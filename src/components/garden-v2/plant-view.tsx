@@ -1,7 +1,7 @@
 "use client";
 import { useId, useRef, useState, type FormEvent } from "react";
 import { characters } from "@/lib/garden/entry-draft";
-import { COMING_SOON_TYPES, previewSeed } from "@/lib/garden-v2/flowers";
+import { previewSeed } from "@/lib/garden-v2/flowers";
 import type { FlowerType, GardenResult, GardenState } from "@/lib/garden-v2/model";
 import type { MutateV2 } from "./care-form";
 import { SplitView } from "./split-view";
@@ -94,28 +94,25 @@ export function PlantView({
         <fieldset className={styles.seeds}>
           <legend className={styles.sectionTitle}>which flower?</legend>
           <div className={styles.seedList}>
-            {state.catalog.map((entry) => {
-              const soon = COMING_SOON_TYPES.includes(entry.type_key);
-              return (
-                <label key={entry.type_key} className={styles.seed} data-chosen={entry.type_key === type || undefined}>
-                  <input
-                    type="radio"
-                    name={`${id}-type`}
-                    value={entry.type_key}
-                    checked={entry.type_key === type}
-                    onChange={() => {
-                      setType(entry.type_key);
-                      setError(null);
-                    }}
-                  />
-                  <span className={styles.seedName}>{entry.display_name.toLowerCase()}</span>
-                  <span className={styles.seedAbout}>
-                    {ABOUT[entry.type_key]}
-                    {soon ? " · activity coming soon" : ""} · blooms after {entry.growth_target} {entry.type_key === "peony" ? "milestones" : "shared days"}
-                  </span>
-                </label>
-              );
-            })}
+            {state.catalog.map((entry) => (
+              <label key={entry.type_key} className={styles.seed} data-chosen={entry.type_key === type || undefined}>
+                <input
+                  type="radio"
+                  name={`${id}-type`}
+                  value={entry.type_key}
+                  checked={entry.type_key === type}
+                  onChange={() => {
+                    setType(entry.type_key);
+                    setError(null);
+                  }}
+                />
+                <span className={styles.seedName}>{entry.display_name.toLowerCase()}</span>
+                <span className={styles.seedAbout}>
+                  {ABOUT[entry.type_key]}
+                  {" · "}blooms after {entry.growth_target} {entry.type_key === "peony" ? "milestones" : "shared days"}
+                </span>
+              </label>
+            ))}
           </div>
         </fieldset>
         {type === "dandelion" && (

@@ -1,31 +1,17 @@
 "use client";
 import { usePartnerName } from "@/components/auth/member-names";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { readPeony, mutatePeony, type PeonyResult } from "@/lib/peony/actions";
+import { readPeony, mutatePeony } from "@/lib/peony/actions";
+import { canEditContribution, pacificDate, pacificLocal } from "@/lib/peony/model";
 import {
-  canEditContribution,
-  pacificCandidates,
-  pacificDate,
-  pacificLocal,
-  type PeonyState,
-  type PeonyCommand,
-} from "@/lib/peony/model";
+  peonyActivityValid,
+  PEONY_TITLES as titles,
+  usePeonyMilestones,
+  type PeonyActions,
+} from "@/lib/peony/use-peony-milestones";
 import type { Mutate } from "./seed-picker";
 import styles from "./garden.module.css";
 import peony from "./peony.module.css";
-const titles = [
-  "Propose ideas",
-  "Agree on a plan",
-  "Confirm your date happened",
-  "Share favorite moments",
-];
-type TextDraft = { milestone: number; id?: number; text: string };
-type PlanDraft = {
-  version: number;
-  activity: string;
-  local: string;
-  instant: string;
-};
+const legacyPeony: PeonyActions = { read: readPeony, mutate: mutatePeony };
 export function PeonyPanel({
   flowerId,
   refreshKey,
@@ -43,113 +29,35 @@ export function PeonyPanel({
   readOnly?: boolean;
 }) {
   const partnerName = usePartnerName();
-  const [state, setState] = useState<PeonyState | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [readError, setReadError] = useState<string | null>(null);
-  const [stale, setStale] = useState(true);
-  const [pending, setPending] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [text, setText] = useState<TextDraft | null>(null);
-  const [plan, setPlan] = useState<PlanDraft | null>(null);
-  const mounted = useRef(false),
-    lock = useRef(false),
-    generation = useRef(0);
-  const apply = useCallback((r: PeonyResult) => {
-    if (!mounted.current) return;
-    if (r.state)
-      setState((old) =>
-        !old || Date.parse(r.state!.server_now) >= Date.parse(old.server_now)
-          ? r.state
-          : old,
-      );
-    setStale(!r.state);
-    setReadError(r.error);
-  }, []);
-  const refresh = useCallback(async () => {
-    const token = ++generation.current;
-    try {
-      const r = await readPeony(flowerId);
-      if (token === generation.current) apply(r);
-    } catch {
-      if (token === generation.current)
-        apply({
-          state: null,
-          error: "Peony could not refresh. Your draft is here; try again.",
-        });
-    }
-  }, [flowerId, apply]);
-  useEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
-    };
-  }, []);
-  useEffect(() => {
-    const timer = setTimeout(() => void refresh(), 0);
-    return () => clearTimeout(timer);
-  }, [refresh, refreshKey]);
-  async function save(command: PeonyCommand) {
-    if (lock.current || busy || stale) return;
-    lock.current = true;
-    setPending(true);
-    setSaved(false);
-    setError(null);
-    generation.current++;
-    let detail: string | null = null;
-    try {
-      const result = await mutate({
-        kind: "external",
-        run: async (checkCurrent) => {
-          checkCurrent();
-          const r = await mutatePeony(flowerId, command);
-          apply(r);
-          detail = r.error;
-          if (!r.saved) throw Error("Peony save unconfirmed");
-        },
-      });
-      if (result.saved) {
-        setText(null);
-        setPlan(null);
-        setSaved(true);
-      } else setError(detail ?? result.error);
-    } finally {
-      lock.current = false;
-      if (mounted.current) setPending(false);
-    }
-  }
-  const blocked =
-    busy ||
-    pending ||
-    stale ||
-    !!(state && now >= Date.parse(state.next_rollover_at));
-  const candidates = plan ? pacificCandidates(plan.local) : [];
-  const chosen =
-    plan?.instant && pacificLocal(plan.instant) === plan.local
-      ? plan.instant
-      : candidates.length === 1
-        ? candidates[0]
-        : "";
-  const validInstant =
-    !!chosen &&
-    candidates.some(
-      (candidate) =>
-        Math.floor(Date.parse(candidate) / 60000) ===
-        Math.floor(Date.parse(chosen) / 60000),
-    );
-  const validText =
-    text &&
-    text.text.trim().length > 0 &&
-    Array.from(text.text.trim()).length <= 4000 &&
-    new TextEncoder().encode(JSON.stringify({ text: text.text.trim() }))
-      .length <= 20000;
-  const currentEdit = text?.id
-    ? state?.contributions.find((c) => c.id === text.id)
-    : null;
-  const editableText =
-    text &&
-    state?.next_milestone === text.milestone &&
-    (!text.id || (currentEdit && canEditContribution(currentEdit, now)));
-  const planChanged = !!plan && plan.version !== (state?.plan?.version ?? 0);
+  const {
+    state,
+    error,
+    readError,
+    stale,
+    pending,
+    saved,
+    setSaved,
+    text,
+    setText,
+    plan,
+    setPlan,
+    refresh,
+    save,
+    blocked,
+    candidates,
+    chosen,
+    validInstant,
+    validText,
+    editableText,
+    planChanged,
+  } = usePeonyMilestones({
+    flowerId,
+    refreshKey,
+    now,
+    busy,
+    mutate,
+    actions: legacyPeony,
+  });
   return (
     <section
       className={styles.stack}
@@ -552,9 +460,7 @@ export function PeonyPanel({
                   planChanged ||
                   !chosen ||
                   !validInstant ||
-                  !plan.activity.trim() ||
-                  Array.from(plan.activity.trim()).length > 2000 ||
-                  new TextEncoder().encode(plan.activity.trim()).length > 8000
+                  !peonyActivityValid(plan.activity)
                 }
               >
                 {pending ? "Saving…" : "Save shared plan"}

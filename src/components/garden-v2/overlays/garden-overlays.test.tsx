@@ -42,6 +42,7 @@ vi.mock("@/lib/garden-v2/actions", () => ({
   readRepliesV2: api.readRepliesV2,
   saveReplyV2: api.saveReplyV2,
 }));
+vi.mock("@/lib/garden-v2/peony-actions", () => ({ readPeonyV2: vi.fn(), mutatePeonyV2: vi.fn() }));
 vi.mock("@/lib/garden-v2/achievement-actions", () => ({ readAchievementsV2: api.readAchievementsV2 }));
 vi.mock("@/lib/garden-v2/memory-actions", () => ({ loadMemoriesV2: api.loadMemoriesV2 }));
 vi.mock("@/lib/private-interaction/actions", () => ({
