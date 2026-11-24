@@ -110,6 +110,35 @@ A development-only seeded sign-in may exist for local demos. It must be
 hard-gated to development with loopback Supabase and app origins, and must never
 be usable in production builds.
 
+## Achievements in the new garden
+
+Conservative choices under the discretion below, recorded for
+[issue #177](https://github.com/C0derTang/shared-garden/issues/177). The new
+garden keeps its own achievement progress and awards; legacy awards are never
+read or changed.
+
+- The legacy catalog is reused with the same IDs, titles, targets, units and
+  order wherever its meaning holds, so the new garden has 25 achievements.
+- **Recovery is retired.** It required a flower to lose growth and then bloom.
+  Nothing ever loses growth in the new garden, so it could never be earned.
+- **First seed planted** counts any planted flower, since there is no initial
+  Cactus to exclude.
+- **All 13 types planted** counts every planted type; its wording drops the
+  initial Cactus and unlocks, because all types are available from the start.
+- Every other achievement keeps its legacy rule over new-garden evidence only,
+  including completed Peony milestones for the streak and ten-minute
+  achievements. Several Cacti or unfinished flowers of one type may count, and
+  each bloomed flower counts once toward the bloom totals.
+- Each award records the garden day (4 a.m. America/Los_Angeles boundary) of
+  the operation that first met its target. Awards confirmed at rollover, such
+  as streaks, belong to the day of the first operation after that rollover.
+- Achievements are evaluated whenever a new-garden operation settles the garden
+  (every state read and change except replies and Memories) and again after
+  planting, daily care, Dandelion fulfilment and each completed Peony milestone. Entry and
+  Peony text edits do not trigger another evaluation: they never change
+  achievement evidence (original times, settled moods and Daisy questions are
+  fixed).
+
 ## Discretion
 
 In the style of [decision 0004](0004-finalized-launch-rules.md), each builder
