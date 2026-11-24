@@ -1,7 +1,14 @@
 import type { NextConfig } from "next";
+import { wgslTurbopackRule } from "@vgpu/wgsl/next";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Prepare .wgsl shader imports at build time for vgpu (painted garden world).
+  turbopack: {
+    rules: {
+      "*.wgsl": wgslTurbopackRule({ minify: true }),
+    },
+  },
   outputFileTracingExcludes: {
     "/api/media/finalize": [
       "./vendor/audio/darwin-*/**",

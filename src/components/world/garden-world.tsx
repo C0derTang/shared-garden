@@ -1,0 +1,221 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { projectToNdc } from "@/lib/world/camera";
+import { SPOTS_PER_BED, type Vec3 } from "@/lib/world/layout";
+import type { FlowerAnchor } from "@/lib/world/picking";
+import { handFont } from "./hand-font";
+import type { WorldRenderer, WorldSceneState, WorldView } from "./renderer";
+import type { WorldLayer } from "./world-layer";
+import styles from "./garden-world.module.css";
+
+/** Handwritten text floating in the world, anchored to a world position. */
+export interface WorldCaption {
+  readonly id: string;
+  readonly text: string;
+  readonly position: Vec3;
+  /** "title" is large display type; "label" is small. */
+  readonly size?: "title" | "label";
+  /** Makes the caption a button. */
+  readonly onSelect?: () => void;
+}
+
+export interface GardenWorldProps {
+  /** Number of planting spots to show (rounded up to whole beds of twelve). */
+  readonly spotCapacity?: number;
+  /** One-based spots that already hold a flower; they get no empty marker. */
+  readonly occupiedSpots?: readonly number[];
+  /** Pickable flowers drawn by layers. */
+  readonly flowers?: readonly FlowerAnchor[];
+  /** Content drawn inside the world, such as the procedural flowers. */
+  readonly layers?: readonly WorldLayer[];
+  /** Handwritten captions floating in the scene. */
+  readonly captions?: readonly WorldCaption[];
+  /** Fixed sky time (for previews and tests); the live clock otherwise. */
+  readonly time?: Date;
+  readonly onPickSpot?: (spot: number) => void;
+  readonly onPickFlower?: (id: string) => void;
+  readonly className?: string;
+  /** Accessible description of the scene. */
+  readonly label?: string;
+}
+
+type Status = "loading" | "ready" | "unsupported";
+
+const EMPTY: readonly never[] = [];
+/** Journey step for one key press. */
+const KEY_STEP = 0.2;
+
+function usePrefersReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    if (typeof window.matchMedia !== "function") return;
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setReduced(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+  return reduced;
+}
+
+/** True when the browser exposes WebGPU at all (the adapter is checked on start). */
+export function hasWebGpu(): boolean {
+  return typeof navigator !== "undefined" && "gpu" in navigator && Boolean((navigator as Navigator & { gpu?: unknown }).gpu);
+}
+
+/**
+ * The painted lakeside garden. Requires WebGPU; otherwise shows a notice
+ * linking to the legacy garden. Scroll, swipe or arrow keys travel in toward
+ * the beds; pointer movement adds parallax; clicking picks spots and flowers.
+ */
+export function GardenWorld({
+  spotCapacity = SPOTS_PER_BED,
+  occupiedSpots = EMPTY,
+  flowers = EMPTY,
+  layers = EMPTY,
+  captions = EMPTY,
+  time,
+  onPickSpot,
+  onPickFlower,
+  className,
+  label = "A painted garden meadow beside a lake, with planting beds",
+}: GardenWorldProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const rendererRef = useRef<WorldRenderer | null>(null);
+  const captionRefs = useRef(new Map<string, HTMLElement>());
+  const captionsRef = useRef(captions);
+  const [status, setStatus] = useState<Status>("loading");
+  const reducedMotion = usePrefersReducedMotion();
+  const timeValue = time?.getTime() ?? null;
+
+  const sceneState: WorldSceneState = {
+    spotCapacity,
+    occupiedSpots,
+    flowers,
+    layers,
+    time: timeValue === null ? null : new Date(timeValue),
+    reducedMotion,
+  };
+  const stateRef = useRef(sceneState);
+  const pickRef = useRef({ onPickSpot, onPickFlower });
+
+  useEffect(() => {
+    pickRef.current = { onPickSpot, onPickFlower };
+    captionsRef.current = captions;
+  });
+
+  useEffect(() => {
+    stateRef.current = sceneState;
+    rendererRef.current?.update(sceneState);
+    // sceneState is rebuilt from these inputs every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spotCapacity, occupiedSpots, flowers, layers, timeValue, reducedMotion]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    if (!hasWebGpu()) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- capability is only known in the browser
+      setStatus("unsupported");
+      return;
+    }
+    let cancelled = false;
+    let renderer: WorldRenderer | null = null;
+    const placeCaptions = (view: WorldView) => {
+      for (const caption of captionsRef.current) {
+        const element = captionRefs.current.get(caption.id);
+        if (!element) continue;
+        const ndc = projectToNdc(view.viewProjection, caption.position);
+        const visible = ndc !== null && Math.abs(ndc[0]) < 1.2 && Math.abs(ndc[1]) < 1.2 && ndc[2] < 1;
+        element.style.visibility = visible ? "visible" : "hidden";
+        if (!ndc || !visible) continue;
+        const x = ((ndc[0] + 1) / 2) * view.width;
+        const y = ((1 - ndc[1]) / 2) * view.height;
+        element.style.transform = `translate(-50%, -50%) translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+      }
+    };
+    void import("./renderer")
+      .then(({ createWorldRenderer }) => {
+        if (cancelled) return;
+        renderer = createWorldRenderer(canvas, stateRef.current, {
+          onReady: () => {
+            if (!cancelled) setStatus("ready");
+          },
+          onUnsupported: (error) => {
+            console.warn("Painted garden unavailable", error);
+            if (!cancelled) setStatus("unsupported");
+          },
+          onPick: (result) => {
+            if (result.kind === "spot") pickRef.current.onPickSpot?.(result.spot);
+            else pickRef.current.onPickFlower?.(result.id);
+          },
+          onFrame: placeCaptions,
+        });
+        rendererRef.current = renderer;
+      })
+      .catch((error: unknown) => {
+        console.warn("Painted garden failed to load", error);
+        if (!cancelled) setStatus("unsupported");
+      });
+    return () => {
+      cancelled = true;
+      renderer?.dispose();
+      rendererRef.current = null;
+    };
+  }, []);
+
+  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget) return;
+    const step = event.key === "ArrowUp" || event.key === "PageDown" ? KEY_STEP : event.key === "ArrowDown" || event.key === "PageUp" ? -KEY_STEP : 0;
+    if (step === 0) return;
+    event.preventDefault();
+    rendererRef.current?.travel(step);
+  };
+
+  const classes = [styles.world, handFont.className, className].filter(Boolean).join(" ");
+  if (status === "unsupported") {
+    return (
+      <div className={classes} data-status={status}>
+        <div className={styles.notice} role="status">
+          <p className={styles.noticeTitle}>This garden is painted with WebGPU.</p>
+          <p>Your browser can’t show it yet. Try a recent Chrome, Edge or Safari, or visit the earlier garden.</p>
+          <Link className={styles.noticeLink} href="/legacy">
+            Open the earlier garden
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={classes}
+      data-status={status}
+      tabIndex={0}
+      onKeyDown={onKeyDown}
+      aria-label={`${label}. Use the up and down arrow keys to walk closer or step back.`}
+    >
+      <canvas ref={canvasRef} className={styles.canvas} role="img" aria-label={label} />
+      <div className={styles.captions}>
+        {captions.map((caption) => {
+          const className = [styles.caption, caption.size === "title" ? styles.title : styles.label].join(" ");
+          const ref = (element: HTMLElement | null) => {
+            if (element) captionRefs.current.set(caption.id, element);
+            else captionRefs.current.delete(caption.id);
+          };
+          return caption.onSelect ? (
+            <button key={caption.id} ref={ref} type="button" className={className} onClick={caption.onSelect}>
+              {caption.text}
+            </button>
+          ) : (
+            <span key={caption.id} ref={ref} className={className}>
+              {caption.text}
+            </span>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

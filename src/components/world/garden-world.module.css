@@ -1,0 +1,119 @@
+.world {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 18rem;
+  overflow: hidden;
+  background: #2b2a22;
+  outline: none;
+}
+
+.world[data-status="loading"] {
+  background: linear-gradient(180deg, #e6b98f 0%, #f2d3a6 42%, #5b6a3d 46%, #26301b 100%);
+}
+
+.world:focus-visible {
+  box-shadow: inset 0 0 0 3px rgb(255 248 230 / 0.7);
+}
+
+.canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  transition: opacity 900ms ease;
+}
+
+.world[data-status="loading"] .canvas {
+  opacity: 0;
+}
+
+.captions {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.caption {
+  position: absolute;
+  top: 0;
+  left: 0;
+  visibility: hidden;
+  padding: 0.2em 0.4em;
+  border: 0;
+  background: none;
+  color: #fffaf0;
+  font: inherit;
+  line-height: 1;
+  white-space: nowrap;
+  text-shadow:
+    0 0 0.5em rgb(255 236 200 / 0.35),
+    0 1px 2px rgb(40 30 20 / 0.35);
+  transition: text-shadow 300ms ease, color 300ms ease;
+  will-change: transform;
+}
+
+.title {
+  font-size: clamp(2.6rem, 7vw, 5.5rem);
+  letter-spacing: 0.02em;
+}
+
+.label {
+  font-size: clamp(1.05rem, 2vw, 1.45rem);
+}
+
+button.caption {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+button.caption:hover,
+button.caption:focus-visible {
+  color: #fff;
+  outline: none;
+  text-shadow:
+    0 0 0.35em rgb(255 244 214 / 0.95),
+    0 0 1.1em rgb(255 214 150 / 0.75),
+    0 1px 2px rgb(40 30 20 / 0.3);
+}
+
+.notice {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  max-width: 32rem;
+  margin: auto;
+  color: #fffaf0;
+  text-align: center;
+  line-height: 1.4;
+  font-size: 1.2rem;
+}
+
+.noticeTitle {
+  font-size: 1.8rem;
+}
+
+.noticeLink {
+  justify-self: center;
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  background: #fffaf0;
+  color: #2b2a22;
+  text-decoration: none;
+}
+
+.noticeLink:hover,
+.noticeLink:focus-visible {
+  outline: none;
+  box-shadow: 0 0 1.2rem rgb(255 228 180 / 0.8);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .canvas,
+  .caption {
+    transition: none;
+  }
+}
