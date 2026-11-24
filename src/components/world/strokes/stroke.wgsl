@@ -1,6 +1,6 @@
 // Instanced brushstrokes: every leaf, blade, reed, petal and dab of soil in
 // the world (and anything a layer paints) is one instance of this shader.
-import { World, aerial, belowMirror, distanceAlpha, shadowFactor, skyColor } from "../shaders/common.wgsl";
+import { World, aerial, belowMirror, distanceAlpha, lampLight, shadowFactor, skyColor } from "../shaders/common.wgsl";
 import { bristleColor, bristleMask } from "./brush.wgsl";
 import { KIND_BLADE, KIND_FOLIAGE, KIND_PETAL, KIND_SKY, KIND_STAR, KIND_TRUNK, expandStroke, isKind } from "./stroke-core.wgsl";
 
@@ -92,6 +92,7 @@ struct StrokeOut {
       let rim = pow(1.0 - abs(dot(n, toCamera)), 3.0) * (0.35 + 0.65 * max(dot(-toCamera, light), 0.0));
       shaded += world.lightColor * world.lightIntensity * rim * 0.6 * input.albedo * shadow;
     }
+    shaded += input.albedo * lampLight(input.worldPos, n, world);
     color = aerial(shaded, input.worldPos, world);
   }
   color = bristleColor(color, mask.y, 0.28);

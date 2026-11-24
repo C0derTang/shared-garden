@@ -19,7 +19,8 @@ export interface SpotTarget {
 
 export type PickResult =
   | { readonly kind: "flower"; readonly id: string; readonly distance: number }
-  | { readonly kind: "spot"; readonly spot: number; readonly distance: number };
+  | { readonly kind: "spot"; readonly spot: number; readonly distance: number }
+  | { readonly kind: "door"; readonly distance: number };
 
 export const DEFAULT_FLOWER_HEIGHT = 1.1;
 export const DEFAULT_FLOWER_RADIUS = 0.32;
