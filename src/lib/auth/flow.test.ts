@@ -7,7 +7,7 @@ vi.mock("server-only", () => ({}));
 import { POST as start } from "@/app/auth/start/route";
 import { GET as callback } from "@/app/auth/callback/route";
 import { POST as signOut } from "@/app/auth/sign-out/route";
-import { proxy } from "@/proxy";
+import { config as proxyConfig, proxy } from "@/proxy";
 
 const origin = "https://app.example.test";
 const service = "https://backend.example.test";
@@ -287,8 +287,13 @@ describe("Google sign-in boundaries", () => {
 });
 
 describe("protected destination", () => {
-  it("redirects anonymous users without checking membership", async () => {
-    const response = await proxy(request("/garden"));
+  it("guards the legacy garden and the new garden but no removed destination paths", () => {
+    expect(proxyConfig.matcher).toEqual(expect.arrayContaining(["/garden/:path*", "/legacy/:path*"]));
+    for (const removed of ["/memories", "/achievements", "/settings"])
+      expect(proxyConfig.matcher.some((pattern) => pattern.startsWith(removed))).toBe(false);
+  });
+  it.each(["/garden", "/legacy", "/legacy?panel=memories"])("redirects anonymous %s without checking membership", async (path) => {
+    const response = await proxy(request(path));
     expect(response.headers.get("location")).toBe(
       `${origin}/`,
     );
@@ -485,7 +490,7 @@ describe("private media proxy", () => {
   });
 });
 
-it.each(["/garden", "/garden/songs", "/settings", "/memories", "/achievements"])("preserves the native same-origin form Origin on %s without sending external referrers", async (path) => {
+it.each(["/garden", "/legacy", "/legacy?panel=songs", "/legacy?panel=settings"])("preserves the native same-origin form Origin on %s without sending external referrers", async (path) => {
   const response = await proxy(request(path, { headers: { cookie: cookie() } }));
   expect(response.headers.get("Referrer-Policy")).toBe("same-origin");
   expect(response.headers.get("Cache-Control")).toContain("no-store");

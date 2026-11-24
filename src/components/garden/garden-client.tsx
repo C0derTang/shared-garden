@@ -25,6 +25,7 @@ import { careStatus, cueLabel } from "./due-today";
 import { FlowerCueMark, TodayCard, yourDotCue, type VisitFromCard } from "./today-card";
 import { SpotNotice, useSpotRequest } from "./spot-request";
 import { SinceLastVisit, useOwnActions } from "./since-last-visit";
+import { legacyPanelHref } from "@/lib/legacy/routes";
 import styles from "./garden.module.css";
 
 // Short weekday and date for the clock plate, from the YYYY-MM-DD garden day.
@@ -324,7 +325,7 @@ export function GardenClient({ initial, guideEnabled = true }: { initial: Garden
             <button type="button" className={styles.refreshButton} onClick={() => void refresh()} disabled={busy}>Refresh</button>
           </div>
         </HelpDisclosure>
-        <Link href="/garden/songs" scroll={false} className={styles.chip}>Songs</Link>
+        <Link href={legacyPanelHref("songs")} scroll={false} className={styles.chip}>Songs</Link>
       </div>
       <SpotNotice {...spotRequest} />
       <div className={styles.guide}><GardenGuide state={state} paused={busy || !!error} visit={setOpenSpot} actionOpen={openSpot !== null} enabled={guideEnabled} focusGarden={focusGarden} closedRequest={guideClosedRequest} onClosedRequestChange={setGuideClosedRequest} /></div>

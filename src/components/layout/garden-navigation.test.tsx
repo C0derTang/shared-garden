@@ -16,6 +16,6 @@ describe("garden navigation", () => {
     const settings = screen.getByRole("navigation", { name: "Settings" });
     expect(
       within(settings).getByRole("link", { name: "Settings" }),
-    ).toHaveAttribute("href", "/settings");
+    ).toHaveAttribute("href", "/legacy?panel=settings");
   });
 });

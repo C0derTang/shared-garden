@@ -27,6 +27,7 @@ import {
   type VisitNews,
 } from "@/lib/garden/since-last-visit";
 import { FlowerSprite } from "./flower-sprite";
+import { legacyPanelHref } from "@/lib/legacy/routes";
 import styles from "./since-last-visit.module.css";
 
 function plantSprite(plant: Plant, item: CatalogItem | undefined) {
@@ -322,7 +323,7 @@ export function SinceLastVisit({
       glyph: <PixelIcon name="flower" className={styles.iconBadge} />,
       action: "View",
       targets: [],
-      href: "/achievements",
+      href: legacyPanelHref("achievements"),
     });
 
   function dismiss() {

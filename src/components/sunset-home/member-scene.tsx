@@ -1,6 +1,7 @@
 import { PaintedLandscape } from "./painted-landscape";
 import { SpiderLily } from "./spider-lily";
 import { SongPlayer } from "./song-player";
+import { legacyPath } from "@/lib/legacy/routes";
 import styles from "./sunset-home.module.css";
 
 export function MemberScene() {
@@ -10,6 +11,6 @@ export function MemberScene() {
     <div className={styles.content}>
       <SongPlayer />
     </div>
-    <footer className={styles.footer}><a href="/garden" className={styles.oldGarden}>old garden</a></footer>
+    <footer className={styles.footer}><a href={legacyPath} className={styles.oldGarden}>old garden</a></footer>
   </main>;
 }

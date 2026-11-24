@@ -577,7 +577,7 @@ it("uses the safe song player for Tulip current entries and history without requ
   );
   expect(
     screen.getByRole("link", { name: "Our song collection" }),
-  ).toHaveAttribute("href", "/garden/songs");
+  ).toHaveAttribute("href", "/legacy?panel=songs");
   expect(document.querySelector("iframe")).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: /Load Spotify player/ }));
   expect(document.querySelector("iframe")).toHaveAttribute(
@@ -812,7 +812,7 @@ it("closes the non-modal Help on Escape with focus on its summary and on an outs
   expect(help).not.toHaveAttribute("open");
   expect(screen.getByRole("link", { name: "Songs" })).toHaveAttribute(
     "href",
-    "/garden/songs",
+    "/legacy?panel=songs",
   );
 });
 it("leaves Escape to a focused sheet while Help is open", async () => {

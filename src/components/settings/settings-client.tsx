@@ -1,5 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
+import { legacyPath } from "@/lib/legacy/routes";
 import { useMemberPreferences } from "./member-preferences";
 import styles from "./settings.module.css";
 // The route panel title is the h2, so settings groups start at h3 (decision 0055).
@@ -16,7 +17,7 @@ export function SettingsClient() {
             <h4>Garden guide</h4>
             <p>Replay the short garden tour.</p>
           </div>
-          <button className="button button-primary" type="button" disabled={preferences.busy || !preferences.state} onClick={async () => { if (await preferences.save({ guide: "open" })) router.push("/garden"); }}>Reopen garden guide</button>
+          <button className="button button-primary" type="button" disabled={preferences.busy || !preferences.state} onClick={async () => { if (await preferences.save({ guide: "open" })) router.push(legacyPath); }}>Reopen garden guide</button>
         </div>
         <details className={styles.details}>
           <summary>Garden day · 4 a.m. Pacific</summary>
