@@ -120,3 +120,13 @@ limit rules. Record them in this decision or a follow-up decision and in the
 affected issue. Choices outside this discretion, conflicts, credentials or
 account actions, unapproved costs and material scope or privacy changes still
 require escalation.
+
+### Recorded choice: new-garden media ([#178](https://github.com/C0derTang/shared-garden/issues/178))
+
+New-garden photos and voice memos keep every rule of decisions 0025 and 0027
+in a separate registry, guard trigger, `v2_` functions and private
+`garden-v2-staging`/`garden-v2-media` buckets, serialized by the new garden's
+lock. The existing `/api/media/*` routes take a server-validated `garden`
+discriminator (`"v2"`; absent or `"legacy"` keeps legacy behavior). Intent
+limits are counted per garden. See the
+[media API contract](../media/backend.md#new-garden-media-issue-178).
