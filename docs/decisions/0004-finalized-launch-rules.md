@@ -1,5 +1,7 @@
 # Finalized launch rules and unattended build boundaries
 
+> Superseded for the new garden only: [decision 0067](0067-garden-overhaul.md) removes decay, per-type limits, unlock order and the single auto-created Cactus there; this record still governs the legacy garden.
+
 Status: approved launch specification; no design choice blocks implementation
 within the boundaries below.
 
