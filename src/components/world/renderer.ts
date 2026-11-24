@@ -44,6 +44,7 @@ import motesShader from "./shaders/motes.wgsl";
 import rockShader from "./shaders/rock.wgsl";
 import skyShader from "./shaders/sky.wgsl";
 import waterShader from "./shaders/water.wgsl";
+import { maxDprFor, watchDeviceLoss } from "./device-loss";
 import { createStrokeBatch, type StrokeBatch } from "./strokes/stroke-batch";
 import type { WorldFrameContext, WorldLayer, WorldShadow, WorldUniforms } from "./world-layer";
 
@@ -79,7 +80,12 @@ export interface WorldView {
 
 export interface WorldRendererCallbacks {
   onReady(): void;
+  /** WebGPU (adapter/device) is unavailable in this browser. */
   onUnsupported(error: unknown): void;
+  /** The world failed at run time (setup or a frame threw) on a capable browser. */
+  onError(error: unknown): void;
+  /** The GPU device was lost (driver reset, OS reclaim). The renderer has already disposed itself. */
+  onLost(info: GPUDeviceLostInfo): void;
   onPick(result: PickResult): void;
   onFrame?(view: WorldView): void;
 }
@@ -217,17 +223,34 @@ export function createWorldRenderer(
   const fail = (error: unknown) => {
     if (disposed) return;
     dispose();
-    callbacks.onUnsupported(error);
+    callbacks.onError(error);
   };
 
   const start = async () => {
-    const nextGpu = await init();
+    let nextGpu: Gpu;
+    try {
+      nextGpu = await init();
+    } catch (error) {
+      // No adapter or device: this browser cannot paint the world.
+      if (!disposed) {
+        dispose();
+        callbacks.onUnsupported(error);
+      }
+      return;
+    }
     if (disposed) {
       nextGpu.dispose();
       return;
     }
     gpu = nextGpu;
-    const output: Surface = surface(gpu, canvas, { dpr: [1, 2], label: "garden-world" });
+    watchDeviceLoss(nextGpu, () => disposed, (info) => {
+      dispose();
+      callbacks.onLost(info);
+    });
+    // Keep the canvas backing store within the device's texture limit on very large screens.
+    const largestSide = Math.max(canvas.clientWidth, canvas.clientHeight, globalThis.screen?.width ?? 0, globalThis.screen?.height ?? 0);
+    const dprCap = maxDprFor(largestSide, nextGpu.gpu.limits.maxTextureDimension2D);
+    const output: Surface = surface(gpu, canvas, { dpr: [Math.min(1, dprCap), dprCap], label: "garden-world" });
     // Internal render scale: native up to the pixel budget, smoothly upsampled beyond it.
     const renderScale = () => Math.min(1, Math.sqrt(RENDER_BUDGET / Math.max(1, output.size[0] * output.size[1])));
     const full = (): [number, number] => {
@@ -619,7 +642,9 @@ export function createWorldRenderer(
 
         callbacks.onFrame?.({ viewProjection, width: canvas.clientWidth, height: canvas.clientHeight });
       } catch (error) {
-        // Stop cleanly and fall back to the notice instead of a frozen canvas.
+        // A throwing tick ends vgpu's loop; dispose and report the error so the
+        // component can show its "stopped" notice instead of a frozen canvas.
+        // (Device loss is reported separately through gpu.lost.)
         console.error("Garden world frame failed", error);
         queueMicrotask(() => fail(error));
       }

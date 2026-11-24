@@ -97,8 +97,18 @@ button.caption:focus-visible {
   font-size: 1.8rem;
 }
 
+.noticeActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
+}
+
 .noticeLink {
   justify-self: center;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
   padding: 0.5rem 1.1rem;
   border-radius: 999px;
   background: #fffaf0;

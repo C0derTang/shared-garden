@@ -41,11 +41,13 @@ export interface GardenWorldProps {
   readonly label?: string;
 }
 
-type Status = "loading" | "ready" | "unsupported";
+type Status = "loading" | "ready" | "unsupported" | "stopped";
 
 const EMPTY: readonly never[] = [];
 /** Journey step for one key press. */
 const KEY_STEP = 0.2;
+/** Device losses the world recovers from by recreating its GPU context before giving up. */
+export const DEVICE_LOSS_RECOVERIES = 1;
 
 function usePrefersReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false);
@@ -125,6 +127,7 @@ export function GardenWorld({
     }
     let cancelled = false;
     let renderer: WorldRenderer | null = null;
+    let recoveries = 0;
     const placeCaptions = (view: WorldView) => {
       const t = motionRef.current ? 0 : performance.now() / 1000;
       captionsRef.current.forEach((caption, index) => {
@@ -142,29 +145,50 @@ export function GardenWorld({
         element.style.transform = `translate(-50%, -50%) translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
       });
     };
-    void import("./renderer")
-      .then(({ createWorldRenderer }) => {
-        if (cancelled) return;
-        renderer = createWorldRenderer(canvas, stateRef.current, {
-          onReady: () => {
-            if (!cancelled) setStatus("ready");
-          },
-          onUnsupported: (error) => {
-            console.warn("Painted garden unavailable", error);
-            if (!cancelled) setStatus("unsupported");
-          },
-          onPick: (result) => {
-            if (result.kind === "spot") pickRef.current.onPickSpot?.(result.spot);
-            else pickRef.current.onPickFlower?.(result.id);
-          },
-          onFrame: placeCaptions,
+    const launch = () => {
+      void import("./renderer")
+        .then(({ createWorldRenderer }) => {
+          if (cancelled) return;
+          renderer = createWorldRenderer(canvas, stateRef.current, {
+            onReady: () => {
+              if (!cancelled) setStatus("ready");
+            },
+            onUnsupported: (error) => {
+              console.warn("Painted garden unavailable", error);
+              if (!cancelled) setStatus("unsupported");
+            },
+            onError: (error) => {
+              console.error("Painted garden stopped", error);
+              if (!cancelled) setStatus("stopped");
+            },
+            onLost: (info) => {
+              console.warn(`Painted garden lost its GPU device (${info.reason}): ${info.message}`);
+              renderer = null;
+              rendererRef.current = null;
+              if (cancelled) return;
+              if (recoveries < DEVICE_LOSS_RECOVERIES) {
+                // Recreate the whole GPU context once; driver resets are often transient.
+                recoveries += 1;
+                setStatus("loading");
+                launch();
+              } else {
+                setStatus("stopped");
+              }
+            },
+            onPick: (result) => {
+              if (result.kind === "spot") pickRef.current.onPickSpot?.(result.spot);
+              else pickRef.current.onPickFlower?.(result.id);
+            },
+            onFrame: placeCaptions,
+          });
+          rendererRef.current = renderer;
+        })
+        .catch((error: unknown) => {
+          console.warn("Painted garden failed to load", error);
+          if (!cancelled) setStatus("unsupported");
         });
-        rendererRef.current = renderer;
-      })
-      .catch((error: unknown) => {
-        console.warn("Painted garden failed to load", error);
-        if (!cancelled) setStatus("unsupported");
-      });
+    };
+    launch();
     return () => {
       cancelled = true;
       renderer?.dispose();
@@ -190,6 +214,24 @@ export function GardenWorld({
           <Link className={styles.noticeLink} href="/legacy">
             Open the earlier garden
           </Link>
+        </div>
+      </div>
+    );
+  }
+  if (status === "stopped") {
+    return (
+      <div className={classes} data-status={status}>
+        <div className={styles.notice} role="alert">
+          <p className={styles.noticeTitle}>The painted garden stopped.</p>
+          <p>Something interrupted the graphics. Reloading usually brings it back.</p>
+          <div className={styles.noticeActions}>
+            <button type="button" className={styles.noticeLink} onClick={() => window.location.reload()}>
+              Reload
+            </button>
+            <Link className={styles.noticeLink} href="/legacy">
+              Open the earlier garden
+            </Link>
+          </div>
         </div>
       </div>
     );

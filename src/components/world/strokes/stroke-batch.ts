@@ -118,6 +118,9 @@ export function createStrokeLayer(initial: readonly Stroke[], label = "stroke-la
     dispose() {
       batch?.dispose();
       batch = undefined;
+      gpu = undefined;
+      shadow = undefined;
+      dirty = true;
     },
   };
 }

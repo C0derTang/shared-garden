@@ -64,6 +64,9 @@ interface TreeOptions {
   readonly x: number;
   readonly z: number;
   readonly size: number;
+  /** Crown proportions: < 1 narrows (columnar poplars), height stretches. */
+  readonly widthScale?: number;
+  readonly heightScale?: number;
   /** Stroke size multiplier (bigger, looser strokes far away). */
   readonly brush: number;
   readonly density: number;
@@ -89,9 +92,11 @@ function leafTangent(normal: Vec3, random: () => number): Vec3 {
  */
 function deciduousTree(strokes: Stroke[], random: () => number, tree: TreeOptions): void {
   const ground = terrainHeight(tree.x, tree.z);
-  const trunkHeight = (1.5 + random() * 1.4) * tree.size;
-  const rx = (1.7 + random() * 1.1) * tree.size;
-  const ry = (1.6 + random() * 1.2) * tree.size;
+  const widthScale = tree.widthScale ?? 1;
+  const heightScale = tree.heightScale ?? 1;
+  const trunkHeight = (1.5 + random() * 1.4) * tree.size * Math.sqrt(heightScale);
+  const rx = (1.7 + random() * 1.1) * tree.size * widthScale;
+  const ry = (1.6 + random() * 1.2) * tree.size * heightScale;
   const rz = rx * 0.85;
   const crown: Vec3 = [tree.x + (random() - 0.5) * 0.4 * tree.size, ground + trunkHeight + ry * 0.75, tree.z];
   const leafTint = jitterColor([1, 1, 1], random, 0.12);
@@ -210,9 +215,11 @@ export function buildFarShoreStrokes(): Stroke[] {
       const z = zNear + bay - random() * (zNear - zFar);
       // Groves: clusters of large trees with gaps of low scrub between them.
       const grove = field(x * 0.6, 3, 2.2);
-      const tree = { x, z, size: size * (0.55 + grove * 0.7 + random() * 0.35), brush, density };
-      if (random() < 0.35) conifer(strokes, random, tree);
-      else deciduousTree(strokes, random, tree);
+      const tree = { x, z, size: size * (0.45 + grove * 0.8 + random() * 0.45), brush, density };
+      const kind = random();
+      if (kind < 0.42) conifer(strokes, random, { ...tree, size: tree.size * (0.8 + random() * 0.6) });
+      else if (kind < 0.58) deciduousTree(strokes, random, { ...tree, widthScale: 0.45, heightScale: 1.7 });
+      else deciduousTree(strokes, random, { ...tree, widthScale: 0.8 + random() * 0.5, heightScale: 0.7 + random() * 0.6 });
     }
   };
   band(-104, -120, 160, 6, 1.8, 1.9, 0.45);
@@ -335,7 +342,8 @@ export function buildMeadowStrokes(bedCount: number): Stroke[] {
       if (pz < shorelineZ(px) + 0.15) continue;
       if (distanceToBeds(px, pz, beds) < 0.06) continue;
       const wild = wildness(px, pz);
-      if (random() > 0.07 + wild * 0.93) continue;
+      // The mown lawn is left to the painted ground; strands grow where the meadow runs wild.
+      if (wild < 0.3 || random() > wild) continue;
       // Keep the view into the garden open right in front of the camera.
       if (pz > 13 && Math.abs(px) < 1.1 && random() < 0.85) continue;
       const height = wild > 0.5 ? (0.22 + random() * 0.4) * (pz > 13 ? 1.5 : 1) : 0.05 + random() * 0.07 + wild * 0.15;
