@@ -56,7 +56,7 @@ it.skipIf(!statusPath)(
       ).trim();
     expect(
       sql(
-        "select (select count(*) from private.garden_members)+(select count(*) from auth.users)+(select count(*) from public.garden)+(select count(*) from storage.objects)+(select count(*) from public.achievement_awards)+(select count(*) from public.achievement_progress)+(select count(*) from public.v2_garden)+(select count(*) from private.v2_media_uploads);",
+        "select (select count(*) from private.garden_members)+(select count(*) from auth.users)+(select count(*) from public.garden)+(select count(*) from storage.objects)+(select count(*) from public.achievement_awards)+(select count(*) from public.achievement_progress)+(select count(*) from public.v2_garden)+(select count(*) from private.v2_media_uploads)+(select count(*) from public.v2_achievement_progress)+(select count(*) from public.v2_achievement_awards);",
       ),
     ).toBe("0");
     const origin = bluebell
@@ -695,7 +695,7 @@ it.skipIf(!statusPath)(
     }
     expect(
       sql(
-        "select (select count(*) from private.garden_members)+(select count(*) from auth.users)+(select count(*) from public.garden)+(select count(*) from storage.objects)+(select count(*) from public.achievement_awards)+(select count(*) from public.achievement_progress)+(select count(*) from public.v2_garden)+(select count(*) from private.v2_media_uploads);",
+        "select (select count(*) from private.garden_members)+(select count(*) from auth.users)+(select count(*) from public.garden)+(select count(*) from storage.objects)+(select count(*) from public.achievement_awards)+(select count(*) from public.achievement_progress)+(select count(*) from public.v2_garden)+(select count(*) from private.v2_media_uploads)+(select count(*) from public.v2_achievement_progress)+(select count(*) from public.v2_achievement_awards);",
       ),
     ).toBe("0");
   },

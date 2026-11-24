@@ -85,7 +85,7 @@ def overlap(first, second, error=None, second_member=2):
 
 
 # Refuse existing state: fixtures are never added to a real/configured garden.
-empty = "select (select count(*) from public.flower_day_facts) + (select count(*) from public.before_noon_snapshots) + (select count(*) from public.peony_activity) + (select count(*) from public.garden_days) + (select count(*) from private.garden_members) + (select count(*) from auth.users) + (select count(*) from public.garden) + (select count(*) from public.flower_entries) + (select count(*) from public.daisy_assignments) + (select count(*) from private.media_uploads) + (select count(*) from storage.objects) + (select count(*) from public.v2_garden) + (select count(*) from public.v2_flowers) + (select count(*) from public.v2_flower_entries) + (select count(*) from public.v2_daisy_assignments) + (select count(*) from public.v2_garden_days) + (select count(*) from public.v2_flower_day_facts) + (select count(*) from public.v2_before_noon_snapshots) + (select count(*) from private.v2_media_uploads);"
+empty = "select (select count(*) from public.flower_day_facts) + (select count(*) from public.before_noon_snapshots) + (select count(*) from public.peony_activity) + (select count(*) from public.garden_days) + (select count(*) from private.garden_members) + (select count(*) from auth.users) + (select count(*) from public.garden) + (select count(*) from public.flower_entries) + (select count(*) from public.daisy_assignments) + (select count(*) from private.media_uploads) + (select count(*) from storage.objects) + (select count(*) from public.v2_garden) + (select count(*) from public.v2_flowers) + (select count(*) from public.v2_flower_entries) + (select count(*) from public.v2_daisy_assignments) + (select count(*) from public.v2_garden_days) + (select count(*) from public.v2_flower_day_facts) + (select count(*) from public.v2_before_noon_snapshots) + (select count(*) from private.v2_media_uploads) + (select count(*) from public.v2_achievement_progress) + (select count(*) from public.v2_achievement_awards);"
 assert sql(empty) == "0", "Refusing a configured database; reset the dedicated local project"
 try:
     sql("""
@@ -160,6 +160,12 @@ finally:
     sql("""
     begin;
     delete from private.v2_media_uploads;
+    delete from public.v2_achievement_awards;
+    delete from public.v2_achievement_progress;
+    delete from public.v2_peony_acceptances;
+    delete from public.v2_peony_plans;
+    delete from public.v2_peony_contributions;
+    delete from public.v2_peony_activity;
     delete from public.v2_entry_replies;
     delete from public.v2_flower_entries;
     delete from public.v2_daisy_assignments;

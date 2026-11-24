@@ -214,6 +214,12 @@ select is(public.v2_media_upload_state(pg_temp.media('voice'))->>'status','submi
 select is(public.v2_media_read_path(pg_temp.media('voice')),jsonb_build_object('path',pg_temp.media('voice')::text||'/audio.wav','mime_type','audio/wav','width',null,'height',null,'samples',28,'sample_rate',48000,'channels',1),'author reads trusted playback metadata');
 select pg_temp.actor(2);
 select lives_ok($$select public.v2_media_read_path(pg_temp.media('voice'))$$,'partner can read the voice memo');
+-- New-garden Memories expose exactly the current, readable v2 media reference.
+select is((select jsonb_agg(i->'entry'->'payload') from jsonb_array_elements(public.v2_memories_page(p_type=>'sunflower')->'items') i),
+ jsonb_build_array(jsonb_build_object('media_id',pg_temp.media('replacement')::text)),'Sunflower memory carries the current photo reference');
+select is((select jsonb_agg(i->'entry'->'payload') from jsonb_array_elements(public.v2_memories_page(p_type=>'bluebell')->'items') i),
+ jsonb_build_array(jsonb_build_object('media_id',pg_temp.media('voice')::text)),'Bluebell memory carries the voice memo reference');
+select lives_ok($$select public.v2_media_read_path((select (i->'entry'->'payload'->>'media_id')::uuid from jsonb_array_elements(public.v2_memories_page(p_type=>'sunflower')->'items') i))$$,'partner can read the photo a memory references');
 select pg_temp.actor(3);
 select throws_ok($$select public.v2_media_read_path(pg_temp.media('voice'))$$,'42501',null,'outsider cannot read the voice memo');
 select pg_temp.actor(1);

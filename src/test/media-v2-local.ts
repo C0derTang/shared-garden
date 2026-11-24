@@ -319,4 +319,4 @@ export async function exerciseV2Media({
 
 // Deletes only the v2 rows created by this previously empty local fixture.
 export const v2MediaCleanupSql =
-  "delete from private.v2_media_uploads; delete from public.v2_entry_replies; delete from public.v2_flower_entries; delete from public.v2_daisy_assignments; delete from public.v2_flower_day_facts; delete from public.v2_before_noon_snapshots; delete from public.v2_garden_days; delete from public.v2_flowers; delete from public.v2_garden;";
+  "delete from private.v2_media_uploads; delete from public.v2_achievement_awards; delete from public.v2_achievement_progress; delete from public.v2_peony_acceptances; delete from public.v2_peony_plans; delete from public.v2_peony_contributions; delete from public.v2_peony_activity; delete from public.v2_entry_replies; delete from public.v2_flower_entries; delete from public.v2_daisy_assignments; delete from public.v2_flower_day_facts; delete from public.v2_before_noon_snapshots; delete from public.v2_garden_days; delete from public.v2_flowers; delete from public.v2_garden;";
