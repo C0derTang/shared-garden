@@ -27,6 +27,8 @@ create function pg_temp.page(p_mode text default 'latest',p_cursor jsonb default
 create function pg_temp.keys(p jsonb) returns text[] language sql as $$select coalesce(array_agg(i->>'key' order by o),'{}') from jsonb_array_elements(p->'items') with ordinality x(i,o)$$;
 
 -- Legacy content exists but must never appear in the new garden's Memories.
+-- Legacy rules fixture: lift the #176 archive freeze inside this rolled-back test.
+delete from private.legacy_garden_freeze;
 select pg_temp.actor(1);
 select public.initialize_garden();
 select public.submit_flower_entry((select id from public.flowers where type_key='cactus'),'{}');

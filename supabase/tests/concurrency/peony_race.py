@@ -84,8 +84,6 @@ DOMAIN = ["peony_acceptances", "peony_plans", "peony_contributions", "flower_day
 TABLES = ["private.garden_members", "auth.users"] + ["public." + table for table in DOMAIN]
 empty = "select " + "+".join(f"(select count(*) from {table})" for table in TABLES) + ";"
 assert sql(empty) == "0", "Refusing configured database; reset the dedicated local project"
-# Legacy rules fixture: lift the #176 archive freeze for this run; restored below.
-sql("delete from private.legacy_garden_freeze;")
 original_clock = sql("select pg_get_functiondef('private.begin_garden_operation()'::regprocedure);")
 
 
@@ -135,6 +133,8 @@ def rollover_clock():
 
 
 try:
+    # Legacy rules fixture: lift the #176 archive freeze for this run; restored in finally.
+    sql("delete from private.legacy_garden_freeze;")
     sql("""
     begin;
     select private.bootstrap_members('owner@example.test','member@example.test');

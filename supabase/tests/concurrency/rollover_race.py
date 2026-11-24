@@ -81,8 +81,6 @@ TABLES = ["private.garden_members", "auth.users", "public.garden", "public.flowe
           "public.peony_activity", "public.garden_days"]
 empty = "select " + "+".join(f"(select count(*) from {table})" for table in TABLES) + ";"
 assert sql(empty) == "0", "Refusing a configured database; reset the dedicated local project"
-# Legacy rules fixture: lift the #176 archive freeze for this run; restored below.
-sql("delete from private.legacy_garden_freeze;")
 
 
 def clear_garden():
@@ -126,6 +124,8 @@ def prepare(roses=1, cactus_pair=False):
 
 
 try:
+    # Legacy rules fixture: lift the #176 archive freeze for this run; restored in finally.
+    sql("delete from private.legacy_garden_freeze;")
     sql("""
     begin;
     select private.bootstrap_members('owner@example.test','member@example.test');

@@ -58,8 +58,6 @@ it.skipIf(!statusPath)(
         "select (select count(*) from private.garden_members)+(select count(*) from auth.users)+(select count(*) from public.garden)+(select count(*) from storage.objects)+(select count(*) from public.achievement_awards)+(select count(*) from public.achievement_progress);",
       ),
     ).toBe("0");
-    // Legacy rules fixture: lift the #176 archive freeze for this run; restored below.
-    sql("delete from private.legacy_garden_freeze;");
     const origin = bluebell
       ? "http://127.0.0.1:58329"
       : sunflower
@@ -160,6 +158,8 @@ it.skipIf(!statusPath)(
       };
     };
     try {
+      // Legacy rules fixture: lift the #176 archive freeze for this run; restored in finally.
+      sql("delete from private.legacy_garden_freeze;");
       for (let attempt = 0; attempt < 60; attempt++) {
         if (web.exitCode !== null)
           throw new Error(
