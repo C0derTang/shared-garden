@@ -1,23 +1,12 @@
 "use client";
-import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   canEditAt,
   type Entry,
   type GardenState,
   type Plant,
 } from "@/lib/garden/model";
-import {
-  MediaError,
-  mediaRequest,
-  saveVoice,
-  voiceSaveMessage,
-  type MediaAttempt,
-} from "@/lib/media/browser";
-import {
-  stopVoicePlayback,
-  useVoiceRecorder,
-  voiceTime,
-} from "@/lib/media/use-voice-recorder";
+import { useVoiceDraft } from "@/lib/media/use-voice-draft";
+import { voiceTime } from "@/lib/media/use-voice-recorder";
 import type { Mutate } from "@/components/garden/seed-picker";
 import { VoicePlayer } from "./voice-player";
 import styles from "./voice.module.css";
@@ -41,139 +30,23 @@ export function VoiceForm({
   onSaved: () => void;
   onCancel?: () => void;
 }) {
-  const recorder = useVoiceRecorder();
-  const [day, setDay] = useState(state.garden_day);
-  const [ready, setReady] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
-  const [rejected, setRejected] = useState<"bytes" | "window" | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const attempt = useRef<{ file: File; value: MediaAttempt } | null>(null);
-  const lock = useRef(false);
-  const alive = useRef(true);
-  const recordButton = useRef<HTMLButtonElement>(null);
-  const stopButton = useRef<HTMLButtonElement>(null);
-  const resumeButton = useRef<HTMLButtonElement>(null);
-  const reviewHeading = useRef<HTMLHeadingElement>(null);
-  const previousPhase = useRef(recorder.phase);
   const expired = !!editing && !canEditAt(editing, state, now);
-  const boundary = now >= Date.parse(state.next_rollover_at);
-  const newDay = day !== state.garden_day;
+  const draft = useVoiceDraft({
+    flowerId: plant.flower.id,
+    gardenDay: state.garden_day,
+    nextRolloverAt: state.next_rollover_at,
+    now,
+    busy,
+    mutate,
+    editingId: editing?.id,
+    expired,
+    onSaved,
+  });
+  const { recorder, active, ready, pending, rejected, error } = draft;
+  const { boundary, newDay, start, discard, submit } = draft;
+  const { recordButton, stopButton, resumeButton, reviewHeading } = draft.refs;
   // Nest under the replacement heading when present, else under the sheet title.
   const ReviewHeading = editing ? "h4" : "h3";
-  const active = ["recording", "paused", "stopping"].includes(recorder.phase);
-  useEffect(() => {
-    alive.current = true;
-    void mediaRequest("cleanup", {}).catch(() => {});
-    return () => {
-      alive.current = false;
-    };
-  }, []);
-  useEffect(() => {
-    if (recorder.phase === "recording") stopButton.current?.focus();
-    if (recorder.phase === "paused") resumeButton.current?.focus();
-    if (recorder.phase === "review") reviewHeading.current?.focus();
-    if (
-      recorder.phase === "idle" &&
-      (previousPhase.current !== "idle" || recorder.error)
-    )
-      recordButton.current?.focus();
-    previousPhase.current = recorder.phase;
-  }, [recorder.phase, recorder.error]);
-  function start() {
-    if (pending || busy || expired || boundary) return;
-    setDay(state.garden_day);
-    setReady(null);
-    setRejected(null);
-    setError(null);
-    attempt.current = null;
-    void recorder.start();
-  }
-  function discard() {
-    recorder.discard();
-    setReady(null);
-    setError(null);
-    setRejected(null);
-    attempt.current = null;
-    recordButton.current?.focus();
-  }
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    const file = recorder.file;
-    if (
-      !file ||
-      !ready ||
-      ready !== recorder.preview ||
-      rejected ||
-      pending ||
-      busy ||
-      lock.current ||
-      expired ||
-      boundary ||
-      newDay
-    )
-      return;
-    if (attempt.current?.file !== file)
-      attempt.current = { file, value: { requestId: crypto.randomUUID() } };
-    const identity = attempt.current.value;
-    lock.current = true;
-    setPending(true);
-    setError(null);
-    stopVoicePlayback();
-    let detail: string | null = null;
-    try {
-      const result = await mutate({
-        kind: "external",
-        run: async (checkCurrent) => {
-          try {
-            await saveVoice(
-              file,
-              plant.flower.id,
-              editing?.id,
-              identity,
-              () => {
-                if (!alive.current)
-                  throw new Error(
-                    "Voice sheet closed. Check entries before retrying.",
-                  );
-                checkCurrent();
-              },
-            );
-          } catch (cause) {
-            if (alive.current && cause instanceof MediaError) {
-              if (
-                [
-                  "unsupported_audio",
-                  "invalid_audio",
-                  "audio_too_large",
-                  "type_mismatch",
-                  "photo_size_mismatch",
-                ].includes(cause.code)
-              )
-                setRejected("bytes");
-              else if (
-                cause.code === "entry_rejected" ||
-                cause.code.startsWith("media_expired")
-              )
-                setRejected("window");
-            }
-            detail = voiceSaveMessage(cause);
-            throw cause;
-          }
-        },
-      });
-      if (!alive.current) return;
-      if (result.saved) {
-        recorder.discard();
-        attempt.current = null;
-        setReady(null);
-        void mediaRequest("cleanup", {}).catch(() => {});
-        onSaved();
-      } else setError(detail ?? result.error);
-    } finally {
-      lock.current = false;
-      if (alive.current) setPending(false);
-    }
-  }
   return (
     <form
       className={styles.stack}
@@ -277,13 +150,8 @@ export function VoiceForm({
             key={recorder.preview}
             source={recorder.preview}
             label="Your voice memo preview"
-            onReady={() => setReady(recorder.preview)}
-            onError={() => {
-              setReady(null);
-              setError(
-                "This recording cannot be played. Record a new memo in a supported browser.",
-              );
-            }}
+            onReady={draft.markReady}
+            onError={draft.previewFailed}
           />
           {recorder.elapsedMs > 300000 && (
             <p role="status">
@@ -309,11 +177,7 @@ export function VoiceForm({
             type="button"
             className="button button-secondary"
             disabled={pending}
-            onClick={() => {
-              setDay(state.garden_day);
-              if (rejected === "window") setRejected(null);
-              attempt.current = null;
-            }}
+            onClick={draft.keepForToday}
           >
             Use this memo today
           </button>

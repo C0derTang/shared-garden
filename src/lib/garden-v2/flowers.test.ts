@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { moodColorOf } from "@/lib/garden/moods";
 import { v2GardenFixture } from "@/test/garden-v2-fixture";
 import { catalogItem, gardenCareStatus, gardenDayLabel, gardenTodayPlan, growthFraction, hasCareActivity, plantSpec, previewSeed, stageWords } from "./flowers";
-import type { Plant } from "./model";
+import { flowerTypes, type Plant } from "./model";
 
 function plant(patch: Partial<Plant["flower"]>, extra: Partial<Plant> = {}): Plant {
   const base = v2GardenFixture().plants[0]!;
@@ -36,9 +36,8 @@ describe("new-garden flowers", () => {
     expect(stageWords(fulfilled, item)).toBe("wish fulfilled");
   });
 
-  it("keeps Sunflower, Bluebell and Peony activities for later", () => {
-    expect(["sunflower", "bluebell", "peony"].map((t) => hasCareActivity(t as never))).toEqual([false, false, false]);
-    expect(hasCareActivity("rose")).toBe(true);
+  it("gives every flower its activity, including the Sunflower, Bluebell and Peony", () => {
+    expect(flowerTypes.every((type) => hasCareActivity(type))).toBe(true);
   });
 
   it("labels days and gives each type a stable preview seed", () => {
@@ -47,18 +46,25 @@ describe("new-garden flowers", () => {
     expect(previewSeed("rose")).not.toBe(previewSeed("tulip"));
   });
 
-  it("never treats a flower without its activity yet as due", () => {
+  it("treats the Sunflower and Bluebell as due like any daily care, and never the Peony", () => {
     const garden = v2GardenFixture();
     const rose = garden.plants[0]!;
     rose.member1_submitted = false;
     for (const [i, type] of (["sunflower", "bluebell", "peony"] as const).entries())
-      garden.plants.push({ ...structuredClone(rose), flower: { ...rose.flower, id: `soon-${type}`, spot: i + 2, type_key: type } });
-    for (const plant of garden.plants.slice(1)) expect(gardenCareStatus(plant, catalogItem(garden, plant.flower.type_key), garden)).toBeNull();
-    expect(gardenCareStatus(rose, catalogItem(garden, "rose"), garden)?.dueForYou).toBe(true);
-    const plan = gardenTodayPlan(garden);
-    expect(plan.rows.map((row) => row.plant.flower.type_key)).toEqual(["rose"]);
-    rose.member1_submitted = true;
-    rose.member2_submitted = true;
+      garden.plants.push({ ...structuredClone(rose), flower: { ...rose.flower, id: `flower-${type}`, spot: i + 2, type_key: type } });
+    const status = (type: string) => {
+      const plant = garden.plants.find((p) => p.flower.type_key === type)!;
+      return gardenCareStatus(plant, catalogItem(garden, plant.flower.type_key), garden);
+    };
+    expect(status("sunflower")?.dueForYou).toBe(true);
+    expect(status("bluebell")?.dueForYou).toBe(true);
+    // The Peony's milestones keep their own order; it takes no daily care.
+    expect(status("peony")).toBeNull();
+    expect(gardenTodayPlan(garden).rows.map((row) => row.plant.flower.type_key)).toEqual(["rose", "sunflower", "bluebell"]);
+    for (const plant of garden.plants) {
+      plant.member1_submitted = true;
+      plant.member2_submitted = true;
+    }
     expect(gardenTodayPlan(garden)).toMatchObject({ next: null, allTended: true });
   });
 });

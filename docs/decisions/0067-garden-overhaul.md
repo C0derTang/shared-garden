@@ -460,12 +460,10 @@ discretion and the look in "World look":
   its florets in the world and the painting take both members' colours; the
   Moonflower shows "opens at 10 p.m." and keeps a draft outside its window; the
   Dandelion shows its wish and, once bloomed, "our wish came true" then "blow
-  the seeds" after a confirmation. Sunflower, Bluebell and Peony grow and show
-  their painting with "coming soon" for their activity (#182). Until then they
-  are never treated as due: their names stay quiet, their accessible names say
-  nothing about care, and "next" never offers them. One predicate
-  (`hasCareActivity` in `lib/garden-v2/flowers.ts`) decides this, so #182 only
-  adds each type to it.
+  the seeds" after a confirmation. Sunflower, Bluebell and Peony first showed
+  "coming soon" for their activity; their activities landed in #182 (see
+  below). One predicate (`hasCareActivity` in `lib/garden-v2/flowers.ts`)
+  decides whether a type's activity exists, and it now includes all 13.
 - **The Dandelion in the world:** growing, it shows its golden head; bloomed
   and waiting on its wish, a seed puff; once fulfilled, its seeds have flown and
   it shows its golden head again as a keepsake.
@@ -488,7 +486,9 @@ discretion and the look in "World look":
   unchanged.
 - **Flower rendering follow-ups:** a changed flower set is generated, packed,
   uploaded and compiled in a task outside the frame callbacks (the previous
-  flowers keep drawing) and swapped in when ready; the shared camera uniform is
+  flowers keep drawing) and swapped in when ready (since #182, a failed build
+  never supersedes a rebuild in flight, and a set whose pipelines fail to
+  compile is never swapped in); the shared camera uniform is
   written once per frame; growth is quantised downward so a fraction just below
   a stage threshold never rounds into the next stage. A bloomed flower averages
   about 21,700 triangles at world detail. On the real page on a desktop Apple
@@ -500,3 +500,55 @@ discretion and the look in "World look":
   ruffles and rounder tips, the Marigold has five to seven rings and a full
   Peony 28 to 38 inner petals, so the hero blooms read as petals rather than
   shards.
+
+### Recorded choice: Sunflower, Bluebell and Peony ([#182](https://github.com/C0derTang/shared-garden/issues/182))
+
+Conservative choices for the last three activities in the split view, under
+this decision's discretion. Decisions [0025](0025-private-media-and-photo-processing.md)
+and [0027](0027-private-bluebell-audio.md) apply in full through the
+new-garden media protocol above.
+
+- **Shared logic:** the legacy forms' state machines moved into hooks that both
+  gardens use: `usePhotoDraft` and `useVoiceDraft` (`lib/media`) and
+  `usePeonyMilestones` (`lib/peony`), with the pure rejection, Peony text, plan
+  and Pacific-time checks beside them. The legacy `PhotoForm`, `VoiceForm` and
+  `PeonyPanel` became views over them with unchanged markup and behaviour. The
+  private `PhotoViewer` and `VoiceViewer` take the `garden` discriminator
+  (legacy sends none, as before).
+- **Sunflower:** "choose a photo" and "take a photo" (rear camera) pick a
+  photo; it previews in a soft painted mount on this device only, uncropped,
+  with its file name, until "share photo". Shared photos are read through a
+  fresh 60-second private link on view, never stored or logged, with
+  `no-referrer`; a failed load offers a fresh link. Your own photo can be
+  replaced ("replace photo") within the 30-minute window.
+- **Upload progress:** the Storage client reports no byte progress, so the save
+  shows three painted steps instead: "making a private space…" (intent),
+  "sending…" (upload, the bar breathes) and "checking it privately…"
+  (finalize), exposed as a progress bar with step values. A hand-rolled upload
+  to get byte counts was not added, so the reviewed upload path is unchanged.
+- **Bluebell:** the microphone turns on only after "record". While recording,
+  a 24-bar level meter (Web Audio on the device, nothing sent; decorative for
+  assistive technology) and the handwritten clock "0:12 / 5:00" show;
+  "pause", "resume", "stop and listen" and "throw it away" follow the recorder.
+  "listen back" previews the memo; "share memo" appears once there is a
+  recording. Shared memos load only on "Load voice memo", as in the legacy
+  garden. "record again" replaces your memo within its window.
+- **Peony:** four steps on a painted stem, in order (propose ideas, agree on a
+  plan, confirm your date happened, share favorite moments), each "done
+  together", "now" or "after the step before". The current step says what it
+  asks; its forms open inside it. The Peony interface rules of
+  [decision 0015](0015-peony-interface.md) apply unchanged: the agreed time
+  shows the full date, seconds and Pacific zone ("Nov 28, 2026, 5:00:00 PM
+  PST"), a repeated autumn hour must be chosen as its labelled PDT or PST
+  occurrence, the plan shows its version and who accepted it ("accepted
+  version 2"), and "accept plan version 2" names the exact version. Drafts
+  survive refreshes while the view is open; a plan or text draft whose step
+  completes under it stays visible to copy but cannot be saved. Each finished step
+  grows the Peony at once ("It grows by one each time you finish a milestone
+  together. Nothing is ever lost."), and the painting grows with it. The Peony
+  panel shows no daily cards or "earlier days": every contribution stays in
+  its step.
+- **Due and next:** all three types are in `CARE_TYPES`. The Sunflower and
+  Bluebell are due like any daily care (bright names, "♡", "next"). The Peony
+  takes no daily care, as in the legacy garden, so its name stays quiet and
+  "next" never offers it.

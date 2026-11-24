@@ -17,3 +17,9 @@ export const mediaBuckets: Record<
 export function mediaRpc(garden: MediaGarden, name: string) {
   return garden === "v2" ? `v2_${name}` : name;
 }
+
+// The request field naming a garden: none for legacy, so legacy requests stay
+// byte-for-byte unchanged.
+export function mediaGardenField(garden: MediaGarden) {
+  return garden === "legacy" ? {} : { garden };
+}

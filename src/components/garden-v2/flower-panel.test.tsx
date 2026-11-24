@@ -12,6 +12,13 @@ const api = vi.hoisted(() => ({
 vi.mock("@/lib/garden-v2/actions", () => api);
 // The legacy reply actions are the thread's default; the new garden passes its own.
 vi.mock("@/lib/replies/actions", () => ({ readReplies: vi.fn(), saveReply: vi.fn() }));
+const peonyApi = vi.hoisted(() => ({ readPeonyV2: vi.fn(), mutatePeonyV2: vi.fn() }));
+vi.mock("@/lib/garden-v2/peony-actions", () => peonyApi);
+const media = vi.hoisted(() => ({ mediaRequest: vi.fn() }));
+vi.mock("@/lib/media/browser", async (original) => ({
+  ...(await original<typeof import("@/lib/media/browser")>()),
+  mediaRequest: media.mediaRequest,
+}));
 
 const { FlowerPanel } = await import("./flower-panel");
 
@@ -32,6 +39,8 @@ function setup(type: Plant["flower"]["type_key"], patch: (plant: Plant, state: G
 }
 
 beforeEach(() => {
+  media.mediaRequest.mockReset().mockImplementation(async (operation: string) => (operation === "read" ? { url: "blob:synthetic-signed" } : {}));
+  peonyApi.readPeonyV2.mockReset().mockResolvedValue({ state: null, error: null });
   api.loadFlowerHistoryV2.mockReset().mockResolvedValue({ entries: [], error: null });
   api.readRepliesV2.mockReset().mockResolvedValue({ replies: [], error: null });
   api.saveReplyV2.mockReset();
@@ -50,16 +59,20 @@ describe("FlowerPanel", () => {
     expect(await screen.findByText(/can see it now/)).toBeInTheDocument();
   });
 
-  it("does not offer a flower without its activity yet as the next one", async () => {
+  it("offers a waiting Sunflower as the next flower, but never the Peony", async () => {
     const user = userEvent.setup();
     const { mutate } = setup("rose", (rose, state) => {
-      state.plants.push({ ...structuredClone(rose), flower: { ...rose.flower, id: "00000000-0000-4000-8000-0000000000aa", spot: 2, type_key: "sunflower" } });
+      state.plants.push(
+        { ...structuredClone(rose), flower: { ...rose.flower, id: "00000000-0000-4000-8000-0000000000ab", spot: 2, type_key: "peony" } },
+        { ...structuredClone(rose), flower: { ...rose.flower, id: "00000000-0000-4000-8000-0000000000aa", spot: 3, type_key: "sunflower" } },
+      );
     });
     await user.type(screen.getByRole("textbox", { name: "Care" }), "A synthetic note");
     await user.click(screen.getByRole("button", { name: "share" }));
     expect(mutate).toHaveBeenCalled();
-    expect(await screen.findByText(/That’s everything for today/)).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /next:/ })).toBeNull();
+    // The Sunflower still waits for you (the panel offers it when it can open flowers).
+    expect(await screen.findByText(/can see it now/)).toBeInTheDocument();
+    expect(screen.queryByText(/That’s everything for today/)).toBeNull();
   });
 
   it("shows the partner's entry with a reply box, and your entry with its edit window", async () => {
@@ -130,10 +143,36 @@ describe("FlowerPanel", () => {
     expect(mutate).toHaveBeenCalledWith({ kind: "fulfillDandelion", flowerId: plant.flower.id });
   });
 
-  it.each(["sunflower", "bluebell", "peony"] as const)("shows %s growing, with its activity coming soon", (type) => {
+  it.each([
+    ["sunflower", "Share a Sunflower photo"],
+    ["bluebell", "Share a Bluebell voice memo"],
+  ] as const)("gives the %s its own activity in the panel", (type, form) => {
     setup(type);
-    expect(screen.getByRole("region", { name: "Coming soon" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "share" })).toBeNull();
+    expect(screen.getByRole("form", { name: form })).toBeInTheDocument();
+    expect(screen.queryByText(/coming soon/i)).toBeNull();
+    expect(screen.getByText(/Nothing is ever lost/)).toBeInTheDocument();
+  });
+
+  it("shows a shared photo through the new garden's private read, with replace in its window", async () => {
+    setup("sunflower", (p) => {
+      p.entries = [
+        { ...v2EntryFixture(), id: 7, payload: { media_id: "00000000-0000-4000-8000-00000000f001" } },
+        { ...v2EntryFixture(), id: 8, author_id: 2, payload: { media_id: "00000000-0000-4000-8000-00000000f002" }, can_edit: false },
+      ];
+      p.member1_submitted = true;
+      p.member2_submitted = true;
+    });
+    expect(await screen.findAllByAltText("Shared Sunflower photo")).toHaveLength(2);
+    expect(media.mediaRequest).toHaveBeenCalledWith("read", { mediaId: "00000000-0000-4000-8000-00000000f002", garden: "v2" }, expect.anything());
+    expect(screen.getByRole("button", { name: "replace photo" })).toBeInTheDocument();
+  });
+
+  it("lists the Peony's four milestones instead of daily cards", async () => {
+    setup("peony");
+    expect(await screen.findByRole("region", { name: "Peony milestones" })).toBeInTheDocument();
+    expect(screen.getByText(/grows by one each time you finish a milestone together/)).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Today" })).toBeNull();
+    expect(screen.queryByRole("region", { name: "History" })).toBeNull();
   });
 
   it("checks in a Cactus with one tap and reads earlier days on request", async () => {
