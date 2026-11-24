@@ -17,15 +17,16 @@ import {
   terrainHeight,
   type Vec3,
 } from "./layout";
+import { shoreRocks } from "./landforms";
 import { STROKE_KIND, createRandom, jitterColor, type Stroke } from "./strokes";
 
 const WORLD_SEED = 0x6a7d2026;
 
 const palette = (hexes: readonly string[]) => hexes.map((hex) => hexToLinear(hex) as Vec3);
 
-const BLADES = palette(["#5b7d34", "#6f8f3c", "#8aa457", "#4f6e2e", "#a7b866", "#c2c46e", "#3f5f2a"]);
+const BLADES = palette(["#5d7038", "#6d7c3e", "#7f8a48", "#4f6230", "#9a9a58", "#a99f5e", "#435a2c"]);
 const SOIL = palette(["#5b3a24", "#6e4a2c", "#7d5634", "#4a2f1f", "#8a6440"]);
-const FOLIAGE = palette(["#35592a", "#43692f", "#557a37", "#628a3f", "#2c4a26", "#6f9446"]);
+const FOLIAGE = palette(["#3a5a2c", "#466632", "#577638", "#668343", "#2e4a28", "#748c48", "#4f6a3a"]);
 const PINE = palette(["#2a4a34", "#315440", "#3b6148", "#24402e", "#436a52"]);
 const BARK = palette(["#3a2a20", "#4a3526", "#2d221b", "#56402c"]);
 const REEDS = palette(["#6b7a3a", "#7f8a45", "#9a9250", "#5b6a33", "#a8975a"]);
@@ -68,64 +69,97 @@ interface TreeOptions {
   readonly density: number;
 }
 
+function leafTangent(normal: Vec3, random: () => number): Vec3 {
+  // Leaves droop: tangent toward gravity, swung randomly about the normal.
+  const d = -normal[1];
+  const tangent = normalize([-normal[0] * d, -1 - normal[1] * d, -normal[2] * d]);
+  const side = normalize(cross(normal, tangent));
+  const swing = (random() - 0.5) * 1.8;
+  return normalize([
+    tangent[0] * Math.cos(swing) + side[0] * Math.sin(swing),
+    tangent[1] * Math.cos(swing) + side[1] * Math.sin(swing),
+    tangent[2] * Math.cos(swing) + side[2] * Math.sin(swing),
+  ]);
+}
+
+/**
+ * A broadleaf tree: a trunk forking into branches, each carrying a clump of
+ * leaf cards. Clumps give an irregular silhouette with lit and shaded sides;
+ * leaves deep in the crown are darker.
+ */
 function deciduousTree(strokes: Stroke[], random: () => number, tree: TreeOptions): void {
   const ground = terrainHeight(tree.x, tree.z);
-  const trunkHeight = (1.6 + random() * 1.6) * tree.size;
-  const rx = (1.6 + random() * 1.2) * tree.size;
-  const ry = (1.8 + random() * 1.3) * tree.size;
+  const trunkHeight = (1.5 + random() * 1.4) * tree.size;
+  const rx = (1.7 + random() * 1.1) * tree.size;
+  const ry = (1.6 + random() * 1.2) * tree.size;
   const rz = rx * 0.85;
-  const center: Vec3 = [tree.x, ground + trunkHeight + ry * 0.7, tree.z];
+  const crown: Vec3 = [tree.x + (random() - 0.5) * 0.4 * tree.size, ground + trunkHeight + ry * 0.75, tree.z];
   const leafTint = jitterColor([1, 1, 1], random, 0.12);
+  const fork: Vec3 = [tree.x, ground + trunkHeight * 0.9, tree.z];
 
-  for (let i = 0; i < 4; i += 1) {
+  // Trunk: a few overlapping bark strokes, slightly leaning.
+  const lean = (random() - 0.5) * 0.3 * tree.size;
+  for (let i = 0; i < 3; i += 1) {
     strokes.push({
       kind: STROKE_KIND.trunk,
-      origin: [tree.x + (random() - 0.5) * 0.25 * tree.size, ground - 0.05, tree.z + 0.1],
-      axis: [(random() - 0.5) * 0.25, trunkHeight + ry * 0.4, 0],
-      width: (0.16 + random() * 0.12) * tree.size,
-      bend: (random() - 0.5) * 0.2,
+      origin: [tree.x + (random() - 0.5) * 0.18 * tree.size, ground - 0.05, tree.z + 0.05],
+      axis: [lean, trunkHeight, 0],
+      width: (0.2 + random() * 0.1) * tree.size,
+      bend: (random() - 0.5) * 0.15,
       seed: random(),
       normal: [0, 0, 1],
-      color: jitterColor(pick(BARK, random), random, 0.1),
-      extra: 0.5,
+      color: jitterColor(pick(BARK, random), random, 0.12),
+      extra: 0.35,
     });
   }
 
-  const count = Math.round(170 * tree.size * tree.size * tree.density);
-  for (let i = 0; i < count; i += 1) {
-    // Uniform direction, biased to the side facing the camera (+z).
-    const u = random() * 2 - 1;
+  const clumps = 5 + Math.floor(random() * 5);
+  const perClump = Math.round((180 * tree.size * tree.size * tree.density) / clumps);
+  for (let c = 0; c < clumps; c += 1) {
+    const u = random() * 1.6 - 0.6;
     const phi = random() * Math.PI * 2;
-    const s = Math.sqrt(1 - u * u);
-    let dir: Vec3 = [s * Math.cos(phi), u, s * Math.sin(phi)];
-    if (dir[2] < -0.2 && random() < 0.75) dir = [dir[0], dir[1], -dir[2]];
-    const depth = 0.72 + random() * 0.3;
-    // (depth also shades the leaf below.)
-    const point: Vec3 = [center[0] + dir[0] * rx * depth, center[1] + dir[1] * ry * depth, center[2] + dir[2] * rz * depth];
-    const normal = normalize([dir[0] / rx, dir[1] / ry, dir[2] / rz]);
-    // Leaves droop: tangent toward gravity, swung randomly about the normal.
-    const d = -normal[1];
-    let tangent = normalize([-normal[0] * d, -1 - normal[1] * d, -normal[2] * d]);
-    const side = normalize(cross(normal, tangent));
-    const swing = (random() - 0.5) * 1.6;
-    tangent = normalize([
-      tangent[0] * Math.cos(swing) + side[0] * Math.sin(swing),
-      tangent[1] * Math.cos(swing) + side[1] * Math.sin(swing),
-      tangent[2] * Math.cos(swing) + side[2] * Math.sin(swing),
-    ]);
-    const base = pick(FOLIAGE, random);
+    const s = Math.sqrt(Math.max(0, 1 - u * u));
+    const out: Vec3 = [s * Math.cos(phi), u, s * Math.sin(phi) * 0.8 + 0.2];
+    const reach = 0.45 + random() * 0.25;
+    const center: Vec3 = [crown[0] + out[0] * rx * reach, crown[1] + out[1] * ry * reach, crown[2] + out[2] * rz * reach];
+    const radius = (0.42 + random() * 0.3) * Math.min(rx, ry);
+    // Branch from the fork to the clump.
     strokes.push({
-      kind: STROKE_KIND.foliage,
-      origin: point,
-      axis: scale(tangent, (0.45 + random() * 0.4) * tree.brush * tree.size),
-      width: (0.24 + random() * 0.16) * tree.brush * tree.size,
-      bend: (random() - 0.5) * 0.6,
+      kind: STROKE_KIND.trunk,
+      origin: [fork[0] + lean, fork[1], fork[2]],
+      axis: scale([center[0] - fork[0] - lean, center[1] - fork[1], center[2] - fork[2]], 0.85),
+      width: (0.07 + random() * 0.05) * tree.size,
+      bend: (random() - 0.5) * 0.4,
       seed: random(),
-      normal,
-      // Leaves deep inside the crown sit in shadow.
-      color: jitterColor(scale([base[0] * leafTint[0], base[1] * leafTint[1], base[2] * leafTint[2]], 0.45 + 0.6 * (depth - 0.72) / 0.3), random, 0.15),
-      extra: 0.15 + random() * 0.2,
+      normal: [0, 0, 1],
+      color: jitterColor(pick(BARK, random), random, 0.12),
+      extra: 0.4,
     });
+    const outward = normalize([center[0] - crown[0], center[1] - crown[1] + 0.3, center[2] - crown[2]]);
+    for (let i = 0; i < perClump; i += 1) {
+      const lu = random() * 2 - 1;
+      const lphi = random() * Math.PI * 2;
+      const ls = Math.sqrt(1 - lu * lu);
+      let dir: Vec3 = [ls * Math.cos(lphi), lu, ls * Math.sin(lphi)];
+      if (dir[2] < -0.2 && random() < 0.7) dir = [dir[0], dir[1], -dir[2]];
+      const depth = 0.7 + random() * 0.32;
+      const point: Vec3 = [center[0] + dir[0] * radius * depth, center[1] + dir[1] * radius * depth * 0.85, center[2] + dir[2] * radius * depth];
+      const normal = normalize([dir[0] + outward[0] * 0.8, dir[1] + outward[1] * 0.8, dir[2] + outward[2] * 0.8]);
+      // Shade the inside of each clump and the clumps facing into the crown.
+      const occlusion = (0.45 + 0.55 * (depth - 0.7) / 0.32) * (0.65 + 0.35 * (dir[0] * outward[0] + dir[1] * outward[1] + dir[2] * outward[2] + 1) * 0.5);
+      const base = pick(FOLIAGE, random);
+      strokes.push({
+        kind: STROKE_KIND.foliage,
+        origin: point,
+        axis: scale(leafTangent(normal, random), (0.32 + random() * 0.3) * tree.brush * tree.size),
+        width: (0.2 + random() * 0.14) * tree.brush * tree.size,
+        bend: (random() - 0.5) * 0.7,
+        seed: random(),
+        normal,
+        color: jitterColor(scale([base[0] * leafTint[0], base[1] * leafTint[1], base[2] * leafTint[2]], occlusion), random, 0.15),
+        extra: 0.15 + random() * 0.2,
+      });
+    }
   }
 }
 
@@ -217,6 +251,29 @@ export function buildNearShoreStrokes(): Stroke[] {
   ];
   for (const [x, z, size] of framing) deciduousTree(strokes, random, { x, z, size, brush: 0.5, density: 3.6 });
 
+  // Grass tufts hugging the shore and foreground stones.
+  for (const rock of shoreRocks()) {
+    const tufts = 8 + Math.floor(random() * 10);
+    for (let i = 0; i < tufts; i += 1) {
+      const a = random() * Math.PI * 2;
+      const r = rock.radius * (0.85 + random() * 0.35);
+      const x = rock.x + Math.cos(a) * r;
+      const z = rock.z + Math.sin(a) * r;
+      const ground = Math.max(terrainHeight(x, z), WATER_LEVEL - 0.05);
+      strokes.push({
+        kind: STROKE_KIND.blade,
+        origin: [x, ground - 0.03, z],
+        axis: scale(normalize([Math.cos(a) * 0.5, 1, Math.sin(a) * 0.4]), 0.18 + random() * 0.35),
+        width: 0.03 + random() * 0.02,
+        bend: (random() - 0.5) * 0.6,
+        seed: random(),
+        normal: normalize([0, 0.7, 0.7]),
+        color: jitterColor(pick(random() < 0.3 ? GOLDEN_TIPS : BLADES, random), random, 0.14),
+        extra: 0.15,
+      });
+    }
+  }
+
   for (let x = -70; x < 70; x += 0.12 + random() * 0.25) {
     const clump = field(x * 3, 1, 9.1);
     if (clump < 0.42) continue;
@@ -278,7 +335,7 @@ export function buildMeadowStrokes(bedCount: number): Stroke[] {
       if (pz < shorelineZ(px) + 0.15) continue;
       if (distanceToBeds(px, pz, beds) < 0.06) continue;
       const wild = wildness(px, pz);
-      if (random() > 0.22 + wild * 0.78) continue;
+      if (random() > 0.07 + wild * 0.93) continue;
       // Keep the view into the garden open right in front of the camera.
       if (pz > 13 && Math.abs(px) < 1.1 && random() < 0.85) continue;
       const height = wild > 0.5 ? (0.22 + random() * 0.4) * (pz > 13 ? 1.5 : 1) : 0.05 + random() * 0.07 + wild * 0.15;
@@ -293,7 +350,7 @@ export function buildMeadowStrokes(bedCount: number): Stroke[] {
         bend: (random() - 0.5) * 0.7,
         seed: random(),
         normal: normalize([0, 0.7, 0.7]),
-        color: jitterColor(scale(pick(sunTip ? GOLDEN_TIPS : BLADES, random), wild > 0.5 ? 1 : 0.7), random, 0.12),
+        color: jitterColor(scale(pick(sunTip ? GOLDEN_TIPS : BLADES, random), wild > 0.5 ? 1 : 0.95), random, 0.08),
         extra: 0.1 + random() * 0.15,
       });
       if (wild > 0.55 && random() < 0.05) {

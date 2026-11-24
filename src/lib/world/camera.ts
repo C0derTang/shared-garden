@@ -132,3 +132,16 @@ export function rayHitsUprightCapsule(ray: Ray, base: Vec3, height: number, radi
   const pz = ray.origin[2] + d[2] * s - base[2];
   return Math.hypot(px, py, pz) <= radius ? s : null;
 }
+
+/** Orthographic projection (WebGPU clip depth 0..1), column-major. */
+export function orthographic(left: number, right: number, bottom: number, top: number, near: number, far: number, out: Mat4 = new Float32Array(16)): Mat4 {
+  out.fill(0);
+  out[0] = 2 / (right - left);
+  out[5] = 2 / (top - bottom);
+  out[10] = 1 / (near - far);
+  out[12] = -(right + left) / (right - left);
+  out[13] = -(top + bottom) / (top - bottom);
+  out[14] = near / (near - far);
+  out[15] = 1;
+  return out;
+}

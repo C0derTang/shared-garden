@@ -15,8 +15,9 @@ import {
   type Surface,
   type Target,
 } from "vgpu";
-import { invert, lookAt, multiply, perspective, rayFromNdc } from "@/lib/world/camera";
+import { invert, lookAt, multiply, orthographic, perspective, rayFromNdc } from "@/lib/world/camera";
 import { journeyPose } from "@/lib/world/journey";
+import { bedEdgingRocks, buildMountainMesh, buildRockMesh, shoreRocks } from "@/lib/world/landforms";
 import { WATER_LEVEL, bedCountFor, layoutPlantingSpots, type Vec3 } from "@/lib/world/layout";
 import { pickAlongRay, type FlowerAnchor, type PickResult } from "@/lib/world/picking";
 import {
@@ -38,15 +39,23 @@ import tensorShader from "./post/tensor.wgsl";
 import bedShader from "./shaders/bed.wgsl";
 import groundShader from "./shaders/ground.wgsl";
 import markerShader from "./shaders/marker.wgsl";
+import mountainShader from "./shaders/mountain.wgsl";
 import motesShader from "./shaders/motes.wgsl";
+import rockShader from "./shaders/rock.wgsl";
 import skyShader from "./shaders/sky.wgsl";
 import waterShader from "./shaders/water.wgsl";
 import { createStrokeBatch, type StrokeBatch } from "./strokes/stroke-batch";
-import type { WorldFrameContext, WorldLayer, WorldUniforms } from "./world-layer";
+import type { WorldFrameContext, WorldLayer, WorldShadow, WorldUniforms } from "./world-layer";
 
 const HDR: GPUTextureFormat = "rgba16float";
 const MOTE_COUNT = 70;
-const FOG_DENSITY = 0.003;
+const FOG_DENSITY = 0.0022;
+const SHADOW_SIZE = 2048;
+/** Pixel budget of the scene and painterly chain; the canvas itself stays at full DPR. */
+const RENDER_BUDGET = 1_900_000;
+/** Ground area (centre and half extent) covered by the key light's shadow map. */
+const SHADOW_CENTER: Vec3 = [0, 0, 3];
+const SHADOW_EXTENT = 30;
 const CLICK_SLOP_PX = 6;
 const RGB_ONLY: ("r" | "g" | "b")[] = ["r", "g", "b"];
 
@@ -84,6 +93,7 @@ export interface WorldRenderer {
 
 const GROUND_ATTRIBUTES = { position: "float32x3", normal: "float32x3" } as const;
 const BED_ATTRIBUTES = { position: "float32x3", normal: "float32x3", local: "float32x3" } as const;
+const ROCK_ATTRIBUTES = { position: "float32x3", normal: "float32x3", tone: "float32x2" } as const;
 
 function meshGeometry(gpu: Gpu, mesh: MeshData, attributes: Record<string, GPUVertexFormat>, label: string): Geometry {
   return geometry(gpu, {
@@ -217,24 +227,50 @@ export function createWorldRenderer(
       return;
     }
     gpu = nextGpu;
-    const output: Surface = surface(gpu, canvas, { dpr: [1, 1.5], label: "garden-world" });
-    const full = (): [number, number] => [Math.max(1, output.size[0]), Math.max(1, output.size[1])];
-    const half = (): [number, number] => [Math.max(1, Math.floor(output.size[0] / 2)), Math.max(1, Math.floor(output.size[1] / 2))];
+    const output: Surface = surface(gpu, canvas, { dpr: [1, 2], label: "garden-world" });
+    // Internal render scale: native up to the pixel budget, smoothly upsampled beyond it.
+    const renderScale = () => Math.min(1, Math.sqrt(RENDER_BUDGET / Math.max(1, output.size[0] * output.size[1])));
+    const full = (): [number, number] => {
+      const k = renderScale();
+      return [Math.max(1, Math.round(output.size[0] * k)), Math.max(1, Math.round(output.size[1] * k))];
+    };
+    const half = (): [number, number] => {
+      const [w, h] = full();
+      return [Math.max(1, Math.floor(w / 2)), Math.max(1, Math.floor(h / 2))];
+    };
 
     const scene: Target = target(gpu, { size: full(), format: HDR, depth: true, msaa: true, label: "garden-world.scene" });
     const mirror: Target = target(gpu, { size: half(), format: HDR, depth: true, label: "garden-world.mirror" });
     const glowA: Target = target(gpu, { size: half(), format: HDR, label: "garden-world.glow-a" });
     const glowB: Target = target(gpu, { size: half(), format: HDR, label: "garden-world.glow-b" });
-    const prepped: Target = target(gpu, { size: half(), format: HDR, label: "garden-world.prep" });
-    const structure: Target = target(gpu, { size: half(), format: HDR, label: "garden-world.tensor" });
-    const painted: Target = target(gpu, { size: half(), format: HDR, label: "garden-world.paint" });
+    // The painterly chain runs at full resolution so no cell or pixel structure shows.
+    const prepped: Target = target(gpu, { size: full(), format: HDR, label: "garden-world.prep" });
+    const structure: Target = target(gpu, { size: full(), format: HDR, label: "garden-world.tensor" });
+    const structureBlur: Target = target(gpu, { size: full(), format: HDR, label: "garden-world.tensor-blur" });
+    const painted: Target = target(gpu, { size: full(), format: HDR, label: "garden-world.paint" });
+    const shadowMap: Target = target(gpu, { size: [SHADOW_SIZE, SHADOW_SIZE], format: "r8unorm", depth: "depth32float", label: "garden-world.shadow" });
     const linear = sampler(gpu, { minFilter: "linear", magFilter: "linear", addressModeU: "clamp-to-edge", addressModeV: "clamp-to-edge" });
+    const shadowSampler = sampler(gpu, { compare: "less-equal", minFilter: "linear", magFilter: "linear", addressModeU: "clamp-to-edge", addressModeV: "clamp-to-edge" });
+    const shadow: WorldShadow = { map: shadowMap, sampler: shadowSampler };
+    const shadowBindings = { shadowMap, shadowSampler };
 
     const sky = draw(gpu, { shader: skyShader, vertices: 3, depth: false, label: "garden-world.sky" });
     const ground = draw(gpu, {
       shader: groundShader,
       geometry: meshGeometry(gpu, buildGroundMesh(), GROUND_ATTRIBUTES, "garden-world.ground"),
       label: "garden-world.ground",
+      set: shadowBindings,
+    });
+    const mountains = draw(gpu, {
+      shader: mountainShader,
+      geometry: meshGeometry(gpu, buildMountainMesh(), GROUND_ATTRIBUTES, "garden-world.mountains"),
+      label: "garden-world.mountains",
+    });
+    const rocks = draw(gpu, {
+      shader: rockShader,
+      geometry: meshGeometry(gpu, buildRockMesh(shoreRocks()), ROCK_ATTRIBUTES, "garden-world.rocks"),
+      label: "garden-world.rocks",
+      set: shadowBindings,
     });
     const water = draw(gpu, { shader: waterShader, geometry: waterGeometry(gpu), label: "garden-world.water" });
     const motes = draw(gpu, {
@@ -246,14 +282,16 @@ export function createWorldRenderer(
       depth: { write: false, compare: "less-equal" },
       label: "garden-world.motes",
     });
-    const farShore = createStrokeBatch(gpu, buildFarShoreStrokes(), "garden-world.far-shore");
-    const nearShore = createStrokeBatch(gpu, buildNearShoreStrokes(), "garden-world.near-shore");
+    const farShore = createStrokeBatch(gpu, buildFarShoreStrokes(), { label: "garden-world.far-shore", shadow });
+    const nearShore = createStrokeBatch(gpu, buildNearShoreStrokes(), { label: "garden-world.near-shore", shadow, castShadows: true });
 
     // Bed-dependent pieces are rebuilt when beds open.
     let bedCount = -1;
     let meadow: StrokeBatch | undefined;
     let beds: Draw | undefined;
     let bedGeometry: Geometry | undefined;
+    let edging: Draw | undefined;
+    let edgingGeometry: Geometry | undefined;
     let markers: Draw | undefined;
     let markerGeometry: Geometry | undefined;
     let markerCount = 0;
@@ -266,13 +304,18 @@ export function createWorldRenderer(
       meadow?.dispose();
       beds?.dispose();
       bedGeometry?.destroy();
-      meadow = createStrokeBatch(gpu!, buildMeadowStrokes(bedCount), "garden-world.meadow");
+      edging?.dispose();
+      edgingGeometry?.destroy();
+      meadow = createStrokeBatch(gpu!, buildMeadowStrokes(bedCount), { label: "garden-world.meadow", shadow });
+      edgingGeometry = meshGeometry(gpu!, buildRockMesh(bedEdgingRocks(bedCount)), ROCK_ATTRIBUTES, "garden-world.edging");
+      edging = draw(gpu!, { shader: rockShader, geometry: edgingGeometry, label: "garden-world.edging", set: shadowBindings });
       bedGeometry = meshGeometry(gpu!, buildBedMesh(bedCount), BED_ATTRIBUTES, "garden-world.beds");
       beds = draw(gpu!, {
         shader: bedShader,
         geometry: bedGeometry,
         depth: { write: true, compare: "less-equal", bias: -4, biasSlopeScale: -1 },
         label: "garden-world.beds",
+        set: shadowBindings,
       });
     };
 
@@ -296,7 +339,7 @@ export function createWorldRenderer(
         shader: markerShader,
         geometry: markerGeometry,
         vertices: 6,
-        blend: "premultiplied",
+        blend: "additive",
         writeMask: RGB_ONLY,
         depth: { write: false, compare: "less-equal" },
         label: "garden-world.markers",
@@ -311,26 +354,31 @@ export function createWorldRenderer(
     const blurV = effect(gpu, blurShader, { label: "garden-world.blur-v" });
     const prep = effect(gpu, prepShader, { label: "garden-world.prep" });
     const tensor = effect(gpu, tensorShader, { label: "garden-world.tensor" });
+    const tensorBlurH = effect(gpu, blurShader, { label: "garden-world.tensor-blur-h" });
+    const tensorBlurV = effect(gpu, blurShader, { label: "garden-world.tensor-blur-v" });
     const kuwahara = effect(gpu, kuwaharaShader, { label: "garden-world.kuwahara" });
     const composite = effect(gpu, compositeShader, { label: "garden-world.composite" });
 
     const bind = () => {
-      const [w, h] = output.size;
+      const [w, h] = scene.size;
       const [hw, hh] = glowA.size;
       water.set({ reflection: mirror, reflectionSampler: linear, water: { texel: [1 / w, 1 / h], distortion: 0.12, pad: 0 } });
       bright.set({ source: scene, sourceSampler: linear, params: { texel: [1 / w, 1 / h], threshold: 1.1, knee: 0.5 } });
       blurH.set({ source: glowA, sourceSampler: linear, params: { direction: [1.6 / hw, 0], pad: [0, 0] } });
       blurV.set({ source: glowB, sourceSampler: linear, params: { direction: [0, 1.6 / hh], pad: [0, 0] } });
+      const pixel = output.dpr * renderScale();
       prep.set({ scene, linearSampler: linear, params: { texel: [1 / w, 1 / h], exposure: 1, pad: 0 } });
-      tensor.set({ source: prepped, linearSampler: linear, params: { texel: [1 / hw, 1 / hh], pad: [0, 0] } });
-      kuwahara.set({ source: prepped, tensor: structure, linearSampler: linear, params: { texel: [1 / hw, 1 / hh], radiusNear: 3, radiusFar: 6 } });
+      tensor.set({ source: prepped, linearSampler: linear, params: { texel: [1 / w, 1 / h], pad: [0, 0] } });
+      tensorBlurH.set({ source: structure, sourceSampler: linear, params: { direction: [(2 * pixel) / w, 0], pad: [0, 0] } });
+      tensorBlurV.set({ source: structureBlur, sourceSampler: linear, params: { direction: [0, (2 * pixel) / h], pad: [0, 0] } });
+      kuwahara.set({ source: prepped, tensor: structure, linearSampler: linear, params: { texel: [1 / w, 1 / h], radiusNear: 2.5 * pixel, radiusFar: 5.5 * pixel } });
       composite.set({
         paint: painted,
         scene,
         tensor: structure,
         glow: glowA,
         linearSampler: linear,
-        params: { texel: [1 / w, 1 / h], resolution: [w, h], glowStrength: 0.7, exposure: 1, night: 0, grain: 1 },
+        params: { texel: [1 / output.size[0], 1 / output.size[1]], resolution: [output.size[0], output.size[1]], glowStrength: 0.7, exposure: 1, night: 0, grain: 1 },
       });
     };
     bind();
@@ -338,8 +386,8 @@ export function createWorldRenderer(
     cleanups.push(
       output.onResize(() => {
         if (disposed) return;
-        scene.resize(full());
-        for (const t of [mirror, glowA, glowB, prepped, structure, painted]) t.resize(half());
+        for (const t of [scene, prepped, structure, structureBlur, painted]) t.resize(full());
+        for (const t of [mirror, glowA, glowB]) t.resize(half());
         bind();
       }),
     );
@@ -349,6 +397,11 @@ export function createWorldRenderer(
       sky.compile(mirror),
       ground.compile(scene),
       ground.compile(mirror),
+      mountains.compile(scene),
+      mountains.compile(mirror),
+      rocks.compile(scene),
+      rocks.compile(mirror),
+      edging!.compile(scene),
       water.compile(scene),
       motes.compile(scene),
       farShore.compile(scene),
@@ -363,6 +416,8 @@ export function createWorldRenderer(
       blurV.compile(glowA),
       prep.compile(prepped),
       tensor.compile(structure),
+      tensorBlurH.compile(structureBlur),
+      tensorBlurV.compile(structure),
       kuwahara.compile(painted),
       composite.compile(output),
     ]);
@@ -375,6 +430,9 @@ export function createWorldRenderer(
     const mirrorViewProjection = new Float32Array(16);
     const mirrorInverse = new Float32Array(16);
     const reflect = mirrorY(WATER_LEVEL);
+    const lightView = new Float32Array(16);
+    const lightProjection = orthographic(-SHADOW_EXTENT, SHADOW_EXTENT, -SHADOW_EXTENT, SHADOW_EXTENT, 1, 220);
+    const lightViewProjection = new Float32Array(16);
 
     const time = clock(gpu);
     let motionTime = 0;
@@ -393,7 +451,7 @@ export function createWorldRenderer(
       for (const layer of state.layers) {
         if (setUpLayers.has(layer)) continue;
         setUpLayers.add(layer);
-        void Promise.resolve(layer.setup?.({ gpu: gpu!, sceneTarget: scene }))
+        void Promise.resolve(layer.setup?.({ gpu: gpu!, sceneTarget: scene, shadow }))
           .then(() => {
             if (setUpLayers.has(layer)) readyLayers.add(layer);
           })
@@ -418,8 +476,8 @@ export function createWorldRenderer(
         pointer.smoothY += ((still ? 0 : pointer.y) - pointer.smoothY) * follow;
         journey.value += (journey.target - journey.value) * (still ? 1 : Math.min(1, dt * 2));
 
-        const [w, h] = output.size;
-        const aspect = w / Math.max(h, 1);
+        const [w, h] = scene.size;
+        const aspect = output.size[0] / Math.max(output.size[1], 1);
         const fovY = Math.min((68 * Math.PI) / 180, Math.max((38 * Math.PI) / 180, 2 * Math.atan(Math.tan((24 * Math.PI) / 180) / Math.max(aspect, 0.01))));
         perspective(fovY, aspect, 0.1, 420, projection);
         const pose = journeyPose(journey.value);
@@ -429,7 +487,9 @@ export function createWorldRenderer(
           pose.eye[1] + Math.sin(t * 0.07) * 0.06 + pointer.smoothY * 0.2,
           pose.eye[2],
         ];
-        const look: Vec3 = [pose.look[0] + Math.sin(t * 0.09 + 1) * 0.1 + pointer.smoothX * 0.12, pose.look[1] + pointer.smoothY * 0.06, pose.look[2]];
+        // Portrait screens tilt down a little so the garden, not the sky, fills the frame.
+        const portraitTilt = (1 - Math.min(aspect, 1)) * 7;
+        const look: Vec3 = [pose.look[0] + Math.sin(t * 0.09 + 1) * 0.1 + pointer.smoothX * 0.12, pose.look[1] - portraitTilt + pointer.smoothY * 0.06, pose.look[2]];
         lookAt(eye, look, [0, 1, 0], view);
         multiply(projection, view, viewProjection);
         invert(viewProjection, inverseViewProjection);
@@ -444,9 +504,14 @@ export function createWorldRenderer(
         const now = state.time ?? new Date();
         const skyState = skyStateAt(now);
         const lighting = worldLightingFor(skyState);
+        const lightDir = lighting.lightDirection;
+        const lightEye: Vec3 = [SHADOW_CENTER[0] + lightDir[0] * 100, SHADOW_CENTER[1] + lightDir[1] * 100, SHADOW_CENTER[2] + lightDir[2] * 100];
+        lookAt(lightEye, SHADOW_CENTER, Math.abs(lightDir[1]) > 0.98 ? [0, 0, -1] : [0, 1, 0], lightView);
+        multiply(lightProjection, lightView, lightViewProjection);
         const world: WorldUniforms = {
           viewProjection,
           inverseViewProjection,
+          lightViewProjection,
           eye,
           time: motionTime,
           lightDir: lighting.lightDirection,
@@ -478,20 +543,27 @@ export function createWorldRenderer(
           clipWater: 1,
         };
 
-        // 1. The lake's mirror image (sky, shores and trees only).
-        sky.set({ world: mirrored });
-        ground.set({ world: mirrored });
+        // 0. Key-light shadow map (trees and reeds cast; leaves are alpha-tested).
+        nearShore.setWorld(world);
+        currentFrame.pass({ target: shadowMap, clear: [1, 1, 1, 1], clearDepth: 1 }, (pass) => {
+          nearShore.encodeShadow(pass);
+        });
+
+        // 1. The lake's mirror image (sky, mountains, shores, stones and trees).
+        for (const drawable of [sky, ground, mountains, rocks]) drawable.set({ world: mirrored });
         farShore.setWorld(mirrored);
         nearShore.setWorld(mirrored);
         currentFrame.pass({ target: mirror, clear: [0, 0, 0, 1], clearDepth: 1 }, (pass) => {
           pass.draw(sky);
+          pass.draw(mountains);
           pass.draw(ground);
+          pass.draw(rocks);
           farShore.encode(pass);
           nearShore.encode(pass);
         });
 
         // 2. The scene.
-        for (const drawable of [sky, ground, water, motes, beds!, ...(markers ? [markers] : [])]) drawable.set({ world });
+        for (const drawable of [sky, ground, mountains, rocks, water, motes, beds!, edging!, ...(markers ? [markers] : [])]) drawable.set({ world });
         for (const batch of [farShore, nearShore, meadow!]) batch.setWorld(world);
         const context: WorldFrameContext = {
           gpu: gpu!,
@@ -506,9 +578,12 @@ export function createWorldRenderer(
         };
         currentFrame.pass({ target: scene, clear: [0, 0, 0, 1], clearDepth: 1 }, (pass) => {
           pass.draw(sky);
+          pass.draw(mountains);
           pass.draw(ground);
           pass.draw(water);
+          pass.draw(rocks);
           pass.draw(beds!);
+          pass.draw(edging!);
           farShore.encode(pass);
           nearShore.encode(pass);
           meadow!.encode(pass);
@@ -524,8 +599,8 @@ export function createWorldRenderer(
         prep.set({ params: { texel: [1 / w, 1 / h], exposure, pad: 0 } });
         composite.set({
           params: {
-            texel: [1 / w, 1 / h],
-            resolution: [w, h],
+            texel: [1 / output.size[0], 1 / output.size[1]],
+            resolution: [output.size[0], output.size[1]],
             glowStrength: 0.55 + lighting.night * 0.35,
             exposure,
             night: lighting.night,
@@ -537,6 +612,8 @@ export function createWorldRenderer(
         currentFrame.pass({ target: glowA, clear: [0, 0, 0, 1] }, (pass) => pass.draw(blurV));
         currentFrame.pass({ target: prepped, clear: [0, 0, 0, 1] }, (pass) => pass.draw(prep));
         currentFrame.pass({ target: structure, clear: [0, 0, 0, 1] }, (pass) => pass.draw(tensor));
+        currentFrame.pass({ target: structureBlur, clear: [0, 0, 0, 1] }, (pass) => pass.draw(tensorBlurH));
+        currentFrame.pass({ target: structure, clear: [0, 0, 0, 1] }, (pass) => pass.draw(tensorBlurV));
         currentFrame.pass({ target: painted, clear: [0, 0, 0, 1] }, (pass) => pass.draw(kuwahara));
         currentFrame.pass({ target: output, clear: [0, 0, 0, 1] }, (pass) => pass.draw(composite));
 

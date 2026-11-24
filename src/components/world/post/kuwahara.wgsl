@@ -14,7 +14,7 @@ struct KuwaharaParams {
 @group(0) @binding(3) var<uniform> params: KuwaharaParams;
 
 const SECTORS: i32 = 8;
-const MAX_RADIUS: i32 = 6;
+const MAX_RADIUS: i32 = 12;
 
 @fragment fn fs_main(@location(0) uv: vec2f) -> @location(0) vec4f {
   let center = textureSampleLevel(source, linearSampler, uv, 0.0);
@@ -33,7 +33,9 @@ const MAX_RADIUS: i32 = 6;
 
   let detail = center.a < 0.0;
   let far = clamp(center.a, 0.0, 1.0);
-  let radius = select(mix(params.radiusNear, params.radiusFar, smoothstep(0.02, 0.6, far)), 1.5, detail);
+  let radius = select(mix(params.radiusNear, params.radiusFar, smoothstep(0.02, 0.35, far)), 1.5, detail);
+  // Large kernels sample every other texel to stay affordable at full resolution.
+  let stride = select(1, 2, radius > 5.0);
   let a = radius * clamp((1.0 + anisotropy) / 1.0, 0.1, 2.0);
   let b = radius * clamp(1.0 / (1.0 + anisotropy), 0.1, 2.0);
   let cosPhi = cos(phi);
@@ -54,8 +56,8 @@ const MAX_RADIUS: i32 = 6;
     s[k] = vec3f(0.0);
   }
 
-  for (var y = -maxY; y <= maxY; y++) {
-    for (var x = -maxX; x <= maxX; x++) {
+  for (var y = -maxY; y <= maxY; y += stride) {
+    for (var x = -maxX; x <= maxX; x += stride) {
       var p = sr * vec2f(f32(x), f32(y));
       if (dot(p, p) > 0.25) {
         continue;

@@ -47,8 +47,9 @@
   line-height: 1;
   white-space: nowrap;
   text-shadow:
-    0 0 0.5em rgb(255 236 200 / 0.35),
-    0 1px 2px rgb(40 30 20 / 0.35);
+    0 0 0.45em rgb(255 240 214 / 0.55),
+    0 0 1.4em rgb(255 214 160 / 0.3),
+    0 1px 2px rgb(40 30 20 / 0.25);
   transition: text-shadow 300ms ease, color 300ms ease;
   will-change: transform;
 }

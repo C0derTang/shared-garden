@@ -31,6 +31,11 @@ struct WaterOut {
   return out;
 }
 
+// Must match shorelineZ() in src/lib/world/layout.ts.
+fn shorelineZ(x: f32) -> f32 {
+  return -6.0 + 1.1 * sin(x * 0.07 + 0.6) + 0.5 * sin(x * 0.19 - 1.1);
+}
+
 fn ripples(p: vec2f, t: f32) -> vec2f {
   let a = vec2f(valueNoise(p * vec2f(0.9, 2.6) + vec2f(t * 0.25, 0.0)), valueNoise(p * vec2f(0.9, 2.6) + vec2f(5.0, t * 0.2)));
   let b = vec2f(valueNoise(p * vec2f(2.7, 7.5) - vec2f(t * 0.5, 0.0)), valueNoise(p * vec2f(2.7, 7.5) + vec2f(9.0, -t * 0.4)));
@@ -56,12 +61,21 @@ fn ripples(p: vec2f, t: f32) -> vec2f {
   let deep = srgbToLinear(vec3f(0.07, 0.13, 0.14)) * (world.ambient * 0.8 + world.lightColor * world.lightIntensity * 0.15);
   var color = mix(deep, reflected, clamp(fresnel * 1.15 + 0.25, 0.0, 1.0));
 
-  // Glitter path under the sun (or moon).
-  let half = normalize(normalize(world.lightDir) + view);
-  let glint = pow(max(dot(n, half), 0.0), 600.0);
+  // Glitter path under the sun, or the moon at night.
+  let glitterDir = normalize(mix(normalize(world.sunDir), normalize(world.moonDir), world.night));
+  let half = normalize(glitterDir + view);
+  let glint = pow(max(dot(n, half), 0.0), 500.0);
   let sparkle = step(0.55, valueNoise(p * vec2f(6.0, 18.0) + world.time * 0.8));
-  let source = select(world.lightColor * world.lightIntensity, vec3f(0.7, 0.75, 0.9), world.night > 0.5);
-  color += source * glint * (6.0 + sparkle * 14.0) * smoothstep(-0.05, 0.1, world.lightDir.y);
+  let source = mix(world.lightColor * world.lightIntensity, vec3f(0.75, 0.82, 1.0) * 0.9, world.night);
+  color += source * glint * (6.0 + sparkle * 16.0) * smoothstep(-0.05, 0.1, glitterDir.y);
+
+  // Lapping foam and a wet sheen along our shoreline.
+  let fromShore = shorelineZ(p.x) - p.y;
+  let lap = 0.5 + 0.5 * sin(world.time * 0.9 + p.x * 0.6);
+  let foamBand = (1.0 - smoothstep(0.0, 0.35 + lap * 0.25, fromShore)) * smoothstep(-0.2, 0.05, fromShore);
+  let foamBreak = smoothstep(0.4, 0.75, valueNoise(vec2f(p.x * 3.0, fromShore * 9.0 - world.time * 0.4)));
+  let foamColor = world.ambient * 0.9 + world.lightColor * world.lightIntensity * 0.6;
+  color = mix(color, foamColor, foamBand * foamBreak * 0.7);
 
   color = aerial(color, input.worldPos, world);
   return vec4f(color, distanceAlpha(input.worldPos, world));

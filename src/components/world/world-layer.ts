@@ -1,4 +1,4 @@
-import type { FramePass, Gpu, Target } from "vgpu";
+import type { FramePass, Gpu, Target, sampler } from "vgpu";
 import type { Vec3 } from "@/lib/world/layout";
 import type { SkyState } from "@/lib/world/solar";
 import type { WorldLighting } from "@/lib/world/sky-palette";
@@ -11,6 +11,8 @@ import type { WorldLighting } from "@/lib/world/sky-palette";
 export interface WorldUniforms {
   readonly viewProjection: Float32Array;
   readonly inverseViewProjection: Float32Array;
+  /** Orthographic key-light camera of the shadow map. */
+  readonly lightViewProjection: Float32Array;
   readonly eye: Vec3;
   readonly time: number;
   readonly lightDir: readonly number[];
@@ -53,6 +55,16 @@ export interface WorldFrameContext {
   readonly world: WorldUniforms;
 }
 
+/**
+ * The key light's shadow map. Bind `map` to a `texture_depth_2d` and `sampler`
+ * to a `sampler_comparison`, then call `shadowFactor` from
+ * `shaders/common.wgsl` to receive shadows.
+ */
+export interface WorldShadow {
+  readonly map: Target;
+  readonly sampler: ReturnType<typeof sampler>;
+}
+
 export interface WorldLayerSetup {
   readonly gpu: Gpu;
   /**
@@ -60,6 +72,7 @@ export interface WorldLayerSetup {
    * against it; it is resized by the world, so bind nothing from it.
    */
   readonly sceneTarget: Target;
+  readonly shadow: WorldShadow;
 }
 
 /**

@@ -39,8 +39,8 @@ interface Key {
 
 // Hand-picked gouache palette, keyed by solar elevation (degrees).
 const KEYS: readonly Key[] = [
-  { elevation: -18, zenith: "#0b1026", horizonDawn: "#1d2648", horizonDusk: "#1d2446", lightDawn: "#8ea2d8", lightDusk: "#8ea2d8", ambient: "#1b2442", intensity: 0.34 },
-  { elevation: -6, zenith: "#1f2a55", horizonDawn: "#c08ba6", horizonDusk: "#b46f8c", lightDawn: "#b4a3d6", lightDusk: "#b897c8", ambient: "#3b3f68", intensity: 0.32 },
+  { elevation: -18, zenith: "#12204a", horizonDawn: "#2c3d70", horizonDusk: "#2a3a6c", lightDawn: "#a4b6ea", lightDusk: "#a4b6ea", ambient: "#2b3c6a", intensity: 0.5 },
+  { elevation: -6, zenith: "#243566", horizonDawn: "#c08ba6", horizonDusk: "#b46f8c", lightDawn: "#b4a3d6", lightDusk: "#b897c8", ambient: "#3b3f68", intensity: 0.32 },
   { elevation: 0, zenith: "#8a86a6", horizonDawn: "#f6b99d", horizonDusk: "#f39a6b", lightDawn: "#ffb68e", lightDusk: "#ffa25e", ambient: "#8c7f86", intensity: 1.0 },
   { elevation: 8, zenith: "#7ea3d6", horizonDawn: "#f8d9b0", horizonDusk: "#f7c995", lightDawn: "#ffd6a6", lightDusk: "#ffc98c", ambient: "#a49d98", intensity: 1.15 },
   { elevation: 25, zenith: "#7fa8de", horizonDawn: "#bdd3e4", horizonDusk: "#c6d6df", lightDawn: "#fff1d8", lightDusk: "#ffeccc", ambient: "#a5bed6", intensity: 1.2 },
@@ -96,7 +96,7 @@ export function worldLightingFor(sky: SkyState): WorldLighting {
   // Twilight keeps a grazing key light just above the horizon.
   const sunLight = sunDirection({ azimuth: sky.azimuth, elevation: Math.max(sky.elevation, 4) });
   // The moon is an artistic companion hung over the lake (west-southwest), not an ephemeris.
-  const moon = sunDirection({ azimuth: 252, elevation: 24 });
+  const moon = sunDirection({ azimuth: 256, elevation: 13 });
   const lightDirection = normalize([
     sunLight[0] + (moon[0] - sunLight[0]) * night,
     sunLight[1] + (moon[1] - sunLight[1]) * night,

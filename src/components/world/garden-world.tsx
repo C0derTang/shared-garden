@@ -99,11 +99,13 @@ export function GardenWorld({
     reducedMotion,
   };
   const stateRef = useRef(sceneState);
+  const motionRef = useRef(reducedMotion);
   const pickRef = useRef({ onPickSpot, onPickFlower });
 
   useEffect(() => {
     pickRef.current = { onPickSpot, onPickFlower };
     captionsRef.current = captions;
+    motionRef.current = reducedMotion;
   });
 
   useEffect(() => {
@@ -124,17 +126,21 @@ export function GardenWorld({
     let cancelled = false;
     let renderer: WorldRenderer | null = null;
     const placeCaptions = (view: WorldView) => {
-      for (const caption of captionsRef.current) {
+      const t = motionRef.current ? 0 : performance.now() / 1000;
+      captionsRef.current.forEach((caption, index) => {
         const element = captionRefs.current.get(caption.id);
-        if (!element) continue;
+        if (!element) return;
         const ndc = projectToNdc(view.viewProjection, caption.position);
         const visible = ndc !== null && Math.abs(ndc[0]) < 1.2 && Math.abs(ndc[1]) < 1.2 && ndc[2] < 1;
         element.style.visibility = visible ? "visible" : "hidden";
-        if (!ndc || !visible) continue;
-        const x = ((ndc[0] + 1) / 2) * view.width;
-        const y = ((1 - ndc[1]) / 2) * view.height;
+        if (!ndc || !visible) return;
+        // A gentle float, like type drifting on warm air.
+        const driftX = Math.sin(t * 0.5 + index * 1.7) * 3;
+        const driftY = Math.sin(t * 0.7 + index * 2.3) * 4;
+        const x = ((ndc[0] + 1) / 2) * view.width + driftX;
+        const y = ((1 - ndc[1]) / 2) * view.height + driftY;
         element.style.transform = `translate(-50%, -50%) translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
-      }
+      });
     };
     void import("./renderer")
       .then(({ createWorldRenderer }) => {

@@ -1,8 +1,10 @@
-// Shared painterly helpers for the garden world. Pure module: no bindings.
+// Shared helpers for the painted garden world. Pure module: no bindings.
 
 export struct World {
   viewProjection: mat4x4f,
   inverseViewProjection: mat4x4f,
+  // Orthographic key-light camera for the shadow map.
+  lightViewProjection: mat4x4f,
   eye: vec3f,
   time: f32,
   lightDir: vec3f,
@@ -60,7 +62,7 @@ export fn fbm(p: vec2f) -> f32 {
   var value = 0.0;
   var amplitude = 0.5;
   var q = p;
-  for (var i = 0; i < 4; i++) {
+  for (var i = 0; i < 5; i++) {
     value += amplitude * valueNoise(q);
     q = q * 2.03 + vec2f(17.0, 9.0);
     amplitude *= 0.5;
@@ -81,14 +83,35 @@ export fn belowMirror(worldPos: vec3f, world: World) -> bool {
 // post-process, which abstracts distant paint more. Layers that want to keep
 // botanical detail write a negative alpha instead.
 export fn distanceAlpha(worldPos: vec3f, world: World) -> f32 {
-  return clamp(length(worldPos - world.eye) / 140.0, 0.0, 1.0);
+  return clamp(length(worldPos - world.eye) / 260.0, 0.0, 1.0);
 }
 
-// Aerial perspective toward the sky's fog colour.
+// Painted sky gradient for a view direction (no sun disc or clouds): warm
+// near the horizon toward the sun, cooler overhead and away from it.
+export fn skyColor(ray: vec3f, world: World) -> vec3f {
+  let up = clamp(ray.y, -0.2, 1.0);
+  let height = pow(clamp(up + 0.02, 0.0, 1.0), 0.5);
+  let sunDot = max(dot(ray, normalize(world.sunDir)), 0.0);
+  let sunAbove = smoothstep(-0.14, 0.03, world.sunDir.y);
+  // Warm band hugging the horizon on the sun side; cool on the far side.
+  let warmSide = pow(sunDot, 2.0) * world.glow;
+  let horizon = mix(world.horizon, world.horizon * vec3f(0.82, 0.88, 1.08), (1.0 - sunDot) * 0.35 * world.glow);
+  var color = mix(horizon, world.zenith, height);
+  color = mix(color, world.lightColor * 1.1 + world.horizon * 0.2, warmSide * (1.0 - height) * 0.6 * sunAbove);
+  color += world.lightColor * (pow(sunDot, 8.0) * 0.5 * (0.35 + world.glow) + pow(sunDot, 64.0) * 0.6) * sunAbove;
+  let moonDot = max(dot(ray, normalize(world.moonDir)), 0.0);
+  color += world.night * vec3f(0.45, 0.55, 0.85) * (pow(moonDot, 24.0) * 0.18 + pow(moonDot, 200.0) * 0.5);
+  return color;
+}
+
+// Atmospheric perspective: distance fades into the sky colour along the view ray.
 export fn aerial(color: vec3f, worldPos: vec3f, world: World) -> vec3f {
-  let dist = length(worldPos - world.eye);
-  let amount = 1.0 - exp(-max(dist - 12.0, 0.0) * world.fogDensity);
-  return mix(color, world.fog, clamp(amount, 0.0, 0.85));
+  let toPoint = worldPos - world.eye;
+  let dist = length(toPoint);
+  let ray = toPoint / max(dist, 1e-4);
+  let haze = skyColor(normalize(vec3f(ray.x, max(ray.y, 0.0) * 0.35 + 0.02, ray.z)), world);
+  let amount = 1.0 - exp(-max(dist - 10.0, 0.0) * world.fogDensity);
+  return mix(color, mix(haze, world.fog, 0.25), clamp(amount, 0.0, 0.94));
 }
 
 // Soft wrapped key light with a brushy terminator.
@@ -97,16 +120,19 @@ export fn paintedLight(n: vec3f, world: World, brush: f32) -> f32 {
   return smoothstep(-0.35, 0.75, ndl + (brush - 0.5) * 0.45);
 }
 
-// Painted sky gradient for a view direction (no sun disc), shared by the sky
-// underpainting and the sky strokes.
-export fn skyColor(ray: vec3f, world: World) -> vec3f {
-  let up = clamp(ray.y, -0.2, 1.0);
-  let height = pow(clamp(up + 0.02, 0.0, 1.0), 0.55);
-  var color = mix(world.horizon, world.zenith, height);
-  let sunDot = max(dot(ray, normalize(world.sunDir)), 0.0);
-  let sunAbove = smoothstep(-0.12, 0.05, world.sunDir.y);
-  color += world.lightColor * (pow(sunDot, 6.0) * 0.4 * world.glow + pow(sunDot, 48.0) * 0.35) * sunAbove;
-  let moonDot = max(dot(ray, normalize(world.moonDir)), 0.0);
-  color += world.night * vec3f(0.5, 0.56, 0.78) * pow(moonDot, 60.0) * 0.3;
-  return color;
+// Percentage-closer soft shadow from the key-light shadow map (1 = lit).
+export fn shadowFactor(map: texture_depth_2d, samp: sampler_comparison, world: World, worldPos: vec3f, normal: vec3f) -> f32 {
+  let biased = worldPos + normal * 0.04;
+  let clip = world.lightViewProjection * vec4f(biased, 1.0);
+  let ndc = clip.xyz / clip.w;
+  let uv = vec2f(ndc.x * 0.5 + 0.5, 0.5 - ndc.y * 0.5);
+  let inside = all(uv > vec2f(0.001)) && all(uv < vec2f(0.999)) && ndc.z < 1.0;
+  let texel = 1.0 / vec2f(textureDimensions(map));
+  var lit = 0.0;
+  for (var j = -2; j <= 2; j++) {
+    for (var i = -2; i <= 2; i++) {
+      lit += textureSampleCompareLevel(map, samp, clamp(uv + vec2f(f32(i), f32(j)) * texel * 1.5, vec2f(0.0), vec2f(1.0)), ndc.z - 0.0015);
+    }
+  }
+  return select(1.0, lit / 25.0, inside);
 }
