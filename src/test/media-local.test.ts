@@ -58,6 +58,8 @@ it.skipIf(!statusPath)(
         "select (select count(*) from private.garden_members)+(select count(*) from auth.users)+(select count(*) from public.garden)+(select count(*) from storage.objects)+(select count(*) from public.achievement_awards)+(select count(*) from public.achievement_progress);",
       ),
     ).toBe("0");
+    // Legacy rules fixture: lift the #176 archive freeze for this run; restored below.
+    sql("delete from private.legacy_garden_freeze;");
     const origin = bluebell
       ? "http://127.0.0.1:58329"
       : sunflower
@@ -658,6 +660,7 @@ it.skipIf(!statusPath)(
         (await post("read", { mediaId: replacement.id }, null)).status,
       ).toBe(401);
     } finally {
+      sql("insert into private.legacy_garden_freeze default values on conflict do nothing;");
       web.kill("SIGTERM");
       closeSync(log);
       // Remove only objects from this previously empty dedicated local fixture.

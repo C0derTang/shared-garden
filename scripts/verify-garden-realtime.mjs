@@ -55,6 +55,8 @@ assert.equal(
 );
 assert.equal(sql("select count(*) from auth.users"), "0");
 assert.equal(sql("select count(*) from public.garden"), "0");
+// Legacy rules fixture: lift the #176 archive freeze for this run; restored below.
+sql("delete from private.legacy_garden_freeze;");
 const ids = [1, 2, 3].map((n) => `00000000-0000-4000-8000-00000000000${n}`);
 const tokens = ids.map((id) => {
   const now = Math.floor(Date.now() / 1000);
@@ -278,6 +280,7 @@ try {
     "PASS: member planting, entry insert/edit, paired markers, growth/unlock/achievement delivery; anonymous/outsider denial; live revocation; no read loop. Synthetic local OAuth fixtures only.",
   );
 } finally {
+  sql("insert into private.legacy_garden_freeze default values on conflict do nothing;");
   await Promise.all(
     channels.map(([client, channel]) => client.removeChannel(channel)),
   );

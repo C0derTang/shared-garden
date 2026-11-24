@@ -48,6 +48,8 @@ assert.equal(
 );
 assert.equal(sql("select count(*) from auth.users"), "0");
 assert.equal(sql("select count(*) from public.garden"), "0");
+// Legacy rules fixture: lift the #176 archive freeze for this run; restored below.
+sql("delete from private.legacy_garden_freeze;");
 for (const table of ["private.private_interaction_config", "private.private_interaction_delivery", "public.private_interaction_signals", "public.achievement_awards", "public.achievement_progress"]) assert.equal(sql(`select count(*) from ${table}`), "0", "Requires empty disposable interaction fixtures");
 const ids = [1, 2, 3].map((n) => `00000000-0000-4000-8000-00000000000${n}`);
 const tokens = ids.map((id) => {
@@ -165,6 +167,7 @@ try {
   assert.ok((await clients[0].rpc('owner_private_interaction',{p_action:'status'})).error);
   console.log('PASS: actual HTTP authorization, marker isolation, pending/answer lifecycle, owner-only Realtime notification, revocation and no read feedback loop');
 } finally {
+  sql("insert into private.legacy_garden_freeze default values on conflict do nothing;");
   for(const [client,channel] of channels) await client.removeChannel(channel);
   for(const client of [...clients,anon]) client.realtime.disconnect();
   sql("begin; delete from private.private_interaction_delivery; delete from private.private_interaction_config; delete from public.private_interaction_signals; delete from public.achievement_awards; delete from public.achievement_progress; delete from public.before_noon_snapshots; delete from public.garden_days; delete from public.flower_unlocks; delete from public.flowers; delete from public.garden; delete from private.garden_members; delete from auth.users where email in ('owner@example.test','member@example.test','outsider@example.test'); commit;");

@@ -48,6 +48,8 @@ assert.equal(
 );
 assert.equal(sql("select count(*) from auth.users"), "0");
 assert.equal(sql("select count(*) from public.garden"), "0");
+// Legacy rules fixture: lift the #176 archive freeze for this run; restored below.
+sql("delete from private.legacy_garden_freeze;");
 const ids = [1, 2, 3].map((n) => `00000000-0000-4000-8000-00000000000${n}`);
 const tokens = ids.map((id) => {
   const now = Math.floor(Date.now() / 1000);
@@ -261,6 +263,7 @@ try {
     "PASS: partner idea/acceptance/plan revision delivery, stale version rejection, cleared acceptance, same-day remote completion, private RLS/revocation and no read loop.",
   );
 } finally {
+  sql("insert into private.legacy_garden_freeze default values on conflict do nothing;");
   await Promise.all(
     channels.map(([client, channel]) => client.removeChannel(channel)),
   );

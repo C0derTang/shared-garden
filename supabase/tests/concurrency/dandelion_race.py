@@ -84,6 +84,8 @@ DOMAIN = ["peony_acceptances", "peony_plans", "peony_contributions", "flower_day
 TABLES = ["private.garden_members", "auth.users"] + ["public." + table for table in DOMAIN]
 empty = "select " + "+".join(f"(select count(*) from {table})" for table in TABLES) + ";"
 assert sql(empty) == "0", "Refusing configured database; reset the dedicated local project"
+# Legacy rules fixture: lift the #176 archive freeze for this run; restored below.
+sql("delete from private.legacy_garden_freeze;")
 original_clock = sql("select pg_get_functiondef('private.begin_garden_operation()'::regprocedure);")
 
 
@@ -123,6 +125,7 @@ try:
     assert sql("select count(*) from public.peony_activity;") == '0'
     print("PASS: observed garden-lock waits for competing members and same-member repeat; identical once-only fact, original time, no plant/growth/bloom/activity effects")
 finally:
+    sql("insert into private.legacy_garden_freeze default values on conflict do nothing;")
     sql(original_clock)
     clear_garden()
     sql("""

@@ -81,6 +81,8 @@ def overlap(first, second, error=None, second_member=2):
 # Refuse existing state: fixtures are never added to a real/configured garden.
 empty = "select (select count(*) from public.flower_day_facts) + (select count(*) from public.before_noon_snapshots) + (select count(*) from public.peony_activity) + (select count(*) from public.garden_days) + (select count(*) from private.garden_members) + (select count(*) from auth.users) + (select count(*) from public.garden) + (select count(*) from public.flower_entries) + (select count(*) from public.daisy_assignments) + (select count(*) from private.media_uploads) + (select count(*) from storage.objects);"
 assert sql(empty) == "0", "Refusing a configured database; reset the dedicated local project"
+# Legacy rules fixture: lift the #176 archive freeze for this run; restored below.
+sql("delete from private.legacy_garden_freeze;")
 try:
     sql("""
     begin;
@@ -148,6 +150,7 @@ try:
     print("PASS: revocation during observed lock wait denies validation claim")
 
 finally:
+    sql("insert into private.legacy_garden_freeze default values on conflict do nothing;")
     sql("""
     begin;
     delete from private.media_uploads;

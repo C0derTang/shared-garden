@@ -2,6 +2,7 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { ArchiveProvider } from "@/components/garden/archive";
 import { GardenClient } from "@/components/garden/garden-client";
 import { PrivateInteraction } from "@/components/private-interaction/private-interaction";
 import { useSheetScope } from "@/components/ui/sheet-scope";
@@ -9,7 +10,7 @@ import type { GardenResult } from "@/lib/garden/model";
 import { legacyPanel, legacyPanelFromHref, legacyPanelHref, legacyPanels, legacyPath, type LegacyPanel } from "@/lib/legacy/routes";
 import { GardenNavigation, type GardenDestination } from "./garden-navigation";
 
-/** Persistent authorized legacy garden, with the `?panel=` contents layered over it. */
+/** Persistent authorized legacy garden, a read-only archive, with the `?panel=` contents layered over it. */
 export function GardenStage({ initial, children }: { initial: GardenResult; children: ReactNode }) {
   const panel = legacyPanel(useSearchParams().get("panel"));
   const router = useRouter();
@@ -41,7 +42,7 @@ export function GardenStage({ initial, children }: { initial: GardenResult; chil
     if (openedFromGarden.current) router.back();
     else router.replace(legacyPath, { scroll: false });
   }
-  return <div className="garden-layout">
+  return <ArchiveProvider value={true}><div className="garden-layout">
     <div ref={backdrop} inert={!!title || !!scope?.active} onClickCapture={(event) => {
       const link = (event.target as HTMLElement).closest("a");
       if (!panel && link && legacyPanelFromHref(link.getAttribute("href") ?? "")) openedFromGarden.current = true;
@@ -70,5 +71,5 @@ export function GardenStage({ initial, children }: { initial: GardenResult; chil
       // the route panel instead of restoring its inaccessible background trigger.
       if (panelElement.current?.isConnected) { event.preventDefault(); panelElement.current.querySelector<HTMLButtonElement>("button")?.focus(); }
     }} />
-  </div>;
+  </div></ArchiveProvider>;
 }

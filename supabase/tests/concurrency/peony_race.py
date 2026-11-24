@@ -84,6 +84,8 @@ DOMAIN = ["peony_acceptances", "peony_plans", "peony_contributions", "flower_day
 TABLES = ["private.garden_members", "auth.users"] + ["public." + table for table in DOMAIN]
 empty = "select " + "+".join(f"(select count(*) from {table})" for table in TABLES) + ";"
 assert sql(empty) == "0", "Refusing configured database; reset the dedicated local project"
+# Legacy rules fixture: lift the #176 archive freeze for this run; restored below.
+sql("delete from private.legacy_garden_freeze;")
 original_clock = sql("select pg_get_functiondef('private.begin_garden_operation()'::regprocedure);")
 
 
@@ -241,6 +243,7 @@ try:
     assert sql("select last_settled_day from public.garden;") == before
     print("PASS: queued paired completion uses the post-lock garden day, keeps cross-day originals and settles the previous empty day")
 finally:
+    sql("insert into private.legacy_garden_freeze default values on conflict do nothing;")
     sql(original_clock)
     clear_garden()
     sql("""

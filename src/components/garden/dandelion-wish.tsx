@@ -5,8 +5,10 @@ import type { Plant } from "@/lib/garden/model";
 import type { Mutate } from "./seed-picker";
 import styles from "./garden.module.css";
 
-export function DandelionWish({ flower, memberId, busy, mutate }: {
+export function DandelionWish({ flower, memberId, busy, mutate, readOnly = false }: {
   flower: Plant["flower"]; memberId: 1 | 2; busy: boolean; mutate: Mutate;
+  /** The archive shows the wish and any fulfilment, without the action. */
+  readOnly?: boolean;
 }) {
   const partnerName = usePartnerName();
   const [confirming, setConfirming] = useState(false);
@@ -30,7 +32,9 @@ export function DandelionWish({ flower, memberId, busy, mutate }: {
     {flower.fulfilled_at ? <p role="status">
       {flower.fulfilled_by === memberId ? "You fulfilled" : `${partnerName.subject} fulfilled`} this wish · <time dateTime={flower.fulfilled_at}>{new Intl.DateTimeFormat("en-US", { timeZone:"America/Los_Angeles", dateStyle:"medium", timeStyle:"short" }).format(new Date(flower.fulfilled_at))} Pacific</time>.
       {" "}Seeds scattered. Your wish and its memories stay here.
-    </p> : flower.first_bloom_at ? confirming ? <div className={styles.stack}>
+    </p> : readOnly ? <p>{flower.first_bloom_at
+      ? "The garden was archived before this wish was fulfilled."
+      : "The garden was archived before this Dandelion bloomed."}</p> : flower.first_bloom_at ? confirming ? <div className={styles.stack}>
       <p>Has your shared wish come true? Blowing the seeds marks it fulfilled permanently. This flower stays as a permanent keepsake with all its memories. Seeds are decorative and create no new plants. This cannot be undone.</p>
       <button className="button button-primary" disabled={busy} onClick={()=>void fulfill()}>Confirm and blow seeds</button>
       <button className="button button-secondary" disabled={busy} onClick={()=>setConfirming(false)}>Keep waiting</button>

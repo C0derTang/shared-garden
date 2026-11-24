@@ -67,7 +67,9 @@ export async function mutatePeony(
     else throw Error("Invalid action");
     if (r.error) {
       error =
-        r.error.code === "42501"
+        r.error.code === "55000"
+          ? "The old garden is archived and read-only. Everything in it stays here to browse."
+          : r.error.code === "42501"
           ? "Your garden access could not be verified. Sign in again."
           : "This step changed or its edit window ended. Your draft is here. Review the refreshed milestone and plan before trying again.";
     } else saved = true;

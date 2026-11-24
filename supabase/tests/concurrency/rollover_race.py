@@ -81,6 +81,8 @@ TABLES = ["private.garden_members", "auth.users", "public.garden", "public.flowe
           "public.peony_activity", "public.garden_days"]
 empty = "select " + "+".join(f"(select count(*) from {table})" for table in TABLES) + ";"
 assert sql(empty) == "0", "Refusing a configured database; reset the dedicated local project"
+# Legacy rules fixture: lift the #176 archive freeze for this run; restored below.
+sql("delete from private.legacy_garden_freeze;")
 
 
 def clear_garden():
@@ -173,6 +175,7 @@ try:
     sql("update private.garden_members set revoked_at=null where member_id=2;")
     print("PASS: garden refresh rechecks live membership after waiting behind a revocation")
 finally:
+    sql("insert into private.legacy_garden_freeze default values on conflict do nothing;")
     clear_garden()
     sql("""
     begin;
