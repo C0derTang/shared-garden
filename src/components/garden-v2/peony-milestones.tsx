@@ -18,16 +18,11 @@ const ABOUT = [
   "Each of you keeps a favorite moment from it.",
 ];
 
-const planFormat = new Intl.DateTimeFormat("en-US", {
-  timeZone: "America/Los_Angeles",
-  weekday: "short",
-  month: "short",
-  day: "numeric",
-  hour: "numeric",
-  minute: "2-digit",
-});
-/** A plan's start in Pacific time, e.g. "Sat, Nov 28, 7:00 PM". */
-const planTime = (instant: string) => planFormat.format(new Date(instant));
+/**
+ * A plan's agreed instant as decision 0015 shows it: full date, seconds and the
+ * Pacific zone, so a repeated autumn hour reads as PDT or PST.
+ */
+const planTime = (instant: string) => pacificDate(instant);
 const shared = (instant: string) => `${gardenDate(instant)}, ${gardenTime(instant)}`;
 
 /**
@@ -184,7 +179,7 @@ export function PeonyMilestones({ flowerId, refreshKey, now, busy, mutate }: { f
             </label>
           </div>
         )}
-        {chosen && validInstant && <p className={styles.formHint}>{planTime(chosen)}, Pacific time</p>}
+        {chosen && validInstant && <p className={styles.formHint}>Agreed time: {planTime(chosen)}</p>}
         {planChanged && (
           <div className={styles.note} role="status">
             <p>The plan changed while you were writing. Your draft is kept; compare it with the plan above first.</p>
@@ -235,12 +230,14 @@ export function PeonyMilestones({ flowerId, refreshKey, now, busy, mutate }: { f
                 const accepted = p.acceptances.some((a) => a.author_id === member);
                 return (
                   <li key={member} data-who={member === state.member_id ? "you" : "partner"} data-accepted={accepted || undefined}>
-                    <span aria-hidden="true">{accepted ? "✿" : "·"}</span> {who(member)} {accepted ? "accepted" : "· not yet"}
+                    <span aria-hidden="true">{accepted ? "✿" : "·"}</span> {who(member)} {accepted ? `accepted version ${p.version}` : "· not yet"}
                   </li>
                 );
               })}
             </ul>
-            {p.version > 1 && <p className={styles.quiet}>Version {p.version}. A change clears earlier acceptances, so you both accept this one.</p>}
+            <p className={styles.quiet}>
+              Plan version {p.version}.{p.version > 1 && " It changed, so earlier acceptances were cleared and you both accept this version."}
+            </p>
           </div>
         ) : current ? (
           <p className={styles.quiet}>No plan yet. Write what you’ll do and exactly when, in Pacific time.</p>
@@ -249,7 +246,7 @@ export function PeonyMilestones({ flowerId, refreshKey, now, busy, mutate }: { f
           <div className={styles.actions}>
             {p?.can_accept && (
               <button type="button" className={styles.primary} disabled={blocked} onClick={() => void peony.save({ kind: "accept", version: p.version })}>
-                accept this plan
+                accept plan version {p.version}
               </button>
             )}
             {(p?.can_edit ?? true) && (
@@ -273,7 +270,8 @@ export function PeonyMilestones({ flowerId, refreshKey, now, busy, mutate }: { f
             )}
           </div>
         )}
-        {current && planForm(state)}
+        {/* A draft stays open (copyable, unsavable) even after the plan is settled under it. */}
+        {(current || plan) && planForm(state)}
       </>
     );
   }

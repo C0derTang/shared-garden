@@ -50,7 +50,7 @@ function SaveProgress({ stage, what }: { stage: MediaStage | null; what: string 
       >
         <i style={{ width: `${[6, 18, 62, 88][step]}%` }} />
       </div>
-      <p className={styles.progressWords} aria-hidden="true">
+      <p className={styles.progressWords} role="status">
         {words}
       </p>
     </div>
@@ -313,7 +313,7 @@ export function VoiceCare({ plant, state, now, busy, mutate, editing, onSaved, o
       {(recording || phase === "stopping") && (
         <div className={styles.recorder}>
           <LevelMeter stream={recorder.stream ?? null} live={phase === "recording"} />
-          <p className={styles.clock} aria-label={`Recorded time ${voiceTime(recorder.elapsedMs)}`}>
+          <p className={styles.clock}>
             {voiceTime(recorder.elapsedMs)} <span>/ 5:00</span>
           </p>
         </div>

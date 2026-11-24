@@ -100,6 +100,7 @@ describe("PhotoCare", () => {
     const bar = screen.getByRole("progressbar", { name: "Sharing your photo" });
     expect(bar).toHaveAttribute("aria-valuenow", "2");
     expect(bar).toHaveAttribute("aria-valuetext", "Photo: sending…");
+    expect(screen.getByRole("status")).toHaveTextContent("sending…");
     await act(async () => release());
     await waitFor(() => expect(p.onSaved).toHaveBeenCalledOnce());
     const call = media.savePhoto.mock.calls[0]!;
@@ -127,7 +128,7 @@ describe("VoiceCare", () => {
     media.recorder.elapsedMs = 12_000;
     render(<VoiceCare {...props("bluebell")} />);
     expect(screen.getByRole("status")).toHaveTextContent("recording");
-    expect(screen.getByLabelText("Recorded time 0:12")).toBeInTheDocument();
+    expect(screen.getByText("0:12")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "stop and listen" })).toHaveFocus();
     expect(screen.getByRole("button", { name: "pause" })).toBeInTheDocument();
   });

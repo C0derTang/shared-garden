@@ -536,9 +536,14 @@ new-garden media protocol above.
 - **Peony:** four steps on a painted stem, in order (propose ideas, agree on a
   plan, confirm your date happened, share favorite moments), each "done
   together", "now" or "after the step before". The current step says what it
-  asks; its forms open inside it. The plan shows its activity, its time in
-  Pacific ("Sat, Nov 28, 5:00 PM"), who has accepted and, after a change, its
-  version. A repeated fall-back hour asks which occurrence. Each finished step
+  asks; its forms open inside it. The Peony interface rules of
+  [decision 0015](0015-peony-interface.md) apply unchanged: the agreed time
+  shows the full date, seconds and Pacific zone ("Nov 28, 2026, 5:00:00 PM
+  PST"), a repeated autumn hour must be chosen as its labelled PDT or PST
+  occurrence, the plan shows its version and who accepted it ("accepted
+  version 2"), and "accept plan version 2" names the exact version. Drafts
+  survive refreshes while the view is open; a plan or text draft whose step
+  completes under it stays visible to copy but cannot be saved. Each finished step
   grows the Peony at once ("It grows by one each time you finish a milestone
   together. Nothing is ever lost."), and the painting grows with it. The Peony
   panel shows no daily cards or "earlier days": every contribution stays in
