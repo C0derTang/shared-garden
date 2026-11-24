@@ -15,6 +15,7 @@ import { useGardenV2 } from "@/lib/garden-v2/use-garden-v2";
 import { gardenViewHref, type GardenView } from "@/lib/garden-v2/views";
 import type { FocusTarget } from "@/lib/world/journey";
 import { spotPosition } from "@/lib/world/layout";
+import { ArrivalLight, useGardenArrival } from "./arrival";
 import { AwayNote } from "./away-note";
 import { FlowerPanel } from "./flower-panel";
 import { useNightFireworks } from "./night-fireworks";
@@ -91,12 +92,14 @@ export function GardenV2({
       cancelled = true;
     };
   }, []);
+  // Opened by the walk through the house door: arrive under its warm light (#204).
+  const arrival = useGardenArrival({ allowed: !initialFlowerId && !initialView, worldStatus, layersLoaded: flowerLayer !== null, reducedMotion });
   const { flowers, anchors } = useWorldFlowers(state);
   useEffect(() => flowerLayer?.setFlowers(flowers), [flowerLayer, flowers]);
   // Any full-screen view (a flower, planting, or an overlay such as Memories) covers the world.
   const covered = mode.kind !== "idle" || view !== null;
   // Night fireworks after a day with an achievement (#184); they pause with the world behind the split view.
-  const fireworks = useNightFireworks({ state, now, covered, worldReady: worldStatus === "ready", reducedMotion });
+  const fireworks = useNightFireworks({ state, now, covered, worldReady: worldStatus === "ready" && arrival.settled, reducedMotion });
   const layers = useMemo(() => [flowerLayer, fireworks.layer].filter((layer) => layer !== null), [flowerLayer, fireworks.layer]);
   const occupied = useMemo(() => state?.plants.map((plant) => plant.flower.spot) ?? [], [state]);
 
@@ -251,7 +254,7 @@ export function GardenV2({
   return (
     <main
       id="main-content"
-      className={`${styles.page} ${styles.theme} ${handFont.className}`}
+      className={`${styles.page} ${styles.theme} ${handFont.className} ${arrival.chromeClassName}`}
       style={themeStyle}
       data-covered={covered || undefined}
       data-fireworks={fireworks.overlay.playing || undefined}
@@ -269,6 +272,8 @@ export function GardenV2({
         captions={captions}
         focus={focus}
         paused={covered}
+        arrival={arrival.world}
+        onView={arrival.onView}
         onStatusChange={setWorldStatus}
         onPickFlower={visit}
         onPickSpot={startPlant}
@@ -282,7 +287,7 @@ export function GardenV2({
         view={view}
         memberId={state.member_id}
         arrivedByLink={!!initialFlowerId || !!initialView}
-        canGreet={worldStatus === "ready" && mode.kind === "idle"}
+        canGreet={worldStatus === "ready" && arrival.settled && mode.kind === "idle"}
         flowerOpen={mode.kind !== "idle"}
         onOpen={openView}
         onClose={closeView}
@@ -292,11 +297,11 @@ export function GardenV2({
         }}
       />
       <FireworksOverlay {...fireworks.overlay} hidden={covered} />
-      {worldStatus === "ready" && !wandered && !covered && (
+      {worldStatus === "ready" && arrival.settled && !wandered && !covered && (
         <p className={styles.hint}>scroll to wander closer · tap a flower to visit</p>
       )}
       {/* The away note waits for the fireworks to finish, so their words never overlap. */}
-      {!covered && !fireworks.overlay.playing && hasAwayNews(news) && <AwayNote news={news} state={state} onDismiss={() => setNews(noAwayNews)} />}
+      {!covered && arrival.settled && !fireworks.overlay.playing && hasAwayNews(news) && <AwayNote news={news} state={state} onDismiss={() => setNews(noAwayNews)} />}
       {error && !covered && (
         <p className={styles.toast} role="status">
           {error}
@@ -344,6 +349,7 @@ export function GardenV2({
           visitSpot.current = spot;
         }}
       />
+      <ArrivalLight phase={arrival.phase} lightRef={arrival.lightRef} />
     </main>
   );
 }

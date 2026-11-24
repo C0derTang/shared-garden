@@ -1,0 +1,8 @@
+/*
+ * The warm light that pours through the open door. The landing's walk-through
+ * dissolves into it and the garden's arrival opens under it (#204), so both
+ * pages paint exactly the same light and the handoff between them is seamless.
+ */
+.warmLight {
+  background: radial-gradient(ellipse at 50% 55%, #fff8ea 0%, #ffe2b0 42%, #f6bf7a 100%);
+}

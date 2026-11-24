@@ -377,7 +377,8 @@ device-loss handling.
     spills out. The camera then climbs onto the porch and pushes through the
     doorway into the lit room.
   - The walk-through dissolves into a warm light overlay, then navigates to
-    `/garden`, which is prefetched.
+    `/garden`, which is prefetched. The garden opens under the same light
+    (see "the house-to-garden arrival" below).
   - If the walk-through never reports its end, the landing navigates after 7
     seconds.
   - With reduced motion, the landing crossfades into the warm light for 450 ms
@@ -738,3 +739,63 @@ interaction", made under this decision's discretion:
   `World` uniform gains `lampColor`, `lampFalloff` and `showDim`.
 - **Development showcase:** `/dev/world` has "fireworks" and "still fireworks"
   buttons and shows a sample caption (development only, 404 in production).
+
+### Recorded choice: the house-to-garden arrival ([#204](https://github.com/C0derTang/shared-garden/issues/204))
+
+The user found the walk from the house into the garden "too abrupt"
+(2026-11-24). Conservative choices that make it one continuous moment, made
+under this decision's discretion:
+
+- **The handoff:** just before the landing navigates (after the walk-through,
+  the reduced-motion crossfade or the 7-second safety fallback, still one
+  navigation), it writes a timestamp to this tab's session storage
+  (`garden-v2:arrival`). It is never part of the URL. `/garden` reads it on
+  its first client render and clears it on mount, so a refresh, a deep link,
+  another tab or a later visit never replays the arrival. A mark older than
+  20 seconds is ignored. A server-rendered (hydrated) `/garden`, a
+  `?flower=` or `?view=` link and the "come in" link without scripts all open
+  the garden exactly as before.
+- **The warm light:** both pages paint the same light from one shared style
+  (`warm-light.module.css`), so the cut between them is invisible. The garden
+  opens with the light fully opaque above everything and holds it, blocking
+  input, until the painted world is ready and the flower layer's code has
+  loaded. The renderer then waits until every layer has painted three frames
+  (at most 4 seconds), so no blank, black, loading or half-built frame is ever
+  revealed. While the light is up, the canvas appears at once underneath it
+  instead of its usual 0.9-second fade.
+- **The reveal:** the light thins over 2.1 seconds (smoothstep, starting 0.15
+  seconds in). Meanwhile the camera arrives over 3.6 seconds (smootherstep,
+  at rest at both ends): it starts 1.5 m higher and 2.4 m closer, looking up
+  toward the bright sky over the far shore, and drifts back and down while
+  tilting into the overview. It settles into whatever pose the garden would
+  show, so scrolling during the arrival is kept. Both run from the renderer's
+  own frame clock, so they stay in step through slow frames; the light only
+  ever thins.
+- **Words and menu:** the floating words, the menu and the corner links stay
+  hidden (still reachable by keyboard, shown while focused) until 2.4 seconds
+  in, then fade in: the "our garden" title first (1.1 s), then the other
+  words (0.15 s later), then the menus (0.4 s later).
+- **Afterwards:** the arrival settles at 4 seconds. Only then may the
+  first-visit guide greet, the night fireworks start by themselves, the
+  "scroll to wander closer" hint appear and the "while you were away" note
+  show.
+- **Reduced motion:** no camera move. After the same hold, the light
+  crossfades away linearly over 0.6 seconds while the words fade in over
+  0.4 seconds, and the arrival settles at 0.8 seconds.
+- **Fallbacks:** without WebGPU, after a failure, or if the world is not
+  painting 9 seconds after the page opens, the light fades over 0.7 seconds
+  (and the camera is not left at the arrival's start).
+- **The walk's pacing:** the 4.8-second walk-through keeps its door, light
+  spill and fade timings, but the camera now moves along two eased cubic
+  segments that share their speed at the porch steps (2.8 s). It starts from
+  rest, slows at the door without stopping (about 3.3 m/s, where it used to
+  pause), carries on through the doorway and comes to rest inside, under the
+  light. The door now starts to open at 1.5 seconds and is fully open as the
+  camera reaches the steps.
+- **Warming up:** besides the route prefetch, once the house is painted (or
+  when "come in" is tapped) the landing fetches the garden's flower and
+  fireworks layer code, so it is cached when the garden opens. The GPU work
+  itself (device, pipelines) belongs to each page's own canvas and starts when
+  the garden opens; it cannot be carried across the navigation. `/garden` is a
+  dynamic page without a loading boundary, so its data is fetched when the
+  walk ends, under the light.
