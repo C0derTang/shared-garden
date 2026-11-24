@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import { usePartnerName } from "@/components/auth/member-names";
 import type { FlowerLayer } from "@/components/world/flowers/flower-layer";
 import { worldFlowerAnchors, type WorldFlower } from "@/components/world/flowers/flower-models";
+import { FireworksOverlay } from "@/components/world/fireworks/fireworks-overlay";
 import { GardenWorld, usePrefersReducedMotion, type WorldCaption, type WorldStatus } from "@/components/world/garden-world";
 import { handFont } from "@/components/world/hand-font";
 import { legacyPath } from "@/lib/legacy/routes";
@@ -15,6 +16,7 @@ import type { FocusTarget } from "@/lib/world/journey";
 import { spotPosition } from "@/lib/world/layout";
 import { AwayNote } from "./away-note";
 import { FlowerPanel } from "./flower-panel";
+import { useNightFireworks } from "./night-fireworks";
 import { PlantView } from "./plant-view";
 import { SplitView } from "./split-view";
 import styles from "./garden-v2.module.css";
@@ -79,7 +81,10 @@ export function GardenV2({ initial, initialFlowerId = null }: { initial: GardenR
   }, []);
   const { flowers, anchors } = useWorldFlowers(state);
   useEffect(() => flowerLayer?.setFlowers(flowers), [flowerLayer, flowers]);
-  const layers = useMemo(() => (flowerLayer ? [flowerLayer] : []), [flowerLayer]);
+  const covered = mode.kind !== "idle";
+  // Night fireworks after a day with an achievement (#184); they pause with the world behind the split view.
+  const fireworks = useNightFireworks({ state, now, covered, worldReady: worldStatus === "ready", reducedMotion });
+  const layers = useMemo(() => [flowerLayer, fireworks.layer].filter((layer) => layer !== null), [flowerLayer, fireworks.layer]);
   const occupied = useMemo(() => state?.plants.map((plant) => plant.flower.spot) ?? [], [state]);
 
   useEffect(() => () => window.clearTimeout(timer.current), []);
@@ -216,7 +221,6 @@ export function GardenV2({ initial, initialFlowerId = null }: { initial: GardenR
   const openPlant = mode.kind === "flower" ? state.plants.find((plant) => plant.flower.id === mode.id) : undefined;
   const openItem = openPlant ? catalogItem(state, openPlant.flower.type_key) : undefined;
   const openName = openPlant ? captionName(openItem, openPlant.flower.type_key) : "";
-  const covered = mode.kind !== "idle";
 
   return (
     <main
@@ -247,6 +251,7 @@ export function GardenV2({ initial, initialFlowerId = null }: { initial: GardenR
         <Link href="/">home</Link>
         <Link href={legacyPath}>old garden</Link>
       </nav>
+      <FireworksOverlay {...fireworks.overlay} hidden={covered} />
       {worldStatus === "ready" && !wandered && !covered && (
         <p className={styles.hint}>scroll to wander closer · tap a flower to visit</p>
       )}

@@ -6,6 +6,7 @@ import { bedAt, bedCountFor, spotCapacityFor, spotPosition } from "@/lib/world/l
 import { SKY_PRESETS, type SkyPreset } from "@/lib/world/sky-presets";
 import { skyStateAt } from "@/lib/world/solar";
 import { GardenWorld, type WorldCaption } from "../garden-world";
+import { createFireworksLayer } from "../fireworks/fireworks-layer";
 import { createFlowerLayer } from "../flowers/flower-layer";
 import { worldFlowerAnchors, type WorldFlower } from "../flowers/flower-models";
 import styles from "./world-showcase.module.css";
@@ -40,7 +41,13 @@ export function WorldShowcase({ preset: initialPreset, planted: initialPlanted }
   const flowers = useMemo(() => worldFlowerAnchors(planted), [planted]);
   const [flowerLayer] = useState(() => createFlowerLayer());
   useEffect(() => flowerLayer.setFlowers(planted), [flowerLayer, planted]);
-  const layers = useMemo(() => [flowerLayer], [flowerLayer]);
+  const [fireworksLayer] = useState(() => createFireworksLayer());
+  const [fireworks, setFireworks] = useState<"off" | "show" | "still">("off");
+  const layers = useMemo(() => [flowerLayer, fireworksLayer], [flowerLayer, fireworksLayer]);
+  const playFireworks = (still: boolean) => {
+    fireworksLayer.play({ seed: Math.floor(Math.random() * 2 ** 31), still, onEnd: () => setFireworks("off") });
+    setFireworks(still ? "still" : "show");
+  };
   const sky = skyStateAt(time ?? new Date());
   const captions: WorldCaption[] = useMemo(() => {
     const list: WorldCaption[] = [{ id: "title", text: "our little garden", position: [0, 13, -70], size: "title" }];
@@ -90,6 +97,14 @@ export function WorldShowcase({ preset: initialPreset, planted: initialPlanted }
               {name}
             </button>
           ))}
+        </div>
+        <div className={styles.row} role="group" aria-label="Night fireworks">
+          <button type="button" aria-pressed={fireworks === "show"} onClick={() => playFireworks(false)}>
+            fireworks
+          </button>
+          <button type="button" aria-pressed={fireworks === "still"} onClick={() => playFireworks(true)}>
+            still fireworks
+          </button>
         </div>
         <p data-testid="sky-state">
           {sky.phase} · sun {sky.elevation.toFixed(1)}° · azimuth {sky.azimuth.toFixed(0)}°

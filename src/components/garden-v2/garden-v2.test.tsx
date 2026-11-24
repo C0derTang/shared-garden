@@ -21,6 +21,13 @@ vi.mock("@/components/world/flowers/studio-renderer", () => ({
 vi.mock("@/components/world/flowers/flower-layer", () => ({
   createFlowerLayer: () => ({ draw: vi.fn(), setFlowers: vi.fn() }),
 }));
+// The night fireworks layer needs WebGPU; record what it is asked to play.
+type Play = { seed: number; still: boolean; onStart?: () => void; onEnd?: () => void };
+const fireworks = vi.hoisted(() => ({ plays: [] as Play[], readAwardsForDayV2: vi.fn() }));
+vi.mock("@/components/world/fireworks/fireworks-layer", () => ({
+  createFireworksLayer: () => ({ draw: vi.fn(), stop: vi.fn(), playing: false, play: (options: Play) => fireworks.plays.push(options) }),
+}));
+vi.mock("@/lib/garden-v2/achievement-actions", () => ({ readAwardsForDayV2: fireworks.readAwardsForDayV2, readAchievementsV2: vi.fn() }));
 const api = vi.hoisted(() => ({
   refreshGardenV2: vi.fn(),
   mutateGardenV2: vi.fn(),
@@ -74,6 +81,8 @@ beforeEach(() => {
   api.mutateGardenV2.mockReset();
   api.loadFlowerHistoryV2.mockReset().mockResolvedValue({ entries: [], error: null });
   api.readRepliesV2.mockReset().mockResolvedValue({ replies: [], error: null });
+  fireworks.plays.length = 0;
+  fireworks.readAwardsForDayV2.mockReset().mockResolvedValue({ state: null, error: "unavailable" });
   vi.stubGlobal("navigator", { ...navigator, gpu: {}, onLine: true });
   stubReducedMotion();
 });
@@ -173,6 +182,79 @@ describe("GardenV2", () => {
     expect(note).toHaveTextContent("the rose grew");
     await userEvent.setup().click(within(note).getByRole("button", { name: "lovely, thanks" }));
     expect(screen.queryByRole("region", { name: "while you were away…" })).toBeNull();
+  });
+
+  describe("night fireworks", () => {
+    /** 9 p.m. PST on the fixture's garden day (after sunset), with an achievement earned that day. */
+    function night(earned = true) {
+      const state = garden();
+      state.server_now = "2026-11-03T05:00:00Z";
+      fireworks.readAwardsForDayV2.mockResolvedValue({
+        state: {
+          server_now: state.server_now,
+          garden_day: "2026-11-02",
+          day: "2026-11-02",
+          earned,
+          awards: earned ? [{ achievement_id: "first-seed", title: "First seed planted", earned_at: "2026-11-02T18:00:00Z", earned_day: "2026-11-02" }] : [],
+        },
+        error: null,
+      });
+      return state;
+    }
+
+    it("plays once by itself after an achievement, then only from the replay", async () => {
+      const user = userEvent.setup();
+      const first = await mount(night());
+      await flush();
+      expect(fireworks.readAwardsForDayV2).toHaveBeenCalledWith("2026-11-02");
+      expect(fireworks.plays).toHaveLength(1);
+      // Reduced motion (stubbed on) gets the still sky.
+      expect(fireworks.plays[0]).toMatchObject({ still: true });
+      expect(worlds[0]!.states.at(-1)!.layers).toHaveLength(2);
+      expect(screen.getByText(/for today’s achievement: First seed planted/)).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "replay fireworks" })).toBeNull();
+      act(() => fireworks.plays[0]!.onStart?.());
+      expect(JSON.parse(window.localStorage.getItem("garden-v2:fireworks:1")!)).toEqual({ day: "2026-11-02" });
+      act(() => fireworks.plays[0]!.onEnd?.());
+      expect(screen.queryByText(/for today’s achievement/)).toBeNull();
+      await user.click(screen.getByRole("button", { name: "replay fireworks" }));
+      expect(fireworks.plays).toHaveLength(2);
+      expect(screen.getByText(/for today’s achievement: First seed planted/)).toBeInTheDocument();
+      first.unmount();
+
+      // Opening the garden again the same night: no show by itself, the replay is offered.
+      worlds.length = 0;
+      await mount(night());
+      await flush();
+      expect(fireworks.plays).toHaveLength(2);
+      expect(screen.getByRole("button", { name: "replay fireworks" })).toBeInTheDocument();
+    });
+
+    it("plays nothing by day, or at night without an achievement", async () => {
+      const day = await mount();
+      await flush();
+      expect(fireworks.readAwardsForDayV2).not.toHaveBeenCalled();
+      day.unmount();
+      worlds.length = 0;
+      await mount(night(false));
+      await flush();
+      expect(fireworks.readAwardsForDayV2).toHaveBeenCalled();
+      expect(fireworks.plays).toHaveLength(0);
+      expect(screen.queryByRole("button", { name: "replay fireworks" })).toBeNull();
+    });
+
+    it("keeps its words out of the split view, where the world pauses", async () => {
+      const user = userEvent.setup();
+      await mount(night());
+      await flush();
+      expect(fireworks.plays).toHaveLength(1);
+      await user.click(screen.getByRole("link", { name: /^rose,/ }));
+      await screen.findByRole("dialog", { name: "rose" });
+      expect(worlds[0]!.states.at(-1)).toMatchObject({ paused: true });
+      expect(screen.queryByText(/for today’s achievement/)).toBeNull();
+      await user.keyboard("{Escape}");
+      expect(screen.getByText(/for today’s achievement: First seed planted/)).toBeInTheDocument();
+    });
   });
 
   it("explains when the garden cannot load", () => {

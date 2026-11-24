@@ -1,0 +1,90 @@
+/* The night fireworks' handwritten words, floating over the painted world. */
+
+.caption {
+  position: absolute;
+  top: max(4.2rem, calc(env(safe-area-inset-top) + 3rem));
+  left: 50%;
+  translate: -50% 0;
+  width: max-content;
+  max-width: min(34rem, calc(100vw - 2.4rem));
+  margin: 0;
+  color: #fffaf0;
+  font-size: clamp(1.2rem, 2.6vw, 1.6rem);
+  line-height: 1.3;
+  text-align: center;
+  text-shadow:
+    0 0 0.5em rgb(255 236 200 / 0.55),
+    0 0 1.5em rgb(255 190 150 / 0.35),
+    0 1px 3px rgb(20 14 30 / 0.6);
+  pointer-events: none;
+}
+
+.captionText {
+  display: inline-block;
+  animation:
+    caption-in 2.4s ease 1.2s both,
+    caption-drift 6s ease-in-out 3.6s infinite;
+}
+
+.star {
+  color: #ffd79a;
+}
+
+.replay {
+  position: absolute;
+  right: max(1.1rem, env(safe-area-inset-right));
+  bottom: max(1.1rem, env(safe-area-inset-bottom));
+  padding: 0.3rem 0.5rem;
+  border: 0;
+  background: none;
+  color: rgb(255 250 240 / 0.86);
+  font: inherit;
+  font-size: 1.15rem;
+  cursor: pointer;
+  text-shadow:
+    0 0 0.5em rgb(255 220 190 / 0.45),
+    0 1px 2px rgb(20 14 30 / 0.55);
+  transition:
+    color 250ms ease,
+    text-shadow 250ms ease;
+  animation: caption-in 1.2s ease both;
+}
+
+.replay::before {
+  content: "✦ ";
+  color: #ffd79a;
+}
+
+.replay:hover,
+.replay:focus-visible {
+  color: #fff;
+  text-shadow:
+    0 0 0.4em rgb(255 244 214 / 0.95),
+    0 0 1.2em rgb(255 190 150 / 0.75);
+}
+
+.replay:focus-visible {
+  outline: 2px solid rgb(255 244 214 / 0.8);
+  outline-offset: 2px;
+  border-radius: 0.4rem;
+}
+
+@keyframes caption-in {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+  }
+}
+
+@keyframes caption-drift {
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .captionText,
+  .replay {
+    animation: none;
+  }
+}

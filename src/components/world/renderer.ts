@@ -63,7 +63,7 @@ import { maxDprFor, watchDeviceLoss } from "./device-loss";
 import houseShader from "./house/house.wgsl";
 import houseShadowShader from "./house/house-shadow.wgsl";
 import { createStrokeBatch, type StrokeBatch } from "./strokes/stroke-batch";
-import type { WorldFrameContext, WorldLayer, WorldShadow, WorldUniforms } from "./world-layer";
+import type { WorldFrameContext, WorldLayer, WorldLight, WorldShadow, WorldUniforms } from "./world-layer";
 
 const HDR: GPUTextureFormat = "rgba16float";
 const MOTE_COUNT = 70;
@@ -79,6 +79,9 @@ const CLICK_SLOP_PX = 6;
 /** World units walked sideways for a drag across the whole canvas. */
 const PAN_PER_WIDTH = 7;
 const RGB_ONLY: ("r" | "g" | "b")[] = ["r", "g", "b"];
+/** The landing's warm porch lamp colour (linear) and its quick falloff. */
+const PORCH_LAMP_COLOR = [1, 0.6, 0.28] as const;
+const PORCH_LAMP_FALLOFF = 0.45;
 
 /** Which scene the world paints: the garden meadow, or the landing's lakeside house. */
 export type WorldComposition = "garden" | "landing";
@@ -579,7 +582,7 @@ export function createWorldRenderer(
       for (const layer of state.layers) {
         if (setUpLayers.has(layer)) continue;
         setUpLayers.add(layer);
-        void Promise.resolve(layer.setup?.({ gpu: gpu!, sceneTarget: scene, shadow }))
+        void Promise.resolve(layer.setup?.({ gpu: gpu!, sceneTarget: scene, mirrorTarget: mirror, shadow }))
           .then(() => {
             if (setUpLayers.has(layer)) readyLayers.add(layer);
           })
@@ -666,6 +669,14 @@ export function createWorldRenderer(
         const now = state.time ?? new Date();
         const skyState = skyStateAt(now);
         const lighting = worldLightingFor(skyState);
+        // Layers advance their own simulations (compute) and may light the scene.
+        let layerLight: WorldLight | null = null;
+        for (const layer of state.layers) {
+          if (!readyLayers.has(layer) || !layer.update) continue;
+          const light = layer.update(currentFrame, { dt, reducedMotion: still, lighting, sky: skyState });
+          if (light && !layerLight) layerLight = light;
+        }
+        const lampLight = landing || !layerLight ? null : layerLight;
         const lightDir = lighting.lightDirection;
         const shadowCenter = landing ? LANDING_SHADOW_CENTER : SHADOW_CENTER;
         const lightEye: Vec3 = [shadowCenter[0] + lightDir[0] * 100, shadowCenter[1] + lightDir[1] * 100, shadowCenter[2] + lightDir[2] * 100];
@@ -712,8 +723,10 @@ export function createWorldRenderer(
           clipWater: 0,
           camUp: up,
           waterLevel: WATER_LEVEL,
-          lamp: landing ? PORCH_LIGHT : [0, 0, 0],
-          lampLevel: landing ? warmth * 0.9 + invite * 0.35 + spill * 3 : 0,
+          lamp: landing ? PORCH_LIGHT : (lampLight?.position ?? [0, 0, 0]),
+          lampLevel: landing ? warmth * 0.9 + invite * 0.35 + spill * 3 : (lampLight?.level ?? 0),
+          lampColor: landing ? PORCH_LAMP_COLOR : (lampLight?.color ?? [0, 0, 0]),
+          lampFalloff: landing ? PORCH_LAMP_FALLOFF : (lampLight?.falloff ?? 1),
         };
         const mirrored: WorldUniforms = {
           ...world,
@@ -734,6 +747,7 @@ export function createWorldRenderer(
           hoveredFlowerId: hovered?.kind === "flower" ? hovered.id : null,
           world,
         };
+        const mirroredContext: WorldFrameContext = { ...context, viewProjection: mirrorViewProjection, eye: mirroredEye, world: mirrored };
 
         // 0. Key-light shadow map (trees, reeds and layers such as the flowers cast; leaves are alpha-tested).
         nearShore.setWorld(world);
@@ -759,6 +773,9 @@ export function createWorldRenderer(
           if (house) pass.draw(house);
           farShore.encode(pass);
           nearShore.encode(pass);
+          for (const layer of state.layers) {
+            if (readyLayers.has(layer)) layer.drawReflection?.(pass, mirroredContext);
+          }
         });
 
         // 2. The scene.

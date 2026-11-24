@@ -28,9 +28,12 @@ export struct World {
   clipWater: f32,
   camUp: vec3f,
   waterLevel: f32,
-  // A warm local light (porch lanterns, an open door); level 0 turns it off.
+  // A local light (porch lanterns, an open door, fireworks); level 0 turns it off.
   lamp: vec3f,
   lampLevel: f32,
+  // Linear colour of the local light and how quickly it falls off with distance².
+  lampColor: vec3f,
+  lampFalloff: f32,
 }
 
 export fn hash21(p: vec2f) -> f32 {
@@ -140,8 +143,9 @@ export fn shadowFactor(map: texture_depth_2d, samp: sampler_comparison, world: W
   return select(1.0, lit / 25.0, inside);
 }
 
-// Warm light from the world's local lamp (porch lanterns, an open doorway),
-// softly wrapped and falling off with distance. Zero when the lamp is off.
+// Light from the world's local lamp (porch lanterns, an open doorway, the
+// night fireworks), softly wrapped and falling off with distance. Zero when
+// the lamp is off.
 export fn lampLight(worldPos: vec3f, n: vec3f, world: World) -> vec3f {
   if (world.lampLevel <= 0.0) {
     return vec3f(0.0);
@@ -150,5 +154,5 @@ export fn lampLight(worldPos: vec3f, n: vec3f, world: World) -> vec3f {
   let d2 = max(dot(toLamp, toLamp), 1e-4);
   let l = toLamp * inverseSqrt(d2);
   let wrap = clamp(dot(n, l) * 0.6 + 0.4, 0.0, 1.0);
-  return vec3f(1.0, 0.6, 0.28) * world.lampLevel * wrap / (1.0 + d2 * 0.45);
+  return world.lampColor * world.lampLevel * wrap / (1.0 + d2 * world.lampFalloff);
 }

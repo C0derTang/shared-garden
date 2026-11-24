@@ -500,3 +500,67 @@ discretion and the look in "World look":
   ruffles and rounder tips, the Marigold has five to seven rings and a full
   Peony 28 to 38 inner petals, so the hero blooms read as petals rather than
   shards.
+
+### Recorded choice: night fireworks ([#184](https://github.com/C0derTang/shared-garden/issues/184))
+
+Conservative choices for the fireworks named in "New garden look and
+interaction", made under this decision's discretion:
+
+- **When it is night:** from the real sunset (the sun's upper limb at −0.833°,
+  computed with the world sky's own sun for the Los Angeles reference point)
+  until the next 4 a.m. America/Los_Angeles rollover. From midnight to 4 a.m.
+  it is always the same night; from 4 a.m. to noon a dark sky is the new day's
+  dawn, not the night. Wall-clock hours come from the time zone, so both
+  daylight-saving transitions keep the boundary at 4 a.m. local time. The
+  instant is the garden's server-calibrated clock.
+- **Which achievements count:** any new-garden award whose `earned_day` is the
+  garden day of that night (so at 1 a.m. the previous calendar day's awards
+  count). The garden reads `v2_awards_for_day` for that day only at night: on
+  opening, when the garden day changes, when garden activity changes and every
+  three minutes. An award earned at night while the garden is open counts too.
+- **Once per member per night:** the show plays by itself the first time the
+  painted world is ready and nothing covers it, and the browser remembers the
+  garden day in local storage (`garden-v2:fireworks:<member slot>`, the day
+  only). It is marked seen when the show's first frame paints. A later visit
+  that night offers only a small handwritten "replay fireworks" in the
+  bottom-right corner while it is still night and the award holds. Storage is
+  per browser, so a member may see the show once on each device. When storage
+  cannot be read, the show never plays by itself (it could otherwise repeat on
+  every visit) but the replay is still offered.
+- **The show:** about 30 seconds (29.5 to 34, seeded by the garden day and
+  varied per replay). Rockets with glittering trails rise from the water across
+  the lake and burst above it: an opening of single shells, a middle of pairs
+  and a finale salvo under a willow canopy. Shell types are peony (with a
+  coloured pistil), chrysanthemum (long comet tails), willow (slow golden
+  strands that droop and drift), ring, heart and crackle (white pops on dim
+  embers), in a painterly palette of rose, saffron, warm white-gold, coral,
+  lilac, teal, spring green, pink and cornflower.
+- **Rendering:** a compute pass (vgpu) simulates about 7,500 particles (a
+  pool of 16,384) from records written once per show, with gravity, air drag
+  and a slow breeze that carries embers as they slow. Sparks draw as soft
+  camera-facing streaks stretched along their motion, white-hot at the burst, then their
+  colour, then cooling embers, in HDR, so they bloom through the world's glow.
+  They also draw into the lake's mirror image, so the water reflects them.
+  Each burst lights the night air around it with a soft, mottled glow, and
+  the open bursts light the meadow, shore and trees through the world's local
+  lamp, which now has a colour and falloff (the landing's porch lamp is
+  unchanged). Sparks mark themselves as near paint for the painterly filter,
+  so they stay small brush strokes rather than smearing like the far sky.
+- **Caption:** while the show plays, a gentle handwritten line floats near the
+  top of the scene, for example "✦ for today’s achievement: First seed
+  planted" (several titles are joined with commas and "and"). It is a polite
+  live region and catches no pointer events.
+- **Reduced motion:** a still sky of five open bursts (peony, ring,
+  chrysanthemum, heart and willow), spread across the sky with their glow and
+  reflection, held for 16 seconds and then faded over 1.4 seconds. The words
+  and the replay control do not animate.
+- **The split view and picking:** the show's clock advances only while the
+  world paints, so it pauses behind the split view and the planting view and
+  resumes when they close. The caption and the replay hide while they are
+  open. The fireworks draw only inside the world, so flower and seed picking
+  is unchanged.
+- **World hooks:** layers gain an optional `update` hook that runs first in
+  each painted frame (compute work, and a light for the scene) and an optional
+  `drawReflection` hook for the lake's mirror image.
+- **Development showcase:** `/dev/world` has "fireworks" and "still fireworks"
+  buttons (development only, 404 in production).

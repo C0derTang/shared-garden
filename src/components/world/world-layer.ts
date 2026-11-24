@@ -1,4 +1,4 @@
-import type { FramePass, Gpu, Target, sampler } from "vgpu";
+import type { Frame, FramePass, Gpu, Target, sampler } from "vgpu";
 import type { Vec3 } from "@/lib/world/layout";
 import type { SkyState } from "@/lib/world/solar";
 import type { WorldLighting } from "@/lib/world/sky-palette";
@@ -36,10 +36,33 @@ export interface WorldUniforms {
   readonly clipWater: number;
   readonly camUp: Vec3;
   readonly waterLevel: number;
-  /** A warm local light (the landing's porch lanterns and open door). */
+  /** A local light (the landing's porch lanterns and open door, the garden's fireworks). */
   readonly lamp: Vec3;
   /** Strength of `lamp`; 0 turns it off. */
   readonly lampLevel: number;
+  /** Linear colour of `lamp`. */
+  readonly lampColor: readonly number[];
+  /** How quickly `lamp` falls off: 1 / (1 + distance² × falloff). */
+  readonly lampFalloff: number;
+}
+
+/** A local light a layer throws on the scene for one frame (e.g. fireworks bursts). */
+export interface WorldLight {
+  readonly position: Vec3;
+  /** Linear colour. */
+  readonly color: readonly number[];
+  readonly level: number;
+  /** 1 / (1 + distance² × falloff). */
+  readonly falloff: number;
+}
+
+/** Timing handed to `WorldLayer.update` once per painted frame. */
+export interface WorldLayerStep {
+  /** Wall-clock seconds since the previous painted frame (clamped to 0.1; not frozen by reduced motion). */
+  readonly dt: number;
+  readonly reducedMotion: boolean;
+  readonly lighting: WorldLighting;
+  readonly sky: SkyState;
 }
 
 /** Per-frame view of the world handed to every layer. */
@@ -76,6 +99,11 @@ export interface WorldLayerSetup {
    * against it; it is resized by the world, so bind nothing from it.
    */
   readonly sceneTarget: Target;
+  /**
+   * The lake's mirror-image target (rgba16float, depth24plus, no MSAA, half
+   * size). Compile `drawReflection` draws against it.
+   */
+  readonly mirrorTarget: Target;
   readonly shadow: WorldShadow;
 }
 
@@ -94,8 +122,20 @@ export interface WorldLayerSetup {
 export interface WorldLayer {
   /** Called once with the world's GPU context before the layer first draws. */
   setup?(context: WorldLayerSetup): void | Promise<void>;
+  /**
+   * Optionally runs first in each painted frame (not while the world is paused
+   * behind a full-screen view): encode compute work on `frame` and return a
+   * local light for the scene, if any. The garden composition uses the first
+   * light returned; the landing keeps its own porch lamp. Must stay synchronous.
+   */
+  update?(frame: Frame, step: WorldLayerStep): WorldLight | null | void;
   /** Encodes the layer's draws. Must stay synchronous. */
   draw(pass: FramePass, frame: WorldFrameContext): void;
+  /**
+   * Optionally encodes the layer into the lake's mirror image (its `world` is
+   * the mirrored camera, with `clipWater` set). Runs before `draw` each frame.
+   */
+  drawReflection?(pass: FramePass, frame: WorldFrameContext): void;
   /**
    * Optionally encodes shadow casters into the key light's shadow map (depth
    * only; project with `world.lightViewProjection`). Runs before `draw` each frame.
