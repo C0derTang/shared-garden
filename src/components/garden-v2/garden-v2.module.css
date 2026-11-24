@@ -1525,3 +1525,10 @@
     transition: none;
   }
 }
+
+/* The private moment's notices while a flower's view holds the sheet scope (#183). */
+.slotNotices:not(:empty) {
+  display: grid;
+  gap: 0.6rem;
+  margin-bottom: 1.2rem;
+}

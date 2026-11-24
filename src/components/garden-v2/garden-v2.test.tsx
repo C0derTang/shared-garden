@@ -4,6 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { WorldRendererCallbacks, WorldSceneState } from "@/components/world/renderer";
 import { awayKey, takeAwaySnapshot } from "@/lib/garden-v2/away";
 import type { GardenState } from "@/lib/garden-v2/model";
+import type { GardenView } from "@/lib/garden-v2/views";
+import { guideKey } from "@/lib/garden-v2/views";
 import { v2GardenFixture } from "@/test/garden-v2-fixture";
 
 // The painted world, the flower studio and the flower layer need WebGPU and .wgsl; record what they are given.
@@ -27,7 +29,10 @@ const fireworks = vi.hoisted(() => ({ plays: [] as Play[], readAwardsForDayV2: v
 vi.mock("@/components/world/fireworks/fireworks-layer", () => ({
   createFireworksLayer: () => ({ draw: vi.fn(), stop: vi.fn(), playing: false, play: (options: Play) => fireworks.plays.push(options) }),
 }));
-vi.mock("@/lib/garden-v2/achievement-actions", () => ({ readAwardsForDayV2: fireworks.readAwardsForDayV2, readAchievementsV2: vi.fn() }));
+vi.mock("@/lib/garden-v2/achievement-actions", () => ({
+  readAwardsForDayV2: fireworks.readAwardsForDayV2,
+  readAchievementsV2: vi.fn(async () => ({ state: null, error: null })),
+}));
 const api = vi.hoisted(() => ({
   refreshGardenV2: vi.fn(),
   mutateGardenV2: vi.fn(),
@@ -36,6 +41,16 @@ const api = vi.hoisted(() => ({
   saveReplyV2: vi.fn(),
 }));
 vi.mock("@/lib/garden-v2/actions", () => api);
+// The garden's overlays (#183) and the private moment read through their own actions.
+vi.mock("@/lib/garden-v2/memory-actions", () => ({ loadMemoriesV2: vi.fn(async () => ({ items: [], more: false, error: null })) }));
+vi.mock("@/lib/private-interaction/actions", () => ({
+  readPrivateInteraction: vi.fn(async () => ({ state: { status: "unavailable" }, error: null })),
+  answerPrivateInteraction: vi.fn(),
+  controlPrivateInteraction: vi.fn(),
+  previewPrivateInteraction: vi.fn(),
+}));
+vi.mock("@/lib/settings/actions", () => ({ readSettings: vi.fn(), saveSetting: vi.fn() }));
+vi.mock("@/lib/memories/actions", () => ({ loadMemories: vi.fn() }));
 vi.mock("@/lib/replies/actions", () => ({ readReplies: vi.fn(), saveReply: vi.fn() }));
 const peonyApi = vi.hoisted(() => ({ readPeonyV2: vi.fn(), mutatePeonyV2: vi.fn() }));
 vi.mock("@/lib/garden-v2/peony-actions", () => peonyApi);
@@ -78,6 +93,8 @@ function garden(): GardenState {
 beforeEach(() => {
   worlds.length = 0;
   window.localStorage.clear();
+  // These tests start after the first-visit guide (#183 has its own tests).
+  window.localStorage.setItem(guideKey(1), "1");
   window.history.replaceState(null, "", "/garden");
   api.refreshGardenV2.mockReset();
   api.mutateGardenV2.mockReset();
@@ -93,9 +110,9 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-async function mount(state = garden(), initialFlowerId: string | null = null) {
+async function mount(state = garden(), initialFlowerId: string | null = null, initialView: GardenView | null = null) {
   api.refreshGardenV2.mockResolvedValue({ state, error: null });
-  const view = render(<GardenV2 initial={{ state, error: null }} initialFlowerId={initialFlowerId} />);
+  const view = render(<GardenV2 initial={{ state, error: null }} initialFlowerId={initialFlowerId} initialView={initialView} />);
   await flush();
   await flush();
   act(() => worlds[0]!.callbacks.onReady());
@@ -288,6 +305,45 @@ describe("GardenV2", () => {
       } finally {
         visibility.mockRestore();
       }
+    });
+
+    it("waits behind an overlay, and pauses with its words hidden while one is open", async () => {
+      const user = userEvent.setup();
+      // Arriving at ?view=memories: the show does not start behind the sheet.
+      const first = await mount(night(), null, "memories");
+      await flush();
+      expect(await screen.findByRole("dialog", { name: /memories/i })).toBeInTheDocument();
+      expect(worlds[0]!.states.at(-1)).toMatchObject({ paused: true });
+      expect(fireworks.plays).toHaveLength(0);
+      expect(screen.queryByText(/for today’s achievement/)).toBeNull();
+      await user.keyboard("{Escape}");
+      await flush();
+      expect(screen.queryByRole("dialog")).toBeNull();
+      expect(fireworks.plays).toHaveLength(1);
+      expect(worlds[0]!.states.at(-1)).toMatchObject({ paused: false });
+      expect(screen.getByText(/for today’s achievement: First seed planted/)).toBeInTheDocument();
+      first.unmount();
+
+      // Mid-show: opening Memories pauses the world and hides the caption and replay; closing resumes.
+      worlds.length = 0;
+      fireworks.plays.length = 0;
+      window.localStorage.removeItem("garden-v2:fireworks:1");
+      window.history.replaceState(null, "", "/garden");
+      await mount(night());
+      await flush();
+      expect(fireworks.plays).toHaveLength(1);
+      await user.click(screen.getByRole("link", { name: "memories" }));
+      await screen.findByRole("dialog", { name: /memories/i });
+      expect(worlds[0]!.states.at(-1)).toMatchObject({ paused: true });
+      expect(screen.queryByText(/for today’s achievement/)).toBeNull();
+      expect(screen.queryByRole("button", { name: "replay fireworks" })).toBeNull();
+      await user.keyboard("{Escape}");
+      await flush();
+      expect(worlds[0]!.states.at(-1)).toMatchObject({ paused: false });
+      expect(screen.getByText(/for today’s achievement: First seed planted/)).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "replay fireworks" })).toHaveAttribute("aria-disabled", "true");
+      // Nothing restarted: it was the same show all along.
+      expect(fireworks.plays).toHaveLength(1);
     });
 
     it("plays nothing by day, or at night without an achievement", async () => {

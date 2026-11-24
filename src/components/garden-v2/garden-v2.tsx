@@ -12,11 +12,13 @@ import { diffAway, hasAwayNews, noAwayNews, readAwaySnapshot, takeAwaySnapshot, 
 import { captionName, catalogItem, gardenCareStatus, gardenDayLabel, plantSpec, stageWords } from "@/lib/garden-v2/flowers";
 import { emptySpots, type GardenResult, type GardenState, type Plant } from "@/lib/garden-v2/model";
 import { useGardenV2 } from "@/lib/garden-v2/use-garden-v2";
+import { gardenViewHref, type GardenView } from "@/lib/garden-v2/views";
 import type { FocusTarget } from "@/lib/world/journey";
 import { spotPosition } from "@/lib/world/layout";
 import { AwayNote } from "./away-note";
 import { FlowerPanel } from "./flower-panel";
 import { useNightFireworks } from "./night-fireworks";
+import { GardenOverlays } from "./overlays/garden-overlays";
 import { PlantView } from "./plant-view";
 import { SplitView } from "./split-view";
 import styles from "./garden-v2.module.css";
@@ -55,7 +57,16 @@ function focusCaption(id: string) {
  * Realtime channel. Empty seed marks plant any flower; tapping a flower (or its
  * floating name) glides the camera to it and opens the split view.
  */
-export function GardenV2({ initial, initialFlowerId = null }: { initial: GardenResult; initialFlowerId?: string | null }) {
+export function GardenV2({
+  initial,
+  initialFlowerId = null,
+  initialView = null,
+}: {
+  initial: GardenResult;
+  initialFlowerId?: string | null;
+  /** `?view=`: Memories, Achievements, Songs, Settings or the guide over the world (#183). */
+  initialView?: GardenView | null;
+}) {
   const { state, now, error, busy, mutate } = useGardenV2(initial);
   const partner = usePartnerName();
   const reducedMotion = usePrefersReducedMotion();
@@ -65,6 +76,7 @@ export function GardenV2({ initial, initialFlowerId = null }: { initial: GardenR
   const [announcement, setAnnouncement] = useState("");
   const [news, setNews] = useState<AwayNews>(noAwayNews);
   const [wandered, setWandered] = useState(false);
+  const [view, setView] = useState<GardenView | null>(initialFlowerId ? null : initialView);
   const timer = useRef<number | undefined>(undefined);
   const returnTo = useRef<string | null>(null);
   const visitSpot = useRef<number | null>(null);
@@ -81,7 +93,8 @@ export function GardenV2({ initial, initialFlowerId = null }: { initial: GardenR
   }, []);
   const { flowers, anchors } = useWorldFlowers(state);
   useEffect(() => flowerLayer?.setFlowers(flowers), [flowerLayer, flowers]);
-  const covered = mode.kind !== "idle";
+  // Any full-screen view (a flower, planting, or an overlay such as Memories) covers the world.
+  const covered = mode.kind !== "idle" || view !== null;
   // Night fireworks after a day with an achievement (#184); they pause with the world behind the split view.
   const fireworks = useNightFireworks({ state, now, covered, worldReady: worldStatus === "ready", reducedMotion });
   const layers = useMemo(() => [flowerLayer, fireworks.layer].filter((layer) => layer !== null), [flowerLayer, fireworks.layer]);
@@ -122,6 +135,19 @@ export function GardenV2({ initial, initialFlowerId = null }: { initial: GardenR
     },
     [glide],
   );
+
+  const openView = useCallback((next: GardenView) => {
+    window.clearTimeout(timer.current);
+    setMode({ kind: "idle" });
+    setWandered(true);
+    setView(next);
+    window.history.replaceState(window.history.state, "", gardenViewHref(next));
+  }, []);
+
+  const closeView = useCallback(() => {
+    setView(null);
+    window.history.replaceState(window.history.state, "", GARDEN_PATH);
+  }, []);
 
   const close = useCallback(() => {
     window.clearTimeout(timer.current);
@@ -252,6 +278,19 @@ export function GardenV2({ initial, initialFlowerId = null }: { initial: GardenR
         <Link href="/">home</Link>
         <Link href={legacyPath}>old garden</Link>
       </nav>
+      <GardenOverlays
+        view={view}
+        memberId={state.member_id}
+        arrivedByLink={!!initialFlowerId || !!initialView}
+        canGreet={worldStatus === "ready" && mode.kind === "idle"}
+        flowerOpen={mode.kind !== "idle"}
+        onOpen={openView}
+        onClose={closeView}
+        onVisit={(id) => {
+          setView(null);
+          visit(id);
+        }}
+      />
       <FireworksOverlay {...fireworks.overlay} hidden={covered} />
       {worldStatus === "ready" && !wandered && !covered && (
         <p className={styles.hint}>scroll to wander closer · tap a flower to visit</p>
