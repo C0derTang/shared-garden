@@ -9,6 +9,13 @@
  */
 import type { GardenState } from "./model";
 
+/**
+ * Only wishes that came true this recently blow for the partner; older ones
+ * (e.g. a new device or browser) show the golden head directly, so a fresh
+ * browser never replays a whole history of wishes.
+ */
+export const SEED_BLOW_RECENT_MS = 7 * 24 * 60 * 60 * 1000;
+
 /** Most flower ids remembered per member (oldest forgotten first). */
 export const SEEDS_SEEN_LIMIT = 200;
 
@@ -53,14 +60,24 @@ export function writeSeedsSeen(memberId: number, flowerId: string): void {
 }
 
 /**
- * Dandelions whose wish the partner made come true and whose seeds this
- * member has not yet watched blow away. A wish you fulfilled yourself is
- * never replayed from here (you watched it as you blew the seeds).
+ * Dandelions whose wish the partner made come true in the last seven days
+ * (garden server time) and whose seeds this member has not yet watched blow
+ * away. A wish you fulfilled yourself is never replayed from here (you watched
+ * it as you blew the seeds).
  */
-export function unseenSeedBlows(state: Pick<GardenState, "member_id" | "plants">, seen: ReadonlySet<string> | undefined): string[] {
+export function unseenSeedBlows(state: Pick<GardenState, "member_id" | "plants" | "server_now">, seen: ReadonlySet<string> | undefined): string[] {
   if (!seen) return [];
+  const now = Date.parse(state.server_now);
+  const recent = (at: string) => Number.isFinite(now) && now - Date.parse(at) <= SEED_BLOW_RECENT_MS;
   return state.plants
-    .filter(({ flower }) => flower.type_key === "dandelion" && flower.fulfilled_at !== null && flower.fulfilled_by !== state.member_id && !seen.has(flower.id))
+    .filter(
+      ({ flower }) =>
+        flower.type_key === "dandelion" &&
+        flower.fulfilled_at !== null &&
+        flower.fulfilled_by !== state.member_id &&
+        recent(flower.fulfilled_at) &&
+        !seen.has(flower.id),
+    )
     .map(({ flower }) => flower.id);
 }
 
@@ -82,7 +99,7 @@ export interface SeedBlowPlanner {
   /** You made its wish come true (from its painting). */
   fulfilled(flowerId: string): SeedBlowAction[];
   /** The garden state, this browser's memory or the open flower changed. */
-  notice(state: Pick<GardenState, "member_id" | "plants">, seen: ReadonlySet<string> | undefined, openFlowerId: string | null): SeedBlowAction[];
+  notice(state: Pick<GardenState, "member_id" | "plants" | "server_now">, seen: ReadonlySet<string> | undefined, openFlowerId: string | null): SeedBlowAction[];
   /** The world began blowing its seeds (it came into view). */
   worldStarted(flowerId: string): SeedBlowAction[];
 }

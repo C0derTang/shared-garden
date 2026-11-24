@@ -153,7 +153,9 @@ export function GardenV2({
   );
 
   const openView = useCallback((next: GardenView) => {
+    // Ends any glide or close-look hold (#201): the camera is released too.
     window.clearTimeout(timer.current);
+    setFocus(null);
     setMode({ kind: "idle" });
     setVisiting(null);
     setWandered(true);

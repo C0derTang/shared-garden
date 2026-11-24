@@ -18,8 +18,12 @@ export const DRIFT_SEED_FLOATS = 64;
 export const DRIFT_STATE_FLOATS = 16;
 /** Seeds one blow can hold (a puff has 70 to 95). */
 export const DRIFT_SEEDS_PER_BLOW = 100;
-/** Blows that can be in the air at once (e.g. two wishes coming true together). */
-export const DRIFT_MAX_BLOWS = 4;
+/**
+ * Blows that can be held or in the air at once (e.g. several of the partner's
+ * recent wishes waiting to be seen). A held blow is never evicted; further
+ * requests wait for a slot.
+ */
+export const DRIFT_MAX_BLOWS = 8;
 export const DRIFT_MAX_SEEDS = DRIFT_SEEDS_PER_BLOW * DRIFT_MAX_BLOWS;
 
 /** Seconds over which the seeds let go, downwind side first. */

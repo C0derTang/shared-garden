@@ -196,6 +196,8 @@ export function createStudioRenderer(canvas: HTMLCanvasElement, initial: StudioS
     const drift = createSeedDrift(gpu, shadow, { detail: "hero", label: "flower-studio.seeds" });
     cleanups.push(() => drift.dispose());
     let blownToken: number | null = null;
+    // Reused every frame.
+    const driftParams = { sway: 0, detailNear: 1e6, glow: 0, aura: 0 };
 
     await Promise.all([
       batch?.compile(scene),
@@ -328,7 +330,10 @@ export function createStudioRenderer(canvas: HTMLCanvasElement, initial: StudioS
           batch.setShadowParams(params);
         }
         drift.setWorld(world);
-        drift.setParams({ sway: still ? 0 : state.sway, detailNear: 1e6, glow: SEED_GLOW * (1 + 0.5 * lighting.night), aura });
+        driftParams.sway = still ? 0 : state.sway;
+        driftParams.glow = SEED_GLOW * (1 + 0.5 * lighting.night);
+        driftParams.aura = aura;
+        drift.setParams(driftParams);
         frame.pass({ target: shadowMap, clear: [1, 1, 1, 1], clearDepth: 1 }, (pass) => batch?.encodeShadow(pass));
         frame.pass({ target: scene, clear: [0, 0, 0, 1], clearDepth: 1 }, (pass) => {
           pass.draw(backdrop);

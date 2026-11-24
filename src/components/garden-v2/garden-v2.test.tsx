@@ -445,6 +445,30 @@ describe("GardenV2", () => {
       expect(studios.states.at(-1)!.seeds).toBeNull();
     });
 
+    it("releases the camera when an overlay opens during the close-look hold", async () => {
+      const user = userEvent.setup();
+      const state = withDandelion(null);
+      const id = state.plants[0]!.flower.id;
+      await mount(state, id);
+      const dialog = await screen.findByRole("dialog", { name: "dandelion" });
+      await user.click(within(dialog).getByRole("button", { name: "our wish came true" }));
+      api.mutateGardenV2.mockResolvedValue({ state: withDandelion(1), saved: true, error: null });
+      await user.click(within(dialog).getByRole("button", { name: "blow the seeds" }));
+      await flush();
+      await user.keyboard("{Escape}");
+      expect(worlds[0]!.states.at(-1)).toMatchObject({ focus: { position: expect.any(Array) } });
+      // Memories opens during the hold: the camera is let go at once, and stays free after it closes.
+      await user.click(screen.getByRole("link", { name: "memories" }));
+      const memories = await screen.findByRole("dialog", { name: /memories/i });
+      expect(worlds[0]!.states.at(-1)).toMatchObject({ focus: null });
+      await user.click(within(memories).getAllByRole("button", { name: /close|back/i })[0]!);
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 1300));
+      });
+      expect(screen.queryByRole("dialog")).toBeNull();
+      expect(worlds[0]!.states.at(-1)).toMatchObject({ paused: false, focus: null });
+    });
+
     it("shows the partner a wish that came true once, the first time they see it", async () => {
       const state = withDandelion(2);
       const id = state.plants[0]!.flower.id;
@@ -475,6 +499,15 @@ describe("GardenV2", () => {
 
     it("never replays a wish you made come true yourself", async () => {
       await mount(withDandelion(1));
+      expect(seeds.requests).toEqual([]);
+    });
+
+    it("shows an older wish's golden head directly, even in a fresh browser", async () => {
+      const state = withDandelion(2);
+      Object.assign(state.plants[0]!.flower, { first_bloom_at: "2026-10-10T17:00:00Z", first_bloom_day: "2026-10-10", fulfilled_at: "2026-10-20T17:00:00Z" });
+      await mount(state);
+      // The garden loaded (the Dandelion is there), but nothing waits to blow.
+      expect(screen.getByRole("link", { name: /^dandelion,/ })).toBeInTheDocument();
       expect(seeds.requests).toEqual([]);
     });
   });

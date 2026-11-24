@@ -59,16 +59,20 @@ export interface SeedDriftParams {
 /**
  * Dandelion seeds blowing away (#201): a compute pass simulates every seed in
  * the air; one instanced draw paints them with the puff's own parts and light,
- * translucent so they fade into the sky. Up to four blows at once. Shared by
+ * translucent so they fade into the sky. Up to eight blows held or in the air at once. Shared by
  * the world's flower layer and the hero studio.
  */
 export interface SeedDrift {
   /**
-   * Starts a blow now and returns its slot (-1 when the model has no seeds).
-   * With `hold`, the seeds stay attached, looking exactly like the puff,
-   * until `release` lets them go.
+   * Starts a blow now and returns its slot. With `hold`, the seeds stay
+   * attached, looking exactly like the puff, until `release` lets them go.
+   * A held blow is never evicted: when every slot is taken (by held blows, or
+   * for a held request by anything), it returns -1 and the caller retries
+   * later. It also returns -1 when the model has no seeds.
    */
   blow(blow: SeedBlow, options?: { readonly hold?: boolean }): number;
+  /** True while a slot is free for a new held blow. */
+  readonly hasFreeSlot: boolean;
   /** Lets a held blow's seeds go now, on this breeze. */
   release(slot: number, breeze: Pick<SeedBlow, "wind" | "speed" | "still">): void;
   /** Seconds since the latest blow let go (Infinity before any). */
@@ -139,6 +143,9 @@ export function createSeedDrift(gpu: Gpu, shadow: WorldShadow, options: { detail
   const viewParams = { drift: { sway: 0, detailNear: 0, glow: 0, pad: 0 } };
   const haloParams = { halo: { time: 0, aura: 0, pad: [0, 0] } };
   let releasedAt = -Infinity;
+  /** New records the compute pass has not settled yet. */
+  let dirty = false;
+  const worldValue: { world: WorldUniforms | null } = { world: null };
 
   /** Each slot's blow (kept so a held blow can be released). */
   const blows: (SeedBlow | null)[] = Array.from({ length: DRIFT_MAX_BLOWS }, () => null);
@@ -155,6 +162,7 @@ export function createSeedDrift(gpu: Gpu, shadow: WorldShadow, options: { detail
     ends[slot] = packed.end;
     packPuffHalo(haloRecords, slot, blow.puff, blow.placement, start, blow.still);
     if (start !== HELD) releasedAt = start;
+    dirty = true;
     seedBuffer.write(records);
     haloBuffer.write(haloRecords);
     refreshSpan();
@@ -169,20 +177,24 @@ export function createSeedDrift(gpu: Gpu, shadow: WorldShadow, options: { detail
     get sinceRelease() {
       return clock - releasedAt;
     },
+    get hasFreeSlot() {
+      for (let i = 0; i < DRIFT_MAX_BLOWS; i += 1) if (ends[i]! <= clock) return true;
+      return false;
+    },
     blow(blow, options) {
       if (blow.puff.puffSeeds.length === 0) return -1;
-      // The first free slot, else the one closest to finishing.
-      let slot = 0;
-      for (let i = 0; i < DRIFT_MAX_BLOWS; i += 1) {
-        if (ends[i]! <= clock) {
-          slot = i;
-          break;
-        }
-        if (ends[i]! < ends[slot]!) slot = i;
+      const hold = options?.hold === true;
+      // The first free slot; a blow that starts now may take over the released
+      // blow closest to finishing. Held blows are never evicted.
+      let slot = -1;
+      for (let i = 0; i < DRIFT_MAX_BLOWS && slot < 0; i += 1) if (ends[i]! <= clock) slot = i;
+      if (slot < 0 && !hold) {
+        for (let i = 0; i < DRIFT_MAX_BLOWS; i += 1) if (ends[i] !== Infinity && (slot < 0 || ends[i]! < ends[slot]!)) slot = i;
       }
+      if (slot < 0) return -1;
       blows[slot] = blow;
-      pack(slot, blow, options?.hold ? HELD : clock);
-      if (options?.hold) ends[slot] = Infinity;
+      pack(slot, blow, hold ? HELD : clock);
+      if (hold) ends[slot] = Infinity;
       return slot;
     },
     release(slot, breeze) {
@@ -192,8 +204,14 @@ export function createSeedDrift(gpu: Gpu, shadow: WorldShadow, options: { detail
       pack(slot, blows[slot]!, clock);
     },
     step(frame, dt) {
-      if (span === 0) return;
       clock += dt;
+      if (span === 0) return;
+      // Held seeds rest where the puff paints them: simulate only while seeds
+      // fly, or once to settle newly written records.
+      let flying = false;
+      for (let slot = 0; slot < DRIFT_MAX_BLOWS; slot += 1) if (ends[slot]! > clock - dt && ends[slot] !== Infinity) flying = true;
+      if (!flying && !dirty) return;
+      dirty = false;
       const count = span * DRIFT_SEEDS_PER_BLOW;
       simParams.sim.time = clock;
       simParams.sim.dt = dt;
@@ -220,9 +238,10 @@ export function createSeedDrift(gpu: Gpu, shadow: WorldShadow, options: { detail
     setWorld(world) {
       // Nothing in the air: no uniform uploads.
       if (span === 0) return;
-      color.set({ world });
-      halo.set({ world });
-      detail?.set({ world });
+      worldValue.world = world;
+      color.set(worldValue);
+      halo.set(worldValue);
+      detail?.set(worldValue);
     },
     setParams(params) {
       if (span === 0) return;
@@ -249,6 +268,7 @@ export function createSeedDrift(gpu: Gpu, shadow: WorldShadow, options: { detail
       haloBuffer.write(haloRecords);
       ends.fill(0);
       blows.fill(null);
+      dirty = false;
       span = 0;
       seedBuffer.write(records);
     },

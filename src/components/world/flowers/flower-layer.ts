@@ -1,5 +1,5 @@
 import type { Gpu, Target } from "vgpu";
-import { flowerPhase, flowerYaw, packFlowers, type FlowerSpec } from "@/lib/world/flowers/generate";
+import { flowerPhase, flowerYaw, packFlowers, type FlowerModel, type FlowerSpec } from "@/lib/world/flowers/generate";
 import type { Vec3 } from "@/lib/world/layout";
 import type { WorldLayer, WorldShadow, WorldUniforms } from "../world-layer";
 import { createFlowerBatch, type FlowerBatch } from "./flower-batch";
@@ -15,8 +15,9 @@ const SEED_BREEZE = 0.26;
 /** Glow of seeds drifting in the world. */
 const SEED_GLOW = 0.55;
 /**
- * A dandelion is "seen" within this camera distance (world units), where its
- * floating name appears too; from the overview its seeds wait, still a puff.
+ * A waiting dandelion's seeds blow once the camera is within this distance
+ * (world units): close enough to see the seeds, which are only a few pixels
+ * from the overview. Until then they wait, still a puff.
  */
 export const SEE_NEAR = 6.4;
 
@@ -37,7 +38,12 @@ export function headOnScreen(m: Float32Array, head: Vec3, margin = 0.9): boolean
 }
 
 interface SeedRequest {
+  readonly id: string;
   readonly onStart?: () => void;
+  /** Its seed puff, once drawn golden. */
+  puff: FlowerModel | null;
+  /** No slot was free to hold it: it blows straight from its golden head once seen. */
+  overflow: boolean;
   /** Held drift slot (seeds attached, looking like the puff), or -1 before it is drawn golden. */
   slot: number;
   /** Where its seed head is, once held. */
@@ -61,6 +67,8 @@ export interface FlowerLayer extends WorldLayer {
   blowSeeds(id: string, options?: { readonly onStart?: () => void }): void;
   /** Holds back this flower's waiting blow (e.g. while the camera glides to open its painting); null lets it go. */
   deferSeeds(id: string | null): void;
+  /** Blows asked for that have not started yet. */
+  readonly waitingSeeds: number;
 }
 
 /** World layer that paints the procedural flowers (instanced), casts their shadows and glows. */
@@ -74,7 +82,9 @@ export function createFlowerLayer(initial: readonly WorldFlower[] = []): FlowerL
   /** The flowers the current batch draws. */
   let drawnFlowers: readonly WorldFlower[] = [];
   let drift: SeedDrift | undefined;
-  const seedRequests = new Map<string, SeedRequest>();
+  /** Waiting blows, in request order (an array, so the per-frame scan allocates nothing). */
+  const seedRequests: SeedRequest[] = [];
+  const driftParams = { sway: 0, detailNear: DETAIL_NEAR, glow: SEED_GLOW, aura: 0 };
   /** The last painted camera (pending blows start only once their flower is in view). */
   const lastView = new Float32Array(16);
   let viewKnown = false;
@@ -96,40 +106,71 @@ export function createFlowerLayer(initial: readonly WorldFlower[] = []): FlowerL
     worldWritten = undefined;
   };
 
+  /** The flower with this id in a set, without allocating. */
+  const findFlower = (set: readonly WorldFlower[], id: string) => {
+    for (let i = 0; i < set.length; i += 1) if (set[i]!.id === id) return set[i];
+    return undefined;
+  };
+
+  const blowFor = (flower: WorldFlower, puff: FlowerModel, reducedMotion: boolean, hold: boolean) =>
+    drift!.blow(
+      {
+        puff,
+        seed: flower.spec.seed,
+        placement: { position: flower.position, yaw: flowerYaw(flower.spec.seed), scale: 1 },
+        phase: flowerPhase(flower.spec.seed),
+        // Across the view and away, so the seeds drift over the scene.
+        wind: [camRight[0], 0, camRight[2] - 0.35],
+        speed: SEED_BREEZE,
+        still: reducedMotion,
+      },
+      { hold },
+    );
+
+  const near = (head: Vec3) => viewKnown && headOnScreen(lastView, head) && Math.hypot(head[0] - eye[0], head[1] - eye[1], head[2] - eye[2]) <= SEE_NEAR;
+
   /** Holds, then releases, requested seed blows (before the frame's compute and draws). */
   const advanceSeeds = (reducedMotion: boolean) => {
-    if (!drift || seedRequests.size === 0) return;
-    for (const [id, request] of seedRequests) {
+    if (!drift) return;
+    // In request order, so the earliest waiting puffs are held first.
+    for (let i = 0; i < seedRequests.length; i += 1) {
+      const request = seedRequests[i]!;
+      const id = request.id;
       if (request.slot < 0) {
-        let flower: WorldFlower | undefined;
-        for (const candidate of drawnFlowers) if (candidate.id === id) flower = candidate;
-        // Not drawn (yet) with its golden head: the batch still paints its puff.
-        if (!flower || !showsGoldenHead(flower.spec)) continue;
-        const puff = flowerModel({ ...flower.spec, puff: true });
-        request.slot = drift.blow(
-          {
-            puff,
-            seed: flower.spec.seed,
-            placement: { position: flower.position, yaw: flowerYaw(flower.spec.seed), scale: 1 },
-            phase: flowerPhase(flower.spec.seed),
-            wind: camRight,
-            speed: SEED_BREEZE,
-            still: reducedMotion,
-          },
-          { hold: true },
-        );
-        if (request.slot < 0) {
-          seedRequests.delete(id);
+        // Only bloomed dandelions have seeds to blow; anything else is dropped, not scanned forever.
+        const latest = findFlower(flowers, id);
+        if (!latest || latest.spec.type !== "dandelion" || quantisedGrowth(latest.spec.growth) < 1) {
+          seedRequests.splice(i--, 1);
           continue;
         }
-        request.head = [flower.position[0], flower.position[1] + puff.height, flower.position[2]];
+        const flower = findFlower(drawnFlowers, id);
+        // Not drawn (yet) with its golden head: the batch still paints its puff.
+        if (!flower || !showsGoldenHead(flower.spec)) continue;
+        if (!request.head) {
+          request.puff = flowerModel({ ...flower.spec, puff: true });
+          request.head = [flower.position[0], flower.position[1] + request.puff.height, flower.position[2]];
+        }
+        if (!request.overflow && drift.hasFreeSlot) {
+          // Hold its seeds, exactly as the puff painted them, until it is seen.
+          request.slot = blowFor(flower, request.puff!, reducedMotion, true);
+        }
+        if (request.slot < 0) {
+          // Every slot holds another waiting puff (rare: more than DRIFT_MAX_BLOWS
+          // of the partner's recent wishes at once). This one shows its golden
+          // head and blows from it once it is seen and a slot is free; it never
+          // turns back into a puff.
+          request.overflow = true;
+          if (id === deferred || !near(request.head) || !drift.hasFreeSlot) continue;
+          if (blowFor(flower, request.puff!, reducedMotion, false) < 0) continue;
+          seedRequests.splice(i--, 1);
+          if (request.onStart) queueMicrotask(request.onStart);
+          continue;
+        }
       }
-      const head = request.head;
-      if (!head || id === deferred || !viewKnown || !headOnScreen(lastView, head)) continue;
-      if (Math.hypot(head[0] - eye[0], head[1] - eye[1], head[2] - eye[2]) > SEE_NEAR) continue;
-      // Across the view and away, so the seeds drift over the scene.
+      const head = request.head!;
+      if (id === deferred || !near(head)) continue;
       drift.release(request.slot, { wind: [camRight[0], 0, camRight[2] - 0.35], speed: SEED_BREEZE, still: reducedMotion });
-      seedRequests.delete(id);
+      seedRequests.splice(i--, 1);
       if (request.onStart) queueMicrotask(request.onStart);
     }
   };
@@ -226,13 +267,19 @@ export function createFlowerLayer(initial: readonly WorldFlower[] = []): FlowerL
       viewKnown = true;
       if (drift) {
         drift.setWorld(frame.world);
-        drift.setParams({ sway: frame.reducedMotion ? 0 : 1, detailNear: DETAIL_NEAR, glow: SEED_GLOW, aura });
+        driftParams.sway = frame.reducedMotion ? 0 : 1;
+        driftParams.aura = aura;
+        drift.setParams(driftParams);
         drift.encode(pass);
         drift.encodeDetail(pass);
       }
     },
+    get waitingSeeds() {
+      return seedRequests.length;
+    },
     blowSeeds(id, options) {
-      if (!seedRequests.has(id)) seedRequests.set(id, { onStart: options?.onStart, slot: -1, head: null });
+      for (const request of seedRequests) if (request.id === id) return;
+      seedRequests.push({ id, onStart: options?.onStart, puff: null, overflow: false, slot: -1, head: null });
     },
     deferSeeds(id) {
       deferred = id;
@@ -254,10 +301,7 @@ export function createFlowerLayer(initial: readonly WorldFlower[] = []): FlowerL
       drawnFlowers = [];
       viewKnown = false;
       // Requests survive a device-loss restart; their held seeds do not.
-      for (const request of seedRequests.values()) {
-        request.slot = -1;
-        request.head = null;
-      }
+      for (const request of seedRequests) request.slot = -1;
       gpu = undefined;
       shadow = undefined;
       sceneTarget = undefined;

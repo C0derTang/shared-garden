@@ -764,10 +764,14 @@ discretion; fulfilment rules and data are unchanged.
     takes over at once).
   - The partner sees it once, the first time they see that fulfilled Dandelion:
     in the world once it is in view and within 6.4 world units of the camera
-    (where flower names appear), or in its painting if they open it first (then
-    in the world again as they return). Until then, from the overview, its seeds
-    stay attached and it still looks like a puff. A Realtime update while the
-    partner is in the garden follows the same rule.
+    (close enough to see the seeds, which are only a few pixels across from
+    the overview), or in its painting if they open it first (then in the world
+    again as they return). Until then its seeds stay attached and it still
+    looks like a puff. A Realtime update while the partner is in the garden
+    follows the same rule.
+  - Only wishes the partner made come true in the last seven days (garden
+    server time) blow for them; older ones show the golden head directly, so a
+    new device or browser never replays a history of wishes.
   - The browser remembers which Dandelions each member has watched in local
     storage (`garden-v2:dandelion-seeds:<member slot>`, flower ids only, the
     newest 200). Later visits, reloads and links show the golden head directly.
@@ -778,8 +782,13 @@ discretion; fulfilment rules and data are unchanged.
   place over 0.9 seconds over the golden head (a brief crossfade), and on
   return the camera holds for 1.2 seconds.
 - **Rendering:** a compute pass (vgpu) simulates each seed's position,
-  velocity and rotation (up to four blows of 100 seeds at once, buffers
-  allocated once, no per-frame allocations). One instanced draw paints every
+  velocity and rotation (up to eight blows of 100 seeds held or in the air at
+  once; buffers allocated once; no per-frame allocations in the blow path). It
+  runs only while seeds fly, plus once to settle newly held seeds; held seeds
+  are only drawn. A waiting blow is never evicted: if all eight slots hold
+  other waiting puffs (more than eight of the partner's recent wishes at
+  once), the extra Dandelion shows its golden head and its seeds blow from it
+  once it is seen and a slot is free. One instanced draw paints every
   seed from the flower templates; it is translucent so the seeds fade, and
   near seeds keep their detail through the painterly filter. Attached seeds
   sway with their plant and let go of the sway as they lift. The world's

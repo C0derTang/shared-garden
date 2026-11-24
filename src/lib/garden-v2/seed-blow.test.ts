@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { v2GardenFixture } from "@/test/garden-v2-fixture";
 import type { GardenState } from "./model";
 import {
+  SEED_BLOW_RECENT_MS,
   SEEDS_SEEN_LIMIT,
   createSeedBlowPlanner,
   firstBlowPlace,
@@ -29,8 +30,8 @@ function garden(byA: 1 | 2 | null, byB: 1 | 2 | null = null, member: 1 | 2 = 1):
       type_key: "dandelion" as const,
       shared_wish: "A synthetic wish",
       growth_units: 5,
-      first_bloom_at: "2026-11-01T17:00:00Z",
-      first_bloom_day: "2026-11-01",
+      first_bloom_at: "2026-10-01T17:00:00Z",
+      first_bloom_day: "2026-10-01",
       fulfilled_at: by ? "2026-11-02T17:00:00Z" : null,
       fulfilled_by: by,
     },
@@ -73,6 +74,16 @@ describe("which blows are waiting", () => {
     expect(unseenSeedBlows(garden(1, 1, 2), new Set())).toEqual([A, B]);
     // Unreadable storage: nothing plays by itself (it could repeat every visit).
     expect(unseenSeedBlows(garden(2, 2), undefined)).toEqual([]);
+  });
+
+  it("only offers wishes that came true in the last seven days", () => {
+    const state = garden(2, 2);
+    state.plants[1]!.flower.fulfilled_at = "2026-10-26T17:00:00Z"; // exactly seven days before server_now
+    state.plants[2]!.flower.fulfilled_at = "2026-10-26T16:59:59Z"; // just older
+    expect(unseenSeedBlows(state, new Set())).toEqual([A]);
+    expect(SEED_BLOW_RECENT_MS).toBe(7 * 24 * 60 * 60 * 1000);
+    // A fresh browser never replays the older history.
+    expect(createSeedBlowPlanner().notice(state, new Set(), null)).toEqual([{ kind: "world", flowerId: A }]);
   });
 
   it("plays first in the painting when it is open on that flower", () => {
