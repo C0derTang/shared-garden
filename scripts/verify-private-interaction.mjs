@@ -109,6 +109,8 @@ async function subscribe(client, list) {
   });
 }
 try {
+  // Legacy rules fixture: lift the #176 archive freeze for this run; restored in finally.
+  sql("delete from private.legacy_garden_freeze;");
   sql(
     `begin; set local role postgres; select private.bootstrap_members('owner@example.test','member@example.test'); reset role; set local role supabase_auth_admin; ${ids.map((id, i) => `insert into auth.users(instance_id,id,aud,role,email,raw_app_meta_data,raw_user_meta_data) values('00000000-0000-0000-0000-000000000000','${id}','authenticated','authenticated','${["owner", "member", "outsider"][i]}@example.test','{"provider":"google","providers":["google"]}','{}'); insert into auth.identities(user_id,provider_id,provider,identity_data,created_at,updated_at,last_sign_in_at) values('${id}','local-garden-${i}','google','{"sub":"local-garden-${i}","email":"${["owner", "member", "outsider"][i]}@example.test","email_verified":true}',now(),now(),now()); update auth.users set created_at=now(),updated_at=now(),encrypted_password='',confirmation_token='',recovery_token='',email_change_token_new='',email_change='',email_confirmed_at=now() where id='${id}';`).join("")} commit;`,
   );
@@ -165,6 +167,7 @@ try {
   assert.ok((await clients[0].rpc('owner_private_interaction',{p_action:'status'})).error);
   console.log('PASS: actual HTTP authorization, marker isolation, pending/answer lifecycle, owner-only Realtime notification, revocation and no read feedback loop');
 } finally {
+  sql("insert into private.legacy_garden_freeze default values on conflict do nothing;");
   for(const [client,channel] of channels) await client.removeChannel(channel);
   for(const client of [...clients,anon]) client.realtime.disconnect();
   sql("begin; delete from private.private_interaction_delivery; delete from private.private_interaction_config; delete from public.private_interaction_signals; delete from public.achievement_awards; delete from public.achievement_progress; delete from public.before_noon_snapshots; delete from public.garden_days; delete from public.flower_unlocks; delete from public.flowers; delete from public.garden; delete from private.garden_members; delete from auth.users where email in ('owner@example.test','member@example.test','outsider@example.test'); commit;");

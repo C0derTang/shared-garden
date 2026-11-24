@@ -32,12 +32,15 @@ export function PeonyPanel({
   now,
   busy,
   mutate,
+  readOnly = false,
 }: {
   flowerId: string;
   refreshKey: string;
   now: number;
   busy: boolean;
   mutate: Mutate;
+  /** The archive shows every milestone, contribution and plan, without actions. */
+  readOnly?: boolean;
 }) {
   const partnerName = usePartnerName();
   const [state, setState] = useState<PeonyState | null>(null);
@@ -154,8 +157,9 @@ export function PeonyPanel({
       aria-busy={pending}
     >
       <p>
-        Four steps, together. Each completed pair grows this Peony immediately.
-        Take your time—Peony never loses progress.
+        {readOnly
+          ? "Four steps, together. The garden is archived, so these shared steps stay here to read."
+          : "Four steps, together. Each completed pair grows this Peony immediately. Take your time—Peony never loses progress."}
       </p>
       {(error || readError) && (
         <p role="alert" className={styles.error}>
@@ -181,7 +185,9 @@ export function PeonyPanel({
         <>
           <p role="status">
             {state.next_milestone
-              ? `Next: ${titles[state.next_milestone - 1]}`
+              ? readOnly
+                ? `Archived before: ${titles[state.next_milestone - 1]}`
+                : `Next: ${titles[state.next_milestone - 1]}`
               : "All four milestones complete. A permanent bloom, with your memories below."}
           </p>
           {titles.map((title, index) => {
@@ -208,9 +214,11 @@ export function PeonyPanel({
                 <p>
                   {complete
                     ? "Complete · Read-only"
-                    : current
-                      ? "Your next shared step"
-                      : "After the previous step"}
+                    : readOnly
+                      ? "Not completed"
+                      : current
+                        ? "Your next shared step"
+                        : "After the previous step"}
                 </p>
                 {completion && (
                   <p className={styles.quiet}>
@@ -241,7 +249,7 @@ export function PeonyPanel({
                                   <small>
                                     Shared {pacificDate(c.original_posted_at)}
                                   </small>
-                                  {canEditContribution(c, now) && (
+                                  {!readOnly && canEditContribution(c, now) && (
                                     <>
                                       <p className={styles.quiet}>
                                         Edit{" "}
@@ -280,6 +288,7 @@ export function PeonyPanel({
                         },
                       )}
                       {current &&
+                        !readOnly &&
                         !own &&
                         !text &&
                         (milestone === 3 ? (
@@ -337,7 +346,7 @@ export function PeonyPanel({
                               cleared; both people must accept this version.
                             </p>
                           )}
-                          {current && state.plan.can_accept && !plan && (
+                          {current && !readOnly && state.plan.can_accept && !plan && (
                             <button
                               className="button button-primary"
                               disabled={blocked}
@@ -352,13 +361,15 @@ export function PeonyPanel({
                             </button>
                           )}
                         </>
+                      ) : readOnly ? (
+                        <p>No shared plan was made.</p>
                       ) : (
                         <p>
                           Choose a shared activity and an exact Pacific date and
                           time. Remote and in-person dates both count.
                         </p>
                       )}
-                      {current && !plan && (state.plan?.can_edit ?? true) && (
+                      {current && !readOnly && !plan && (state.plan?.can_edit ?? true) && (
                         <button
                           className="button button-secondary"
                           disabled={blocked}

@@ -106,6 +106,10 @@ insert into expected_function_grants values
   ('public.v2_plant_flower_at(text,numeric,text)', 'authenticated'),
   ('public.v2_reply_to_entry(bigint,text,uuid)', 'authenticated'),
   ('public.v2_submit_flower_entry(uuid,jsonb)', 'authenticated');
+-- Legacy archive freeze (#176): private helpers with no API caller.
+insert into expected_function_grants values
+  ('private.legacy_garden_frozen()', null),
+  ('private.require_legacy_writable()', null);
 
 -- New-garden private media (issue #178).
 insert into expected_function_grants values

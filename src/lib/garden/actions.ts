@@ -44,6 +44,7 @@ export async function refreshGarden(): Promise<GardenResult> {
   return client ? readState(client) : { state: null, error: unavailable };
 }
 function rejection(error: { code?: string; message?: string }) {
+  if (error.code === "55000") return "The old garden is archived and read-only. Everything in it stays here to browse.";
   if (error.code === "42501")
     return "Your garden access could not be verified. Sign in again.";
   if (error.message === "The edit window has ended")

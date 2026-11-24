@@ -88,6 +88,11 @@ def overlap(first, second, error=None, second_member=2):
 empty = "select (select count(*) from public.flower_day_facts) + (select count(*) from public.before_noon_snapshots) + (select count(*) from public.peony_activity) + (select count(*) from public.garden_days) + (select count(*) from private.garden_members) + (select count(*) from auth.users) + (select count(*) from public.garden) + (select count(*) from public.flower_entries) + (select count(*) from public.daisy_assignments) + (select count(*) from private.media_uploads) + (select count(*) from storage.objects) + (select count(*) from public.v2_garden) + (select count(*) from public.v2_flowers) + (select count(*) from public.v2_flower_entries) + (select count(*) from public.v2_daisy_assignments) + (select count(*) from public.v2_garden_days) + (select count(*) from public.v2_flower_day_facts) + (select count(*) from public.v2_before_noon_snapshots) + (select count(*) from private.v2_media_uploads) + (select count(*) from public.v2_achievement_progress) + (select count(*) from public.v2_achievement_awards);"
 assert sql(empty) == "0", "Refusing a configured database; reset the dedicated local project"
 try:
+    # Legacy rules fixture: lift the #176 archive freeze for this run; restored in finally.
+    # The --v2 run keeps the legacy garden frozen: new-garden media must not need it.
+    if not args.v2:
+        sql("delete from private.legacy_garden_freeze;")
+    assert sql("select count(*) from private.legacy_garden_freeze;") == ("1" if args.v2 else "0")
     sql("""
     begin;
     select private.bootstrap_members('owner@example.test','member@example.test');
@@ -157,6 +162,7 @@ try:
     print("PASS: revocation during observed lock wait denies validation claim")
 
 finally:
+    sql("insert into private.legacy_garden_freeze default values on conflict do nothing;")
     sql("""
     begin;
     delete from private.v2_media_uploads;
