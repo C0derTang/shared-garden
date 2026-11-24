@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type RefObject } from "react";
 import type { WorldStatus } from "@/components/world/garden-world";
 import type { WorldView } from "@/components/world/renderer";
+import { useSheetScope } from "@/components/ui/sheet-scope";
 import warm from "@/components/world/warm-light.module.css";
 import { clearGardenArrival, readGardenArrival } from "@/lib/garden-v2/arrival";
 import { arrivalLightOpacity, arrivalStage } from "@/lib/world/arrival";
@@ -11,6 +12,14 @@ import styles from "./arrival.module.css";
 export const ARRIVAL_SAFETY_MS = 9000;
 /** The fallback fade out of the light (ms), e.g. without WebGPU or after the safety delay. */
 export const ARRIVAL_FALLBACK_FADE_MS = 700;
+/**
+ * After the arrival ends, sheets held in the sheet scope (a pending private
+ * moment) get their turn first; the guide, hint, fireworks and away note wait
+ * this much longer (ms), so a waiting moment is open before the guide looks.
+ */
+export const ARRIVAL_SETTLE_GAP_MS = 150;
+/** The arrival's place at the head of the sheet scope while it plays. */
+const ARRIVAL_SLOT = "garden-arrival";
 
 /**
  * - `hold`: the warm light covers everything while the world gets ready.
@@ -73,6 +82,24 @@ export function useGardenArrival({
   // The mark is used up whether or not it applied (a refresh never replays the arrival).
   useEffect(() => clearGardenArrival(), []);
 
+  // While the arrival plays, it holds the sheet scope: a pending private moment
+  // (or any other scoped sheet) waits and opens only once the garden has settled.
+  const scope = useSheetScope();
+  const request = scope?.request;
+  const release = scope?.release;
+  const holding = phase !== "done";
+  useEffect(() => {
+    if (!holding) return;
+    request?.(ARRIVAL_SLOT);
+    return () => release?.(ARRIVAL_SLOT);
+  }, [holding, request, release]);
+  const [settled, setSettled] = useState(!enabled);
+  useEffect(() => {
+    if (phase !== "done" || settled) return;
+    const id = window.setTimeout(() => setSettled(true), ARRIVAL_SETTLE_GAP_MS);
+    return () => window.clearTimeout(id);
+  }, [phase, settled]);
+
   const ready = worldStatus === "ready" && layersLoaded;
   useEffect(() => {
     if (phase !== "hold") return;
@@ -125,8 +152,10 @@ export function useGardenArrival({
   const chromeClassName = phase === "hold" || phase === "light" ? styles.chromeHidden : phase === "chrome" || phase === "fading" ? styles.chromeShowing : "";
   return {
     phase,
-    settled: phase === "done",
-    world: !enabled ? null : phase === "hold" ? "hold" : phase === "fading" ? null : "play",
+    settled,
+    // Only while the arrival is under way: a renderer created later (after a
+    // device loss, or a world that turns up after the fallback) never replays it.
+    world: !enabled ? null : phase === "hold" ? "hold" : phase === "light" || phase === "chrome" ? "play" : null,
     onView,
     chromeClassName,
     lightRef,

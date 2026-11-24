@@ -19,17 +19,16 @@
   transition: none;
 }
 
-/* The title, the floating words and the menus wait for the arrival… */
-.chromeHidden :global([data-caption]),
-.chromeHidden nav {
+/*
+ * The title, the floating words, the menus and every other control wait for
+ * the arrival, hidden and out of the keyboard order, so nothing opens under
+ * the light. The painted world and the page heading stay.
+ */
+.chromeHidden > :not(h1):not([data-garden-world]):not([data-arrival-light]),
+.chromeHidden :global([data-caption]) {
   opacity: 0 !important;
+  visibility: hidden !important;
   pointer-events: none;
-}
-
-.chromeHidden :global([data-caption]):focus-visible,
-.chromeHidden :global([data-caption]):focus-within,
-.chromeHidden nav:focus-within {
-  opacity: 1 !important;
 }
 
 /* …then fade in: the title first, then the words, then the menus. */

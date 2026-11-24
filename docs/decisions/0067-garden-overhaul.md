@@ -771,14 +771,23 @@ under this decision's discretion:
   show, so scrolling during the arrival is kept. Both run from the renderer's
   own frame clock, so they stay in step through slow frames; the light only
   ever thins.
-- **Words and menu:** the floating words, the menu and the corner links stay
-  hidden (still reachable by keyboard, shown while focused) until 2.4 seconds
-  in, then fade in: the "our garden" title first (1.1 s), then the other
-  words (0.15 s later), then the menus (0.4 s later).
-- **Afterwards:** the arrival settles at 4 seconds. Only then may the
-  first-visit guide greet, the night fireworks start by themselves, the
-  "scroll to wander closer" hint appear and the "while you were away" note
-  show.
+- **Words and menu:** the floating words, the menus, the corner links and the
+  page's other controls stay hidden and out of the keyboard order (so no view
+  can open under the light) until 2.4 seconds in. They then fade in: the "our
+  garden" title first (1.1 s), then the other words (0.15 s later), then the
+  menus (0.4 s later). The painted world and the page heading stay available.
+- **Afterwards:** the arrival settles at 4 seconds. While it plays, it holds
+  the head of the page's sheet scope, so a pending private moment (or any
+  other scoped sheet) waits and never opens over the light. On settling the
+  scope is released first, so a waiting moment opens. Then, 150 ms later, the
+  first-visit guide may greet (it does not greet over an open moment, as
+  before), the night fireworks may start by themselves, the "scroll to wander
+  closer" hint may appear and the "while you were away" note may show.
+- **Plays once:** the page asks the renderer for the arrival only while it is
+  under way. A renderer created later (after a GPU device loss once the garden
+  has settled, or a world that only paints after the fallback) starts at the
+  overview and never replays it. A device loss in the middle of the arrival
+  restarts the camera move; the light never comes back.
 - **Reduced motion:** no camera move. After the same hold, the light
   crossfades away linearly over 0.6 seconds while the words fade in over
   0.4 seconds, and the arrival settles at 0.8 seconds.

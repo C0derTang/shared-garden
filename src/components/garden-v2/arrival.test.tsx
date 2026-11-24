@@ -1,6 +1,7 @@
 import { act, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { WorldRendererCallbacks, WorldSceneState } from "@/components/world/renderer";
+import { SheetScope } from "@/components/ui/sheet-scope";
 import { ARRIVAL_KEY, markGardenArrival } from "@/lib/garden-v2/arrival";
 import type { GardenState } from "@/lib/garden-v2/model";
 import { v2GardenFixture } from "@/test/garden-v2-fixture";
@@ -40,8 +41,9 @@ const api = vi.hoisted(() => ({
 vi.mock("@/lib/garden-v2/actions", () => api);
 // The garden's overlays (#183) and the private moment read through their own actions.
 vi.mock("@/lib/garden-v2/memory-actions", () => ({ loadMemoriesV2: vi.fn(async () => ({ items: [], more: false, error: null })) }));
+const moment = vi.hoisted(() => ({ read: vi.fn() }));
 vi.mock("@/lib/private-interaction/actions", () => ({
-  readPrivateInteraction: vi.fn(async () => ({ state: { status: "unavailable" }, error: null })),
+  readPrivateInteraction: moment.read,
   answerPrivateInteraction: vi.fn(),
   controlPrivateInteraction: vi.fn(),
   previewPrivateInteraction: vi.fn(),
@@ -61,7 +63,7 @@ vi.mock("next/link", () => ({
 }));
 
 const { GardenV2 } = await import("./garden-v2");
-const { ARRIVAL_FALLBACK_FADE_MS, ARRIVAL_SAFETY_MS } = await import("./arrival");
+const { ARRIVAL_FALLBACK_FADE_MS, ARRIVAL_SAFETY_MS, ARRIVAL_SETTLE_GAP_MS } = await import("./arrival");
 
 async function flush() {
   await act(async () => {
@@ -88,13 +90,22 @@ function garden(): GardenState {
 async function open(initialFlowerId: string | null = null) {
   const state = garden();
   api.refreshGardenV2.mockResolvedValue({ state, error: null });
-  const view = render(<GardenV2 initial={{ state, error: null }} initialFlowerId={initialFlowerId} />);
+  // As on the page: the sheet scope queues the private moment.
+  const view = render(
+    <SheetScope>
+      <GardenV2 initial={{ state, error: null }} initialFlowerId={initialFlowerId} />
+    </SheetScope>,
+  );
   await flush();
   await flush();
   return { ...view, state };
 }
 
 const light = () => document.querySelector<HTMLElement>("[data-arrival-light]");
+const settle = () => act(() => new Promise((resolve) => setTimeout(resolve, ARRIVAL_SETTLE_GAP_MS + 50)));
+/** The GPU device is lost: the world recreates its renderer from the current scene state. */
+const loseDevice = () => act(() => worlds.at(-1)!.callbacks.onLost({ reason: "unknown", message: "synthetic" } as GPUDeviceLostInfo));
+const chromeHidden = () => /chromeHidden/.test(screen.getByRole("main").className);
 const guide = () => document.querySelector("[data-garden-overlay='guide']");
 const world = () => worlds[0]!;
 const frame = (arrival: number | null) =>
@@ -111,6 +122,7 @@ beforeEach(() => {
   fireworks.readAwardsForDayV2.mockReset().mockResolvedValue({ state: null, error: "unavailable" });
   vi.stubGlobal("navigator", { ...navigator, gpu: {}, onLine: true });
   stubReducedMotion(false);
+  moment.read.mockReset().mockResolvedValue({ state: { status: "unavailable" }, error: null });
 });
 
 afterEach(() => {
@@ -125,6 +137,8 @@ describe("arriving from the house (#204)", () => {
     // The very first paint is the warm light; the camera waits at the arrival's start.
     expect(light()).toHaveAttribute("data-arrival-light", "hold");
     expect(world().states[0]).toMatchObject({ arrival: "hold" });
+    // Words, menus and other controls are hidden (and out of the keyboard order) under the light.
+    expect(chromeHidden()).toBe(true);
     // The mark is used up: a refresh opens the garden normally.
     expect(window.sessionStorage.getItem(ARRIVAL_KEY)).toBeNull();
     expect(window.location.search).toBe("");
@@ -144,17 +158,47 @@ describe("arriving from the house (#204)", () => {
     expect(Number(light()!.style.opacity)).toBe(thinning);
     frame(2.5);
     expect(light()).toHaveAttribute("data-arrival-light", "chrome");
+    expect(chromeHidden()).toBe(false);
     expect(guide()).toBeNull();
     expect(screen.queryByText(/scroll to wander closer/)).toBeNull();
     frame(4);
     expect(light()).toBeNull();
     // The first-visit guide greets only once the arrival has settled.
+    await settle();
     expect(guide()).not.toBeNull();
+    // Over: a world recreated later (after a device loss) never replays the arrival.
+    expect(world().states.at(-1)?.arrival ?? null).toBeNull();
+    loseDevice();
+    await flush();
+    expect(worlds).toHaveLength(2);
+    expect(worlds[1]!.states[0]?.arrival ?? null).toBeNull();
+  });
+
+  it("holds a pending private moment until the garden has settled, then lets it open before the guide", async () => {
+    moment.read.mockResolvedValue({
+      state: { status: "pending", content: { title: "A synthetic moment", message: "Placeholder.", choices: [{ key: "a", label: "One" }, { key: "b", label: "Two" }] } },
+      error: null,
+    });
+    markGardenArrival();
+    await open();
+    await flush();
+    expect(screen.queryByRole("dialog", { name: "A synthetic moment" })).toBeNull();
+    act(() => world().callbacks.onReady());
+    frame(1);
+    frame(2.5);
+    await flush();
+    expect(screen.queryByRole("dialog", { name: "A synthetic moment" })).toBeNull();
+    frame(4);
+    await settle();
+    expect(await screen.findByRole("dialog", { name: "A synthetic moment" })).toBeInTheDocument();
+    // The moment opened first, so the guide does not greet over it this visit.
+    expect(guide()).toBeNull();
   });
 
   it("leaves direct visits unchanged", async () => {
     await open();
     expect(light()).toBeNull();
+    expect(chromeHidden()).toBe(false);
     expect(world().states[0]?.arrival ?? null).toBeNull();
     act(() => world().callbacks.onReady());
     expect(guide()).not.toBeNull();
@@ -184,6 +228,7 @@ describe("arriving from the house (#204)", () => {
     expect(light()).toHaveAttribute("data-arrival-light", "chrome");
     frame(0.8);
     expect(light()).toBeNull();
+    expect(world().states.at(-1)?.arrival ?? null).toBeNull();
   });
 
   it("fades the light anyway when the world never gets ready", async () => {
@@ -199,6 +244,11 @@ describe("arriving from the house (#204)", () => {
     expect(world().states.at(-1)?.arrival ?? null).toBeNull();
     act(() => vi.advanceTimersByTime(ARRIVAL_FALLBACK_FADE_MS));
     expect(light()).toBeNull();
+    // A world that turns up after the fallback starts at the overview, never at the arrival's start.
+    loseDevice();
+    await flush();
+    expect(worlds).toHaveLength(2);
+    expect(worlds[1]!.states[0]?.arrival ?? null).toBeNull();
   });
 
   it("fades the light at once without WebGPU, showing the notice", async () => {
