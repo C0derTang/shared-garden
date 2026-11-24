@@ -232,6 +232,12 @@ export class PlantBuilder {
     this.tube({ p0, p1, p2, p3, r0, r1, base: colors.base, tip: colors.tip, accent: colors.accent ?? colors.tip, material });
   }
 
+  /** A small swelling node on a stalk where a leaf or petiole joins it. */
+  node(s: Stalk, t: number, radius: number, color: Rgb) {
+    const up = s.tangent(t);
+    this.blob({ material: MATERIAL.stem, center: s.at(t), up, front: perpendicular(up), radii: [radius * 1.35, radius * 1.1, radius * 1.35], base: color, tip: color });
+  }
+
   /** A straight tube between two points. */
   segment(a: Vec3, b: Vec3, r0: number, r1: number, colors: { base: Rgb; tip: Rgb; accent?: Rgb }, material: (typeof MATERIAL)[keyof typeof MATERIAL] = MATERIAL.stem, sag: Vec3 = [0, 0, 0]) {
     const d = sub(b, a);

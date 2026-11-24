@@ -232,6 +232,7 @@ const rose: Builder = (b) => {
   for (let i = 0; i < leafCount; i += 1) {
     const at = 0.22 + i * 0.22 + lv() * 0.08;
     const base = s.at(at);
+    b.node(s, at, lerp(0.013, 0.009, at), stemColor.tip);
     const az = spin + i * 2.4 + jitter(lv, 0.4);
     const out = horizontal(az);
     const end = add(madd(base, out, 0.075), [0, 0.025, 0]);
@@ -258,9 +259,9 @@ const rose: Builder = (b) => {
   const pr = b.stream("petals");
   for (let i = 0; i < petalCount; i += 1) {
     const k = i / (petalCount - 1);
-    const az = i * GOLDEN_ANGLE + jitter(pr, 0.15);
+    const az = i * GOLDEN_ANGLE + jitter(pr, 0.06);
     const len = size * lerp(0.42, 1, k ** 0.6) * range(pr, 0.92, 1.08);
-    const elevation = lerp(lerp(0.03, 0.2, k), lerp(0.1, 1.38, k ** 1.4) + jitter(pr, 0.08), g.open);
+    const elevation = lerp(lerp(0.03, 0.2, k), lerp(0.1, 1.32, k ** 1.4) + jitter(pr, 0.04), g.open);
     const pose = petalPose(head, az, elevation, k * 0.011 * g.head, -k * 0.012 * g.head);
     const shade = lerp(0.45, 1, k ** 0.8);
     b.sheet({
@@ -268,10 +269,10 @@ const rose: Builder = (b) => {
       length: len,
       width: len * lerp(1.05, 1.3, k),
       cup: lerp(1.15, 0.55, k),
-      curl: lerp(1.0, 0.3, k) * lerp(1.2, 1, g.open),
+      curl: lerp(0.7, 0.3, k) * lerp(1.15, 1, g.open),
       tipCurl: -lerp(0, 1.7, k ** 1.5) * g.open,
-      twist: jitter(pr, 0.2),
-      ruffle: range(pr, 0.07, 0.16),
+      twist: jitter(pr, 0.08),
+      ruffle: range(pr, 0.05, 0.12),
       ruffleFreq: range(pr, 1.8, 3.2),
       widthPos: 0.64,
       tipShape: 0.5,
@@ -414,6 +415,7 @@ const marigold: Builder = (b) => {
   const lv = b.stream("leaves");
   const leafCount = int(lv, 3, 4);
   for (let i = 0; i < leafCount; i += 1) {
+    b.node(s, 0.15 + i * 0.17, 0.0085, stemColor.tip);
     pinnateLeaf(b, s.at(0.15 + i * 0.17), spin + i * 2.2 + jitter(lv, 0.3), range(lv, 0.08, 0.11), leaf, stemColor, lv);
   }
   const tip = s.at(1);
@@ -425,24 +427,24 @@ const marigold: Builder = (b) => {
     const k = ring / (rings - 1);
     const count = Math.round(lerp(15, 7, k));
     for (let j = 0; j < count; j += 1) {
-      const az = (j / count) * Math.PI * 2 + ring * 0.7 + jitter(pr, 0.2);
-      const len = R * lerp(0.82, 0.42, k) * range(pr, 0.9, 1.1);
-      const elevation = lerp(0.08, lerp(1.42, 0.35, k) + jitter(pr, 0.12), g.open);
+      const az = (j / count) * Math.PI * 2 + ring * 0.7 + jitter(pr, 0.08);
+      const len = R * lerp(0.82, 0.36, k) * range(pr, 0.9, 1.1);
+      const elevation = lerp(0.08, lerp(1.4, 0.62, k) + jitter(pr, 0.05), g.open);
       const pose = petalPose(head, az, elevation, R * 0.3 * (1 - k) * g.open, R * 0.28 * k * g.open);
       b.sheet({
         ...pose,
         length: len,
-        width: len * range(pr, 0.85, 1.05),
-        cup: 0.55,
-        curl: lerp(-0.1, 0.4, k),
-        twist: jitter(pr, 0.3),
-        ruffle: range(pr, 0.25, 0.4),
-        ruffleFreq: range(pr, 3, 4.5),
-        widthPos: 0.74,
-        tipShape: 0.35,
-        teeth: 4,
-        toothDepth: 0.14,
-        baseWidth: 0.12,
+        width: len * range(pr, 1.2, 1.4),
+        cup: 0.35,
+        curl: lerp(-0.1, 0.5, k),
+        twist: jitter(pr, 0.1),
+        ruffle: range(pr, 0.1, 0.16),
+        ruffleFreq: range(pr, 2, 2.8),
+        widthPos: 0.7,
+        tipShape: 0.28,
+        teeth: 3,
+        toothDepth: 0.05,
+        baseWidth: 0.3,
         base: vary(paint.base, pr, 0.06),
         tip: vary(scaleRgb(paint.tip, lerp(1, 0.9, k)), pr, 0.06),
         accent: paint.accent,
@@ -570,6 +572,7 @@ const hydrangea: Builder = (b, options) => {
   b.stalkTube(s, 0.011, 0.008, stemColor);
   const lv = b.stream("leaves");
   for (const [at, az] of [[0.32, 0], [0.58, Math.PI / 2]] as const) {
+    b.node(s, at, 0.0105, stemColor.tip);
     for (const sgn of [0, Math.PI]) {
       const p = s.at(at);
       const out = horizontal(spin + az + sgn + jitter(lv, 0.2));
@@ -661,6 +664,7 @@ const sunflower: Builder = (b) => {
   for (let i = 0; i < leafCount; i += 1) {
     const at = 0.14 + (i / leafCount) * 0.62;
     const p = s.at(at);
+    b.node(s, at, lerp(0.02, 0.013, at), stemColor.tip);
     const out = horizontal(spin + i * 2.4 + jitter(lv, 0.3));
     const base = add(madd(p, out, 0.04), [0, 0.012, 0]);
     b.segment(p, base, 0.005, 0.004, stemColor, MATERIAL.stem, [0, 0.008, 0]);
@@ -1145,6 +1149,7 @@ const peony: Builder = (b) => {
   const lv = b.stream("leaves");
   for (let i = 0; i < 3; i += 1) {
     const p = s.at(0.2 + i * 0.2);
+    b.node(s, 0.2 + i * 0.2, 0.0115, stemColor.tip);
     const az = spin + i * 2.3 + jitter(lv, 0.3);
     const out = horizontal(az);
     const end = add(madd(p, out, 0.06), [0, 0.02, 0]);
@@ -1191,20 +1196,20 @@ const peony: Builder = (b) => {
   }
   for (let i = 0; i < innerCount; i += 1) {
     const k = i / innerCount;
-    const az = i * GOLDEN_ANGLE + jitter(pr, 0.3);
-    const elevation = lerp(0.12, lerp(0.95, 0.22, k) + jitter(pr, 0.15), g.open);
+    const az = i * GOLDEN_ANGLE + jitter(pr, 0.08);
+    const elevation = lerp(0.12, lerp(0.95, 0.45, k ** 0.8) + jitter(pr, 0.06), g.open);
     const pose = petalPose(head, az, elevation, R * 0.22 * (1 - k) * g.open, R * 0.12 * g.open);
     const len = R * lerp(0.82, 0.45, k) * range(pr, 0.9, 1.1);
     const shade = semiDouble ? 1 : lerp(1, 0.82, k);
     b.sheet({
       ...pose,
       length: len,
-      width: len * lerp(1.15, 0.95, k),
-      cup: 1.2,
-      curl: range(pr, 0.5, 1.0),
-      tipCurl: jitter(pr, 0.3),
-      twist: jitter(pr, 0.3),
-      ruffle: range(pr, 0.12, 0.24),
+      width: len * lerp(1.35, 1.2, k),
+      cup: 1.1,
+      curl: range(pr, 0.4, 0.6),
+      tipCurl: jitter(pr, 0.12),
+      twist: jitter(pr, 0.1),
+      ruffle: range(pr, 0.1, 0.18),
       ruffleFreq: range(pr, 2.5, 3.5),
       widthPos: 0.64,
       tipShape: 0.35,

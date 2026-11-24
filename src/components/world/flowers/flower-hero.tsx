@@ -58,7 +58,7 @@ export function FlowerHero({ spec, time, className, label, framing = "plant" }: 
   const state: StudioState = useMemo(() => {
     const model = flowerModel(spec);
     const flowers: PlacedFlower[] = [{ model, placement: { position: [0, 0, 0], yaw: 0, scale: 1 }, phase: flowerPhase(spec.seed) }];
-    return { flowers, camera: heroCamera(model, framing), time: timeValue === null ? null : new Date(timeValue), reducedMotion, aura: 0.3, sway: 0.5 };
+    return { flowers, camera: heroCamera(model, framing), time: timeValue === null ? null : new Date(timeValue), reducedMotion, aura: 0.55, sway: 0.5 };
     // `key` captures every field of `spec`.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, timeValue, reducedMotion, framing]);

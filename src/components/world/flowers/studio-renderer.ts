@@ -142,10 +142,10 @@ export function createStudioRenderer(canvas: HTMLCanvasElement, initial: StudioS
     const bind = () => {
       const [w, h] = scene.size;
       const [hw, hh] = glowA.size;
-      bright.set({ source: scene, sourceSampler: linear, params: { texel: [1 / w, 1 / h], threshold: 0.4, knee: 0.35 } });
+      bright.set({ source: scene, sourceSampler: linear, params: { texel: [1 / w, 1 / h], threshold: 0.32, knee: 0.35 } });
       blurH.set({ source: glowA, sourceSampler: linear, params: { direction: [2.2 / hw, 0], pad: [0, 0] } });
       blurV.set({ source: glowB, sourceSampler: linear, params: { direction: [0, 2.2 / hh], pad: [0, 0] } });
-      composite.set({ scene, glow: glowA, linearSampler: linear, params: { resolution: [output.size[0], output.size[1]], exposure: 0.88, glowStrength: 0.55 } });
+      composite.set({ scene, glow: glowA, linearSampler: linear, params: { resolution: [output.size[0], output.size[1]], exposure: 0.9, glowStrength: 0.8 } });
     };
     bind();
     cleanups.push(
@@ -267,18 +267,19 @@ export function createStudioRenderer(canvas: HTMLCanvasElement, initial: StudioS
         const hz = lighting.horizon;
         backdrop.set({
           backdrop: {
-            top: [z[0] * 0.07 + 0.008, z[1] * 0.07 + 0.007, z[2] * 0.07 + 0.008],
+            top: [z[0] * 0.04 + 0.004, z[1] * 0.04 + 0.0035, z[2] * 0.04 + 0.004],
             grain: 1,
-            bottom: [hz[0] * 0.025 + 0.004, hz[1] * 0.025 + 0.004, hz[2] * 0.025 + 0.004],
+            bottom: [hz[0] * 0.012 + 0.002, hz[1] * 0.012 + 0.002, hz[2] * 0.012 + 0.002],
             pad: 0,
-            glow: [hz[0] * 0.06, hz[1] * 0.05, hz[2] * 0.045],
+            glow: [hz[0] * 0.03, hz[1] * 0.025, hz[2] * 0.022],
             glowY: 0.38,
           },
         });
 
         if (batch) {
           batch.setWorld(world);
-          batch.setParams({ hovered: -1, sway: still ? 0 : state.sway, detailNear: 1e6, aura: state.aura });
+          // The aura glows brighter as night falls.
+          batch.setParams({ hovered: -1, sway: still ? 0 : state.sway, detailNear: 1e6, aura: state.aura * (1 + 0.6 * lighting.night) });
         }
         frame.pass({ target: shadowMap, clear: [1, 1, 1, 1], clearDepth: 1 }, (pass) => batch?.encodeShadow(pass));
         frame.pass({ target: scene, clear: [0, 0, 0, 1], clearDepth: 1 }, (pass) => {

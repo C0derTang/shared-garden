@@ -12,7 +12,7 @@ export type FlowerDetail = "world" | "hero";
 const RESOLUTION: Record<FlowerDetail, { sheet: [number, number]; tube: [number, number]; blob: [number, number] }> = {
   // [along, across] vertices
   world: { sheet: [13, 7], tube: [9, 7], blob: [9, 11] },
-  hero: { sheet: [34, 17], tube: [24, 13], blob: [20, 26] },
+  hero: { sheet: [52, 27], tube: [28, 16], blob: [24, 32] },
 };
 
 export interface FlowerParamsValue {

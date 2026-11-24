@@ -18,6 +18,19 @@ fn aces(x: vec3f) -> vec3f {
   return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), vec3f(0.0), vec3f(1.0));
 }
 
+fn acesScalar(x: f32) -> f32 {
+  return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0);
+}
+
+// Filmic tone map that keeps hue: scale by the brightest channel so saturated
+// reds and magentas keep their modelling instead of clipping flat, with a
+// little per-channel roll-off so hot highlights still soften toward white.
+fn tonemap(c: vec3f) -> vec3f {
+  let m = max(max(c.r, c.g), max(c.b, 1e-4));
+  let preserved = c * (acesScalar(m) / m);
+  return mix(preserved, aces(c), 0.3);
+}
+
 fn linearToSrgb(c: vec3f) -> vec3f {
   let lo = c * 12.92;
   let hi = 1.055 * pow(c, vec3f(1.0 / 2.4)) - 0.055;
@@ -25,8 +38,8 @@ fn linearToSrgb(c: vec3f) -> vec3f {
 }
 
 @fragment fn fs_main(@location(0) uv: vec2f) -> @location(0) vec4f {
-  var color = aces(textureSampleLevel(scene, linearSampler, uv, 0.0).rgb * params.exposure);
-  let bloom = aces(textureSampleLevel(glow, linearSampler, uv, 0.0).rgb * params.glowStrength);
+  var color = tonemap(textureSampleLevel(scene, linearSampler, uv, 0.0).rgb * params.exposure);
+  let bloom = tonemap(textureSampleLevel(glow, linearSampler, uv, 0.0).rgb * params.glowStrength);
   color = 1.0 - (1.0 - color) * (1.0 - bloom);
   let px = uv * params.resolution / max(params.resolution.y / 1080.0, 0.5);
   let weave = sin(px.x * 1.7) * sin(px.y * 1.7 + sin(px.x * 0.31) * 0.6);

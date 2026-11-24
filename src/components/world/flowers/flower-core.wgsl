@@ -70,11 +70,11 @@ fn sheetLocal(u: f32, v: f32, len: f32, width: f32, cup: f32, bend: vec4f, outli
 
   let hw = 0.5 * width * sheetProfile(u, outline.y, outline.z, baseWidth);
   var lift = cup * hw * v * v;
-  // Ruffled, wavy margins and a gentle crumple across the blade.
-  let edge = pow(abs(v), 1.6);
+  // Ruffles live only near the margin, so the blade itself stays a smooth,
+  // fleshy cupped surface.
+  let edge = smoothstep(0.45, 1.0, abs(v));
   let wave = sin(u * outline.x * TAU + seed * 31.0 + v * 1.7) * 0.65 + sin(u * outline.x * 13.1 + seed * 17.0 - v * 2.3) * 0.35;
-  lift += bend.w * hw * edge * wave * smoothstep(0.0, 0.25, u) * 1.4;
-  lift += bend.w * 0.3 * hw * sin(v * 4.0 + u * 7.0 + seed * 13.0);
+  lift += bend.w * hw * edge * edge * wave * smoothstep(0.0, 0.25, u) * 1.3;
   return vec3f(0.0, y * len, z * len) + across * (v * hw) + normal * lift;
 }
 

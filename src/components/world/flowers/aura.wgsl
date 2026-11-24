@@ -37,7 +37,7 @@ struct AuraOut {
 
 @fragment fn fs_main(input: AuraOut) -> @location(0) vec4f {
   let r = length(input.corner);
-  // Gaussian with no visible rim.
-  let falloff = exp(-r * r * 4.5) * (1.0 - smoothstep(0.6, 1.0, r));
+  // A wide soft halo plus a brighter core hugging the bloom; no visible rim.
+  let falloff = (exp(-r * r * 6.0) * 0.55 + exp(-r * r * 14.0) * 0.6) * (1.0 - smoothstep(0.6, 1.0, r));
   return vec4f(input.color * falloff, 0.0);
 }

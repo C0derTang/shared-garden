@@ -103,6 +103,8 @@ struct Paint {
   gloss: f32,
   // Ambient occlusion.
   ao: f32,
+  // 0..1 share of the pixel covered (anti-aliased margins).
+  cover: f32,
 }
 
 // Brushstroke tonal streaks along a blade: long pigment streaks plus fine bristles.
@@ -112,10 +114,13 @@ fn brushStreaks(u: f32, v: f32, seed: f32) -> vec2f {
   return vec2f(streak - 0.5, bristle - 0.5);
 }
 
-fn paintSheet(input: FlowerOut, material: f32, seed: f32) -> Paint {
+// `d` is fwidth(uv): how much of the blade one pixel spans, for anti-aliased
+// margins and for detail that appears as the petal grows on screen.
+fn paintSheet(input: FlowerOut, material: f32, seed: f32, d: vec2f) -> Paint {
   let u = input.uv.x;
   let v = input.uv.y;
   let av = abs(v);
+  let px = max(d, vec2f(1e-4));
 
   // Ragged, brushy margin.
   let rag = valueNoise(vec2f(u * 14.0 + seed * 91.0, seed * 7.0)) * 0.03 + valueNoise(vec2f(u * 60.0 + seed * 13.0, 3.0 + seed)) * 0.012;
@@ -131,11 +136,14 @@ fn paintSheet(input: FlowerOut, material: f32, seed: f32) -> Paint {
     let profile = select(1.0 - saw, saw, input.cut.z > 0.4);
     limit -= depth * profile;
   }
-  if (av > limit) {
-    discard;
-  }
+  // Coverage instead of a hard cut, so margins stay smooth at any distance.
+  var cover = clamp((limit - av) / px.y + 0.5, 0.0, 1.0);
   let notch = input.cut.x;
-  if (notch > 0.0 && u > 1.0 - notch * (1.0 - smoothstep(0.0, 0.28, av))) {
+  if (notch > 0.0) {
+    let notchEdge = 1.0 - notch * (1.0 - smoothstep(0.0, 0.28, av));
+    cover = min(cover, clamp((notchEdge - u) / px.x + 0.5, 0.0, 1.0));
+  }
+  if (cover <= 0.0) {
     discard;
   }
 
@@ -155,6 +163,7 @@ fn paintSheet(input: FlowerOut, material: f32, seed: f32) -> Paint {
     p.thin = input.tip.w;
     p.gloss = 0.35;
     p.ao = 1.0;
+    p.cover = cover;
     return p;
   }
 
@@ -172,17 +181,30 @@ fn paintSheet(input: FlowerOut, material: f32, seed: f32) -> Paint {
   let veins = input.accent.w;
   // Strongly veined petals (moonflower) carry a bold star along each midrib.
   let midStrength = mix(0.3, 0.9, smoothstep(0.7, 0.85, veins));
-  col = mix(col, input.accent.rgb, clamp(veinLine * veins * 0.35 + mid * veins * midStrength + max(brush.x, 0.0) * veins * 1.1, 0.0, 1.0));
-  col *= 1.0 + brush.x * 0.38 + brush.y * 0.16;
-  // Botanical-plate saturation.
-  col = max(mix(vec3f(luma(col)), col, 1.18), vec3f(0.0));
-  // Thin, lighter ruffled margins.
-  col = mix(col, input.tip.rgb * 1.08, smoothstep(0.78, 1.0, av) * 0.35);
+  // Detail fades in as the petal grows on screen (lines per pixel stay < ~0.5).
+  let veinFade = 1.0 - smoothstep(0.3, 0.8, px.y * count * 0.5);
+  col = mix(col, input.accent.rgb, clamp(veinLine * veins * 0.35 * veinFade + mid * veins * midStrength + max(brush.x, 0.0) * veins * 1.1, 0.0, 1.0));
+  // Fine longitudinal veins and streaks, like a botanical plate's hatching.
+  let fine = 28.0 + floor(seed * 16.0);
+  let fineLane = abs(fract((v + warp * 0.6) * fine * 0.5 + seed * 3.0) - 0.5) * 2.0;
+  let fineFade = 1.0 - smoothstep(0.3, 0.75, px.y * fine * 0.5);
+  let fineLine = (1.0 - smoothstep(0.0, 0.4, fineLane)) * smoothstep(0.03, 0.25, u) * (1.0 - smoothstep(0.7, 1.0, u) * 0.8) * fineFade;
+  let fineTone = valueNoise(vec2f(v * fine * 0.5 + seed * 11.0, u * 4.0));
+  col *= 1.0 - fineLine * (0.1 + 0.25 * veins) * (0.6 + 0.8 * fineTone);
+  col *= 1.0 + brush.x * 0.38 + brush.y * 0.16 * (1.0 - smoothstep(0.3, 0.8, px.y * 30.0));
+  // Botanical-plate saturation, deepest toward the base.
+  let deep = 1.0 - smoothstep(0.0, 0.45, u);
+  col = max(mix(vec3f(luma(col)), col, 1.18 + 0.25 * deep), vec3f(0.0)) * mix(1.0, 0.78, deep);
+  // Thin, lighter margins with a fine highlight right at the edge.
+  col = mix(col, input.tip.rgb * 1.1, smoothstep(0.75, 1.0, av) * 0.25);
+  let rim = smoothstep(limit - 0.06 - 2.0 * px.y, limit - px.y, av);
+  col = mix(col, max(input.tip.rgb, vec3f(luma(input.tip.rgb))) * 1.2, rim * 0.18);
   p.albedo = col;
   p.thin = input.tip.w;
   p.gloss = 0.12;
   // Deep in the flower's heart it is darker.
   p.ao = mix(0.5, 1.0, smoothstep(0.0, 0.32, u));
+  p.cover = cover;
   return p;
 }
 
@@ -191,6 +213,7 @@ fn paintTube(input: FlowerOut, material: f32, seed: f32) -> Paint {
   let a = input.uv.y;
   let fibre = valueNoise(vec2f(a * 26.0 + seed * 11.0, u * 5.0)) - 0.5;
   var p: Paint;
+  p.cover = 1.0;
   p.ao = 1.0;
   if (isM(material, M_SPINE)) {
     p.albedo = mix(input.base.rgb, input.tip.rgb, smoothstep(0.35, 1.0, u));
@@ -210,7 +233,8 @@ fn paintTube(input: FlowerOut, material: f32, seed: f32) -> Paint {
   col *= 1.0 + fibre * 0.22;
   p.albedo = col;
   p.thin = select(0.35, 0.15, isM(material, M_CACTUS));
-  p.gloss = select(0.18, 0.4, isM(material, M_CACTUS));
+  // A soft satin sheen runs along living stalks.
+  p.gloss = select(0.3, 0.4, isM(material, M_CACTUS));
   p.ao = mix(0.6, 1.0, smoothstep(0.0, 0.2, u));
   return p;
 }
@@ -219,6 +243,7 @@ fn paintBlob(input: FlowerOut, material: f32, seed: f32) -> Paint {
   let t = input.uv.x;
   let phi = input.uv.y * TAU;
   var p: Paint;
+  p.cover = 1.0;
   p.ao = 1.0;
   p.thin = input.tip.w;
   p.gloss = 0.15;
@@ -277,13 +302,31 @@ fn paintBlob(input: FlowerOut, material: f32, seed: f32) -> Paint {
   return p;
 }
 
-@fragment fn fs_main(input: FlowerOut) -> @location(0) vec4f {
+struct FragOut {
+  @location(0) color: vec4f,
+  // Anti-aliased margins: coverage becomes an MSAA sample mask, so the
+  // alpha channel stays free for the painterly filter's distance code.
+  @builtin(sample_mask) mask: u32,
+}
+
+// Dithered 4x coverage mask, rotated per pixel so partial edges blend smoothly.
+fn coverageMask(cover: f32, pixel: vec2f) -> u32 {
+  let jitter = fract(sin(dot(floor(pixel), vec2f(12.9898, 78.233))) * 43758.5453);
+  let samples = u32(clamp(floor(cover * 4.0 + jitter * 0.999), 0.0, 4.0));
+  let bits = (1u << samples) - 1u;
+  let r = u32(floor(jitter * 4.0)) & 3u;
+  return ((bits << r) | (bits >> ((4u - r) & 3u))) & 15u;
+}
+
+@fragment fn fs_main(input: FlowerOut) -> FragOut {
+  // Derivatives first, in uniform control flow.
+  let d = fwidth(input.uv);
   let material = input.base.w;
   let seed = input.misc.y;
   let kind = input.misc.w;
   var p: Paint;
   if (abs(kind - T_SHEET) < 0.5) {
-    p = paintSheet(input, material, seed);
+    p = paintSheet(input, material, seed, d);
   } else if (abs(kind - T_TUBE) < 0.5) {
     p = paintTube(input, material, seed);
   } else {
@@ -299,7 +342,7 @@ fn paintBlob(input: FlowerOut, material: f32, seed: f32) -> Paint {
   var albedo = p.albedo;
   if (backside && abs(kind - T_SHEET) < 0.5) {
     // Petal and leaf undersides are paler and cooler.
-    albedo = mix(albedo, vec3f(luma(albedo)) * vec3f(0.96, 1.0, 1.05), 0.22) * 1.04;
+    albedo = mix(albedo, vec3f(luma(albedo)) * vec3f(0.96, 1.0, 1.05), 0.1) * 1.04;
   }
 
   let light = normalize(world.lightDir);
@@ -316,6 +359,9 @@ fn paintBlob(input: FlowerOut, material: f32, seed: f32) -> Paint {
   // Pale petals glow less through than saturated ones, so whites keep their form.
   let transmit = albedo * (albedo * 1.3 + vec3f(0.12)) * (1.0 - 0.45 * smoothstep(0.35, 0.8, luma(albedo)));
   lit += key * transmit * p.thin * (through * 0.5 + forward * 0.7) * (0.35 + 0.65 * shadow);
+
+  // Soft subsurface fill: thin tissue never falls to a flat, unlit colour.
+  lit += key * albedo * albedo * p.thin * 0.28 * (1.0 - 0.7 * direct);
 
   // Rim of light along silhouettes.
   let rim = pow(1.0 - max(dot(n, toEye), 0.0), 3.0);
@@ -334,5 +380,8 @@ fn paintBlob(input: FlowerOut, material: f32, seed: f32) -> Paint {
 
   let color = aerial(lit, input.worldPos, world);
   let near = length(input.worldPos - world.eye) < flowers.detailNear;
-  return vec4f(color, select(distanceAlpha(input.worldPos, world), -1.0, near));
+  var out: FragOut;
+  out.color = vec4f(color, select(distanceAlpha(input.worldPos, world), -1.0, near));
+  out.mask = select(15u, coverageMask(p.cover, input.clip.xy), p.cover < 0.999);
+  return out;
 }
