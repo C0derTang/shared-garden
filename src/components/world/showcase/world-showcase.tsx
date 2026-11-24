@@ -6,6 +6,8 @@ import { bedAt, bedCountFor, spotCapacityFor, spotPosition } from "@/lib/world/l
 import { SKY_PRESETS, type SkyPreset } from "@/lib/world/sky-presets";
 import { skyStateAt } from "@/lib/world/solar";
 import { GardenWorld, type WorldCaption } from "../garden-world";
+import { createFireworksLayer } from "../fireworks/fireworks-layer";
+import { FireworksOverlay } from "../fireworks/fireworks-overlay";
 import { createFlowerLayer } from "../flowers/flower-layer";
 import { worldFlowerAnchors, type WorldFlower } from "../flowers/flower-models";
 import styles from "./world-showcase.module.css";
@@ -40,7 +42,13 @@ export function WorldShowcase({ preset: initialPreset, planted: initialPlanted }
   const flowers = useMemo(() => worldFlowerAnchors(planted), [planted]);
   const [flowerLayer] = useState(() => createFlowerLayer());
   useEffect(() => flowerLayer.setFlowers(planted), [flowerLayer, planted]);
-  const layers = useMemo(() => [flowerLayer], [flowerLayer]);
+  const [fireworksLayer] = useState(() => createFireworksLayer());
+  const [fireworks, setFireworks] = useState<"off" | "show" | "still">("off");
+  const layers = useMemo(() => [flowerLayer, fireworksLayer], [flowerLayer, fireworksLayer]);
+  const playFireworks = (still: boolean) => {
+    fireworksLayer.play({ seed: Math.floor(Math.random() * 2 ** 31), still, narrow: window.innerWidth < window.innerHeight * 0.8, onEnd: () => setFireworks("off") });
+    setFireworks(still ? "still" : "show");
+  };
   const sky = skyStateAt(time ?? new Date());
   const captions: WorldCaption[] = useMemo(() => {
     const list: WorldCaption[] = [{ id: "title", text: "our little garden", position: [0, 13, -70], size: "title" }];
@@ -74,6 +82,12 @@ export function WorldShowcase({ preset: initialPreset, planted: initialPlanted }
         }}
         onPickFlower={(id) => record(`picked ${id}`)}
       />
+      <FireworksOverlay
+        caption="for today’s achievement: First seed planted"
+        playing={fireworks !== "off"}
+        canReplay={false}
+        onReplay={() => playFireworks(false)}
+      />
       <aside className={styles.panel} aria-label="World showcase controls">
         <p className={styles.heading}>Painted world · dev showcase</p>
         <p>Scroll, swipe or use arrow keys to walk in. Click a seed mark to plant the next flower type.</p>
@@ -90,6 +104,14 @@ export function WorldShowcase({ preset: initialPreset, planted: initialPlanted }
               {name}
             </button>
           ))}
+        </div>
+        <div className={styles.row} role="group" aria-label="Night fireworks">
+          <button type="button" aria-pressed={fireworks === "show"} onClick={() => playFireworks(false)}>
+            fireworks
+          </button>
+          <button type="button" aria-pressed={fireworks === "still"} onClick={() => playFireworks(true)}>
+            still fireworks
+          </button>
         </div>
         <p data-testid="sky-state">
           {sky.phase} · sun {sky.elevation.toFixed(1)}° · azimuth {sky.azimuth.toFixed(0)}°

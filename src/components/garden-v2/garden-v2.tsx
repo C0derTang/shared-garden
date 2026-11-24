@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import { usePartnerName } from "@/components/auth/member-names";
 import type { FlowerLayer } from "@/components/world/flowers/flower-layer";
 import { worldFlowerAnchors, type WorldFlower } from "@/components/world/flowers/flower-models";
+import { FireworksOverlay } from "@/components/world/fireworks/fireworks-overlay";
 import { GardenWorld, usePrefersReducedMotion, type WorldCaption, type WorldStatus } from "@/components/world/garden-world";
 import { handFont } from "@/components/world/hand-font";
 import { legacyPath } from "@/lib/legacy/routes";
@@ -16,6 +17,7 @@ import type { FocusTarget } from "@/lib/world/journey";
 import { spotPosition } from "@/lib/world/layout";
 import { AwayNote } from "./away-note";
 import { FlowerPanel } from "./flower-panel";
+import { useNightFireworks } from "./night-fireworks";
 import { GardenOverlays } from "./overlays/garden-overlays";
 import { PlantView } from "./plant-view";
 import { SplitView } from "./split-view";
@@ -91,7 +93,11 @@ export function GardenV2({
   }, []);
   const { flowers, anchors } = useWorldFlowers(state);
   useEffect(() => flowerLayer?.setFlowers(flowers), [flowerLayer, flowers]);
-  const layers = useMemo(() => (flowerLayer ? [flowerLayer] : []), [flowerLayer]);
+  // Any full-screen view (a flower, planting, or an overlay such as Memories) covers the world.
+  const covered = mode.kind !== "idle" || view !== null;
+  // Night fireworks after a day with an achievement (#184); they pause with the world behind the split view.
+  const fireworks = useNightFireworks({ state, now, covered, worldReady: worldStatus === "ready", reducedMotion });
+  const layers = useMemo(() => [flowerLayer, fireworks.layer].filter((layer) => layer !== null), [flowerLayer, fireworks.layer]);
   const occupied = useMemo(() => state?.plants.map((plant) => plant.flower.spot) ?? [], [state]);
 
   useEffect(() => () => window.clearTimeout(timer.current), []);
@@ -241,7 +247,6 @@ export function GardenV2({
   const openPlant = mode.kind === "flower" ? state.plants.find((plant) => plant.flower.id === mode.id) : undefined;
   const openItem = openPlant ? catalogItem(state, openPlant.flower.type_key) : undefined;
   const openName = openPlant ? captionName(openItem, openPlant.flower.type_key) : "";
-  const covered = mode.kind !== "idle" || view !== null;
 
   return (
     <main
@@ -249,6 +254,7 @@ export function GardenV2({
       className={`${styles.page} ${styles.theme} ${handFont.className}`}
       style={themeStyle}
       data-covered={covered || undefined}
+      data-fireworks={fireworks.overlay.playing || undefined}
       onPointerDown={() => setWandered(true)}
       onWheel={() => setWandered(true)}
       onKeyDown={() => setWandered(true)}
@@ -285,10 +291,12 @@ export function GardenV2({
           visit(id);
         }}
       />
+      <FireworksOverlay {...fireworks.overlay} hidden={covered} />
       {worldStatus === "ready" && !wandered && !covered && (
         <p className={styles.hint}>scroll to wander closer · tap a flower to visit</p>
       )}
-      {!covered && hasAwayNews(news) && <AwayNote news={news} state={state} onDismiss={() => setNews(noAwayNews)} />}
+      {/* The away note waits for the fireworks to finish, so their words never overlap. */}
+      {!covered && !fireworks.overlay.playing && hasAwayNews(news) && <AwayNote news={news} state={state} onDismiss={() => setNews(noAwayNews)} />}
       {error && !covered && (
         <p className={styles.toast} role="status">
           {error}

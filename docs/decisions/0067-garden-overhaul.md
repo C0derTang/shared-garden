@@ -647,3 +647,94 @@ Settings and guide, made under this decision's discretion and the look in
   - The guide does not greet a visit that arrives by a link to a flower or an
     overlay (even after that overlay closes), or a visit where the private
     moment is already open. Settings can replay it.
+
+### Recorded choice: night fireworks ([#184](https://github.com/C0derTang/shared-garden/issues/184))
+
+Conservative choices for the fireworks named in "New garden look and
+interaction", made under this decision's discretion:
+
+- **When it is night:** from the real sunset (the sun's upper limb at −0.833°,
+  computed with the world sky's own sun for the Los Angeles reference point)
+  until the next 4 a.m. America/Los_Angeles rollover. From midnight to 4 a.m.
+  it is always the same night; from 4 a.m. to noon a dark sky is the new day's
+  dawn, not the night. Wall-clock hours come from the time zone, so both
+  daylight-saving transitions keep the boundary at 4 a.m. local time. The
+  instant is the garden's server-calibrated clock.
+- **Which achievements count:** any new-garden award whose `earned_day` is the
+  garden day of that night (so at 1 a.m. the previous calendar day's awards
+  count). The garden reads `v2_awards_for_day` for that day only at night: on
+  opening, when the garden day changes, when garden activity changes and every
+  three minutes, and only while the tab is visible (coming back into view
+  reads at once). An award earned at night while the garden is open counts
+  too.
+- **Once per member per night:** the show plays by itself the first time the
+  painted world is ready and nothing covers it, and the browser remembers the
+  garden day in local storage (`garden-v2:fireworks:<member slot>`, the day
+  only). It is marked seen when the show's first frame paints. A later visit
+  that night offers only a small handwritten "replay fireworks" under the
+  corner links (top right, clear of the hint, the away note and the caption at
+  every width) while it is still night and the award holds. The control stays
+  in place while a show plays, quieted and `aria-disabled`, so keyboard focus
+  is never lost. Its star is decorative and hidden from assistive technology. Storage is
+  per browser, so a member may see the show once on each device. When storage
+  cannot be read, the show never plays by itself (it could otherwise repeat on
+  every visit) but the replay is still offered.
+- **The show:** about 34 seconds (33 to 35, seeded by the garden day and
+  varied per replay). Rockets with glittering trails rise from the water and
+  burst over the lake, framed between the trees and to the right of the moon
+  (world x −9 to 25; −9 to 13 on narrow portrait screens). It opens with three
+  single shells. It then builds through overlapping volleys of two to four
+  shells. The finale bursts eight shells at once, then a second wave of four.
+  It ends with three willows whose golden embers fall slowly over the water.
+- **Shells:** each has 150 to 400 stars. The types are peony (with a coloured
+  pistil, some stars glittering), chrysanthemum (long comet tails),
+  willow (hanging golden strands), ring, heart and crackle (white pops on dim
+  embers). The colours are gold, rose, violet, teal, white, coral, green and
+  blue. Each star drifts from its shell's colour to a second hue as it burns
+  (for example gold to rose, or teal to violet), then cools to embers.
+- **Rendering:**
+  - A compute pass (vgpu) simulates about 13,000 particles (a pool of 24,576)
+    from records written once per show. It applies gravity, air drag and a
+    slow breeze that carries embers as they slow.
+  - Sparks draw as camera-facing streaks stretched along their motion, in
+    HDR far above the night sky, so the world's glow gives them soft halos.
+    Hues are deepened before tone mapping so colours stay coloured.
+  - Their cores opt out of the painterly filter (scene alpha −1, the same
+    path as the flowers' close-up detail). They stay crisp and luminous,
+    while the canvas streaks and the bloom still paint over them.
+  - Stars kindle over their first moments after a burst, and pistils and
+    cores burn at half strength in colour, so a young burst blooms open
+    instead of flaring into a white mass.
+  - Each burst lights the air around it with a soft, mottled glow that cools
+    into smoke of its second hue and fades over several seconds.
+  - Sparks and glows also draw, brighter, into the lake's mirror image, so the
+    water carries strong reflections.
+  - The open bursts throw a coloured flash on the meadow, shore and tree
+    edges through the world's local lamp, which now has a colour and falloff
+    (the landing's porch lamp is unchanged).
+  - While the show plays, the sky deepens by up to 30%, and the moon and its
+    glitter on the water dim by up to 75%. This eases in and out over the
+    first and last seconds.
+- **Caption:** while the show plays, a gentle handwritten line reads for
+  example "✦ for today’s achievement: First seed planted". Several titles are
+  joined with commas and "and". It has a soft warm glow and rests below the
+  sky's action: over the far shore on wide screens, and on the meadow below the
+  beds on phones and portrait screens. It is a polite live region and catches
+  no pointer events. While the show plays, the big floating "our garden" title
+  fades out and the "while you were away" note waits; both return when it
+  ends.
+- **Reduced motion:** a still sky of five open bursts (peony, ring,
+  chrysanthemum, heart and willow) spread across the burst lane, with their
+  glow, reflection and the dimmed moon. It is held for 16 seconds and then
+  faded over 1.4 seconds. The words and the replay control do not animate.
+- **The split view and picking:** the show's clock advances only while the
+  world paints, so it pauses behind the split view and the planting view and
+  resumes when they close. The caption and the replay hide while they are
+  open. The fireworks draw only inside the world, so flower and seed picking
+  is unchanged.
+- **World hooks:** layers gain an optional `update` hook that runs first in
+  each painted frame (compute work, and a light and sky dimming for the scene)
+  and an optional `drawReflection` hook for the lake's mirror image. The
+  `World` uniform gains `lampColor`, `lampFalloff` and `showDim`.
+- **Development showcase:** `/dev/world` has "fireworks" and "still fireworks"
+  buttons and shows a sample caption (development only, 404 in production).

@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { WorldRendererCallbacks, WorldSceneState } from "@/components/world/renderer";
 import { awayKey, takeAwaySnapshot } from "@/lib/garden-v2/away";
 import type { GardenState } from "@/lib/garden-v2/model";
+import type { GardenView } from "@/lib/garden-v2/views";
 import { guideKey } from "@/lib/garden-v2/views";
 import { v2GardenFixture } from "@/test/garden-v2-fixture";
 
@@ -22,6 +23,16 @@ vi.mock("@/components/world/flowers/studio-renderer", () => ({
 vi.mock("@/components/world/flowers/flower-layer", () => ({
   createFlowerLayer: () => ({ draw: vi.fn(), setFlowers: vi.fn() }),
 }));
+// The night fireworks layer needs WebGPU; record what it is asked to play.
+type Play = { seed: number; still: boolean; onStart?: () => void; onEnd?: () => void };
+const fireworks = vi.hoisted(() => ({ plays: [] as Play[], readAwardsForDayV2: vi.fn() }));
+vi.mock("@/components/world/fireworks/fireworks-layer", () => ({
+  createFireworksLayer: () => ({ draw: vi.fn(), stop: vi.fn(), playing: false, play: (options: Play) => fireworks.plays.push(options) }),
+}));
+vi.mock("@/lib/garden-v2/achievement-actions", () => ({
+  readAwardsForDayV2: fireworks.readAwardsForDayV2,
+  readAchievementsV2: vi.fn(async () => ({ state: null, error: null })),
+}));
 const api = vi.hoisted(() => ({
   refreshGardenV2: vi.fn(),
   mutateGardenV2: vi.fn(),
@@ -31,7 +42,6 @@ const api = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/garden-v2/actions", () => api);
 // The garden's overlays (#183) and the private moment read through their own actions.
-vi.mock("@/lib/garden-v2/achievement-actions", () => ({ readAchievementsV2: vi.fn(async () => ({ state: null, error: null })) }));
 vi.mock("@/lib/garden-v2/memory-actions", () => ({ loadMemoriesV2: vi.fn(async () => ({ items: [], more: false, error: null })) }));
 vi.mock("@/lib/private-interaction/actions", () => ({
   readPrivateInteraction: vi.fn(async () => ({ state: { status: "unavailable" }, error: null })),
@@ -90,6 +100,8 @@ beforeEach(() => {
   api.mutateGardenV2.mockReset();
   api.loadFlowerHistoryV2.mockReset().mockResolvedValue({ entries: [], error: null });
   api.readRepliesV2.mockReset().mockResolvedValue({ replies: [], error: null });
+  fireworks.plays.length = 0;
+  fireworks.readAwardsForDayV2.mockReset().mockResolvedValue({ state: null, error: "unavailable" });
   vi.stubGlobal("navigator", { ...navigator, gpu: {}, onLine: true });
   stubReducedMotion();
 });
@@ -98,9 +110,9 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-async function mount(state = garden(), initialFlowerId: string | null = null) {
+async function mount(state = garden(), initialFlowerId: string | null = null, initialView: GardenView | null = null) {
   api.refreshGardenV2.mockResolvedValue({ state, error: null });
-  const view = render(<GardenV2 initial={{ state, error: null }} initialFlowerId={initialFlowerId} />);
+  const view = render(<GardenV2 initial={{ state, error: null }} initialFlowerId={initialFlowerId} initialView={initialView} />);
   await flush();
   await flush();
   act(() => worlds[0]!.callbacks.onReady());
@@ -195,6 +207,170 @@ describe("GardenV2", () => {
     expect(note).toHaveTextContent("the rose grew");
     await userEvent.setup().click(within(note).getByRole("button", { name: "lovely, thanks" }));
     expect(screen.queryByRole("region", { name: "while you were away…" })).toBeNull();
+  });
+
+  describe("night fireworks", () => {
+    /** 9 p.m. PST on the fixture's garden day (after sunset), with an achievement earned that day. */
+    function night(earned = true) {
+      const state = garden();
+      state.server_now = "2026-11-03T05:00:00Z";
+      fireworks.readAwardsForDayV2.mockResolvedValue({
+        state: {
+          server_now: state.server_now,
+          garden_day: "2026-11-02",
+          day: "2026-11-02",
+          earned,
+          awards: earned ? [{ achievement_id: "first-seed", title: "First seed planted", earned_at: "2026-11-02T18:00:00Z", earned_day: "2026-11-02" }] : [],
+        },
+        error: null,
+      });
+      return state;
+    }
+
+    it("plays once by itself after an achievement, then only from the replay", async () => {
+      const user = userEvent.setup();
+      const first = await mount(night());
+      await flush();
+      expect(fireworks.readAwardsForDayV2).toHaveBeenCalledWith("2026-11-02");
+      expect(fireworks.plays).toHaveLength(1);
+      // Reduced motion (stubbed on) gets the still sky.
+      expect(fireworks.plays[0]).toMatchObject({ still: true });
+      expect(worlds[0]!.states.at(-1)!.layers).toHaveLength(2);
+      expect(screen.getByText(/for today’s achievement: First seed planted/)).toBeInTheDocument();
+      // While the show plays the replay is quiet and inert; the big title steps aside.
+      expect(screen.getByRole("button", { name: "replay fireworks" })).toHaveAttribute("aria-disabled", "true");
+      expect(screen.getByRole("main")).toHaveAttribute("data-fireworks");
+      act(() => fireworks.plays[0]!.onStart?.());
+      expect(JSON.parse(window.localStorage.getItem("garden-v2:fireworks:1")!)).toEqual({ day: "2026-11-02" });
+      act(() => fireworks.plays[0]!.onEnd?.());
+      expect(screen.queryByText(/for today’s achievement/)).toBeNull();
+      expect(screen.getByRole("main")).not.toHaveAttribute("data-fireworks");
+      expect(screen.getByRole("button", { name: "replay fireworks" })).not.toHaveAttribute("aria-disabled");
+      await user.click(screen.getByRole("button", { name: "replay fireworks" }));
+      expect(fireworks.plays).toHaveLength(2);
+      expect(screen.getByText(/for today’s achievement: First seed planted/)).toBeInTheDocument();
+      first.unmount();
+
+      // Opening the garden again the same night: no show by itself, the replay is offered.
+      worlds.length = 0;
+      await mount(night());
+      await flush();
+      expect(fireworks.plays).toHaveLength(2);
+      expect(screen.getByRole("button", { name: "replay fireworks" })).toBeInTheDocument();
+    });
+
+    it("keeps keyboard focus on the replay through the show", async () => {
+      const user = userEvent.setup();
+      await mount(night());
+      await flush();
+      act(() => fireworks.plays[0]!.onEnd?.());
+      const replay = screen.getByRole("button", { name: "replay fireworks" });
+      replay.focus();
+      await user.keyboard("{Enter}");
+      expect(fireworks.plays).toHaveLength(2);
+      expect(document.activeElement).toBe(replay);
+      expect(replay).toHaveAttribute("aria-disabled", "true");
+      // Pressing it again mid-show does nothing.
+      await user.keyboard("{Enter}");
+      expect(fireworks.plays).toHaveLength(2);
+      act(() => fireworks.plays[1]!.onEnd?.());
+      expect(document.activeElement).toBe(screen.getByRole("button", { name: "replay fireworks" }));
+      expect(document.activeElement).not.toHaveAttribute("aria-disabled");
+    });
+
+    it("lets the away note wait until the show ends", async () => {
+      const before = garden();
+      before.plants[0]!.member2_submitted = false;
+      window.localStorage.setItem(awayKey(1), JSON.stringify(takeAwaySnapshot(before)));
+      await mount(night());
+      await flush();
+      expect(fireworks.plays).toHaveLength(1);
+      expect(screen.queryByRole("region", { name: "while you were away…" })).toBeNull();
+      act(() => fireworks.plays[0]!.onEnd?.());
+      expect(screen.getByRole("region", { name: "while you were away…" })).toBeInTheDocument();
+    });
+
+    it("does not read awards while the tab is hidden", async () => {
+      const visibility = vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
+      try {
+        await mount(night());
+        await flush();
+        expect(fireworks.readAwardsForDayV2).not.toHaveBeenCalled();
+        visibility.mockReturnValue("visible");
+        await act(async () => {
+          document.dispatchEvent(new Event("visibilitychange"));
+        });
+        await flush();
+        expect(fireworks.readAwardsForDayV2).toHaveBeenCalledWith("2026-11-02");
+      } finally {
+        visibility.mockRestore();
+      }
+    });
+
+    it("waits behind an overlay, and pauses with its words hidden while one is open", async () => {
+      const user = userEvent.setup();
+      // Arriving at ?view=memories: the show does not start behind the sheet.
+      const first = await mount(night(), null, "memories");
+      await flush();
+      expect(await screen.findByRole("dialog", { name: /memories/i })).toBeInTheDocument();
+      expect(worlds[0]!.states.at(-1)).toMatchObject({ paused: true });
+      expect(fireworks.plays).toHaveLength(0);
+      expect(screen.queryByText(/for today’s achievement/)).toBeNull();
+      await user.keyboard("{Escape}");
+      await flush();
+      expect(screen.queryByRole("dialog")).toBeNull();
+      expect(fireworks.plays).toHaveLength(1);
+      expect(worlds[0]!.states.at(-1)).toMatchObject({ paused: false });
+      expect(screen.getByText(/for today’s achievement: First seed planted/)).toBeInTheDocument();
+      first.unmount();
+
+      // Mid-show: opening Memories pauses the world and hides the caption and replay; closing resumes.
+      worlds.length = 0;
+      fireworks.plays.length = 0;
+      window.localStorage.removeItem("garden-v2:fireworks:1");
+      window.history.replaceState(null, "", "/garden");
+      await mount(night());
+      await flush();
+      expect(fireworks.plays).toHaveLength(1);
+      await user.click(screen.getByRole("link", { name: "memories" }));
+      await screen.findByRole("dialog", { name: /memories/i });
+      expect(worlds[0]!.states.at(-1)).toMatchObject({ paused: true });
+      expect(screen.queryByText(/for today’s achievement/)).toBeNull();
+      expect(screen.queryByRole("button", { name: "replay fireworks" })).toBeNull();
+      await user.keyboard("{Escape}");
+      await flush();
+      expect(worlds[0]!.states.at(-1)).toMatchObject({ paused: false });
+      expect(screen.getByText(/for today’s achievement: First seed planted/)).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "replay fireworks" })).toHaveAttribute("aria-disabled", "true");
+      // Nothing restarted: it was the same show all along.
+      expect(fireworks.plays).toHaveLength(1);
+    });
+
+    it("plays nothing by day, or at night without an achievement", async () => {
+      const day = await mount();
+      await flush();
+      expect(fireworks.readAwardsForDayV2).not.toHaveBeenCalled();
+      day.unmount();
+      worlds.length = 0;
+      await mount(night(false));
+      await flush();
+      expect(fireworks.readAwardsForDayV2).toHaveBeenCalled();
+      expect(fireworks.plays).toHaveLength(0);
+      expect(screen.queryByRole("button", { name: "replay fireworks" })).toBeNull();
+    });
+
+    it("keeps its words out of the split view, where the world pauses", async () => {
+      const user = userEvent.setup();
+      await mount(night());
+      await flush();
+      expect(fireworks.plays).toHaveLength(1);
+      await user.click(screen.getByRole("link", { name: /^rose,/ }));
+      await screen.findByRole("dialog", { name: "rose" });
+      expect(worlds[0]!.states.at(-1)).toMatchObject({ paused: true });
+      expect(screen.queryByText(/for today’s achievement/)).toBeNull();
+      await user.keyboard("{Escape}");
+      expect(screen.getByText(/for today’s achievement: First seed planted/)).toBeInTheDocument();
+    });
   });
 
   it("explains when the garden cannot load", () => {

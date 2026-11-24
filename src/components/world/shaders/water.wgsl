@@ -77,7 +77,7 @@ fn ripples(p: vec2f, t: f32) -> vec2f {
   let half = normalize(glitterDir + view);
   let glint = pow(max(dot(n, half), 0.0), 500.0);
   let sparkle = step(0.55, valueNoise(p * vec2f(6.0, 18.0) + world.time * 0.8));
-  let source = mix(world.lightColor * world.lightIntensity, vec3f(0.75, 0.82, 1.0) * 0.9, world.night);
+  let source = mix(world.lightColor * world.lightIntensity, vec3f(0.75, 0.82, 1.0) * 0.9 * (1.0 - 0.6 * world.showDim), world.night);
   color += source * glint * (6.0 + sparkle * 16.0) * smoothstep(-0.05, 0.1, glitterDir.y);
 
   // Lapping foam and a wet sheen along our shoreline.

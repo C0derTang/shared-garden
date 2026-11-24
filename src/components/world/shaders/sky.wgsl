@@ -77,12 +77,16 @@ fn cloudDensity(p: vec2f) -> f32 {
     color += vec3f(1.0, 0.96, 0.9) * star * 2.4 * world.stars * smoothstep(0.03, 0.25, ray.y);
   }
 
-  // Moon: cream disc, soft halo.
+  // A night show (fireworks) deepens the sky a little so the bursts shine.
+  color *= 1.0 - 0.3 * world.showDim;
+
+  // Moon: cream disc, soft halo (dimmer while a show plays).
   let moonDot = max(dot(ray, normalize(world.moonDir)), 0.0);
   let moonDisc = smoothstep(0.99955, 0.99975, moonDot);
   let mottle = valueNoise(ray.xy * 700.0) * 0.12 + valueNoise(ray.xy * 2100.0) * 0.06;
-  color += world.night * vec3f(0.55, 0.65, 0.95) * pow(moonDot, 90.0) * 0.45;
-  color = mix(color, vec3f(3.2, 3.05, 2.7) * (1.0 - mottle), moonDisc * world.night);
+  let moonLevel = 1.0 - 0.75 * world.showDim;
+  color += world.night * moonLevel * vec3f(0.55, 0.65, 0.95) * pow(moonDot, 90.0) * 0.45;
+  color = mix(color, vec3f(3.2, 3.05, 2.7) * (1.0 - mottle) * moonLevel, moonDisc * world.night);
 
   // Fine dither against banding in the smooth gradient.
   color += (hash21(input.clip.xy) - 0.5) * 0.004;

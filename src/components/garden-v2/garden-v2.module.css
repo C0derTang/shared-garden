@@ -68,6 +68,18 @@
   min-height: 0;
 }
 
+/* The big floating title steps aside while the night fireworks play, and returns after. */
+.page :global([data-caption="title"]) {
+  transition:
+    opacity 1.2s ease,
+    text-shadow 300ms ease,
+    color 300ms ease;
+}
+
+.page[data-fireworks] :global([data-caption="title"]) {
+  opacity: 0;
+}
+
 .srOnly {
   position: absolute;
   width: 1px;

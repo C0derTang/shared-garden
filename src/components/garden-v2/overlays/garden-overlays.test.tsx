@@ -19,6 +19,8 @@ vi.mock("@/components/world/renderer", () => ({
 }));
 vi.mock("@/components/world/flowers/studio-renderer", () => ({ createStudioRenderer: () => ({ update: vi.fn(), dispose: vi.fn() }) }));
 vi.mock("@/components/world/flowers/flower-layer", () => ({ createFlowerLayer: () => ({ draw: vi.fn(), setFlowers: vi.fn() }) }));
+// The night fireworks layer (#184) needs WebGPU and .wgsl.
+vi.mock("@/components/world/fireworks/fireworks-layer", () => ({ createFireworksLayer: () => ({ draw: vi.fn(), play: vi.fn(), stop: vi.fn(), playing: false }) }));
 const api = vi.hoisted(() => ({
   refreshGardenV2: vi.fn(),
   mutateGardenV2: vi.fn(),
@@ -43,7 +45,10 @@ vi.mock("@/lib/garden-v2/actions", () => ({
   saveReplyV2: api.saveReplyV2,
 }));
 vi.mock("@/lib/garden-v2/peony-actions", () => ({ readPeonyV2: vi.fn(), mutatePeonyV2: vi.fn() }));
-vi.mock("@/lib/garden-v2/achievement-actions", () => ({ readAchievementsV2: api.readAchievementsV2 }));
+vi.mock("@/lib/garden-v2/achievement-actions", () => ({
+  readAchievementsV2: api.readAchievementsV2,
+  readAwardsForDayV2: vi.fn(async () => ({ state: null, error: null })),
+}));
 vi.mock("@/lib/garden-v2/memory-actions", () => ({ loadMemoriesV2: api.loadMemoriesV2 }));
 vi.mock("@/lib/private-interaction/actions", () => ({
   readPrivateInteraction: api.readPrivateInteraction,
