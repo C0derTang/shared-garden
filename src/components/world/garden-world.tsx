@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { projectToNdc } from "@/lib/world/camera";
 import { SPOTS_PER_BED, type Vec3 } from "@/lib/world/layout";
 import type { FlowerAnchor } from "@/lib/world/picking";
 import { handFont } from "./hand-font";
-import type { WorldRenderer, WorldSceneState, WorldView } from "./renderer";
+import type { WorldComposition, WorldRenderer, WorldSceneState, WorldView } from "./renderer";
 import type { WorldLayer } from "./world-layer";
 import styles from "./garden-world.module.css";
 
@@ -19,9 +19,31 @@ export interface WorldCaption {
   readonly size?: "title" | "label";
   /** Makes the caption a button. */
   readonly onSelect?: () => void;
+  /** Makes the caption a submit button of a POST form to this same-origin path (works without JavaScript). */
+  readonly formAction?: string;
+  /**
+   * Shows the caption at a fixed spot low in the middle of the scene until the
+   * world first places it, so primary controls never wait for the GPU.
+   */
+  readonly standby?: boolean;
 }
 
 export interface GardenWorldProps {
+  /** Which scene to paint; fixed for the component's lifetime. Defaults to the garden. */
+  readonly composition?: WorldComposition;
+  /** Landing: the door glows and can be tapped. */
+  readonly doorInvite?: boolean;
+  /** Landing: play the walk-through through the door. */
+  readonly entering?: boolean;
+  readonly onPickDoor?: () => void;
+  /** Landing: the walk-through finished. */
+  readonly onEntered?: () => void;
+  /** Called every frame with the camera (for overlays such as the entry fade). */
+  readonly onView?: (view: WorldView) => void;
+  /** Reports the world's lifecycle (loading, ready, unsupported, stopped). */
+  readonly onStatusChange?: (status: WorldStatus) => void;
+  /** Replaces the default notices shown without WebGPU or after a failure. */
+  readonly notice?: (status: "unsupported" | "stopped") => ReactNode;
   /** Number of planting spots to show (rounded up to whole beds of twelve). */
   readonly spotCapacity?: number;
   /** One-based spots that already hold a flower; they get no empty marker. */
@@ -41,7 +63,8 @@ export interface GardenWorldProps {
   readonly label?: string;
 }
 
-type Status = "loading" | "ready" | "unsupported" | "stopped";
+export type WorldStatus = "loading" | "ready" | "unsupported" | "stopped";
+type Status = WorldStatus;
 
 const EMPTY: readonly never[] = [];
 /** Journey step for one key press. */
@@ -49,7 +72,7 @@ const KEY_STEP = 0.2;
 /** Device losses the world recovers from by recreating its GPU context before giving up. */
 export const DEVICE_LOSS_RECOVERIES = 1;
 
-function usePrefersReducedMotion(): boolean {
+export function usePrefersReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
     if (typeof window.matchMedia !== "function") return;
@@ -73,6 +96,14 @@ export function hasWebGpu(): boolean {
  * the beds; pointer movement adds parallax; clicking picks spots and flowers.
  */
 export function GardenWorld({
+  composition = "garden",
+  doorInvite = false,
+  entering = false,
+  onPickDoor,
+  onEntered,
+  onView,
+  onStatusChange,
+  notice,
   spotCapacity = SPOTS_PER_BED,
   occupiedSpots = EMPTY,
   flowers = EMPTY,
@@ -91,8 +122,18 @@ export function GardenWorld({
   const [status, setStatus] = useState<Status>("loading");
   const reducedMotion = usePrefersReducedMotion();
   const timeValue = time?.getTime() ?? null;
+  const statusRef = useRef(onStatusChange);
+  useEffect(() => {
+    statusRef.current = onStatusChange;
+  });
+  useEffect(() => {
+    statusRef.current?.(status);
+  }, [status]);
 
   const sceneState: WorldSceneState = {
+    composition,
+    doorInvite,
+    entering,
     spotCapacity,
     occupiedSpots,
     flowers,
@@ -102,10 +143,10 @@ export function GardenWorld({
   };
   const stateRef = useRef(sceneState);
   const motionRef = useRef(reducedMotion);
-  const pickRef = useRef({ onPickSpot, onPickFlower });
+  const pickRef = useRef({ onPickSpot, onPickFlower, onPickDoor, onEntered, onView });
 
   useEffect(() => {
-    pickRef.current = { onPickSpot, onPickFlower };
+    pickRef.current = { onPickSpot, onPickFlower, onPickDoor, onEntered, onView };
     captionsRef.current = captions;
     motionRef.current = reducedMotion;
   });
@@ -115,7 +156,7 @@ export function GardenWorld({
     rendererRef.current?.update(sceneState);
     // sceneState is rebuilt from these inputs every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [spotCapacity, occupiedSpots, flowers, layers, timeValue, reducedMotion]);
+  }, [spotCapacity, occupiedSpots, flowers, layers, timeValue, reducedMotion, doorInvite, entering]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -129,6 +170,7 @@ export function GardenWorld({
     let renderer: WorldRenderer | null = null;
     let recoveries = 0;
     const placeCaptions = (view: WorldView) => {
+      pickRef.current.onView?.(view);
       const t = motionRef.current ? 0 : performance.now() / 1000;
       captionsRef.current.forEach((caption, index) => {
         const element = captionRefs.current.get(caption.id);
@@ -177,9 +219,13 @@ export function GardenWorld({
             },
             onPick: (result) => {
               if (result.kind === "spot") pickRef.current.onPickSpot?.(result.spot);
+              else if (result.kind === "door") pickRef.current.onPickDoor?.();
               else pickRef.current.onPickFlower?.(result.id);
             },
             onFrame: placeCaptions,
+            onEntered: () => {
+              if (!cancelled) pickRef.current.onEntered?.();
+            },
           });
           rendererRef.current = renderer;
         })
@@ -205,6 +251,13 @@ export function GardenWorld({
   };
 
   const classes = [styles.world, handFont.className, className].filter(Boolean).join(" ");
+  if (notice && (status === "unsupported" || status === "stopped")) {
+    return (
+      <div className={classes} data-status={status}>
+        {notice(status)}
+      </div>
+    );
+  }
   if (status === "unsupported") {
     return (
       <div className={classes} data-status={status}>
@@ -241,18 +294,29 @@ export function GardenWorld({
     <div
       className={classes}
       data-status={status}
-      tabIndex={0}
-      onKeyDown={onKeyDown}
-      aria-label={`${label}. Use the up and down arrow keys to walk closer or step back.`}
+      tabIndex={composition === "garden" ? 0 : undefined}
+      onKeyDown={composition === "garden" ? onKeyDown : undefined}
+      aria-label={composition === "garden" ? `${label}. Use the up and down arrow keys to walk closer or step back.` : undefined}
     >
       <canvas ref={canvasRef} className={styles.canvas} role="img" aria-label={label} />
       <div className={styles.captions}>
         {captions.map((caption) => {
-          const className = [styles.caption, caption.size === "title" ? styles.title : styles.label].join(" ");
+          const className = [styles.caption, caption.size === "title" ? styles.title : styles.label, caption.standby ? styles.standby : ""]
+            .filter(Boolean)
+            .join(" ");
           const ref = (element: HTMLElement | null) => {
             if (element) captionRefs.current.set(caption.id, element);
             else captionRefs.current.delete(caption.id);
           };
+          if (caption.formAction) {
+            return (
+              <form key={caption.id} ref={ref} className={className} action={caption.formAction} method="post">
+                <button type="submit" className={styles.captionButton}>
+                  {caption.text}
+                </button>
+              </form>
+            );
+          }
           return caption.onSelect ? (
             <button key={caption.id} ref={ref} type="button" className={className} onClick={caption.onSelect}>
               {caption.text}

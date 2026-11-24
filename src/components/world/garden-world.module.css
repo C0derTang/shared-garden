@@ -63,13 +63,36 @@
   font-size: clamp(1.05rem, 2vw, 1.45rem);
 }
 
-button.caption {
+button.caption,
+.captionButton {
   pointer-events: auto;
   cursor: pointer;
 }
 
+.captionButton {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+  text-shadow: inherit;
+}
+
+form.caption {
+  margin: 0;
+}
+
+/* Primary controls wait low in the middle until the world places them. */
+.world:not([data-status="ready"]) .standby {
+  visibility: visible;
+  transform: translate(-50%, -50%) translate(50vw, 72vh);
+}
+
 button.caption:hover,
-button.caption:focus-visible {
+button.caption:focus-visible,
+form.caption:hover,
+form.caption:focus-within {
   color: #fff;
   outline: none;
   text-shadow:
@@ -120,6 +143,11 @@ button.caption:focus-visible {
 .noticeLink:focus-visible {
   outline: none;
   box-shadow: 0 0 1.2rem rgb(255 228 180 / 0.8);
+}
+
+.captionButton:focus-visible {
+  outline: none;
+  box-shadow: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -36,6 +36,10 @@ export interface WorldUniforms {
   readonly clipWater: number;
   readonly camUp: Vec3;
   readonly waterLevel: number;
+  /** A warm local light (the landing's porch lanterns and open door). */
+  readonly lamp: Vec3;
+  /** Strength of `lamp`; 0 turns it off. */
+  readonly lampLevel: number;
 }
 
 /** Per-frame view of the world handed to every layer. */

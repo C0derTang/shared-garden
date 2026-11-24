@@ -93,14 +93,14 @@ export function bedEdgingRocks(bedCount: number): Rock[] {
 }
 
 /** Lumpy, flattened stones sunk into the ground. */
-export function buildRockMesh(rocks: readonly Rock[]): MeshData {
+export function buildRockMesh(rocks: readonly Rock[], height: (x: number, z: number) => number = terrainHeight): MeshData {
   const around = 12;
   const down = 7;
   const vertices: number[] = [];
   const indices: number[] = [];
   for (const rock of rocks) {
     const first = vertices.length / ROCK_STRIDE;
-    const ground = terrainHeight(rock.x, rock.z);
+    const ground = height(rock.x, rock.z);
     const positions: Vec3[] = [];
     for (let j = 0; j <= down; j += 1) {
       const polar = (j / down) * Math.PI * 0.62;

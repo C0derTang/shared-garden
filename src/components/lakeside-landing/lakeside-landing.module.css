@@ -1,0 +1,128 @@
+.landing {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #2b2a22;
+  color: #fffaf0;
+}
+
+.world {
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+}
+
+/* The landing's floating words are a little larger than the garden's labels. */
+.world :global(form),
+.world button {
+  font-size: clamp(1.9rem, 4.6vw, 3.1rem);
+  letter-spacing: 0.02em;
+}
+
+.corner {
+  position: absolute;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: max(0.9rem, env(safe-area-inset-bottom));
+  padding: 0.3em 0.5em;
+  color: #fffaf0;
+  font-size: clamp(1rem, 2.2vw, 1.25rem);
+  text-decoration: none;
+  opacity: 0.82;
+  text-shadow:
+    0 0 0.45em rgb(255 240 214 / 0.5),
+    0 1px 2px rgb(40 30 20 / 0.35);
+  transition: opacity 300ms ease, text-shadow 300ms ease;
+}
+
+.corner:hover,
+.corner:focus-visible {
+  opacity: 1;
+  outline: none;
+  box-shadow: none;
+  text-shadow:
+    0 0 0.35em rgb(255 244 214 / 0.95),
+    0 0 1.1em rgb(255 214 150 / 0.75),
+    0 1px 2px rgb(40 30 20 / 0.3);
+}
+
+/* Warm light the walk-through (or the reduced-motion crossfade) dissolves into. */
+.light {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(ellipse at 50% 55%, #fff8ea 0%, #ffe2b0 42%, #f6bf7a 100%);
+}
+
+.landing[data-phase="fading"] .light,
+.landing[data-phase="leaving"] .light {
+  opacity: 1;
+  transition: opacity 450ms ease;
+}
+
+.notice {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 0.75rem;
+  max-width: 34rem;
+  margin: auto;
+  padding: 1.5rem;
+  color: #fffaf0;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.noticeTitle {
+  font-size: 1.9rem;
+}
+
+.noticeText {
+  font-size: 1.15rem;
+  opacity: 0.88;
+}
+
+.noticeActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-top: 0.4rem;
+}
+
+.noticeActions form {
+  margin: 0;
+}
+
+.noticeLink {
+  border: 0;
+  padding: 0.35rem 1.1rem;
+  border-radius: 999px;
+  background: none;
+  color: #fffaf0;
+  font: inherit;
+  font-size: 1.6rem;
+  text-decoration: none;
+  cursor: pointer;
+  text-shadow:
+    0 0 0.45em rgb(255 240 214 / 0.55),
+    0 0 1.4em rgb(255 214 160 / 0.3);
+  transition: text-shadow 300ms ease;
+}
+
+.noticeLink:hover,
+.noticeLink:focus-visible {
+  outline: none;
+  box-shadow: none;
+  text-shadow:
+    0 0 0.35em rgb(255 244 214 / 0.95),
+    0 0 1.1em rgb(255 214 150 / 0.75);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .corner,
+  .noticeLink {
+    transition: none;
+  }
+}

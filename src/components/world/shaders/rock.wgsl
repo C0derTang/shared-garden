@@ -1,4 +1,4 @@
-import { World, aerial, belowMirror, distanceAlpha, fbm, shadowFactor, srgbToLinear, valueNoise } from "./common.wgsl";
+import { World, aerial, belowMirror, distanceAlpha, fbm, lampLight, shadowFactor, srgbToLinear, valueNoise } from "./common.wgsl";
 
 // Stones: shore boulders, foreground rocks and bed edging, with moss on top.
 @group(0) @binding(0) var<uniform> world: World;
@@ -49,7 +49,7 @@ struct RockOut {
   // Pale stone holds sky light even in shade, so it never sinks to black.
   let fill = world.ambient * (0.75 + 0.45 * max(n.y, 0.0)) * mix(vec3f(0.85, 0.9, 1.08), vec3f(1.0), direct);
   let bounce = world.lightColor * world.lightIntensity * 0.12 * max(-n.y * 0.5 + 0.5, 0.0);
-  var color = albedo * (fill + bounce + world.lightColor * world.lightIntensity * direct);
+  var color = albedo * (fill + bounce + world.lightColor * world.lightIntensity * direct + lampLight(p, n, world));
   let toCamera = normalize(world.eye - p);
   color += world.lightColor * world.lightIntensity * pow(1.0 - max(dot(n, toCamera), 0.0), 3.0) * 0.4 * albedo;
   color = aerial(color, p, world);

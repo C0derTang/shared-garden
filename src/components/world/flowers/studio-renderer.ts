@@ -262,6 +262,8 @@ export function createStudioRenderer(canvas: HTMLCanvasElement, initial: StudioS
           clipWater: 0,
           camUp: up,
           waterLevel: -1e4,
+          lamp: [0, 0, 0],
+          lampLevel: 0,
         };
         const z = lighting.zenith;
         const hz = lighting.horizon;

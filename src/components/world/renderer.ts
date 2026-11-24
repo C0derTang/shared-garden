@@ -16,7 +16,22 @@ import {
   type Target,
 } from "vgpu";
 import { invert, lookAt, multiply, orthographic, perspective, rayFromNdc } from "@/lib/world/camera";
-import { journeyPose } from "@/lib/world/journey";
+import { journeyPose, type JourneyPose } from "@/lib/world/journey";
+import {
+  DOOR_HINGE,
+  DOOR_OPEN_ANGLE,
+  LANDING_WATER_EXTENT,
+  PORCH_LIGHT,
+  buildHouseMesh,
+  buildLandingCasterStrokes,
+  buildLandingFieldStrokes,
+  buildLandingGroundMesh,
+  landingHomePose,
+  landingRocks,
+  landingTerrainHeight,
+  pickDoor,
+  walkThroughAt,
+} from "@/lib/world/landing";
 import { bedEdgingRocks, buildMountainMesh, buildRockMesh, shoreRocks } from "@/lib/world/landforms";
 import { WATER_LEVEL, bedCountFor, layoutPlantingSpots, type Vec3 } from "@/lib/world/layout";
 import { pickAlongRay, type FlowerAnchor, type PickResult } from "@/lib/world/picking";
@@ -45,6 +60,8 @@ import rockShader from "./shaders/rock.wgsl";
 import skyShader from "./shaders/sky.wgsl";
 import waterShader from "./shaders/water.wgsl";
 import { maxDprFor, watchDeviceLoss } from "./device-loss";
+import houseShader from "./house/house.wgsl";
+import houseShadowShader from "./house/house-shadow.wgsl";
 import { createStrokeBatch, type StrokeBatch } from "./strokes/stroke-batch";
 import type { WorldFrameContext, WorldLayer, WorldShadow, WorldUniforms } from "./world-layer";
 
@@ -57,10 +74,20 @@ const RENDER_BUDGET = 1_900_000;
 /** Ground area (centre and half extent) covered by the key light's shadow map. */
 const SHADOW_CENTER: Vec3 = [0, 0, 3];
 const SHADOW_EXTENT = 30;
+const LANDING_SHADOW_CENTER: Vec3 = [1.5, 0, -3];
 const CLICK_SLOP_PX = 6;
 const RGB_ONLY: ("r" | "g" | "b")[] = ["r", "g", "b"];
 
+/** Which scene the world paints: the garden meadow, or the landing's lakeside house. */
+export type WorldComposition = "garden" | "landing";
+
 export interface WorldSceneState {
+  /** Fixed when the renderer is created; defaults to the garden. */
+  readonly composition?: WorldComposition;
+  /** Landing: the door glows and can be picked (signed-in members). */
+  readonly doorInvite?: boolean;
+  /** Landing: play the walk-through into the house (once set, it runs to the end). */
+  readonly entering?: boolean;
   readonly spotCapacity: number;
   readonly occupiedSpots: readonly number[];
   readonly flowers: readonly FlowerAnchor[];
@@ -76,6 +103,8 @@ export interface WorldView {
   /** Canvas size in CSS pixels. */
   readonly width: number;
   readonly height: number;
+  /** Landing walk-through: 0 until the final fade into warm light, then up to 1. */
+  readonly entryFade: number;
 }
 
 export interface WorldRendererCallbacks {
@@ -88,6 +117,8 @@ export interface WorldRendererCallbacks {
   onLost(info: GPUDeviceLostInfo): void;
   onPick(result: PickResult): void;
   onFrame?(view: WorldView): void;
+  /** Landing: the walk-through has finished. Called once. */
+  onEntered?(): void;
 }
 
 export interface WorldRenderer {
@@ -109,8 +140,11 @@ function meshGeometry(gpu: Gpu, mesh: MeshData, attributes: Record<string, GPUVe
   });
 }
 
-function waterGeometry(gpu: Gpu): Geometry {
-  const vertices = new Float32Array([-260, 0, 6, 260, 0, 6, 260, 0, -160, -260, 0, -160]);
+const HOUSE_ATTRIBUTES = { position: "float32x3", normal: "float32x3", uv: "float32x2", material: "float32" } as const;
+
+function waterGeometry(gpu: Gpu, composition: WorldComposition): Geometry {
+  const e = composition === "landing" ? LANDING_WATER_EXTENT : { minX: -260, maxX: 260, minZ: -160, maxZ: 6 };
+  const vertices = new Float32Array([e.minX, 0, e.maxZ, e.maxX, 0, e.maxZ, e.maxX, 0, e.minZ, e.minX, 0, e.minZ]);
   return geometry(gpu, {
     label: "garden-world.water",
     buffers: [{ data: vertices, attributes: { position: "float32x3" } }],
@@ -136,6 +170,8 @@ export function createWorldRenderer(
   callbacks: WorldRendererCallbacks,
 ): WorldRenderer {
   let state = initial;
+  const composition: WorldComposition = initial.composition ?? "garden";
+  const landing = composition === "landing";
   let disposed = false;
   let gpu: Gpu | undefined;
   let loop: FrameLoopHandle | undefined;
@@ -145,6 +181,8 @@ export function createWorldRenderer(
 
   const pointer = { x: 0, y: 0, smoothX: 0, smoothY: 0, downX: 0, downY: 0, down: false, touchY: 0 };
   const journey = { target: 0, value: 0 };
+  const entry = { seconds: 0, active: false, finished: false };
+  let doorHover = 0;
   let hovered: PickResult | null = null;
   const inverseViewProjection = new Float32Array(16);
   let cameraReady = false;
@@ -163,10 +201,16 @@ export function createWorldRenderer(
     if (rect.width === 0 || rect.height === 0) return null;
     const ndcX = ((clientX - rect.left) / rect.width) * 2 - 1;
     const ndcY = 1 - ((clientY - rect.top) / rect.height) * 2;
+    if (landing) {
+      if (!state.doorInvite || entry.active) return null;
+      const distance = pickDoor(rayFromNdc(inverseViewProjection, ndcX, ndcY));
+      return distance === null ? null : { kind: "door", distance };
+    }
     return pickAlongRay(rayFromNdc(inverseViewProjection, ndcX, ndcY), emptySpots, state.flowers);
   };
 
   const travel = (delta: number) => {
+    if (landing) return;
     journey.target = Math.min(1, Math.max(0, journey.target + delta));
   };
 
@@ -202,6 +246,7 @@ export function createWorldRenderer(
     canvas.style.cursor = "";
   };
   const onWheel = (event: WheelEvent) => {
+    if (landing) return;
     event.preventDefault();
     const pixels = event.deltaMode === 1 ? event.deltaY * 16 : event.deltaY;
     travel(pixels / 1400);
@@ -280,7 +325,7 @@ export function createWorldRenderer(
     const sky = draw(gpu, { shader: skyShader, vertices: 3, depth: false, label: "garden-world.sky" });
     const ground = draw(gpu, {
       shader: groundShader,
-      geometry: meshGeometry(gpu, buildGroundMesh(), GROUND_ATTRIBUTES, "garden-world.ground"),
+      geometry: meshGeometry(gpu, landing ? buildLandingGroundMesh() : buildGroundMesh(), GROUND_ATTRIBUTES, "garden-world.ground"),
       label: "garden-world.ground",
       set: shadowBindings,
     });
@@ -291,11 +336,16 @@ export function createWorldRenderer(
     });
     const rocks = draw(gpu, {
       shader: rockShader,
-      geometry: meshGeometry(gpu, buildRockMesh(shoreRocks()), ROCK_ATTRIBUTES, "garden-world.rocks"),
+      geometry: meshGeometry(
+        gpu,
+        landing ? buildRockMesh(landingRocks(), landingTerrainHeight) : buildRockMesh(shoreRocks()),
+        ROCK_ATTRIBUTES,
+        "garden-world.rocks",
+      ),
       label: "garden-world.rocks",
       set: shadowBindings,
     });
-    const water = draw(gpu, { shader: waterShader, geometry: waterGeometry(gpu), label: "garden-world.water" });
+    const water = draw(gpu, { shader: waterShader, geometry: waterGeometry(gpu, composition), label: "garden-world.water" });
     const motes = draw(gpu, {
       shader: motesShader,
       vertices: 6,
@@ -306,7 +356,24 @@ export function createWorldRenderer(
       label: "garden-world.motes",
     });
     const farShore = createStrokeBatch(gpu, buildFarShoreStrokes(), { label: "garden-world.far-shore", shadow });
-    const nearShore = createStrokeBatch(gpu, buildNearShoreStrokes(), { label: "garden-world.near-shore", shadow, castShadows: true });
+    const nearShore = createStrokeBatch(gpu, landing ? buildLandingCasterStrokes() : buildNearShoreStrokes(), {
+      label: "garden-world.near-shore",
+      shadow,
+      castShadows: true,
+    });
+    // The landing's house and the low cover of its clearing.
+    const houseGeometry = landing ? meshGeometry(gpu, buildHouseMesh(), HOUSE_ATTRIBUTES, "garden-world.house") : undefined;
+    const house = houseGeometry
+      ? draw(gpu, { shader: houseShader, geometry: houseGeometry, label: "garden-world.house", set: shadowBindings })
+      : undefined;
+    const houseCaster = houseGeometry
+      ? draw(gpu, {
+          shader: houseShadowShader,
+          geometry: houseGeometry,
+          depth: { write: true, compare: "less-equal", bias: 2, biasSlopeScale: 2 },
+          label: "garden-world.house.shadow",
+        })
+      : undefined;
 
     // Bed-dependent pieces are rebuilt when beds open.
     let bedCount = -1;
@@ -321,6 +388,10 @@ export function createWorldRenderer(
     let markerKey = "";
 
     const rebuildBeds = () => {
+      if (landing) {
+        if (!meadow) meadow = createStrokeBatch(gpu!, buildLandingFieldStrokes(), { label: "garden-world.clearing", shadow });
+        return;
+      }
       const nextCount = bedCountFor(state.spotCapacity);
       if (nextCount === bedCount) return;
       bedCount = nextCount;
@@ -343,6 +414,7 @@ export function createWorldRenderer(
     };
 
     const rebuildMarkers = () => {
+      if (landing) return;
       const key = emptySpots.map((spot) => spot.spot).join(",");
       if (key === markerKey) return;
       markerKey = key;
@@ -385,7 +457,7 @@ export function createWorldRenderer(
     const bind = () => {
       const [w, h] = scene.size;
       const [hw, hh] = glowA.size;
-      water.set({ reflection: mirror, reflectionSampler: linear, water: { texel: [1 / w, 1 / h], distortion: 0.12, pad: 0 } });
+      water.set({ reflection: mirror, reflectionSampler: linear, water: { texel: [1 / w, 1 / h], distortion: 0.12, shore: landing ? 1 : 0 } });
       bright.set({ source: scene, sourceSampler: linear, params: { texel: [1 / w, 1 / h], threshold: 1.1, knee: 0.5 } });
       blurH.set({ source: glowA, sourceSampler: linear, params: { direction: [1.6 / hw, 0], pad: [0, 0] } });
       blurV.set({ source: glowB, sourceSampler: linear, params: { direction: [0, 1.6 / hh], pad: [0, 0] } });
@@ -424,7 +496,8 @@ export function createWorldRenderer(
       mountains.compile(mirror),
       rocks.compile(scene),
       rocks.compile(mirror),
-      edging!.compile(scene),
+      ...(edging ? [edging.compile(scene)] : []),
+      ...(house && houseCaster ? [house.compile(scene), house.compile(mirror), houseCaster.compile(shadowMap)] : []),
       water.compile(scene),
       motes.compile(scene),
       farShore.compile(scene),
@@ -432,7 +505,7 @@ export function createWorldRenderer(
       nearShore.compile(scene),
       nearShore.compile(mirror),
       meadow!.compile(scene),
-      beds!.compile(scene),
+      ...(beds ? [beds.compile(scene)] : []),
       ...(markers ? [markers.compile(scene)] : []),
       bright.compile(glowA),
       blurH.compile(glowB),
@@ -503,16 +576,41 @@ export function createWorldRenderer(
         const aspect = output.size[0] / Math.max(output.size[1], 1);
         const fovY = Math.min((68 * Math.PI) / 180, Math.max((38 * Math.PI) / 180, 2 * Math.atan(Math.tan((24 * Math.PI) / 180) / Math.max(aspect, 0.01))));
         perspective(fovY, aspect, 0.1, 420, projection);
-        const pose = journeyPose(journey.value);
+        let pose: JourneyPose;
+        let walk: ReturnType<typeof walkThroughAt> | null = null;
+        if (landing) {
+          const home = landingHomePose(aspect);
+          if (state.entering) entry.active = true;
+          if (entry.active) {
+            entry.seconds += Math.min(time.deltaTime, 0.1);
+            walk = walkThroughAt(entry.seconds, home);
+            if (walk.done && !entry.finished) {
+              entry.finished = true;
+              queueMicrotask(() => {
+                if (!disposed) callbacks.onEntered?.();
+              });
+            }
+          }
+          pose = walk ?? home;
+        } else {
+          pose = journeyPose(journey.value);
+        }
         const t = motionTime;
+        // Idle drift and pointer parallax settle while the walk-through takes over.
+        const settle = walk ? Math.max(0, 1 - entry.seconds / 1.2) : 1;
+        const sway = landing ? 0.45 : 0.6;
         const eye: Vec3 = [
-          pose.eye[0] + Math.sin(t * 0.11) * 0.25 + pointer.smoothX * 0.6,
-          pose.eye[1] + Math.sin(t * 0.07) * 0.06 + pointer.smoothY * 0.2,
+          pose.eye[0] + (Math.sin(t * 0.11) * 0.25 + pointer.smoothX * sway) * settle,
+          pose.eye[1] + (Math.sin(t * 0.07) * 0.06 + pointer.smoothY * 0.2) * settle,
           pose.eye[2],
         ];
         // Portrait screens tilt down a little so the garden, not the sky, fills the frame.
-        const portraitTilt = (1 - Math.min(aspect, 1)) * 7;
-        const look: Vec3 = [pose.look[0] + Math.sin(t * 0.09 + 1) * 0.1 + pointer.smoothX * 0.12, pose.look[1] - portraitTilt + pointer.smoothY * 0.06, pose.look[2]];
+        const portraitTilt = landing ? 0 : (1 - Math.min(aspect, 1)) * 7;
+        const look: Vec3 = [
+          pose.look[0] + (Math.sin(t * 0.09 + 1) * 0.1 + pointer.smoothX * 0.12) * settle,
+          pose.look[1] - portraitTilt + pointer.smoothY * 0.06 * settle,
+          pose.look[2],
+        ];
         lookAt(eye, look, [0, 1, 0], view);
         multiply(projection, view, viewProjection);
         invert(viewProjection, inverseViewProjection);
@@ -528,9 +626,25 @@ export function createWorldRenderer(
         const skyState = skyStateAt(now);
         const lighting = worldLightingFor(skyState);
         const lightDir = lighting.lightDirection;
-        const lightEye: Vec3 = [SHADOW_CENTER[0] + lightDir[0] * 100, SHADOW_CENTER[1] + lightDir[1] * 100, SHADOW_CENTER[2] + lightDir[2] * 100];
-        lookAt(lightEye, SHADOW_CENTER, Math.abs(lightDir[1]) > 0.98 ? [0, 0, -1] : [0, 1, 0], lightView);
+        const shadowCenter = landing ? LANDING_SHADOW_CENTER : SHADOW_CENTER;
+        const lightEye: Vec3 = [shadowCenter[0] + lightDir[0] * 100, shadowCenter[1] + lightDir[1] * 100, shadowCenter[2] + lightDir[2] * 100];
+        lookAt(lightEye, shadowCenter, Math.abs(lightDir[1]) > 0.98 ? [0, 0, -1] : [0, 1, 0], lightView);
         multiply(lightProjection, lightView, lightViewProjection);
+
+        // The landing's warm lights: windows and lanterns come up as the sky darkens,
+        // the door breathes for members, and the doorway pours light when it opens.
+        const warmth = 0.3 + 1.9 * Math.min(1, lighting.night + lighting.glow * 0.6);
+        doorHover += ((hovered?.kind === "door" ? 1 : 0) - doorHover) * follow;
+        const invite = landing && state.doorInvite ? (0.6 + 0.2 * Math.sin(motionTime * 1.6)) * (1 + doorHover * 0.9) : 0;
+        const spill = walk?.spill ?? 0;
+        const houseParams = {
+          hinge: DOOR_HINGE,
+          doorAngle: (walk?.door ?? 0) * DOOR_OPEN_ANGLE,
+          glow: walk ? Math.max(invite, 1) : invite,
+          spill,
+          windows: warmth,
+          time: motionTime,
+        };
         const world: WorldUniforms = {
           viewProjection,
           inverseViewProjection,
@@ -557,6 +671,8 @@ export function createWorldRenderer(
           clipWater: 0,
           camUp: up,
           waterLevel: WATER_LEVEL,
+          lamp: landing ? PORCH_LIGHT : [0, 0, 0],
+          lampLevel: landing ? warmth * 0.9 + invite * 0.35 + spill * 3 : 0,
         };
         const mirrored: WorldUniforms = {
           ...world,
@@ -580,8 +696,10 @@ export function createWorldRenderer(
 
         // 0. Key-light shadow map (trees, reeds and layers such as the flowers cast; leaves are alpha-tested).
         nearShore.setWorld(world);
+        houseCaster?.set({ world, house: houseParams });
         currentFrame.pass({ target: shadowMap, clear: [1, 1, 1, 1], clearDepth: 1 }, (pass) => {
           nearShore.encodeShadow(pass);
+          if (houseCaster) pass.draw(houseCaster);
           for (const layer of state.layers) {
             if (readyLayers.has(layer)) layer.drawShadow?.(pass, context);
           }
@@ -591,29 +709,33 @@ export function createWorldRenderer(
         for (const drawable of [sky, ground, mountains, rocks]) drawable.set({ world: mirrored });
         farShore.setWorld(mirrored);
         nearShore.setWorld(mirrored);
+        house?.set({ world: mirrored, house: houseParams });
         currentFrame.pass({ target: mirror, clear: [0, 0, 0, 1], clearDepth: 1 }, (pass) => {
           pass.draw(sky);
           pass.draw(mountains);
           pass.draw(ground);
           pass.draw(rocks);
+          if (house) pass.draw(house);
           farShore.encode(pass);
           nearShore.encode(pass);
         });
 
         // 2. The scene.
-        for (const drawable of [sky, ground, mountains, rocks, water, motes, beds!, edging!, ...(markers ? [markers] : [])]) drawable.set({ world });
-        for (const batch of [farShore, nearShore, meadow!]) batch.setWorld(world);
+        for (const drawable of [sky, ground, mountains, rocks, water, motes, beds, edging, markers]) drawable?.set({ world });
+        house?.set({ world, house: houseParams });
+        for (const batch of [farShore, nearShore, meadow]) batch?.setWorld(world);
         currentFrame.pass({ target: scene, clear: [0, 0, 0, 1], clearDepth: 1 }, (pass) => {
           pass.draw(sky);
           pass.draw(mountains);
           pass.draw(ground);
           pass.draw(water);
           pass.draw(rocks);
-          pass.draw(beds!);
-          pass.draw(edging!);
+          if (beds) pass.draw(beds);
+          if (edging) pass.draw(edging);
+          if (house) pass.draw(house);
           farShore.encode(pass);
           nearShore.encode(pass);
-          meadow!.encode(pass);
+          meadow?.encode(pass);
           for (const layer of state.layers) {
             if (readyLayers.has(layer)) layer.draw(pass, context);
           }
@@ -644,7 +766,7 @@ export function createWorldRenderer(
         currentFrame.pass({ target: painted, clear: [0, 0, 0, 1] }, (pass) => pass.draw(kuwahara));
         currentFrame.pass({ target: output, clear: [0, 0, 0, 1] }, (pass) => pass.draw(composite));
 
-        callbacks.onFrame?.({ viewProjection, width: canvas.clientWidth, height: canvas.clientHeight });
+        callbacks.onFrame?.({ viewProjection, width: canvas.clientWidth, height: canvas.clientHeight, entryFade: walk?.fade ?? 0 });
       } catch (error) {
         // A throwing tick ends vgpu's loop; dispose and report the error so the
         // component can show its "stopped" notice instead of a frozen canvas.

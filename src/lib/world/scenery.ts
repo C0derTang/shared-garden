@@ -33,7 +33,10 @@ const REEDS = palette(["#6b7a3a", "#7f8a45", "#9a9250", "#5b6a33", "#a8975a"]);
 const GOLDEN_TIPS = palette(["#b9b062", "#c9b56a", "#a9a45a"]);
 const WILDFLOWERS = palette(["#f2a7b8", "#f6f0e4", "#f3cf5c", "#b9a6e8", "#ee8a6d", "#f7d9e3"]);
 
-function pick<T>(items: readonly T[], random: () => number): T {
+/** Shared paint palettes (linear light) for other compositions such as the landing. */
+export const SCENERY_PALETTES = { BLADES, SOIL, FOLIAGE, PINE, BARK, REEDS, GOLDEN_TIPS, WILDFLOWERS } as const;
+
+export function pick<T>(items: readonly T[], random: () => number): T {
   return items[Math.floor(random() * items.length)]!;
 }
 
@@ -60,7 +63,7 @@ export function field(x: number, z: number, salt: number): number {
   );
 }
 
-interface TreeOptions {
+export interface TreeOptions {
   readonly x: number;
   readonly z: number;
   readonly size: number;
@@ -70,6 +73,8 @@ interface TreeOptions {
   /** Stroke size multiplier (bigger, looser strokes far away). */
   readonly brush: number;
   readonly density: number;
+  /** Ground height under the trunk; defaults to the garden's terrain. */
+  readonly ground?: (x: number, z: number) => number;
 }
 
 function leafTangent(normal: Vec3, random: () => number): Vec3 {
@@ -90,8 +95,8 @@ function leafTangent(normal: Vec3, random: () => number): Vec3 {
  * leaf cards. Clumps give an irregular silhouette with lit and shaded sides;
  * leaves deep in the crown are darker.
  */
-function deciduousTree(strokes: Stroke[], random: () => number, tree: TreeOptions): void {
-  const ground = terrainHeight(tree.x, tree.z);
+export function deciduousTree(strokes: Stroke[], random: () => number, tree: TreeOptions): void {
+  const ground = (tree.ground ?? terrainHeight)(tree.x, tree.z);
   const widthScale = tree.widthScale ?? 1;
   const heightScale = tree.heightScale ?? 1;
   const trunkHeight = (1.5 + random() * 1.4) * tree.size * Math.sqrt(heightScale);
@@ -168,8 +173,8 @@ function deciduousTree(strokes: Stroke[], random: () => number, tree: TreeOption
   }
 }
 
-function conifer(strokes: Stroke[], random: () => number, tree: TreeOptions): void {
-  const ground = terrainHeight(tree.x, tree.z);
+export function conifer(strokes: Stroke[], random: () => number, tree: TreeOptions): void {
+  const ground = (tree.ground ?? terrainHeight)(tree.x, tree.z);
   const height = (5 + random() * 3.5) * tree.size;
   const radius = (1.3 + random() * 0.8) * tree.size;
   const baseY = ground + 0.6 * tree.size;
@@ -421,26 +426,42 @@ export interface MeshData {
 /** Floats per ground vertex: position(3) normal(3). */
 export const GROUND_STRIDE = 6;
 
-/** Terrain: meadow, shore bank, lakebed and the far shore. */
-export function buildGroundMesh(): MeshData {
-  const minX = -160;
-  const maxX = 160;
-  const minZ = -140;
-  const maxZ = 18;
-  const columns = 160;
-  const rows = 140;
+export interface HeightfieldGrid {
+  readonly minX: number;
+  readonly maxX: number;
+  readonly minZ: number;
+  readonly maxZ: number;
+  readonly columns: number;
+  readonly rows: number;
+  /**
+   * Column spacing exponent around x = 0: 1 is uniform; larger values pack
+   * columns near the middle of the view.
+   */
+  readonly xPower?: number;
+}
+
+/** A ground heightfield, denser toward the viewer (+z) and, optionally, toward x = 0. */
+export function buildHeightfieldMesh(height: (x: number, z: number) => number, grid: HeightfieldGrid): MeshData {
+  const { minX, maxX, minZ, maxZ, columns, rows } = grid;
+  const power = grid.xPower ?? 1;
   const vertices: number[] = [];
   const indices: number[] = [];
   for (let j = 0; j <= rows; j += 1) {
     const v = j / rows;
     const z = maxZ - (maxZ - minZ) * v * v;
     for (let i = 0; i <= columns; i += 1) {
-      const x = minX + ((maxX - minX) * i) / columns;
+      const s = i / columns;
+      let x = minX + (maxX - minX) * s;
+      if (power !== 1) {
+        const signed = s * 2 - 1;
+        const reach = signed < 0 ? -minX : maxX;
+        x = Math.sign(signed) * reach * Math.abs(signed) ** power;
+      }
       const e = 0.05;
-      const nx = -(terrainHeight(x + e, z) - terrainHeight(x - e, z)) / (2 * e);
-      const nz = -(terrainHeight(x, z + e) - terrainHeight(x, z - e)) / (2 * e);
+      const nx = -(height(x + e, z) - height(x - e, z)) / (2 * e);
+      const nz = -(height(x, z + e) - height(x, z - e)) / (2 * e);
       const length = Math.hypot(nx, 1, nz);
-      vertices.push(x, terrainHeight(x, z) - 0.01, z, nx / length, 1 / length, nz / length);
+      vertices.push(x, height(x, z) - 0.01, z, nx / length, 1 / length, nz / length);
     }
   }
   const row = columns + 1;
@@ -451,6 +472,11 @@ export function buildGroundMesh(): MeshData {
     }
   }
   return { vertices: new Float32Array(vertices), indices: new Uint32Array(indices), stride: GROUND_STRIDE };
+}
+
+/** Terrain: meadow, shore bank, lakebed and the far shore. */
+export function buildGroundMesh(): MeshData {
+  return buildHeightfieldMesh(terrainHeight, { minX: -160, maxX: 160, minZ: -140, maxZ: 18, columns: 160, rows: 140 });
 }
 
 /** Floats per bed vertex: position(3) normal(3) local(3). */

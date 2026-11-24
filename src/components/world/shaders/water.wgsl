@@ -6,7 +6,8 @@ struct WaterParams {
   // 1 / scene size in pixels (xy) and strength of ripple distortion (z).
   texel: vec2f,
   distortion: f32,
-  pad: f32,
+  // Which composition's shoreline to foam along: 0 garden, 1 landing.
+  shore: f32,
 }
 
 @group(0) @binding(0) var<uniform> world: World;
@@ -34,6 +35,16 @@ struct WaterOut {
 // Must match shorelineZ() in src/lib/world/layout.ts.
 fn shorelineZ(x: f32) -> f32 {
   return -6.0 + 1.1 * sin(x * 0.07 + 0.6) + 0.5 * sin(x * 0.19 - 1.1);
+}
+
+// Must match landingShoreX/landingLakeDepth in src/lib/world/landing.ts: the
+// landing's design space is the world turned a quarter (design x = world z,
+// design z = -world x).
+fn landingLakeDepth(p: vec2f) -> f32 {
+  let dx = p.y;
+  let dz = -p.x;
+  let shoreX = -7.6 + 0.9 * sin(0.23 * dz + 0.5) + 0.4 * sin(0.61 * dz - 1.2) - 0.3 * max(0.0, dz - 6.0) + 0.18 * min(0.0, dz + 12.0);
+  return shoreX - dx;
 }
 
 fn ripples(p: vec2f, t: f32) -> vec2f {
@@ -70,7 +81,7 @@ fn ripples(p: vec2f, t: f32) -> vec2f {
   color += source * glint * (6.0 + sparkle * 16.0) * smoothstep(-0.05, 0.1, glitterDir.y);
 
   // Lapping foam and a wet sheen along our shoreline.
-  let fromShore = shorelineZ(p.x) - p.y;
+  let fromShore = select(shorelineZ(p.x) - p.y, landingLakeDepth(p), water.shore > 0.5);
   let lap = 0.5 + 0.5 * sin(world.time * 0.9 + p.x * 0.6);
   let foamBand = (1.0 - smoothstep(0.0, 0.35 + lap * 0.25, fromShore)) * smoothstep(-0.2, 0.05, fromShore);
   let foamBreak = smoothstep(0.4, 0.75, valueNoise(vec2f(p.x * 3.0, fromShore * 9.0 - world.time * 0.4)));
