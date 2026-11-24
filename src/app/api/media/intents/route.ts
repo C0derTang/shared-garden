@@ -3,11 +3,13 @@ import {
   checkRpc,
   exactFields,
   mediaFailure,
+  mediaGarden,
   mediaJson,
   readMediaRequest,
   uuid,
 } from "@/lib/media/http";
 import { MediaError } from "@/lib/media/image";
+import { mediaRpc } from "@/lib/media/garden";
 export const runtime = "nodejs";
 export async function POST(request: Request) {
   const { client } = await requireMember();
@@ -19,7 +21,9 @@ export async function POST(request: Request) {
       "mimeType",
       "byteLength",
       "replacementEntryId",
+      "garden",
     ]);
+    const garden = mediaGarden(body.garden);
     const replacement = body.replacementEntryId ?? null;
     if (
       replacement !== null &&
@@ -31,7 +35,7 @@ export async function POST(request: Request) {
       !Number.isSafeInteger(body.byteLength)
     )
       throw new MediaError("invalid_request", 400);
-    const result = await client.rpc("create_media_upload", {
+    const result = await client.rpc(mediaRpc(garden, "create_media_upload"), {
       p_request_id: uuid(body.requestId),
       p_flower_id: uuid(body.flowerId),
       p_mime_type: body.mimeType,

@@ -309,3 +309,54 @@ each mode and after verification. Preserve the CI fixture-only Kong upstream
 request isolation and strict denial assertions; never use hosted settings.
 The UI recorder/player behavior is documented in
 [0013](../decisions/0013-bluebell-voice-interface.md).
+
+## New-garden media (issue #178)
+
+[Decision 0067](../decisions/0067-garden-overhaul.md) keeps the new garden's data
+separate from legacy, while decisions 0025 and 0027 still apply in full. The
+new garden therefore has its own registry `private.v2_media_uploads` (bound to
+`v2_flowers`/`v2_flower_entries`), its own guard trigger
+`v2_flower_entry_media_guard`, and its own private buckets `garden-v2-staging`
+(12 MiB; JPEG, PNG, WebP, WebM) and `garden-v2-media` (32 MiB; JPEG, PNG,
+WebP, WAV) with the same limits. Every RPC mirrors its legacy name with a `v2_`
+prefix and identical parameters, errors and grants: `v2_create_media_upload`,
+`v2_media_upload_state`, `v2_media_upload_allowed`, `v2_claim_media_upload`
+and `v2_media_read_path` for members; `v2_attest_media_upload`,
+`v2_attest_audio_upload`, `v2_media_cleanup_candidates` and
+`v2_media_cleanup_done` for `service_role` only. A single storage policy,
+`v2_media_staging_insert`, permits only the live owner's pending path in
+`garden-v2-staging` through the exact `object.upload` operation. Garden-state
+operations serialize on the `v2_garden` lock. Photos attach only to a v2
+Sunflower and voice memos only to a v2 Bluebell, with `{ "media_id": "<UUID>" }`
+submitted through `v2_submit_flower_entry`/`v2_edit_flower_entry`. Legacy
+tables, buckets, the `media_staging_insert` policy and legacy functions are
+unchanged, so legacy reads keep working; neither garden's functions, paths or
+buckets accept the other's media.
+
+The same four routes serve both gardens. Each accepts an optional `garden`
+field: absent or `"legacy"` keeps the legacy behavior above byte for byte, and
+`"v2"` selects the new garden. Any other value is 400 `invalid_request`. The
+server alone maps the validated value to buckets and RPCs; browsers never name
+a bucket or function. For the new garden:
+
+1. `/api/media/intents` with the body above plus `"garden": "v2"` and a v2
+   Sunflower or Bluebell flower ID; the response JSON is unchanged.
+2. Upload with `client.storage.from("garden-v2-staging").upload(...)` under the
+   same rules (no signed uploads, no upsert).
+3. `/api/media/finalize` with `{ "mediaId": "<MEDIA_UUID>", "garden": "v2" }`.
+4. `/api/media/read` with `{ "mediaId": "<MEDIA_UUID>", "garden": "v2" }`.
+5. `/api/media/cleanup` with `{ "garden": "v2" }`; `{}` sweeps only legacy.
+
+`savePhoto`/`saveVoice` in `src/lib/media/browser.ts` take an optional final
+`garden` argument (`"legacy"` default) and send the discriminator only for v2.
+Unfinished-intent and hourly limits are counted per garden registry.
+
+Verification: `supabase/tests/database/garden_v2_media.test.sql` covers the
+SQL boundary for photos and audio. `media_race.py ... --v2` (with `--audio`
+for Bluebell) runs the observed lock races against the v2 registry and lock.
+The opt-in `src/test/media-local.test.ts` runs `src/test/media-v2-local.ts`
+first in both photo and audio modes through real HTTP routes and Storage,
+including discriminator validation, cross-bucket and cross-garden denials,
+partner/outsider/anonymous reads, replacement, cleanup and revocation.
+`scripts/verify-audio-runtime.mjs` also asserts that the traced finalize
+runtime contains the v2 mapping.
