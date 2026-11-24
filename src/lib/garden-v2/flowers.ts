@@ -7,7 +7,11 @@ import { careStatus, NO_DECAY, todayPlan } from "@/lib/garden/care";
 import { moodColorOf, OTHER_MOOD, type MoodPick } from "@/lib/garden/moods";
 import type { CatalogItem, FlowerType, GardenState, Plant } from "./model";
 
-/** Flowers whose activity is the shared daily entry form in this garden. */
+/**
+ * Flowers whose activity exists in this garden: the shared daily entry form,
+ * the Sunflower's photo, the Bluebell's voice memo and the Peony's milestones
+ * (#182). That is every type now.
+ */
 export const CARE_TYPES: readonly FlowerType[] = [
   "rose",
   "cactus",
@@ -15,18 +19,20 @@ export const CARE_TYPES: readonly FlowerType[] = [
   "marigold",
   "daisy",
   "hydrangea",
+  "sunflower",
   "snapdragon",
   "moonflower",
+  "bluebell",
   "dandelion",
   "forget-me-not",
+  "peony",
 ];
-/** Flowers whose own activity (photo, voice, milestones) arrives later. */
-export const COMING_SOON_TYPES: readonly FlowerType[] = ["sunflower", "bluebell", "peony"];
 
 /**
- * The one switch for whether a flower's daily activity exists in this garden.
+ * The one switch for whether a flower's activity exists in this garden.
  * Flowers without one are never "due": no bright name, no "your care is
- * open", no "next" suggestion. Add a type to CARE_TYPES when its activity lands.
+ * open", no "next" suggestion. The Peony takes no daily care (its milestones
+ * have their own order), so it is never "due" either way.
  */
 export const hasCareActivity = (type: FlowerType) => CARE_TYPES.includes(type);
 
