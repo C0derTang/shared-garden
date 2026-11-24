@@ -500,3 +500,85 @@ discretion and the look in "World look":
   ruffles and rounder tips, the Marigold has five to seven rings and a full
   Peony 28 to 38 inner petals, so the hero blooms read as petals rather than
   shards.
+
+### Recorded choice: the garden's overlays ([#183](https://github.com/C0derTang/shared-garden/issues/183))
+
+Conservative choices for the new garden's Memories, Achievements, Songs,
+Settings and guide, made under this decision's discretion and the look in
+"World look":
+
+- **Overlays, not paths:** each opens over the painted world at
+  `/garden?view=memories|achievements|songs|settings|guide`, so it stays
+  deep-linkable. Opening and closing replace the address in place, like
+  `?flower=`. A `?flower=` link wins over `?view=`. The world stops painting
+  new frames while an overlay is open.
+- **The menu:** handwritten words float in the top-left sky, "memories ·
+  achievements · songs · settings" (Gochi Hand, soft glow, a gentle drift).
+  Each word is a real link to its `?view=`, so it works before scripts run.
+  The menu steps out while a flower's split view is open. The corner links
+  "home" and "old garden" (#181) are unchanged.
+- **The sheet:** a modal dialog (Radix) in a soft, translucent umber wash with
+  canvas grain, a brushed edge and a warm glow over a light scrim. Focus starts
+  at its handwritten title and stays inside. Escape, "×" or a tap on the world
+  closes it, and focus returns to the menu word that opened it, or to the
+  world. Album views are wide; Settings and Songs are medium. On screens up to
+  760 px wide the sheet rises from the bottom with the sky still in view.
+  Reduced motion removes its fades and the words' drift. Text is cream on the
+  dark wash, at or above WCAG AA.
+- **Memories:** new-garden content only, through `v2_memories_page` and the new
+  garden's Realtime channel. The legacy feed's rules from
+  [decision 0018](0018-memories.md) are kept by reusing its hook with a v2
+  source: paging, staged newer cards, refresh, and errors that keep loaded cards.
+  Cards are painted in the flower's tint, with its name in handwriting, the
+  garden day, the moment, who shared it and the Pacific time. A card can show
+  text, a Daisy question, a song, Hydrangea colours, a wish, or a Peony keepsake
+  with four steps and details on request. Replies open read-only, and "visit ↗"
+  closes the overlay and opens that flower. Filters:
+  - "Written by" chips: both of us, you, or the partner's display name
+    ([decision 0060](0060-memories-person-filter.md)).
+  - A flower-type select. Spot and date filters are left out of this compact
+    view.
+- **Private media:** Sunflower photos and Bluebell voice memos are signed only
+  after "load private photo" or "load voice memo" (decision 0018). They are read
+  through `/api/media/read` with `garden: "v2"`. Photos are never cropped and
+  voice never autoplays. Small viewers in the overlay are used instead of
+  changing the shared viewers, which #182 owns.
+- **Achievements:** the new garden's 25 badges (`v2_current_achievements`), as
+  painted medals whose ring fills with progress and which glow gold once earned,
+  with "earned <garden day>". Tapping a medal shows its requirement, exact
+  progress, and the garden day and Pacific time it was earned. A summary shows
+  "n of 25 earned" and the current streak. Refresh, Realtime, focus and a
+  one-minute visible poll follow the legacy rules.
+- **Songs:** every song shared with a new-garden Tulip, newest first, with
+  repeats kept. They are read as Tulip entries of `v2_memories_page`, so no new
+  schema is needed. Each plays through the shared `SongPlayer`: only an exactly
+  parsed Spotify track embeds, and other links open only as validated https
+  links ([decisions 0014](0014-tulip-music-collection.md) and
+  [0024](0024-reusable-song-player.md)).
+- **Settings:**
+  - Member settings stay shared with the old garden. The new garden page now
+    mounts the shared `MemberPreferences`, so the gentle-motion choice quiets
+    the new garden's CSS motion as it does the old garden's. The painted world's
+    own motion still follows the device's reduced-motion setting.
+  - Groups: the garden (replay the guide, the garden day), comfort (gentle
+    motion), the private moment's owner controls, the old garden ("visit the old
+    garden" → `/legacy`) and account (sign out).
+- **Private moment:**
+  - It keeps its legacy gate and behaviour (see "Legacy garden" above). The new
+    garden mounts the same `PrivateInteraction`, so the recipient's pending
+    moment and the owner's answer notice appear here too. The owner controls
+    appear in Settings, as in the old garden.
+  - Its sheets take the new garden's washes through an optional class, and
+    the old garden is unchanged. They sit above the overlays and the split
+    view.
+- **The guide:**
+  - On a member's first visit in this browser, once the world is painted, a
+    small guide card opens low over the scene (`?view=guide`). It has four pages:
+    welcome, wander, plant and care, and keepsakes. On the keepsakes page the
+    menu glows.
+  - Closing it at any point (skip, ×, Escape or "let's wander") marks it seen
+    in local storage per member. Storage that cannot be read shows nothing.
+  - The shared `guide` member setting is not used: it records the old garden's
+    tour, which members have already finished.
+  - The guide does not greet a link to a flower or an overlay, or a visit
+    where the private moment is already open. Settings can replay it.

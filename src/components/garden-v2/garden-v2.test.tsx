@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { WorldRendererCallbacks, WorldSceneState } from "@/components/world/renderer";
 import { awayKey, takeAwaySnapshot } from "@/lib/garden-v2/away";
 import type { GardenState } from "@/lib/garden-v2/model";
+import { guideKey } from "@/lib/garden-v2/views";
 import { v2GardenFixture } from "@/test/garden-v2-fixture";
 
 // The painted world, the flower studio and the flower layer need WebGPU and .wgsl; record what they are given.
@@ -29,6 +30,17 @@ const api = vi.hoisted(() => ({
   saveReplyV2: vi.fn(),
 }));
 vi.mock("@/lib/garden-v2/actions", () => api);
+// The garden's overlays (#183) and the private moment read through their own actions.
+vi.mock("@/lib/garden-v2/achievement-actions", () => ({ readAchievementsV2: vi.fn(async () => ({ state: null, error: null })) }));
+vi.mock("@/lib/garden-v2/memory-actions", () => ({ loadMemoriesV2: vi.fn(async () => ({ items: [], more: false, error: null })) }));
+vi.mock("@/lib/private-interaction/actions", () => ({
+  readPrivateInteraction: vi.fn(async () => ({ state: { status: "unavailable" }, error: null })),
+  answerPrivateInteraction: vi.fn(),
+  controlPrivateInteraction: vi.fn(),
+  previewPrivateInteraction: vi.fn(),
+}));
+vi.mock("@/lib/settings/actions", () => ({ readSettings: vi.fn(), saveSetting: vi.fn() }));
+vi.mock("@/lib/memories/actions", () => ({ loadMemories: vi.fn() }));
 vi.mock("@/lib/replies/actions", () => ({ readReplies: vi.fn(), saveReply: vi.fn() }));
 vi.mock("@/lib/auth/browser", () => ({ gardenBrowserClient: () => null }));
 vi.mock("next/link", () => ({
@@ -69,6 +81,8 @@ function garden(): GardenState {
 beforeEach(() => {
   worlds.length = 0;
   window.localStorage.clear();
+  // These tests start after the first-visit guide (#183 has its own tests).
+  window.localStorage.setItem(guideKey(1), "1");
   window.history.replaceState(null, "", "/garden");
   api.refreshGardenV2.mockReset();
   api.mutateGardenV2.mockReset();

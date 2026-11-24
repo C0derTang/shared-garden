@@ -31,7 +31,7 @@ function Moment({ content, preview = false, busy, save }: { content: Interaction
   </div>;
 }
 
-function OwnerControls({ detail, busy: saving, change, setError }: { detail: OwnerDetail; busy: boolean; change: (armed: boolean) => Promise<void>; setError: (error: string | null) => void }) {
+function OwnerControls({ detail, busy: saving, change, setError, sheetClassName }: { detail: OwnerDetail; busy: boolean; change: (armed: boolean) => Promise<void>; setError: (error: string | null) => void; sheetClassName?: string }) {
   const [preview, setPreview] = useState<InteractionContent | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [loading, setBusy] = useState(false);
@@ -58,6 +58,7 @@ function OwnerControls({ detail, busy: saving, change, setError }: { detail: Own
         <p className={styles.deliveryStatus} role="status" aria-label="Delivery status">{status}</p>
         <div className={styles.controlButtons}>
           <BottomSheet
+            className={sheetClassName}
             open={previewOpen}
             onOpenChange={(next) => {
               if (next) void showPreview();
@@ -76,8 +77,12 @@ function OwnerControls({ detail, busy: saving, change, setError }: { detail: Own
     </div>;
 }
 
-/** Mount only inside the member-guarded garden layout. Each action reauthorizes. */
-export function PrivateInteraction({ ownerControls, ownerContainer, noticeContainer, onMomentCloseAutoFocus }: { ownerControls: boolean; ownerContainer?: HTMLElement | null; noticeContainer?: HTMLElement | null; onMomentCloseAutoFocus?: (event: Event) => void }) {
+/**
+ * Mount only inside a member-guarded garden page. Each action reauthorizes.
+ * `sheetClassName` restyles its sheets (the new garden's washes); behavior is
+ * the same in both gardens.
+ */
+export function PrivateInteraction({ ownerControls, ownerContainer, noticeContainer, onMomentCloseAutoFocus, sheetClassName }: { ownerControls: boolean; ownerContainer?: HTMLElement | null; noticeContainer?: HTMLElement | null; onMomentCloseAutoFocus?: (event: Event) => void; sheetClassName?: string }) {
   const scope = useSheetScope();
   const [state, setState] = useState<InteractionState | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -150,7 +155,7 @@ export function PrivateInteraction({ ownerControls, ownerContainer, noticeContai
   const controls = ownerControls && detail;
   const notification = detail?.unread && detail.answer;
   if (!error && !saved && !controls && !notification && state?.status !== "pending") return null;
-  const ownerContent = controls && <OwnerControls detail={detail} busy={busy} change={(armed) => mutate(() => controlPrivateInteraction("arm", armed))} setError={setError} />;
+  const ownerContent = controls && <OwnerControls detail={detail} busy={busy} change={(armed) => mutate(() => controlPrivateInteraction("arm", armed))} setError={setError} sheetClassName={sheetClassName} />;
   const notices = (error || saved || notification) && <div className={styles.noticeStack}>
     {error && <div className={styles.notice}><p role="alert">{error}</p><button className="button button-secondary" type="button" onClick={() => void refresh()}>Refresh moment</button></div>}
     {saved && <p role="status" className={styles.notice}>Your answer is saved. Your garden keeps growing.</p>}
@@ -171,6 +176,7 @@ export function PrivateInteraction({ ownerControls, ownerContainer, noticeContai
   return <section className={`${styles.container}${gardenPresentation ? ` ${styles.gardenNoticeHost}` : ""}`} data-private-notice-host={gardenPresentation ? "garden" : undefined} aria-label="Garden moment">
     {presentedNotices}
     {state?.status === "pending" && <BottomSheet
+      className={sheetClassName}
       onCloseAutoFocus={onMomentCloseAutoFocus}
       open={open} onOpenChange={(next) => { setOpen(next); if (!next) { dismissed.current = true; setDismissedOnce(true); } }}
       title={state.content.title} description="A moment for your shared garden."
