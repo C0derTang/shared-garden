@@ -92,6 +92,11 @@ export interface WorldLayer {
   setup?(context: WorldLayerSetup): void | Promise<void>;
   /** Encodes the layer's draws. Must stay synchronous. */
   draw(pass: FramePass, frame: WorldFrameContext): void;
+  /**
+   * Optionally encodes shadow casters into the key light's shadow map (depth
+   * only; project with `world.lightViewProjection`). Runs before `draw` each frame.
+   */
+  drawShadow?(pass: FramePass, frame: WorldFrameContext): void;
   /** Releases layer-owned resources (also implied by the world disposing its GPU context). */
   dispose?(): void;
 }

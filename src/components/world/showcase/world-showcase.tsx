@@ -1,16 +1,29 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { FLOWER_TYPES } from "@/lib/world/flowers/generate";
 import { bedAt, bedCountFor, spotCapacityFor, spotPosition } from "@/lib/world/layout";
-import type { FlowerAnchor } from "@/lib/world/picking";
 import { SKY_PRESETS, type SkyPreset } from "@/lib/world/sky-presets";
 import { skyStateAt } from "@/lib/world/solar";
 import { GardenWorld, type WorldCaption } from "../garden-world";
-import { createStrokeLayer } from "../strokes/stroke-batch";
-import { standInFlowerStrokes } from "./stand-in-flowers";
+import { createFlowerLayer } from "../flowers/flower-layer";
+import { worldFlowerAnchors, type WorldFlower } from "../flowers/flower-models";
 import styles from "./world-showcase.module.css";
 
-const INITIAL_PLANTED = [1, 2, 3, 5, 8, 13];
+const INITIAL_PLANTED = Array.from({ length: 13 }, (_, i) => i + 1);
+const STAGES = { seedling: 0.15, bud: 0.38, opening: 0.72, bloom: 1 } as const;
+type StageChoice = keyof typeof STAGES | "mixed";
+
+/** Demo flowers: every type in turn, a stable seed per spot. */
+function demoFlower(spot: number, stage: StageChoice): WorldFlower {
+  const type = FLOWER_TYPES[(spot - 1) % FLOWER_TYPES.length]!;
+  const mixed = [1, 1, 0.72, 1, 0.38, 1, 0.15, 1][spot % 8]!;
+  return {
+    id: `flower-${spot}`,
+    spec: { type, seed: spot * 104_729 + 7, growth: stage === "mixed" ? mixed : STAGES[stage] },
+    position: spotPosition(spot).position,
+  };
+}
 
 /** Dev-only story page for the painted world. */
 export function WorldShowcase({ preset: initialPreset, planted: initialPlanted }: { preset: SkyPreset; planted?: number }) {
@@ -19,15 +32,14 @@ export function WorldShowcase({ preset: initialPreset, planted: initialPlanted }
     initialPlanted === undefined ? INITIAL_PLANTED : Array.from({ length: initialPlanted }, (_, i) => i + 1),
   );
   const [log, setLog] = useState<string[]>([]);
+  const [stage, setStage] = useState<StageChoice>("bloom");
 
   const time = useMemo(() => (preset === "live" ? undefined : new Date(SKY_PRESETS[preset])), [preset]);
   const capacity = spotCapacityFor(occupied);
-  const flowers: FlowerAnchor[] = useMemo(
-    () => occupied.map((spot) => ({ id: `flower-${spot}`, position: spotPosition(spot).position })),
-    [occupied],
-  );
-  const [flowerLayer] = useState(() => createStrokeLayer([], "stand-in-flowers"));
-  useEffect(() => flowerLayer.replace(standInFlowerStrokes(flowers)), [flowerLayer, flowers]);
+  const planted = useMemo(() => occupied.map((spot) => demoFlower(spot, stage)), [occupied, stage]);
+  const flowers = useMemo(() => worldFlowerAnchors(planted), [planted]);
+  const [flowerLayer] = useState(() => createFlowerLayer());
+  useEffect(() => flowerLayer.setFlowers(planted), [flowerLayer, planted]);
   const layers = useMemo(() => [flowerLayer], [flowerLayer]);
   const sky = skyStateAt(time ?? new Date());
   const captions: WorldCaption[] = useMemo(() => {
@@ -57,17 +69,24 @@ export function WorldShowcase({ preset: initialPreset, planted: initialPlanted }
         layers={layers}
         captions={captions}
         onPickSpot={(spot) => {
-          record(`picked empty spot ${spot}: planted a stand-in`);
+          record(`picked empty spot ${spot}: planted a ${demoFlower(spot, stage).spec.type}`);
           setOccupied((previous) => [...previous, spot]);
         }}
         onPickFlower={(id) => record(`picked ${id}`)}
       />
       <aside className={styles.panel} aria-label="World showcase controls">
         <p className={styles.heading}>Painted world · dev showcase</p>
-        <p>Scroll, swipe or use arrow keys to walk in. Click a ring to plant a stand-in.</p>
+        <p>Scroll, swipe or use arrow keys to walk in. Click a seed mark to plant the next flower type.</p>
         <div className={styles.row} role="group" aria-label="Sky time">
           {(["dawn", "morning", "day", "dusk", "night", "live"] as const).map((name) => (
             <button key={name} type="button" aria-pressed={preset === name} onClick={() => setPreset(name)}>
+              {name}
+            </button>
+          ))}
+        </div>
+        <div className={styles.row} role="group" aria-label="Growth stage">
+          {(["seedling", "bud", "opening", "bloom", "mixed"] as const).map((name) => (
+            <button key={name} type="button" aria-pressed={stage === name} onClick={() => setStage(name)}>
               {name}
             </button>
           ))}
