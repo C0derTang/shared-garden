@@ -228,6 +228,7 @@ export function GardenV2({ initial, initialFlowerId = null }: { initial: GardenR
       className={`${styles.page} ${styles.theme} ${handFont.className}`}
       style={themeStyle}
       data-covered={covered || undefined}
+      data-fireworks={fireworks.overlay.playing || undefined}
       onPointerDown={() => setWandered(true)}
       onWheel={() => setWandered(true)}
       onKeyDown={() => setWandered(true)}
@@ -255,7 +256,8 @@ export function GardenV2({ initial, initialFlowerId = null }: { initial: GardenR
       {worldStatus === "ready" && !wandered && !covered && (
         <p className={styles.hint}>scroll to wander closer · tap a flower to visit</p>
       )}
-      {!covered && hasAwayNews(news) && <AwayNote news={news} state={state} onDismiss={() => setNews(noAwayNews)} />}
+      {/* The away note waits for the fireworks to finish, so their words never overlap. */}
+      {!covered && !fireworks.overlay.playing && hasAwayNews(news) && <AwayNote news={news} state={state} onDismiss={() => setNews(noAwayNews)} />}
       {error && !covered && (
         <p className={styles.toast} role="status">
           {error}

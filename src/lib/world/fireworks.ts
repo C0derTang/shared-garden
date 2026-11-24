@@ -279,6 +279,16 @@ interface SparkInput {
   shift: number;
 }
 
+/**
+ * A pistil or core colour: the inner stars are packed close together, so
+ * they burn at half strength and never as white, or they would merge into a
+ * white mass.
+ */
+function dim(color: Rgb): Rgb {
+  const base = color === C.white ? C.gold : color;
+  return [base[0] * 0.5, base[1] * 0.5, base[2] * 0.5];
+}
+
 /** Packs a linear colour (0..1 per channel) into one float as 8 bits per channel (exact in f32). */
 export function packColor(color: Rgb): number {
   const q = (v: number) => Math.round(Math.min(1, Math.max(0, v)) * 255);
@@ -347,7 +357,7 @@ export function packFireworks(show: FireworksShow, seed: number): PackedFirework
       case "peony": {
         // Glitter on some stars: they twinkle as they fall.
         for (const d of sphere(random, 300)) star(d, r * 1.7 * range(random, 0.94, 1.06), { life: range(random, 1.8, 2.5), flicker: random() < 0.3 ? 1 : 0 });
-        for (const d of sphere(random, 80)) star(d, r * 1.7 * 0.5, { life: range(random, 1.2, 1.8), color: shell.accent, fade: shell.accent, size: 0.075 * b });
+        for (const d of sphere(random, 60)) star(d, r * 1.7 * 0.5, { life: range(random, 1.2, 1.8), color: dim(shell.accent), fade: dim(shell.accent), size: 0.07 * b });
         break;
       }
       case "chrysanthemum": {
@@ -381,7 +391,7 @@ export function packFireworks(show: FireworksShow, seed: number): PackedFirework
           const a = (i / count) * Math.PI * 2;
           star(rotateToward([Math.cos(a), Math.sin(a), 0], tiltX, tiltY), r * 1.7 * range(random, 0.98, 1.02), { life: range(random, 1.9, 2.4), gravity: 0.55 });
         }
-        for (const d of sphere(random, 70)) star(d, r * 0.45, { life: range(random, 1.1, 1.6), color: shell.accent, fade: shell.accent, size: 0.07 * b });
+        for (const d of sphere(random, 50)) star(d, r * 0.45, { life: range(random, 1.1, 1.6), color: dim(shell.accent), fade: dim(shell.accent), size: 0.065 * b });
         break;
       }
       case "heart": {
@@ -390,13 +400,13 @@ export function packFireworks(show: FireworksShow, seed: number): PackedFirework
           const length = Math.hypot(p[0], p[1]) || 1;
           star(rotateToward([p[0] / length, p[1] / length, 0], 0.05, tiltY), r * 1.75 * length * range(random, 0.985, 1.015), { life: range(random, 2.0, 2.6), gravity: 0.38, drag: 1.8 });
         }
-        for (const d of sphere(random, 40)) star(d, r * 0.4, { life: range(random, 1.2, 1.6), color: C.white, fade: C.rose, size: 0.06 * b, flicker: 1 });
+        for (const d of sphere(random, 40)) star(d, r * 0.4, { life: range(random, 1.2, 1.6), color: dim(C.rose), fade: dim(C.violet), size: 0.06 * b, flicker: 1 });
         break;
       }
       case "crackle": {
         for (const d of sphere(random, 300))
           star(d, r * 1.6 * range(random, 0.9, 1.06), { life: range(random, 2.5, 3.2), kind: SPARK_KIND.crackle, color: shell.color, fade: C.white, flicker: 1, trail: 0.07 });
-        for (const d of sphere(random, 60)) star(d, r * 1.6 * 0.55, { life: range(random, 1.3, 1.9), color: shell.accent, fade: shell.accent, size: 0.075 * b });
+        for (const d of sphere(random, 50)) star(d, r * 1.6 * 0.55, { life: range(random, 1.3, 1.9), color: dim(shell.fade), fade: dim(shell.color), size: 0.07 * b });
         break;
       }
     }

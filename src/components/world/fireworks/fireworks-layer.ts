@@ -204,7 +204,7 @@ export function createFireworksLayer(): FireworksLayer {
       return { position: light.position, color: light.color, level: light.level * LIGHT_GAIN * fade, falloff: LIGHT_FALLOFF, skyDim };
     },
     drawReflection(pass, frame) {
-      if (mirror) encode(pass, frame, mirror, 2.6);
+      if (mirror) encode(pass, frame, mirror, 2.0);
     },
     draw(pass, frame) {
       if (scene) encode(pass, frame, scene, 1);

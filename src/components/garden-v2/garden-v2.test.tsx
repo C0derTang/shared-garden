@@ -212,11 +212,15 @@ describe("GardenV2", () => {
       expect(fireworks.plays[0]).toMatchObject({ still: true });
       expect(worlds[0]!.states.at(-1)!.layers).toHaveLength(2);
       expect(screen.getByText(/for today’s achievement: First seed planted/)).toBeInTheDocument();
-      expect(screen.queryByRole("button", { name: "replay fireworks" })).toBeNull();
+      // While the show plays the replay is quiet and inert; the big title steps aside.
+      expect(screen.getByRole("button", { name: "replay fireworks" })).toHaveAttribute("aria-disabled", "true");
+      expect(screen.getByRole("main")).toHaveAttribute("data-fireworks");
       act(() => fireworks.plays[0]!.onStart?.());
       expect(JSON.parse(window.localStorage.getItem("garden-v2:fireworks:1")!)).toEqual({ day: "2026-11-02" });
       act(() => fireworks.plays[0]!.onEnd?.());
       expect(screen.queryByText(/for today’s achievement/)).toBeNull();
+      expect(screen.getByRole("main")).not.toHaveAttribute("data-fireworks");
+      expect(screen.getByRole("button", { name: "replay fireworks" })).not.toHaveAttribute("aria-disabled");
       await user.click(screen.getByRole("button", { name: "replay fireworks" }));
       expect(fireworks.plays).toHaveLength(2);
       expect(screen.getByText(/for today’s achievement: First seed planted/)).toBeInTheDocument();
@@ -228,6 +232,54 @@ describe("GardenV2", () => {
       await flush();
       expect(fireworks.plays).toHaveLength(2);
       expect(screen.getByRole("button", { name: "replay fireworks" })).toBeInTheDocument();
+    });
+
+    it("keeps keyboard focus on the replay through the show", async () => {
+      const user = userEvent.setup();
+      await mount(night());
+      await flush();
+      act(() => fireworks.plays[0]!.onEnd?.());
+      const replay = screen.getByRole("button", { name: "replay fireworks" });
+      replay.focus();
+      await user.keyboard("{Enter}");
+      expect(fireworks.plays).toHaveLength(2);
+      expect(document.activeElement).toBe(replay);
+      expect(replay).toHaveAttribute("aria-disabled", "true");
+      // Pressing it again mid-show does nothing.
+      await user.keyboard("{Enter}");
+      expect(fireworks.plays).toHaveLength(2);
+      act(() => fireworks.plays[1]!.onEnd?.());
+      expect(document.activeElement).toBe(screen.getByRole("button", { name: "replay fireworks" }));
+      expect(document.activeElement).not.toHaveAttribute("aria-disabled");
+    });
+
+    it("lets the away note wait until the show ends", async () => {
+      const before = garden();
+      before.plants[0]!.member2_submitted = false;
+      window.localStorage.setItem(awayKey(1), JSON.stringify(takeAwaySnapshot(before)));
+      await mount(night());
+      await flush();
+      expect(fireworks.plays).toHaveLength(1);
+      expect(screen.queryByRole("region", { name: "while you were away…" })).toBeNull();
+      act(() => fireworks.plays[0]!.onEnd?.());
+      expect(screen.getByRole("region", { name: "while you were away…" })).toBeInTheDocument();
+    });
+
+    it("does not read awards while the tab is hidden", async () => {
+      const visibility = vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
+      try {
+        await mount(night());
+        await flush();
+        expect(fireworks.readAwardsForDayV2).not.toHaveBeenCalled();
+        visibility.mockReturnValue("visible");
+        await act(async () => {
+          document.dispatchEvent(new Event("visibilitychange"));
+        });
+        await flush();
+        expect(fireworks.readAwardsForDayV2).toHaveBeenCalledWith("2026-11-02");
+      } finally {
+        visibility.mockRestore();
+      }
     });
 
     it("plays nothing by day, or at night without an achievement", async () => {

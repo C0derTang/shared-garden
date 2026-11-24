@@ -15,7 +15,8 @@ export interface FireworksOverlayProps {
 
 /**
  * The fireworks' handwritten words over the scene: a gentle caption while the
- * show plays and a small "replay fireworks" control afterwards. Neither
+ * show plays and a small "replay fireworks" control under the corner links
+ * (quieted and inert while a show plays). Neither
  * catches pointer events outside the control itself, so the world stays
  * pickable around them.
  */
@@ -33,8 +34,19 @@ export function FireworksOverlay({ caption, playing, canReplay, onReplay, hidden
           </span>
         ) : null}
       </p>
-      {canReplay && !playing && (
-        <button type="button" className={`${styles.replay} ${handFont.className}`} onClick={onReplay}>
+      {canReplay && (
+        // Stays mounted while the show plays (only quieted), so keyboard focus is never lost.
+        <button
+          type="button"
+          className={`${styles.replay} ${handFont.className}`}
+          aria-disabled={playing || undefined}
+          onClick={() => {
+            if (!playing) onReplay();
+          }}
+        >
+          <span className={styles.star} aria-hidden="true">
+            ✦{" "}
+          </span>
           replay fireworks
         </button>
       )}

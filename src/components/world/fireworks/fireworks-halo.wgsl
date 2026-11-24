@@ -50,7 +50,8 @@ fn flashAt(age: f32) -> f32 {
   // A bright flash of the burst's colour, then smoke tinted by its cooling hue.
   let smoke = mix(unpackColor(shell.fade), vec3f(0.55, 0.45, 0.5), 0.35);
   let tint = mix(shell.color, smoke, smoothstep(0.2, 2.0, age));
-  out.color = tint * flashAt(age) * shell.brightness * halo.fade * halo.gain * select(0.32, 0.22, shell.willow > 0.5);
+  // It swells with the opening stars rather than flashing white at once.
+  out.color = tint * flashAt(age) * smoothstep(0.0, 0.3, age) * shell.brightness * halo.fade * halo.gain * select(0.32, 0.22, shell.willow > 0.5);
   out.seed = f32(instance) * 7.31;
   return out;
 }

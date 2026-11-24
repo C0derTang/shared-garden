@@ -77,7 +77,7 @@ fn hidden() -> SparkOut {
     // Stars, comets and crackle: a white flash, their colours, then embers.
     let sustain = 1.0 - smoothstep(0.55, 1.0, x);
     bright = (1.3 + 1.8 * flash) * mix(1.0, 0.55, x) * (0.3 + 0.7 * sustain) * (1.0 - smoothstep(0.88, 1.0, x));
-    color = mix(color, HOT, flash * 0.4);
+    color = mix(color, HOT, flash * 0.25);
     color = mix(color, EMBER, smoothstep(0.7, 1.0, x) * 0.55);
     if (s.kind == KIND_COMET) {
       color = mix(color, GOLD, smoothstep(0.4, 0.85, x) * 0.5);
@@ -91,6 +91,11 @@ fn hidden() -> SparkOut {
       bright *= mix(0.5, 2.2, glint);
       color = mix(color, HOT, glint * 0.6);
     }
+  }
+  // Stars are born on top of each other: they kindle over the first moments
+  // so a burst blooms open instead of flaring into a white mass.
+  if (s.kind != KIND_ROCKET && s.kind != KIND_TRAIL) {
+    bright *= mix(0.05, 1.0, smoothstep(0.08, 0.85, st.age));
   }
   // Deepen the hues so HDR tone mapping keeps them coloured instead of washing to white.
   color = pow(max(color, vec3f(0.0)), vec3f(1.7));

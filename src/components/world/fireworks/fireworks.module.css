@@ -21,14 +21,6 @@
   pointer-events: none;
 }
 
-/* Phones: the beds fill the middle, so the words rest low, above the hint. */
-@media (orientation: portrait) and (max-width: 760px) {
-  .caption {
-    top: auto;
-    bottom: max(4.2rem, calc(env(safe-area-inset-bottom) + 3.2rem));
-  }
-}
-
 .captionText {
   display: inline-block;
   animation:
@@ -41,9 +33,10 @@
 }
 
 .replay {
+  /* Under the corner links (top right), clear of the hint, the away note and the caption at every width. */
   position: absolute;
-  right: max(1.1rem, env(safe-area-inset-right));
-  bottom: max(1.1rem, env(safe-area-inset-bottom));
+  top: calc(max(0.9rem, env(safe-area-inset-top)) + 2.1rem);
+  right: max(0.6rem, env(safe-area-inset-right));
   padding: 0.3rem 0.5rem;
   border: 0;
   background: none;
@@ -60,12 +53,12 @@
   animation: caption-in 1.2s ease both;
 }
 
-.replay::before {
-  content: "✦ ";
-  color: #ffd79a;
+.replay[aria-disabled="true"] {
+  opacity: 0.35;
+  cursor: default;
 }
 
-.replay:hover,
+.replay:not([aria-disabled="true"]):hover,
 .replay:focus-visible {
   color: #fff;
   text-shadow:
@@ -89,6 +82,20 @@
 @keyframes caption-drift {
   50% {
     transform: translateY(-4px);
+  }
+}
+
+/* Phones and portrait screens: the words rest on the meadow below the beds, above the hint. */
+@media (max-width: 760px), (orientation: portrait) and (max-width: 1100px) {
+  .caption {
+    top: min(66%, calc(100% - 15rem));
+  }
+
+  /* Below the corner links and clear of a two-line keepsakes menu on the left. */
+  .replay {
+    top: calc(max(0.9rem, env(safe-area-inset-top)) + 3.9rem);
+    padding-inline: 0.25rem;
+    font-size: 1.05rem;
   }
 }
 

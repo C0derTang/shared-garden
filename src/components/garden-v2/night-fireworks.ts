@@ -15,8 +15,20 @@ import {
 } from "@/lib/garden-v2/fireworks";
 import type { GardenState } from "@/lib/garden-v2/model";
 
-/** While it is night, today's awards are re-read at least this often (ms). */
+/** While it is night and the tab is visible, today's awards are re-read at least this often (ms). */
 const AWARD_POLL_MS = 180_000;
+
+/** Whether this tab is visible (reads pause in background tabs, like the garden's own refresh). */
+function usePageVisible(): boolean {
+  const [visible, setVisible] = useState(() => typeof document === "undefined" || document.visibilityState !== "hidden");
+  useEffect(() => {
+    const update = () => setVisible(document.visibilityState !== "hidden");
+    update();
+    document.addEventListener("visibilitychange", update);
+    return () => document.removeEventListener("visibilitychange", update);
+  }, []);
+  return visible;
+}
 
 /** Changes whenever an operation that can earn an achievement shows in the garden. */
 function activitySignature(state: GardenState): string {
@@ -75,9 +87,11 @@ export function useNightFireworks({
   const atNight = state !== null && night;
   const signature = state ? activitySignature(state) : "";
   const poll = Math.floor(now / AWARD_POLL_MS);
+  const visible = usePageVisible();
   const [awards, setAwards] = useState<NightAwards | null>(null);
   useEffect(() => {
-    if (!atNight) return;
+    // Hidden tabs do not read; coming back into view reads at once.
+    if (!atNight || !visible) return;
     let cancelled = false;
     void readAwardsForDayV2(gardenDay).then((result) => {
       // An unreadable answer keeps what we knew; the next change or poll tries again.
@@ -86,7 +100,7 @@ export function useNightFireworks({
     return () => {
       cancelled = true;
     };
-  }, [atNight, gardenDay, signature, poll]);
+  }, [atNight, visible, gardenDay, signature, poll]);
 
   const plan = planFireworks(now, state ? awards : null, null);
   const [playing, setPlaying] = useState(false);

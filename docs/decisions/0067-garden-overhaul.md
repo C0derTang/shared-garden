@@ -517,13 +517,18 @@ interaction", made under this decision's discretion:
   garden day of that night (so at 1 a.m. the previous calendar day's awards
   count). The garden reads `v2_awards_for_day` for that day only at night: on
   opening, when the garden day changes, when garden activity changes and every
-  three minutes. An award earned at night while the garden is open counts too.
+  three minutes, and only while the tab is visible (coming back into view
+  reads at once). An award earned at night while the garden is open counts
+  too.
 - **Once per member per night:** the show plays by itself the first time the
   painted world is ready and nothing covers it, and the browser remembers the
   garden day in local storage (`garden-v2:fireworks:<member slot>`, the day
   only). It is marked seen when the show's first frame paints. A later visit
-  that night offers only a small handwritten "replay fireworks" in the
-  bottom-right corner while it is still night and the award holds. Storage is
+  that night offers only a small handwritten "replay fireworks" under the
+  corner links (top right, clear of the hint, the away note and the caption at
+  every width) while it is still night and the award holds. The control stays
+  in place while a show plays, quieted and `aria-disabled`, so keyboard focus
+  is never lost. Its star is decorative and hidden from assistive technology. Storage is
   per browser, so a member may see the show once on each device. When storage
   cannot be read, the show never plays by itself (it could otherwise repeat on
   every visit) but the replay is still offered.
@@ -550,6 +555,9 @@ interaction", made under this decision's discretion:
   - Their cores opt out of the painterly filter (scene alpha −1, the same
     path as the flowers' close-up detail). They stay crisp and luminous,
     while the canvas streaks and the bloom still paint over them.
+  - Stars kindle over their first moments after a burst, and pistils and
+    cores burn at half strength in colour, so a young burst blooms open
+    instead of flaring into a white mass.
   - Each burst lights the air around it with a soft, mottled glow that cools
     into smoke of its second hue and fades over several seconds.
   - Sparks and glows also draw, brighter, into the lake's mirror image, so the
@@ -563,8 +571,11 @@ interaction", made under this decision's discretion:
 - **Caption:** while the show plays, a gentle handwritten line reads for
   example "✦ for today’s achievement: First seed planted". Several titles are
   joined with commas and "and". It has a soft warm glow and rests below the
-  sky's action: over the far shore on wide screens, and low above the hint on
-  phones. It is a polite live region and catches no pointer events.
+  sky's action: over the far shore on wide screens, and on the meadow below the
+  beds on phones and portrait screens. It is a polite live region and catches
+  no pointer events. While the show plays, the big floating "our garden" title
+  fades out and the "while you were away" note waits; both return when it
+  ends.
 - **Reduced motion:** a still sky of five open bursts (peony, ring,
   chrysanthemum, heart and willow) spread across the burst lane, with their
   glow, reflection and the dimmed moon. It is held for 16 seconds and then
