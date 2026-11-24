@@ -1,11 +1,25 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+/** Peony and achievement tables (#177); their panels share the garden channel. */
+const V2_PROGRESS_TABLES = [
+  "v2_peony_contributions",
+  "v2_peony_plans",
+  "v2_peony_acceptances",
+  "v2_achievement_progress",
+  "v2_achievement_awards",
+] as const;
+
 /**
  * Published new-garden tables. RLS authorizes each change; payloads only
  * invalidate the authoritative `v2_current_garden_state` snapshot. Later v2
  * features (Peony, achievements, media) extend this list with their tables.
  */
-export const V2_REALTIME_TABLES = ["v2_flowers", "v2_flower_entries", "v2_entry_replies"] as const;
+export const V2_REALTIME_TABLES = [
+  "v2_flowers",
+  "v2_flower_entries",
+  "v2_entry_replies",
+  ...V2_PROGRESS_TABLES,
+] as const;
 
 let channelSequence = 0;
 
