@@ -7,7 +7,7 @@ import { SPOTS_PER_BED, type Vec3 } from "@/lib/world/layout";
 import type { FocusTarget } from "@/lib/world/journey";
 import type { FlowerAnchor } from "@/lib/world/picking";
 import { handFont } from "./hand-font";
-import type { WorldComposition, WorldRenderer, WorldSceneState, WorldView } from "./renderer";
+import type { SelectedPlot, WorldComposition, WorldRenderer, WorldSceneState, WorldView } from "./renderer";
 import type { WorldLayer } from "./world-layer";
 import styles from "./garden-world.module.css";
 
@@ -25,16 +25,6 @@ export interface WorldCaption {
    * before scripts run. With `onSelect`, a plain click runs `onSelect` instead.
    */
   readonly href?: string;
-  /** Accessible name when it should say more than the visible words. */
-  readonly ariaLabel?: string;
-  /** "quiet" captions are dimmer until hovered or focused. */
-  readonly tone?: "quiet";
-  /**
-   * Fades the caption out beyond this camera depth (world units), so small
-   * labels only show up close. Faded captions stay keyboard-focusable and
-   * reappear while focused.
-   */
-  readonly fadeBeyond?: number;
   /** Makes the caption a submit button of a POST form to this same-origin path (works without JavaScript). */
   readonly formAction?: string;
   /**
@@ -79,6 +69,10 @@ export interface GardenWorldProps {
   readonly label?: string;
   /** Garden: the camera glides to this flower, and back when it becomes null. */
   readonly focus?: FocusTarget | null;
+  /** Garden: the plot navigator's selection; the camera frames its bed and it shares the hover highlight. */
+  readonly selected?: SelectedPlot | null;
+  /** Garden: the visitor scrolled, dragged or walked away while a plot was framed. */
+  readonly onWander?: () => void;
   /** Stop painting once the camera settles (a full-screen view covers the world). */
   readonly paused?: boolean;
 }
@@ -105,17 +99,6 @@ export function usePrefersReducedMotion(): boolean {
     return () => query.removeEventListener("change", update);
   }, []);
   return reduced;
-}
-
-/**
- * Opacity of a caption at `position`: 1 within `fadeBeyond` of the camera
- * (view depth), fading to 0 over the next 30% of that distance.
- */
-export function captionFade(viewProjection: Float32Array, position: Vec3, fadeBeyond: number): number {
-  // Clip-space w of a perspective projection is the view depth.
-  const w = viewProjection[3]! * position[0] + viewProjection[7]! * position[1] + viewProjection[11]! * position[2] + viewProjection[15]!;
-  const span = Math.max(0.01, fadeBeyond * 0.3);
-  return Math.min(1, Math.max(0, 1 - (w - fadeBeyond) / span));
 }
 
 /** True when the browser exposes WebGPU at all (the adapter is checked on start). */
@@ -148,6 +131,8 @@ export function GardenWorld({
   className,
   label = "A painted garden meadow beside a lake, with planting beds",
   focus = null,
+  selected = null,
+  onWander,
   paused = false,
 }: GardenWorldProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -176,14 +161,15 @@ export function GardenWorld({
     time: timeValue === null ? null : new Date(timeValue),
     reducedMotion,
     focus,
+    selected,
     paused,
   };
   const stateRef = useRef(sceneState);
   const motionRef = useRef(reducedMotion);
-  const pickRef = useRef({ onPickSpot, onPickFlower, onPickDoor, onEntered, onView });
+  const pickRef = useRef({ onPickSpot, onPickFlower, onPickDoor, onEntered, onView, onWander });
 
   useEffect(() => {
-    pickRef.current = { onPickSpot, onPickFlower, onPickDoor, onEntered, onView };
+    pickRef.current = { onPickSpot, onPickFlower, onPickDoor, onEntered, onView, onWander };
     captionsRef.current = captions;
     motionRef.current = reducedMotion;
   });
@@ -193,7 +179,7 @@ export function GardenWorld({
     rendererRef.current?.update(sceneState);
     // sceneState is rebuilt from these inputs every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [spotCapacity, occupiedSpots, flowers, layers, timeValue, reducedMotion, doorInvite, entering, focus, paused]);
+  }, [spotCapacity, occupiedSpots, flowers, layers, timeValue, reducedMotion, doorInvite, entering, focus, selected, paused]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -237,12 +223,6 @@ export function GardenWorld({
         }
         element.style.visibility = visible ? "visible" : "hidden";
         if (!ndc || !visible) return;
-        if (caption.fadeBeyond !== undefined) {
-          const opacity = captionFade(view.viewProjection, caption.position, caption.fadeBeyond);
-          element.style.opacity = opacity.toFixed(2);
-          if (opacity < 0.1) element.dataset.faded = "";
-          else delete element.dataset.faded;
-        }
         // A gentle float, like type drifting on warm air.
         const driftX = Math.sin(t * 0.5 + index * 1.7) * 3;
         const driftY = Math.sin(t * 0.7 + index * 2.3) * 4;
@@ -291,6 +271,9 @@ export function GardenWorld({
             onFrame: placeCaptions,
             onEntered: () => {
               if (!cancelled) pickRef.current.onEntered?.();
+            },
+            onWander: () => {
+              if (!cancelled) pickRef.current.onWander?.();
             },
           });
           rendererRef.current = renderer;
@@ -376,7 +359,6 @@ export function GardenWorld({
             styles.caption,
             caption.size === "title" ? styles.title : styles.label,
             caption.standby ? styles.standby : "",
-            caption.tone === "quiet" ? styles.quiet : "",
           ]
             .filter(Boolean)
             .join(" ");
@@ -402,7 +384,6 @@ export function GardenWorld({
                 className={className}
                 data-caption={caption.id}
                 href={caption.href}
-                aria-label={caption.ariaLabel}
                 onClick={
                   select
                     ? (event) => {
@@ -419,7 +400,7 @@ export function GardenWorld({
             );
           }
           return caption.onSelect ? (
-            <button key={caption.id} ref={ref} type="button" className={className} onClick={caption.onSelect} aria-label={caption.ariaLabel} data-caption={caption.id}>
+            <button key={caption.id} ref={ref} type="button" className={className} onClick={caption.onSelect} data-caption={caption.id}>
               {caption.text}
             </button>
           ) : (

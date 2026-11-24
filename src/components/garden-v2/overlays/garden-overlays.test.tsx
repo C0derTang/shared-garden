@@ -390,7 +390,8 @@ describe("the garden's overlays", () => {
       await mount();
       useGlideTimers();
       const user = userEvent.setup({ delay: null });
-      await user.click(screen.getByRole("link", { name: /^rose,/ }));
+      // Tapping the rose in the painted world (names no longer float over the plants, #206).
+      act(() => worlds[0]!.callbacks.onPick({ kind: "flower", id: rose.flower.id, distance: 1 }));
       await tick(GLIDE_MS + 50);
       const split = screen.getByRole("dialog", { name: "rose" });
       await user.type(within(split).getByRole("textbox", { name: "Care" }), "A synthetic note");
@@ -412,7 +413,8 @@ describe("the garden's overlays", () => {
       await mount();
       useGlideTimers();
       const user = userEvent.setup({ delay: null });
-      await user.click(screen.getByRole("button", { name: "Plant a seed in spot 2" }));
+      // Tapping the glowing seed mark of spot 2 in the painted world.
+      act(() => worlds[0]!.callbacks.onPick({ kind: "spot", spot: 2, distance: 1 }));
       await tick(GLIDE_MS + 50);
       const plant = screen.getByRole("dialog", { name: "plant a seed" });
       await user.click(within(plant).getByRole("radio", { name: /^marigold/ }));

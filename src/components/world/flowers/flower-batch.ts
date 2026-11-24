@@ -24,6 +24,24 @@ export interface FlowerParamsValue {
   readonly detailNear: number;
   /** Strength of the coloured aura. */
   readonly aura: number;
+  /** Index of the selected flower (lit like the hovered one), or -1. Defaults to -1. */
+  readonly selected?: number;
+  /** How much the hovered or selected flower's aura brightens (default 1). */
+  readonly boost?: number;
+  /** How much its aura widens (default 1). */
+  readonly grow?: number;
+}
+
+function paramsValue(params: FlowerParamsValue) {
+  return {
+    hovered: params.hovered,
+    sway: params.sway,
+    detailNear: params.detailNear,
+    aura: params.aura,
+    selected: params.selected ?? -1,
+    boost: params.boost ?? 1,
+    grow: params.grow ?? 1,
+  };
 }
 
 /** A grid of (u, w) in [0, 1]² with triangle indices. */
@@ -153,12 +171,12 @@ export function createFlowerBatch(gpu: Gpu, packed: PackedFlowers, options: Flow
       aura?.set({ world });
     },
     setParams(params) {
-      const value = { hovered: params.hovered, sway: params.sway, detailNear: params.detailNear, aura: params.aura };
+      const value = paramsValue(params);
       for (const part of parts) part.lit.set({ flowers: value });
       aura?.set({ flowers: value });
     },
     setShadowParams(params) {
-      const value = { hovered: params.hovered, sway: params.sway, detailNear: params.detailNear, aura: params.aura };
+      const value = paramsValue(params);
       for (const part of parts) part.caster?.set({ flowers: value });
     },
     encode(pass) {

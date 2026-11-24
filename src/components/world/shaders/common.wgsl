@@ -36,6 +36,20 @@ export struct World {
   lampFalloff: f32,
   // 0..1 while a night show plays: the moon and sky recede so it can shine.
   showDim: f32,
+  // The one glow rule every plot shares (lib/world/glow.ts): resting level,
+  // hover/selected brightening and halo widening.
+  plotGlow: f32,
+  plotBoost: f32,
+  plotGrow: f32,
+  // One-based empty spot the plot navigator selected, or -1.
+  selectedSpot: f32,
+}
+
+// The soft halo every plot glow shares, over a camera-facing quad (r = 0 at
+// its centre, 1 at its rim): peak 1, no visible edge.
+export fn plotHalo(r: f32) -> f32 {
+  let falloff = exp(-r * r * 6.0) * 0.55 + exp(-r * r * 14.0) * 0.6;
+  return falloff / 1.15 * (1.0 - smoothstep(0.6, 1.0, r));
 }
 
 export fn hash21(p: vec2f) -> f32 {

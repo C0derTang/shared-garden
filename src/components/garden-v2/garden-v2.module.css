@@ -1427,6 +1427,23 @@
   }
 }
 
+/* Portrait screens: the plot navigator floats at the bottom (#206), so the hint,
+ * the away note and messages rest above it. */
+@media (orientation: portrait) {
+  .hint {
+    bottom: calc(max(0.4rem, env(safe-area-inset-bottom)) + 8.6rem);
+  }
+
+  .away {
+    top: auto;
+    bottom: calc(max(0.4rem, env(safe-area-inset-bottom)) + 11.4rem);
+  }
+
+  .toast {
+    bottom: calc(max(0.4rem, env(safe-area-inset-bottom)) + 9rem);
+  }
+}
+
 @keyframes hero-in {
   from {
     opacity: 0;

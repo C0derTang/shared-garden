@@ -16,7 +16,9 @@ describe("world flower models", () => {
     const [tall, small] = worldFlowerAnchors(flowers);
     expect(tall!.id).toBe("a");
     expect(tall!.height).toBeGreaterThan(small!.height!);
-    expect(small!.height).toBeGreaterThanOrEqual(0.25);
+    // A sprout's pick body is as small as the sprout; its on-screen target is padded instead (#206).
+    expect(small!.height).toBeLessThan(0.25);
+    expect(small!.radius).toBeLessThan(0.16);
     expect(tall!.position).toEqual([1, 0, 2]);
   });
 

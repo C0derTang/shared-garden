@@ -6,11 +6,13 @@ import type { FlowerLayer } from "@/components/world/flowers/flower-layer";
 import { worldFlowerAnchors, type WorldFlower } from "@/components/world/flowers/flower-models";
 import { FireworksOverlay } from "@/components/world/fireworks/fireworks-overlay";
 import { GardenWorld, usePrefersReducedMotion, type WorldCaption, type WorldStatus } from "@/components/world/garden-world";
+import type { SelectedPlot } from "@/components/world/renderer";
 import { handFont } from "@/components/world/hand-font";
 import { legacyPath } from "@/lib/legacy/routes";
 import { diffAway, hasAwayNews, noAwayNews, readAwaySnapshot, takeAwaySnapshot, writeAwaySnapshot, type AwayNews } from "@/lib/garden-v2/away";
-import { captionName, catalogItem, gardenCareStatus, gardenDayLabel, plantSpec, stageWords } from "@/lib/garden-v2/flowers";
-import { emptySpots, type GardenResult, type GardenState, type Plant } from "@/lib/garden-v2/model";
+import { captionName, catalogItem, gardenDayLabel, plantSpec, stageWords } from "@/lib/garden-v2/flowers";
+import type { GardenResult, GardenState } from "@/lib/garden-v2/model";
+import { gardenPlots, type GardenPlot } from "@/lib/garden-v2/plots";
 import { useGardenV2 } from "@/lib/garden-v2/use-garden-v2";
 import { gardenViewHref, type GardenView } from "@/lib/garden-v2/views";
 import type { FocusTarget } from "@/lib/world/journey";
@@ -20,6 +22,7 @@ import { FlowerPanel } from "./flower-panel";
 import { useNightFireworks } from "./night-fireworks";
 import { GardenOverlays } from "./overlays/garden-overlays";
 import { PlantView } from "./plant-view";
+import { PlotNavigator, focusPlotNavigator } from "./plot-navigator";
 import { SplitView } from "./split-view";
 import styles from "./garden-v2.module.css";
 
@@ -45,17 +48,14 @@ function useWorldFlowers(state: GardenState | null) {
   return { flowers, anchors };
 }
 
-/** Where keyboard focus goes back to: the flower's words in the world, else the world itself. */
-function focusCaption(id: string) {
-  const element = document.querySelector<HTMLElement>(`[data-caption="${CSS.escape(id)}"]`);
-  if (element) element.focus();
-  if (document.activeElement !== element) document.querySelector<HTMLElement>("[data-garden-world]")?.focus();
-}
+const TITLE: readonly WorldCaption[] = [{ id: "title", text: "our garden", position: [0, 10, -62], size: "title" }];
 
 /**
  * The new garden: a full-screen painted world fed by the v2 state and its
- * Realtime channel. Empty seed marks plant any flower; tapping a flower (or its
- * floating name) glides the camera to it and opens the split view.
+ * Realtime channel. Empty seed marks plant any flower; tapping a flower glides
+ * the camera to it and opens the split view. The plot navigator steps through
+ * every plot with the camera framing each one (#206); no names float over the
+ * plants.
  */
 export function GardenV2({
   initial,
@@ -77,8 +77,8 @@ export function GardenV2({
   const [news, setNews] = useState<AwayNews>(noAwayNews);
   const [wandered, setWandered] = useState(false);
   const [view, setView] = useState<GardenView | null>(initialFlowerId ? null : initialView);
+  const [selectedSpot, setSelectedSpot] = useState<number | null>(null);
   const timer = useRef<number | undefined>(undefined);
-  const returnTo = useRef<string | null>(null);
   const visitSpot = useRef<number | null>(null);
   // The flower layer (GPU code and shaders) loads with the world, not in the page's first bundle.
   const [flowerLayer, setFlowerLayer] = useState<FlowerLayer | null>(null);
@@ -117,18 +117,20 @@ export function GardenV2({
     (id: string, immediate = false) => {
       const anchor = anchors.find((candidate) => candidate.id === id);
       if (!anchor) return;
-      returnTo.current = `flower-${id}`;
+      // While navigating, any visit (a tap in the world, "next: …") moves the navigator there too.
+      const spot = state?.plants.find((plant) => plant.flower.id === id)?.flower.spot;
+      if (spot !== undefined) setSelectedSpot((current) => (current === null ? null : spot));
       setMode({ kind: "idle" });
       setWandered(true);
       window.history.replaceState(window.history.state, "", flowerHref(id));
       glide({ position: anchor.position, height: anchor.height ?? 0.8 }, () => setMode({ kind: "flower", id }), immediate);
     },
-    [anchors, glide],
+    [state, anchors, glide],
   );
 
   const startPlant = useCallback(
     (spot: number) => {
-      returnTo.current = "plant";
+      setSelectedSpot((current) => (current === null ? null : spot));
       setMode({ kind: "idle" });
       setWandered(true);
       glide({ position: spotPosition(spot).position, height: 0.7 }, () => setMode({ kind: "plant", spot }));
@@ -191,45 +193,21 @@ export function GardenV2({
     writeAwaySnapshot(state.member_id, takeAwaySnapshot(state));
   }, [state]);
 
-  const captions = useMemo<WorldCaption[]>(() => {
-    if (!state) return [];
-    const list: WorldCaption[] = [{ id: "title", text: "our garden", position: [0, 10, -62], size: "title" }];
-    for (const plant of state.plants) {
-      const anchor = anchors.find((candidate) => candidate.id === plant.flower.id);
-      if (!anchor) continue;
-      const item = catalogItem(state, plant.flower.type_key);
-      const status = gardenCareStatus(plant, item, state);
-      const name = captionName(item, plant.flower.type_key);
-      const waiting = status?.cue === "partner-cared";
-      // eslint-disable-next-line react-hooks/refs -- onSelect runs only from a click, never during render
-      list.push({
-        id: `flower-${plant.flower.id}`,
-        text: waiting ? `${name} ♡` : name,
-        position: [anchor.position[0], anchor.position[1] + (anchor.height ?? 0.8) + 0.12, anchor.position[2]],
-        href: flowerHref(plant.flower.id),
-        onSelect: () => visit(plant.flower.id),
-        ariaLabel: flowerLabel(plant, state, partner.short),
-        tone: status?.dueForYou ? undefined : "quiet",
-        fadeBeyond: 6.4,
-      });
-    }
-    const spot = emptySpots(state)[0];
-    if (spot !== undefined) {
-      const position = spotPosition(spot).position;
-      const first = state.plants.length === 0;
-      // eslint-disable-next-line react-hooks/refs -- onSelect runs only from a click, never during render
-      list.push({
-        id: "plant",
-        text: first ? "tap a glowing seed to plant" : "plant a seed",
-        position: [position[0], position[1] + (first ? 0.9 : 0.45), position[2]],
-        onSelect: () => startPlant(spot),
-        ariaLabel: `Plant a seed in spot ${spot}`,
-        tone: first ? undefined : "quiet",
-        ...(first ? {} : { fadeBeyond: 6.4 }),
-      });
-    }
-    return list;
-  }, [state, anchors, partner.short, visit, startPlant]);
+  // The plot navigator (#206): every plot of the open beds, in order; the camera frames the selected one.
+  const plots = useMemo(() => (state ? gardenPlots(state, partner.short) : []), [state, partner.short]);
+  const selected = useMemo<SelectedPlot | null>(() => {
+    const plot = selectedSpot === null ? undefined : plots.find((candidate) => candidate.spot === selectedSpot);
+    if (!plot) return null;
+    const id = plot.plant?.flower.id ?? null;
+    const anchor = id === null ? undefined : anchors.find((candidate) => candidate.id === id);
+    return { spot: plot.spot, flowerId: anchor ? id : null, height: anchor?.height ?? 0 };
+  }, [selectedSpot, plots, anchors]);
+  const selectPlot = useCallback((spot: number | null) => {
+    setSelectedSpot(spot);
+    if (spot !== null) setWandered(true);
+  }, []);
+  const visitPlot = useCallback((plot: GardenPlot) => (plot.plant ? visit(plot.plant.flower.id) : startPlant(plot.spot)), [visit, startPlant]);
+  const wanderOff = useCallback(() => setSelectedSpot(null), []);
 
   if (!state)
     return (
@@ -266,12 +244,14 @@ export function GardenV2({
         occupiedSpots={occupied}
         flowers={anchors}
         layers={layers}
-        captions={captions}
+        captions={TITLE}
         focus={focus}
+        selected={selected}
         paused={covered}
         onStatusChange={setWorldStatus}
         onPickFlower={visit}
         onPickSpot={startPlant}
+        onWander={wanderOff}
         label={`Our painted garden by the lake, with ${state.plants.length} ${state.plants.length === 1 ? "flower" : "flowers"}`}
       />
       <nav className={styles.corner} aria-label="Leave the garden">
@@ -292,6 +272,9 @@ export function GardenV2({
         }}
       />
       <FireworksOverlay {...fireworks.overlay} hidden={covered} />
+      {worldStatus !== "unsupported" && worldStatus !== "stopped" && plots.length > 0 && (
+        <PlotNavigator plots={plots} selected={selectedSpot} onSelect={selectPlot} onVisit={visitPlot} />
+      )}
       {worldStatus === "ready" && !wandered && !covered && (
         <p className={styles.hint}>scroll to wander closer · tap a flower to visit</p>
       )}
@@ -315,7 +298,7 @@ export function GardenV2({
           heroStage={stageWords(openPlant, openItem)}
           title={openName}
           subtitle={`planted by ${openPlant.flower.planted_by === state.member_id ? "you" : partner.short} · ${gardenDayLabel(openPlant.flower.planted_day)}`}
-          onReturnFocus={() => focusCaption(returnTo.current ?? "")}
+          onReturnFocus={focusPlotNavigator}
         >
           <FlowerPanel
             key={openPlant.flower.id}
@@ -335,7 +318,7 @@ export function GardenV2({
         busy={busy}
         mutate={mutate}
         onClose={close}
-        onReturnFocus={() => focusCaption(returnTo.current ?? "")}
+        onReturnFocus={focusPlotNavigator}
         onPlanted={(result, spot) => {
           const planted = result.state?.plants.find((plant) => plant.flower.spot === spot);
           const name = planted ? captionName(catalogItem(result.state!, planted.flower.type_key), planted.flower.type_key) : "flower";
@@ -346,18 +329,4 @@ export function GardenV2({
       />
     </main>
   );
-}
-
-/** The accessible name of a flower's floating words. */
-export function flowerLabel(plant: Plant, state: GardenState, partner: string) {
-  const item = catalogItem(state, plant.flower.type_key);
-  const name = item?.display_name ?? plant.flower.type_key;
-  const growth = plant.flower.first_bloom_at
-    ? stageWords(plant, item)
-    : `${stageWords(plant, item)}, ${Math.min(plant.flower.growth_units, item?.growth_target ?? 0)} of ${item?.growth_target ?? "?"}`;
-  const status = gardenCareStatus(plant, item, state);
-  const care = !status
-    ? ""
-    : `. ${status.you ? "You cared today" : status.later ? "Opens at 10 p.m." : "Your care is open"}; ${partner} ${status.partner ? "cared today" : "has not yet"}`;
-  return `${name}, ${growth}${care}`;
 }

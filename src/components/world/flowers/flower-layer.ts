@@ -1,5 +1,6 @@
 import type { Gpu, Target } from "vgpu";
 import { packFlowers } from "@/lib/world/flowers/generate";
+import { PLOT_GLOW, plotGlowLevel } from "@/lib/world/glow";
 import type { WorldLayer, WorldShadow, WorldUniforms } from "../world-layer";
 import { createFlowerBatch, type FlowerBatch } from "./flower-batch";
 import { placeWorldFlowers, type WorldFlower } from "./flower-models";
@@ -31,7 +32,7 @@ export function createFlowerLayer(initial: readonly WorldFlower[] = []): FlowerL
   let worldWritten: WorldUniforms | undefined;
 
   const build = (set: readonly WorldFlower[]) =>
-    createFlowerBatch(gpu!, packFlowers(placeWorldFlowers(set)), { shadow: shadow!, castShadows: true, detail: "world", label: "garden-world.flowers" });
+    createFlowerBatch(gpu!, packFlowers(placeWorldFlowers(set), { evenAuraRadius: true }), { shadow: shadow!, castShadows: true, detail: "world", label: "garden-world.flowers" });
 
   const swap = (next: FlowerBatch, nextIds: string[]) => {
     batch?.dispose();
@@ -104,13 +105,15 @@ export function createFlowerLayer(initial: readonly WorldFlower[] = []): FlowerL
     draw(pass, frame) {
       if (!batch) return;
       writeWorld(frame.world);
-      // Strongest in the golden hour; a gentle halo at night so the dark stays dark.
-      const aura = 0.16 * (0.3 + 0.7 * frame.lighting.glow) + 0.05 * frame.lighting.night;
+      // Every flower shares the empty seed marks' glow rule (lib/world/glow.ts).
       batch.setParams({
         hovered: frame.hoveredFlowerId === null ? -1 : ids.indexOf(frame.hoveredFlowerId),
+        selected: frame.selectedFlowerId === null ? -1 : ids.indexOf(frame.selectedFlowerId),
         sway: frame.reducedMotion ? 0 : 1,
         detailNear: DETAIL_NEAR,
-        aura,
+        aura: plotGlowLevel(frame.lighting),
+        boost: PLOT_GLOW.hoverBoost,
+        grow: PLOT_GLOW.hoverGrow,
       });
       batch.encode(pass);
       batch.encodeAura(pass);
