@@ -104,6 +104,67 @@ new garden only.
   plays when either member opens the garden after sunset that night, once per
   person per night, with a replay control.
 
+## World look (amendments and #174 choices)
+
+The user amended the look twice on 2026-11-24 (recorded on
+[#174](https://github.com/C0derTang/shared-garden/issues/174)). Where these
+amendments conflict with "New garden look and interaction" above, they win.
+
+- **Update 1:** match the reference site's art style only (painted look, visible
+  directional brushstrokes, canvas grain, soft glow). Do not copy its
+  composition: no mounds or rolling mossy hills, and no winding path-into-hills
+  layout. Flowers must be intricate and built from brushstrokes.
+- **Update 2, which supersedes update 1 where they conflict:**
+  - The visual target is the sunset home's own art (`public/sunset-home/painted-lake.png`,
+    `public/sunset-home/red-spider-lily.png`). Landscapes are realistic
+    impressionist oil paintings with golden-hour light, haze and canvas texture.
+    Flowers are botanical-illustration realism with a soft coloured glow.
+  - The garden should be more 3D than those images: real geometry, lighting,
+    depth and camera movement under a painterly finish.
+  - The UI/UX feel follows the reference site: white handwritten type floating
+    in the scene, minimal chrome, camera-journey navigation and soft hover
+    glows. Distant mountains are allowed; the "no mounds" rule concerns the
+    mound-field composition.
+
+Conservative choices made for the world renderer (#174, PR #189):
+
+- **Composition:** an original lakeside garden meadow. Beds of soil edged with
+  mossy stones sit in a meadow with long golden grass, reeds, boulders and
+  wildflowers. Our shore has framing trees with branches. A reflective lake
+  separates us from far-shore groves and hazy mountain ranges.
+- **Orientation:** the camera faces west across the lake, so summer sunsets and
+  their glitter path are in view.
+- **Sky reference point:** the sun is computed for a generic point at Los
+  Angeles (34.05, −118.24), the time zone's namesake city. Night is below −6°,
+  day is 8° and above, and dawn or dusk lies between. The moon is an artistic
+  fixed position over the lake, not an ephemeris.
+- **Rendering:**
+  - Real shadow mapping.
+  - A painterly post-process: a smoothed structure tensor, then an anisotropic
+    Kuwahara whose radius grows with distance, then flow-aligned brush streaks
+    and canvas weave.
+  - Bloom for the sun, glints and seed marks.
+  - The scene and filter render within a 1.9 MP budget on a canvas at
+    devicePixelRatio ≤ 2, clamped to the device texture limit.
+- **Planting spots:**
+  - Beds hold twelve spots and are laid on a four-row lattice that fills from
+    the middle outward.
+  - Spot identifiers keep their positions as new beds open.
+  - Empty spots are soft glowing seed marks that brighten on hover, with no
+    rings.
+- **Navigation:** scroll, swipe or the arrow keys walk the camera from the
+  overview in among the beds, and the pointer adds parallax. Reduced motion
+  removes drift, sway and easing.
+- **Type:** Gochi Hand (SIL Open Font License 1.1), bundled in the repository
+  and loaded with `next/font/local`; there are no remote font requests.
+  Captions glow softly and drift gently.
+- **Fallbacks:** browsers without WebGPU see "This garden is painted with
+  WebGPU." with a link to `/legacy`. A runtime failure shows "The painted
+  garden stopped." with Reload and `/legacy`. After a GPU device loss the world
+  recreates its GPU context once before showing that notice.
+- **Development showcase:** `/dev/world` is available in development only and
+  returns 404 in production.
+
 ## Local development
 
 A development-only seeded sign-in may exist for local demos. It must be

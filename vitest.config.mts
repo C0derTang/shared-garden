@@ -5,6 +5,7 @@ export default defineConfig({
   resolve: { alias: {
     "@": fileURLToPath(new URL("./src", import.meta.url)),
     "next/font/google": fileURLToPath(new URL("./src/test/next-font-google.ts", import.meta.url)),
+    "next/font/local": fileURLToPath(new URL("./src/test/next-font-local.ts", import.meta.url)),
   } },
   test: {
     environment: "jsdom",
