@@ -11,9 +11,9 @@ const DETAIL_NEAR = 14;
 
 export interface FlowerLayer extends WorldLayer {
   /**
-   * Replaces the flowers. The new set is built and its pipelines compiled in
-   * the background; the previous flowers keep drawing until it is ready, so a
-   * change never stalls a frame.
+   * Replaces the flowers. The new set is generated, packed, uploaded and its
+   * pipelines compiled in a task outside the frame callbacks; the previous
+   * flowers keep drawing until it is ready, so a change never stalls a frame.
    */
   setFlowers(flowers: readonly WorldFlower[]): void;
 }
@@ -27,7 +27,7 @@ export function createFlowerLayer(initial: readonly WorldFlower[] = []): FlowerL
   let batch: FlowerBatch | undefined;
   let ids: string[] = [];
   let generation = 0;
-  let stale = true;
+  let scheduled: ReturnType<typeof setTimeout> | undefined;
   let worldWritten: WorldUniforms | undefined;
 
   const build = (set: readonly WorldFlower[]) =>
@@ -40,13 +40,20 @@ export function createFlowerLayer(initial: readonly WorldFlower[] = []): FlowerL
     worldWritten = undefined;
   };
 
-  /** Builds the current flowers off the frame path and swaps them in once compiled. */
+  /** Builds the current flowers (in a task, never inside a frame) and swaps them in once compiled. */
   const rebuild = () => {
+    scheduled = undefined;
     if (!gpu || !shadow || !sceneTarget) return;
-    stale = false;
     const token = ++generation;
     const set = flowers;
-    const next = build(set);
+    let next: FlowerBatch;
+    try {
+      next = build(set);
+    } catch (error) {
+      // A lost device or bad data: keep drawing the previous flowers.
+      console.error("Garden flowers could not be rebuilt", error);
+      return;
+    }
     const nextIds = set.map((flower) => flower.id);
     void next
       .compile(sceneTarget)
@@ -55,6 +62,10 @@ export function createFlowerLayer(initial: readonly WorldFlower[] = []): FlowerL
         if (token !== generation || !gpu) next.dispose();
         else swap(next, nextIds);
       });
+  };
+
+  const schedule = () => {
+    if (scheduled === undefined) scheduled = setTimeout(rebuild, 0);
   };
 
   /** The shared camera and light are written once per frame, not per pass. */
@@ -76,18 +87,16 @@ export function createFlowerLayer(initial: readonly WorldFlower[] = []): FlowerL
       if (token !== generation || !gpu) first.dispose();
       else {
         swap(first, set.map((flower) => flower.id));
-        stale = flowers !== set;
+        if (flowers !== set) schedule();
       }
     },
     drawShadow(pass, frame) {
-      if (stale) rebuild();
       if (!batch) return;
       writeWorld(frame.world);
       batch.setShadowParams({ hovered: -1, sway: frame.reducedMotion ? 0 : 1, detailNear: DETAIL_NEAR, aura: 0 });
       batch.encodeShadow(pass);
     },
     draw(pass, frame) {
-      if (stale) rebuild();
       if (!batch) return;
       writeWorld(frame.world);
       // Strongest in the golden hour; a gentle halo at night so the dark stays dark.
@@ -104,17 +113,19 @@ export function createFlowerLayer(initial: readonly WorldFlower[] = []): FlowerL
     setFlowers(next) {
       if (next === flowers) return;
       flowers = next;
-      stale = true;
+      // Before setup, setup builds the latest set itself.
+      if (gpu) schedule();
     },
     dispose() {
       generation += 1;
+      if (scheduled !== undefined) clearTimeout(scheduled);
+      scheduled = undefined;
       batch?.dispose();
       batch = undefined;
       gpu = undefined;
       shadow = undefined;
       sceneTarget = undefined;
       worldWritten = undefined;
-      stale = true;
     },
   };
 }

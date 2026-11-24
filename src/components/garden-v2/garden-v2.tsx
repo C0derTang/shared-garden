@@ -6,10 +6,9 @@ import type { FlowerLayer } from "@/components/world/flowers/flower-layer";
 import { worldFlowerAnchors, type WorldFlower } from "@/components/world/flowers/flower-models";
 import { GardenWorld, usePrefersReducedMotion, type WorldCaption, type WorldStatus } from "@/components/world/garden-world";
 import { handFont } from "@/components/world/hand-font";
-import { careStatus, NO_DECAY } from "@/lib/garden/care";
 import { legacyPath } from "@/lib/legacy/routes";
 import { diffAway, hasAwayNews, noAwayNews, readAwaySnapshot, takeAwaySnapshot, writeAwaySnapshot, type AwayNews } from "@/lib/garden-v2/away";
-import { captionName, catalogItem, gardenDayLabel, plantSpec, stageWords } from "@/lib/garden-v2/flowers";
+import { captionName, catalogItem, gardenCareStatus, gardenDayLabel, plantSpec, stageWords } from "@/lib/garden-v2/flowers";
 import { emptySpots, type GardenResult, type GardenState, type Plant } from "@/lib/garden-v2/model";
 import { useGardenV2 } from "@/lib/garden-v2/use-garden-v2";
 import type { FocusTarget } from "@/lib/world/journey";
@@ -168,7 +167,7 @@ export function GardenV2({ initial, initialFlowerId = null }: { initial: GardenR
       const anchor = anchors.find((candidate) => candidate.id === plant.flower.id);
       if (!anchor) continue;
       const item = catalogItem(state, plant.flower.type_key);
-      const status = item ? careStatus(plant, item, state, NO_DECAY) : null;
+      const status = gardenCareStatus(plant, item, state);
       const name = captionName(item, plant.flower.type_key);
       const waiting = status?.cue === "partner-cared";
       // eslint-disable-next-line react-hooks/refs -- onSelect runs only from a click, never during render
@@ -310,7 +309,7 @@ export function flowerLabel(plant: Plant, state: GardenState, partner: string) {
   const growth = plant.flower.first_bloom_at
     ? stageWords(plant, item)
     : `${stageWords(plant, item)}, ${Math.min(plant.flower.growth_units, item?.growth_target ?? 0)} of ${item?.growth_target ?? "?"}`;
-  const status = item ? careStatus(plant, item, state, NO_DECAY) : null;
+  const status = gardenCareStatus(plant, item, state);
   const care = !status
     ? ""
     : `. ${status.you ? "You cared today" : status.later ? "Opens at 10 p.m." : "Your care is open"}; ${partner} ${status.partner ? "cared today" : "has not yet"}`;

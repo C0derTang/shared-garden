@@ -36,5 +36,7 @@ describe("shared care rules", () => {
     expect(plan.next?.plant.flower.spot).toBe(1);
     expect(plan.plantSpot).toBe(2);
     expect(todayPlan(state, { canPlant: false }).plantSpot).toBeNull();
+    const roseOnly = todayPlan(state, { canPlant: false, rules: NO_DECAY, takesPart: (p) => p.flower.type_key === "rose" });
+    expect(roseOnly.rows.map((row) => row.plant.flower.type_key)).toEqual(["rose"]);
   });
 });

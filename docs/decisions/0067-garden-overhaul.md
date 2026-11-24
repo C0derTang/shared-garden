@@ -416,7 +416,8 @@ discretion and the look in "World look":
 - **Floating words:** every flower has its lower-case name floating above it
   (Gochi Hand, soft glow). Names fade in as the camera walks closer (within
   about 6.4 world units) so the overview stays a painting; a focused name always
-  shows. A flower whose care is open for you is bright; the rest are quieter,
+  shows (names outside the view are pinned inside the screen edge, by their own
+  size, while focused). A flower whose care is open for you is bright; the rest are quieter,
   and "♡" follows the name when your partner cared and you have not yet. Each
   name is a real link to `?flower=<id>` with an accessible name that says the
   stage, growth and who has cared today. "plant a seed" floats above the next
@@ -430,7 +431,11 @@ discretion and the look in "World look":
 - **The split view:** a modal dialog (Radix) with the flower's own procedural
   render (`FlowerHero`, the exact type, seed, growth, mood colours and puff) on
   the left half and its activity on the right half, over a translucent dark
-  umber wash with canvas grain. Focus starts at the flower's name, stays inside,
+  umber wash with canvas grain. Behind the flower the painting shows a darkened,
+  colour-graded impression of the garden for the time of day: the sky over a
+  hazy, ragged horizon and a dim meadow in loose dabs and leaning brush
+  strokes, under the studio's canvas tooth and vignette, kept well below the
+  flower so its colours and aura lead. Focus starts at the flower's name, stays inside,
   and returns to the flower's floating name; Escape, "×" or "back to the
   garden" close it. Seedlings stay small in the painting (a minimum framing) and
   grow into the frame. Text is cream on the dark wash (above WCAG AA); headings
@@ -456,7 +461,11 @@ discretion and the look in "World look":
   Moonflower shows "opens at 10 p.m." and keeps a draft outside its window; the
   Dandelion shows its wish and, once bloomed, "our wish came true" then "blow
   the seeds" after a confirmation. Sunflower, Bluebell and Peony grow and show
-  their painting with "coming soon" for their activity (#182).
+  their painting with "coming soon" for their activity (#182). Until then they
+  are never treated as due: their names stay quiet, their accessible names say
+  nothing about care, and "next" never offers them. One predicate
+  (`hasCareActivity` in `lib/garden-v2/flowers.ts`) decides this, so #182 only
+  adds each type to it.
 - **The Dandelion in the world:** growing, it shows its golden head; bloomed
   and waiting on its wish, a seed puff; once fulfilled, its seeds have flown and
   it shows its golden head again as a keepsake.
@@ -477,8 +486,9 @@ discretion and the look in "World look":
   legacy garden (`lib/garden/care.ts`), the sync hook and the reply thread,
   which now takes its read and save actions. The legacy garden's behaviour is
   unchanged.
-- **Flower rendering follow-ups:** a changed flower set is built and compiled
-  off the frame path and swapped in when ready; the shared camera uniform is
+- **Flower rendering follow-ups:** a changed flower set is generated, packed,
+  uploaded and compiled in a task outside the frame callbacks (the previous
+  flowers keep drawing) and swapped in when ready; the shared camera uniform is
   written once per frame; growth is quantised downward so a fraction just below
   a stage threshold never rounds into the next stage. A bloomed flower averages
   about 21,700 triangles at world detail. On the real page on a desktop Apple

@@ -50,6 +50,18 @@ describe("FlowerPanel", () => {
     expect(await screen.findByText(/can see it now/)).toBeInTheDocument();
   });
 
+  it("does not offer a flower without its activity yet as the next one", async () => {
+    const user = userEvent.setup();
+    const { mutate } = setup("rose", (rose, state) => {
+      state.plants.push({ ...structuredClone(rose), flower: { ...rose.flower, id: "00000000-0000-4000-8000-0000000000aa", spot: 2, type_key: "sunflower" } });
+    });
+    await user.type(screen.getByRole("textbox", { name: "Care" }), "A synthetic note");
+    await user.click(screen.getByRole("button", { name: "share" }));
+    expect(mutate).toHaveBeenCalled();
+    expect(await screen.findByText(/That’s everything for today/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /next:/ })).toBeNull();
+  });
+
   it("shows the partner's entry with a reply box, and your entry with its edit window", async () => {
     const user = userEvent.setup();
     const { mutate } = setup("marigold", (p) => {

@@ -105,6 +105,17 @@ describe("GardenV2", () => {
     expect(screen.queryByText(/dev showcase/i)).toBeNull();
   });
 
+  it("never shows a flower without its activity yet as due", async () => {
+    const state = garden();
+    const rose = state.plants[0]!;
+    state.plants.push({ ...structuredClone(rose), flower: { ...rose.flower, id: "00000000-0000-4000-8000-0000000000bb", spot: 2, type_key: "sunflower" }, member2_submitted: false });
+    await mount(state);
+    const sunflower = screen.getByRole("link", { name: /^sunflower,/ });
+    expect(sunflower.getAttribute("aria-label")).not.toMatch(/care|cared/i);
+    expect(sunflower.className).toMatch(/quiet/);
+    expect(screen.getByRole("link", { name: /^rose,/ }).className).not.toMatch(/quiet/);
+  });
+
   it("glides to a flower, opens its split view, and returns focus when Escape closes it", async () => {
     const user = userEvent.setup();
     const { state } = await mount();

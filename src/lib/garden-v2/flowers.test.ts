@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { moodColorOf } from "@/lib/garden/moods";
 import { v2GardenFixture } from "@/test/garden-v2-fixture";
-import { catalogItem, gardenDayLabel, growthFraction, hasCareActivity, plantSpec, previewSeed, stageWords } from "./flowers";
+import { catalogItem, gardenCareStatus, gardenDayLabel, gardenTodayPlan, growthFraction, hasCareActivity, plantSpec, previewSeed, stageWords } from "./flowers";
 import type { Plant } from "./model";
 
 function plant(patch: Partial<Plant["flower"]>, extra: Partial<Plant> = {}): Plant {
@@ -45,5 +45,20 @@ describe("new-garden flowers", () => {
     expect(gardenDayLabel("2026-11-24")).toBe("Nov 24");
     expect(previewSeed("rose")).toBe(previewSeed("rose"));
     expect(previewSeed("rose")).not.toBe(previewSeed("tulip"));
+  });
+
+  it("never treats a flower without its activity yet as due", () => {
+    const garden = v2GardenFixture();
+    const rose = garden.plants[0]!;
+    rose.member1_submitted = false;
+    for (const [i, type] of (["sunflower", "bluebell", "peony"] as const).entries())
+      garden.plants.push({ ...structuredClone(rose), flower: { ...rose.flower, id: `soon-${type}`, spot: i + 2, type_key: type } });
+    for (const plant of garden.plants.slice(1)) expect(gardenCareStatus(plant, catalogItem(garden, plant.flower.type_key), garden)).toBeNull();
+    expect(gardenCareStatus(rose, catalogItem(garden, "rose"), garden)?.dueForYou).toBe(true);
+    const plan = gardenTodayPlan(garden);
+    expect(plan.rows.map((row) => row.plant.flower.type_key)).toEqual(["rose"]);
+    rose.member1_submitted = true;
+    rose.member2_submitted = true;
+    expect(gardenTodayPlan(garden)).toMatchObject({ next: null, allTended: true });
   });
 });

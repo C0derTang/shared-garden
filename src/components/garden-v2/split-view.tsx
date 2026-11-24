@@ -57,7 +57,7 @@ export function SplitView({ open, onClose, spec, heroLabel, heroName, heroStage,
           }}
         >
           <div className={styles.hero}>
-            <FlowerHero spec={spec} label={heroLabel} className={styles.heroCanvas} minExtent={HERO_MIN_EXTENT} />
+            <FlowerHero spec={spec} label={heroLabel} className={styles.heroCanvas} minExtent={HERO_MIN_EXTENT} backdrop="sky" />
             <p className={styles.heroWords} aria-hidden="true">
               <span className={styles.heroName}>{heroName}</span>
               {heroStage && <span className={styles.heroStage}>{heroStage}</span>}

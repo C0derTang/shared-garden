@@ -3,6 +3,7 @@
  * fractions, Hydrangea mood colours, the Dandelion puff, stage wording and
  * which flowers have their own activity yet. Pure, so it is unit tested.
  */
+import { careStatus, NO_DECAY, todayPlan } from "@/lib/garden/care";
 import { moodColorOf, OTHER_MOOD, type MoodPick } from "@/lib/garden/moods";
 import type { CatalogItem, FlowerType, GardenState, Plant } from "./model";
 
@@ -22,7 +23,22 @@ export const CARE_TYPES: readonly FlowerType[] = [
 /** Flowers whose own activity (photo, voice, milestones) arrives later. */
 export const COMING_SOON_TYPES: readonly FlowerType[] = ["sunflower", "bluebell", "peony"];
 
+/**
+ * The one switch for whether a flower's daily activity exists in this garden.
+ * Flowers without one are never "due": no bright name, no "your care is
+ * open", no "next" suggestion. Add a type to CARE_TYPES when its activity lands.
+ */
 export const hasCareActivity = (type: FlowerType) => CARE_TYPES.includes(type);
+
+/** Today's care for a new-garden flower (no decay), or null when it takes none here. */
+export function gardenCareStatus(plant: Plant, item: CatalogItem | undefined, state: Pick<GardenState, "member_id" | "moonflower_open">) {
+  return item && hasCareActivity(plant.flower.type_key) ? careStatus(plant, item, state, NO_DECAY) : null;
+}
+
+/** Flowers still waiting for care today, in the order to visit them (no decay). */
+export function gardenTodayPlan(state: GardenState) {
+  return todayPlan(state, { canPlant: false, rules: NO_DECAY, takesPart: (plant) => hasCareActivity(plant.flower.type_key) });
+}
 
 /** The procedural flower's description (see `FlowerSpec`). */
 export interface PlantSpec {

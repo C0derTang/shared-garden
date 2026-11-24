@@ -2,10 +2,10 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { usePartnerName } from "@/components/auth/member-names";
 import { EntryReplies, type ReplyActions } from "@/components/garden/entry-replies";
-import { careStatus, NO_DECAY, sheetCue, todayPlan } from "@/lib/garden/care";
+import { sheetCue } from "@/lib/garden/care";
 import { moodBlend, moodLabel } from "@/lib/garden/moods";
 import { loadFlowerHistoryV2, readRepliesV2, saveReplyV2 } from "@/lib/garden-v2/actions";
-import { gardenDayLabel, hasCareActivity } from "@/lib/garden-v2/flowers";
+import { gardenCareStatus, gardenDayLabel, gardenTodayPlan, hasCareActivity } from "@/lib/garden-v2/flowers";
 import { canEditAt, type CatalogItem, type Entry, type GardenState, type Plant } from "@/lib/garden-v2/model";
 import { CareForm, type MutateV2 } from "./care-form";
 import { EntryContent, gardenDate, gardenTime, MoodChip } from "./entry-view";
@@ -55,7 +55,7 @@ function Growth({ plant, item }: { plant: Plant; item: CatalogItem }) {
 /** Who has cared for this flower today, and the one cue that matters. */
 function Today({ plant, item, state }: { plant: Plant; item: CatalogItem; state: GardenState }) {
   const partner = usePartnerName();
-  const status = careStatus(plant, item, state, NO_DECAY);
+  const status = gardenCareStatus(plant, item, state);
   if (!status) return null;
   const cue = sheetCue(status, partner.subject);
   return (
@@ -286,7 +286,7 @@ export function FlowerPanel({ plant, state, item, now, busy, mutate, onVisit }: 
   const moonClosed = type === "moonflower" && !state.moonflower_open;
   const theirsCared = state.member_id === 1 ? plant.member2_submitted : plant.member1_submitted;
 
-  const plan = saved === "share" && !optionalMood ? todayPlan(state, { canPlant: false, rules: NO_DECAY }) : null;
+  const plan = saved === "share" && !optionalMood ? gardenTodayPlan(state) : null;
   const next = plan?.rows.find((row) => row.dueForYou && row.plant.flower.id !== flower.id) ?? null;
   useEffect(() => {
     if (saved === "share") nextRef.current?.focus({ preventScroll: false });

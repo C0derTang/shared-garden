@@ -221,8 +221,14 @@ export function GardenWorld({
           element.style.visibility = "visible";
           element.dataset.offscreen = "";
           element.style.opacity = "0";
-          const [cx, cy] = ndc && ndc[2] < 1 ? [Math.max(-0.9, Math.min(0.9, ndc[0])), Math.max(-0.9, Math.min(0.9, ndc[1]))] : [0, -0.8];
-          element.style.transform = `translate(-50%, -50%) translate(${(((cx + 1) / 2) * view.width).toFixed(1)}px, ${(((1 - cy) / 2) * view.height).toFixed(1)}px)`;
+          const [cx, cy] = ndc && ndc[2] < 1 ? [ndc[0], ndc[1]] : [0, -0.8];
+          // Clamp by the caption's own size so its focus ring stays on screen.
+          const margin = 12;
+          const halfW = element.offsetWidth / 2 + margin;
+          const halfH = element.offsetHeight / 2 + margin;
+          const x = Math.min(Math.max(((cx + 1) / 2) * view.width, halfW), Math.max(halfW, view.width - halfW));
+          const y = Math.min(Math.max(((1 - cy) / 2) * view.height, halfH), Math.max(halfH, view.height - halfH));
+          element.style.transform = `translate(-50%, -50%) translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
           return;
         }
         if (element.dataset.offscreen !== undefined) {

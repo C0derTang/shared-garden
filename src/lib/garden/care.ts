@@ -116,11 +116,17 @@ export type PlanState<P extends CarePlant, I extends CareItem> = CareState & {
 /** Everything a "today" summary shows, derived only from the garden state. */
 export function todayPlan<P extends CarePlant, I extends CareItem>(
   state: PlanState<P, I>,
-  options: { canPlant: boolean; rules?: CareRules },
+  options: {
+    canPlant: boolean;
+    rules?: CareRules;
+    /** Only these flowers take part (e.g. those whose activity exists yet). */
+    takesPart?: (plant: P) => boolean;
+  },
 ): TodayPlan<P, I> {
   const rules = options.rules ?? LEGACY_CARE;
   const catalog = new Map(state.catalog.map((item) => [item.type_key, item]));
   const statuses = state.plants.flatMap((plant) => {
+    if (options.takesPart && !options.takesPart(plant)) return [];
     const item = catalog.get(plant.flower.type_key);
     const status = item && careStatus(plant, item, state, rules);
     return status ? [status] : [];

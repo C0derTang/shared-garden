@@ -50,6 +50,8 @@ export interface FlowerHeroProps {
    * seedling can look small instead of filling the frame. Defaults to 0.08.
    */
   readonly minExtent?: number;
+  /** The ground behind the flower: a deep botanical plate (default) or the garden's painted sky ("sky"). */
+  readonly backdrop?: "plate" | "sky";
 }
 
 /**
@@ -57,7 +59,7 @@ export interface FlowerHeroProps {
  * plate, slowly turning, with its soft coloured aura. For the flower detail
  * split view. Motion stops under reduced motion. Requires WebGPU.
  */
-export function FlowerHero({ spec, time, className, label, framing = "plant", minExtent = 0.08 }: FlowerHeroProps) {
+export function FlowerHero({ spec, time, className, label, framing = "plant", minExtent = 0.08, backdrop = "plate" }: FlowerHeroProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const reducedMotion = usePrefersReducedMotion();
   const key = `${spec.type}|${spec.seed}|${spec.growth}|${spec.puff ? 1 : 0}|${(spec.moodColors ?? []).join(",")}`;
@@ -65,10 +67,10 @@ export function FlowerHero({ spec, time, className, label, framing = "plant", mi
   const state: StudioState = useMemo(() => {
     const model = flowerModel(spec);
     const flowers: PlacedFlower[] = [{ model, placement: { position: [0, 0, 0], yaw: 0, scale: 1 }, phase: flowerPhase(spec.seed) }];
-    return { flowers, camera: heroCamera(model, framing, minExtent), time: timeValue === null ? null : new Date(timeValue), reducedMotion, aura: 0.55, sway: 0.5 };
+    return { flowers, camera: heroCamera(model, framing, minExtent), time: timeValue === null ? null : new Date(timeValue), reducedMotion, aura: 0.55, sway: 0.5, backdrop };
     // `key` captures every field of `spec`.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, timeValue, reducedMotion, framing, minExtent]);
+  }, [key, timeValue, reducedMotion, framing, minExtent, backdrop]);
   const status = useStudio(canvasRef, state);
   const classes = [styles.studio, className].filter(Boolean).join(" ");
   const description = label ?? `A painted ${spec.type.replace(/-/g, " ")}`;
