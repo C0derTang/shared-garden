@@ -682,12 +682,27 @@ export function createWorldRenderer(
           clipWater: 1,
         };
 
-        // 0. Key-light shadow map (trees and reeds cast; leaves are alpha-tested).
+        const context: WorldFrameContext = {
+          gpu: gpu!,
+          viewProjection,
+          eye,
+          time: motionTime,
+          reducedMotion: still,
+          lighting,
+          sky: skyState,
+          hoveredFlowerId: hovered?.kind === "flower" ? hovered.id : null,
+          world,
+        };
+
+        // 0. Key-light shadow map (trees, reeds and layers such as the flowers cast; leaves are alpha-tested).
         nearShore.setWorld(world);
         houseCaster?.set({ world, house: houseParams });
         currentFrame.pass({ target: shadowMap, clear: [1, 1, 1, 1], clearDepth: 1 }, (pass) => {
           nearShore.encodeShadow(pass);
           if (houseCaster) pass.draw(houseCaster);
+          for (const layer of state.layers) {
+            if (readyLayers.has(layer)) layer.drawShadow?.(pass, context);
+          }
         });
 
         // 1. The lake's mirror image (sky, mountains, shores, stones and trees).
@@ -709,17 +724,6 @@ export function createWorldRenderer(
         for (const drawable of [sky, ground, mountains, rocks, water, motes, beds, edging, markers]) drawable?.set({ world });
         house?.set({ world, house: houseParams });
         for (const batch of [farShore, nearShore, meadow]) batch?.setWorld(world);
-        const context: WorldFrameContext = {
-          gpu: gpu!,
-          viewProjection,
-          eye,
-          time: motionTime,
-          reducedMotion: still,
-          lighting,
-          sky: skyState,
-          hoveredFlowerId: hovered?.kind === "flower" ? hovered.id : null,
-          world,
-        };
         currentFrame.pass({ target: scene, clear: [0, 0, 0, 1], clearDepth: 1 }, (pass) => {
           pass.draw(sky);
           pass.draw(mountains);

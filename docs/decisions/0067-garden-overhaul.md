@@ -251,6 +251,83 @@ discriminator (`"v2"`; absent or `"legacy"` keeps legacy behavior). Intent
 limits are counted per garden. See the
 [media API contract](../media/backend.md#new-garden-media-issue-178).
 
+### Recorded choice: procedural flowers ([#179](https://github.com/C0derTang/shared-garden/issues/179))
+
+Conservative choices for the procedural flowers, made under this decision's
+discretion and the look in "World look":
+
+- **Look:** botanical-plate realism after the sunset home's spider lily. Each
+  flower is real 3D geometry: curved, cupped, twisted, ruffled petals and
+  leaves; tapered stalks; stamens with anthers; composite disks of florets;
+  ribbed cactus bodies with spines. Petals and leaves are shaded with tonal
+  brush streaks along their length, fanned veins, a midrib and ragged brushy
+  margins. They let light through when backlit and take a rim of light and
+  the world's shadows. Each head has a soft coloured aura. In the world the
+  aura is strongest in the golden hour and faint at night, and it brightens
+  under the pointer.
+- **Painterly finish:** flowers within 14 world units keep most of their
+  botanical detail through the world's painterly filter (they write the
+  detail alpha); the canvas brush streaks and weave still pass over them.
+- **Determinism:** everything comes from the flower's seed (an integer up to
+  2^53 − 1; both 32-bit halves are hashed) through named random streams. A
+  plant keeps its identity — colour variant, petal count and stalk — from
+  seedling to bloom. Each type has a small palette of natural colour
+  variants, chosen and jittered per seed.
+- **Growth stages** come from growth / target: seedling below 25% (shoot and
+  seed leaves; cactus a small ribbed ball), bud from 25%, opening from 50%,
+  bloom at 100%. The stalk lengthens, the head swells and petals unfold
+  continuously between them.
+- **Type details:**
+  - Rose: about 24–38 spiralled petals.
+  - Tulip: six tepals in a cup. Some seeds are lily-flowered and some are
+    flamed.
+  - Marigold: a ruffled pompom.
+  - Daisy and sunflower: ray florets around a disk of florets.
+  - Hydrangea: a mophead of four-petal florets.
+  - Snapdragon: a raceme that opens from the bottom.
+  - Moonflower: a pale trumpet with a green star that glows at night.
+  - Bluebell: nodding bells on an arching stem.
+  - Dandelion: a yellow head, or a seed puff when asked (`puff`). Whether a
+    dandelion shows its puff is left to the data wiring.
+  - Forget-me-not: clusters of tiny five-petalled flowers with yellow eyes.
+  - Peony: a full ruffled bowl, sometimes semi-double with golden stamens.
+  - Cactus: a column, barrel or branched body, with a flower from the bud
+    stage.
+- **Hydrangea colour:** florets take the given mood colours (sRGB hex, e.g.
+  the mood palette) when provided, otherwise a seeded blue, pink, lavender or
+  white.
+- **Motion:** gentle wind sway that grows with height; none under reduced
+  motion. Flowers turn at most about ±30° from facing the camera so heads face
+  the viewer.
+- **Rendering:** three instanced templates (blade, tube, blob) bent in the
+  vertex shader from 44 floats per part. ~100 flowers draw in a handful of
+  calls per pass. World flowers cast shadows into the key light's shadow map
+  through a new optional `drawShadow` layer hook.
+- **Hero quality:** at hero size petals are tessellated finely (52 × 27 per
+  blade), ruffles stay near the margin so blades read as smooth, fleshy cups,
+  and inner petals follow ordered spirals or whorls with consistent cupping.
+  Fine longitudinal veins appear as a petal grows on screen and fade out when
+  it is small. Bases are deeper and more saturated; margins are lighter, with
+  a thin edge highlight. Thin tissue gets a soft subsurface fill, so no part
+  falls flat and unlit. Stalks have a satin sheen, a taper and small nodes
+  where leaves join.
+- **Edge anti-aliasing:** petal and leaf margins compute coverage from screen
+  derivatives and write it as an MSAA sample mask. The alpha channel stays
+  free for the painterly filter, so this replaces alpha-to-coverage.
+- **Hero mode:** `FlowerHero` renders one flower large on a deep, softly
+  brushed ground with studio light from the upper left, the light colour
+  following the sky time. It turns slowly, about one turn per 40 seconds, and
+  stays still under reduced motion. It frames the whole plant or a close-up of
+  the bloom. There is no Kuwahara pass, so close-ups stay crisp. A
+  hue-preserving filmic tone map keeps saturated reds modelled instead of
+  clipping flat. A wide, soft bloom and a petal-tinted aura hug the flower,
+  and they brighten at night.
+- **Development gallery:** `/dev/flowers` shows the 13 types × stages,
+  × seeds, one type × seeds × stages (including the dandelion puff and
+  hydrangea mood colours), and the hero mode. It is available in development
+  only and returns 404 in production. `/dev/world` now shows the real flowers
+  instead of placeholders.
+
 ### Recorded choice: lakeside house landing ([#180](https://github.com/C0derTang/shared-garden/issues/180))
 
 The landing at `/` is a second composition of the shared world renderer
