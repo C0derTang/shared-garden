@@ -6,6 +6,7 @@ import { closeSync, openSync, readFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 import sharp from "sharp";
 import { expect, it } from "vitest";
+import { exerciseV2Media, v2MediaCleanupSql } from "./media-v2-local";
 
 const bluebell = process.env.LOCAL_MEDIA_MODE === "bluebell29";
 const sunflower = process.env.LOCAL_MEDIA_MODE === "sunflower28";
@@ -55,7 +56,7 @@ it.skipIf(!statusPath)(
       ).trim();
     expect(
       sql(
-        "select (select count(*) from private.garden_members)+(select count(*) from auth.users)+(select count(*) from public.garden)+(select count(*) from storage.objects)+(select count(*) from public.achievement_awards)+(select count(*) from public.achievement_progress);",
+        "select (select count(*) from private.garden_members)+(select count(*) from auth.users)+(select count(*) from public.garden)+(select count(*) from storage.objects)+(select count(*) from public.achievement_awards)+(select count(*) from public.achievement_progress)+(select count(*) from public.v2_garden)+(select count(*) from private.v2_media_uploads)+(select count(*) from public.v2_achievement_progress)+(select count(*) from public.v2_achievement_awards);",
       ),
     ).toBe("0");
     const origin = bluebell
@@ -223,6 +224,18 @@ it.skipIf(!statusPath)(
       // authorization rejection arrives before its request body is consumed.
       const uploadFile = (bytes: Buffer, mime = inputMime) =>
         new File([new Uint8Array(bytes)], "synthetic-media", { type: mime });
+      // New-garden media (issue #178) uses the same fixture before legacy.
+      await exerciseV2Media({
+        post,
+        clients,
+        anon,
+        trusted,
+        sql,
+        uploadFile,
+        media: image,
+        inputMime,
+        audio,
+      });
       const intent = async (
         bytes: Buffer,
         mimeType = inputMime,
@@ -661,7 +674,12 @@ it.skipIf(!statusPath)(
       web.kill("SIGTERM");
       closeSync(log);
       // Remove only objects from this previously empty dedicated local fixture.
-      for (const bucket of ["garden-staging", "garden-media"]) {
+      for (const bucket of [
+        "garden-staging",
+        "garden-media",
+        "garden-v2-staging",
+        "garden-v2-media",
+      ]) {
         const paths = sql(
           `select coalesce(json_agg(name),'[]') from storage.objects where bucket_id='${bucket}';`,
         );
@@ -672,12 +690,12 @@ it.skipIf(!statusPath)(
           ).toBeNull();
       }
       sql(
-        `begin; delete from public.achievement_awards; delete from public.achievement_progress; delete from private.media_uploads; delete from public.flower_entries; delete from public.daisy_assignments; delete from public.flower_day_facts; delete from public.before_noon_snapshots; delete from public.peony_activity; delete from public.garden_days; delete from public.flowers; delete from public.flower_unlocks; delete from public.garden; delete from private.garden_members; delete from auth.users where id in (${ids.map((id) => `'${id}'`).join(",")}); commit;`,
+        `begin; ${v2MediaCleanupSql} delete from public.achievement_awards; delete from public.achievement_progress; delete from private.media_uploads; delete from public.flower_entries; delete from public.daisy_assignments; delete from public.flower_day_facts; delete from public.before_noon_snapshots; delete from public.peony_activity; delete from public.garden_days; delete from public.flowers; delete from public.flower_unlocks; delete from public.garden; delete from private.garden_members; delete from auth.users where id in (${ids.map((id) => `'${id}'`).join(",")}); commit;`,
       );
     }
     expect(
       sql(
-        "select (select count(*) from private.garden_members)+(select count(*) from auth.users)+(select count(*) from public.garden)+(select count(*) from storage.objects)+(select count(*) from public.achievement_awards)+(select count(*) from public.achievement_progress);",
+        "select (select count(*) from private.garden_members)+(select count(*) from auth.users)+(select count(*) from public.garden)+(select count(*) from storage.objects)+(select count(*) from public.achievement_awards)+(select count(*) from public.achievement_progress)+(select count(*) from public.v2_garden)+(select count(*) from private.v2_media_uploads)+(select count(*) from public.v2_achievement_progress)+(select count(*) from public.v2_achievement_awards);",
       ),
     ).toBe("0");
   },

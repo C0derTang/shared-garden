@@ -13,7 +13,13 @@ import time
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("container", nargs="?", default="supabase_db_shared-garden-media48")
 parser.add_argument("--audio", action="store_true", help="Exercise the same boundary with Bluebell audio")
+parser.add_argument("--v2", action="store_true", help="Exercise the new-garden (v2) media registry and lock")
 args = parser.parse_args()
+# The new garden mirrors every legacy media function, table and lock with a v2_ name.
+v2 = "v2_" if args.v2 else ""
+uploads = f"private.{v2}media_uploads"
+entries = f"public.{v2}flower_entries"
+garden_lock = "public.v2_garden" if args.v2 else "public.garden"
 flower_type = "bluebell" if args.audio else "sunflower"
 mime = "audio/webm" if args.audio else "image/png"
 metadata = "samples=28,channels=1" if args.audio else "width=10,height=10"
@@ -79,7 +85,7 @@ def overlap(first, second, error=None, second_member=2):
 
 
 # Refuse existing state: fixtures are never added to a real/configured garden.
-empty = "select (select count(*) from public.flower_day_facts) + (select count(*) from public.before_noon_snapshots) + (select count(*) from public.peony_activity) + (select count(*) from public.garden_days) + (select count(*) from private.garden_members) + (select count(*) from auth.users) + (select count(*) from public.garden) + (select count(*) from public.flower_entries) + (select count(*) from public.daisy_assignments) + (select count(*) from private.media_uploads) + (select count(*) from storage.objects);"
+empty = "select (select count(*) from public.flower_day_facts) + (select count(*) from public.before_noon_snapshots) + (select count(*) from public.peony_activity) + (select count(*) from public.garden_days) + (select count(*) from private.garden_members) + (select count(*) from auth.users) + (select count(*) from public.garden) + (select count(*) from public.flower_entries) + (select count(*) from public.daisy_assignments) + (select count(*) from private.media_uploads) + (select count(*) from storage.objects) + (select count(*) from public.v2_garden) + (select count(*) from public.v2_flowers) + (select count(*) from public.v2_flower_entries) + (select count(*) from public.v2_daisy_assignments) + (select count(*) from public.v2_garden_days) + (select count(*) from public.v2_flower_day_facts) + (select count(*) from public.v2_before_noon_snapshots) + (select count(*) from private.v2_media_uploads) + (select count(*) from public.v2_achievement_progress) + (select count(*) from public.v2_achievement_awards);"
 assert sql(empty) == "0", "Refusing a configured database; reset the dedicated local project"
 try:
     sql("""
@@ -93,53 +99,56 @@ try:
      ('22222222-2222-4222-8222-222222222222','entry-member','google','{"sub":"entry-member","email":"member@example.test","email_verified":true}');
     commit;
     """)
-    sql("begin;" + signed(1) + "select public.initialize_garden(); commit;")
-    sql(f"insert into public.flower_unlocks(type_key) values('{flower_type}');")
-    sql("begin;" + signed(1) + f"select public.plant_flower('{flower_type}'); commit;")
-    flower = sql(f"select id from public.flowers where type_key='{flower_type}';")
+    if args.v2:
+        sql("begin;" + signed(1) + f"select public.v2_plant_flower_at('{flower_type}',1); commit;")
+    else:
+        sql("begin;" + signed(1) + "select public.initialize_garden(); commit;")
+        sql(f"insert into public.flower_unlocks(type_key) values('{flower_type}');")
+        sql("begin;" + signed(1) + f"select public.plant_flower('{flower_type}'); commit;")
+    flower = sql(f"select id from public.{v2}flowers where type_key='{flower_type}';")
 
     def intent(replacement="null"):
-        return next(line for line in sql("begin;" + signed(1) + f"select public.create_media_upload(gen_random_uuid(),'{flower}','{mime}',100,{replacement})->>'id'; commit;").splitlines() if re.fullmatch(r"[a-f0-9-]{36}", line))
+        return next(line for line in sql("begin;" + signed(1) + f"select public.{v2}create_media_upload(gen_random_uuid(),'{flower}','{mime}',100,{replacement})->>'id'; commit;").splitlines() if re.fullmatch(r"[a-f0-9-]{36}", line))
 
     def ready(media):
         # This concurrency-only harness seeds synthetic trusted attestation;
         # actual bytes/Storage/attestation are covered by media-local.test.ts.
-        sql(f"update private.media_uploads set status='ready',{metadata},output_bytes=100,sha256=repeat('a',64) where id='{media}';")
+        sql(f"update {uploads} set status='ready',{metadata},output_bytes=100,sha256=repeat('a',64) where id='{media}';")
 
     original = intent()
-    claim = f"select public.claim_media_upload('{original}')"
+    claim = f"select public.{v2}claim_media_upload('{original}')"
     overlap(claim, claim, error="media_processing", second_member=1)
-    assert sql(f"select status from private.media_uploads where id='{original}';") == "processing"
+    assert sql(f"select status from {uploads} where id='{original}';") == "processing"
     print("PASS: observed overlapping claims serialize to a single processing lease")
     ready(original)
-    submit = f"select public.submit_flower_entry('{flower}',jsonb_build_object('media_id','{original}'))"
+    submit = f"select public.{v2}submit_flower_entry('{flower}',jsonb_build_object('media_id','{original}'))"
     overlap(submit, submit, error="Already submitted; edit the original entry", second_member=1)
-    assert sql("select count(*) from public.flower_entries;") == "1"
-    assert sql(f"select status from private.media_uploads where id='{original}';") == "submitted"
+    assert sql(f"select count(*) from {entries};") == "1"
+    assert sql(f"select status from {uploads} where id='{original}';") == "submitted"
     print("PASS: overlapping media commits produce one entry and one consumed attachment")
-    entry = sql("select id from public.flower_entries;")
+    entry = sql(f"select id from {entries};")
     replacement = intent(entry)
     ready(replacement)
-    sql(f"update public.flower_entries set original_posted_at=clock_timestamp()-interval '29 minutes 59 seconds',updated_at=clock_timestamp()-interval '29 minutes 59 seconds' where id={entry};")
-    edit = f"select public.edit_flower_entry({entry},jsonb_build_object('media_id','{replacement}'))"
-    overlap("select public.current_garden_state()", edit, error="The edit window has ended", second_member=1)
-    assert sql(f"select payload->>'media_id' from public.flower_entries where id={entry};") == original
-    assert sql(f"select status from private.media_uploads where id='{replacement}';") == "ready"
+    sql(f"update {entries} set original_posted_at=clock_timestamp()-interval '29 minutes 59 seconds',updated_at=clock_timestamp()-interval '29 minutes 59 seconds' where id={entry};")
+    edit = f"select public.{v2}edit_flower_entry({entry},jsonb_build_object('media_id','{replacement}'))"
+    overlap(f"select public.{v2}current_garden_state()", edit, error="The edit window has ended", second_member=1)
+    assert sql(f"select payload->>'media_id' from {entries} where id={entry};") == original
+    assert sql(f"select status from {uploads} where id='{replacement}';") == "ready"
     print("PASS: replacement expiring during observed lock wait preserves original reference")
     # Revocation committed by an administrator while a member claim is queued
     # must be rechecked after obtaining the shared garden lock.
     pending = intent(entry)
-    a = session("media_race_revoke", "begin; select 1 from public.garden where id=1 for update; update private.garden_members set revoked_at=clock_timestamp() where member_id=1; select pg_sleep(2); commit;")
+    a = session("media_race_revoke", f"begin; select 1 from {garden_lock} where id=1 for update; update private.garden_members set revoked_at=clock_timestamp() where member_id=1; select pg_sleep(2); commit;")
     b = None
     try:
         wait_for("media_race_revoke", "wait_event='PgSleep'")
-        b = session("media_race_revoked", "begin;" + signed(1) + f"select public.claim_media_upload('{pending}'); commit;")
+        b = session("media_race_revoked", "begin;" + signed(1) + f"select public.{v2}claim_media_upload('{pending}'); commit;")
         wait_for("media_race_revoked", "wait_event_type='Lock'")
         a.communicate(timeout=10)
         out, err = b.communicate(timeout=10)
         assert a.returncode == 0
         assert b.returncode != 0 and "Garden access denied" in err, (out, err)
-        assert sql(f"select status from private.media_uploads where id='{pending}';") == "pending"
+        assert sql(f"select status from {uploads} where id='{pending}';") == "pending"
     finally:
         for process in (a, b):
             if process is not None and process.poll() is None:
@@ -150,6 +159,21 @@ try:
 finally:
     sql("""
     begin;
+    delete from private.v2_media_uploads;
+    delete from public.v2_achievement_awards;
+    delete from public.v2_achievement_progress;
+    delete from public.v2_peony_acceptances;
+    delete from public.v2_peony_plans;
+    delete from public.v2_peony_contributions;
+    delete from public.v2_peony_activity;
+    delete from public.v2_entry_replies;
+    delete from public.v2_flower_entries;
+    delete from public.v2_daisy_assignments;
+    delete from public.v2_flower_day_facts;
+    delete from public.v2_before_noon_snapshots;
+    delete from public.v2_garden_days;
+    delete from public.v2_flowers;
+    delete from public.v2_garden;
     delete from private.media_uploads;
     delete from public.flower_entries;
     delete from public.daisy_assignments;

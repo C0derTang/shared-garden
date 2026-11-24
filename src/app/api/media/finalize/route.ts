@@ -2,6 +2,7 @@ import { requireMember } from "@/lib/auth/server";
 import {
   exactFields,
   mediaFailure,
+  mediaGarden,
   mediaJson,
   readMediaRequest,
   uuid,
@@ -13,8 +14,10 @@ export async function POST(request: Request) {
   const { client } = await requireMember();
   try {
     const body = await readMediaRequest(request);
-    exactFields(body, ["mediaId"]);
-    return mediaJson(await finalizeMedia(client, uuid(body.mediaId)));
+    exactFields(body, ["mediaId", "garden"]);
+    return mediaJson(
+      await finalizeMedia(client, uuid(body.mediaId), mediaGarden(body.garden)),
+    );
   } catch (error) {
     return mediaFailure(error);
   }

@@ -113,7 +113,12 @@ select is((select question_id from public.v2_daisy_assignments where garden_day=
 select throws_ok($$select public.v2_submit_flower_entry(pg_temp.flower('daisy'),'{"text":"Answer","question_id":"deeper-001"}')$$,'22023','Answer the assigned daily question','wrong question rejected');
 select lives_ok($$select public.v2_submit_flower_entry(pg_temp.flower('daisy'),'{"text":"Answer","question_id":"light-001"}')$$,'Daisy accepts the assigned question');
 select throws_ok(format('select public.v2_submit_flower_entry(%L,%L)',pg_temp.flower(t),'{"media_id":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"}'),'22023','This flower requires its dedicated workflow',t||' awaits its dedicated workflow')
- from (values ('sunflower'),('bluebell'),('peony')) x(t);
+ from (values ('peony')) x(t);
+-- Sunflower/Bluebell use the v2 media workflow (#178; garden_v2_media.test.sql).
+select throws_ok(format('select public.v2_submit_flower_entry(%L,%L)',pg_temp.flower(t),'{"media_id":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"}'),'42501','media_invalid_reference',t||' requires a validated v2 media reference')
+ from (values ('sunflower'),('bluebell')) x(t);
+select throws_ok(format('select public.v2_submit_flower_entry(%L,%L)',pg_temp.flower(t),'{"text":"No media"}'),'22023','This flower requires its dedicated workflow',t||' rejects nonmedia content')
+ from (values ('sunflower'),('bluebell')) x(t);
 select throws_ok($$select public.v2_submit_flower_entry(pg_temp.flower('moonflower'),'{"text":"Too early"}')$$,'22023','Moonflower opens from 10 p.m. to 4 a.m.','Moonflower closed by day');
 select throws_ok($$select public.v2_submit_flower_entry(pg_temp.flower('rose'),'{"text":"Retry"}')$$,'22023','Already submitted; edit the original entry','second submission does not overwrite');
 select throws_ok($$select public.v2_submit_flower_entry(pg_temp.flower('rose'),'{"text":"x","extra":"y"}')$$,'22023',null,'unexpected fields rejected');

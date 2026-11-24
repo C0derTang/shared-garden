@@ -49,7 +49,9 @@ jobs:
       - name: Verify assembled executable Linux runtime and complete server size
         run: node scripts/verify-audio-runtime.mjs
       - name: Verify observed overlapping media transactions
-        run: python3 supabase/tests/concurrency/media_race.py supabase_db_shared-garden-audio50 --audio
+        run: |
+          python3 supabase/tests/concurrency/media_race.py supabase_db_shared-garden-audio50 --audio
+          python3 supabase/tests/concurrency/media_race.py supabase_db_shared-garden-audio50 --audio --v2
       - name: Reset fixture state
         if: always()
         run: node_modules/.bin/supabase db reset --local --workdir /tmp/shared-garden-issue50

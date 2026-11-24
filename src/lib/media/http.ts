@@ -1,6 +1,7 @@
 import "server-only";
 import { getAuthConfig } from "@/lib/auth/config";
 import { MediaError } from "./image";
+import type { MediaGarden } from "./garden";
 
 export async function readMediaRequest(
   request: Request,
@@ -40,6 +41,13 @@ export async function readMediaRequest(
 export function exactFields(body: Record<string, unknown>, fields: string[]) {
   if (Object.keys(body).some((key) => !fields.includes(key)))
     throw new MediaError("invalid_request", 400);
+}
+// Absent means the legacy garden, so existing legacy clients are unchanged.
+// Anything else must name a known garden exactly.
+export function mediaGarden(value: unknown): MediaGarden {
+  if (value === undefined) return "legacy";
+  if (value === "legacy" || value === "v2") return value;
+  throw new MediaError("invalid_request", 400);
 }
 export function uuid(value: unknown): string {
   if (
