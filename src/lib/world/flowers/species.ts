@@ -835,6 +835,8 @@ const moonflower: Builder = (b) => {
   const mouth = madd(tip, axis, tubeLen);
   b.segment(tip, mouth, 0.005, 0.014 * size, { base: linear("#b7cf98"), tip: paint.base, accent: paint.accent }, MATERIAL.filament);
   const head = headFrame(mouth, axis, spin);
+  // The pale green-gold throat closes the corolla tube.
+  b.blob({ material: MATERIAL.petal, center: madd(mouth, axis, -0.006 * size), up: axis, front: head.b1, radii: [0.013 * size, 0.008 * size, 0.013 * size], base: linear("#d9e6b0"), tip: paint.base, accent: paint.accent, veins: 0.4, translucency: 0.8, glow: 0.25 });
   const pr = b.stream("petals");
   const open = g.open;
   for (let k = 0; k < 5; k += 1) {

@@ -54,21 +54,21 @@ function gridFor(view: GalleryView, type: FlowerType, seed: number): { columns: 
   };
 }
 
-/** Cell width relative to its height (plants are tall). */
-const CELL_WIDTH = 0.56;
+/** Cell width relative to its height: narrow for the 13-type plates (plants are tall), square for a single type. */
+const cellWidthFor = (columns: number) => (columns > 6 ? 0.56 : 1);
 
 /** Lays the plants out on a plate: cells one unit tall, bases near each cell's foot. */
-function placeGrid(cells: Cell[][]): PlacedFlower[] {
+function placeGrid(cells: Cell[][], cellWidth: number): PlacedFlower[] {
   const rows = cells.length;
   const cols = cells[0]?.length ?? 1;
   const placed: PlacedFlower[] = [];
   cells.forEach((row, r) => {
     row.forEach((cell, c) => {
       const bloom = flowerModel(cell.sizeSpec);
-      const scale = Math.min(0.84 / Math.max(bloom.height, 0.1), (CELL_WIDTH * 0.46) / Math.max(bloom.radius, 0.05));
+      const scale = Math.min(0.84 / Math.max(bloom.height, 0.1), (Math.min(cellWidth, 0.7) * 0.46) / Math.max(bloom.radius, 0.05));
       placed.push({
         model: flowerModel(cell.spec),
-        placement: { position: [(c - (cols - 1) / 2) * CELL_WIDTH, (rows - 1) / 2 - r - 0.45, 0], yaw: 0, scale },
+        placement: { position: [(c - (cols - 1) / 2) * cellWidth, (rows - 1) / 2 - r - 0.45, 0], yaw: 0, scale },
         phase: flowerPhase(cell.spec.seed),
       });
     });
@@ -81,18 +81,18 @@ function Plate({ cells, columns, rows, sky }: { cells: Cell[][]; columns: string
   const reducedMotion = usePrefersReducedMotion();
   const state: StudioState = useMemo(
     () => ({
-      flowers: placeGrid(cells),
+      flowers: placeGrid(cells, cellWidthFor(columns.length)),
       camera: { kind: "plate", center: [0, 0, 0], halfHeight: rows.length / 2, elevation: 0.12 },
       time: new Date(SKY_PRESETS[sky]),
       reducedMotion,
       aura: 0.18,
       sway: 0.4,
     }),
-    [cells, rows.length, sky, reducedMotion],
+    [cells, columns.length, rows.length, sky, reducedMotion],
   );
   const status = useStudio(canvasRef, state);
   return (
-    <div className={styles.plate} style={{ gridTemplateColumns: `7rem repeat(${columns.length}, minmax(0, 1fr))` }}>
+    <div className={styles.plate} style={{ gridTemplateColumns: `11rem repeat(${columns.length}, minmax(0, 1fr))` }}>
       <span />
       {columns.map((name) => (
         <span key={name} className={styles.column}>
@@ -104,7 +104,7 @@ function Plate({ cells, columns, rows, sky }: { cells: Cell[][]; columns: string
           <span key={name}>{name}</span>
         ))}
       </div>
-      <div className={styles.canvasWrap} style={{ gridColumn: `2 / span ${columns.length}`, aspectRatio: `${columns.length * CELL_WIDTH} / ${rows.length}` }} data-status={status}>
+      <div className={styles.canvasWrap} style={{ gridColumn: `2 / span ${columns.length}`, aspectRatio: `${columns.length * cellWidthFor(columns.length)} / ${rows.length}` }} data-status={status}>
         {status === "unsupported" ? <p className={styles.notice}>WebGPU is required to paint the flowers.</p> : <canvas ref={canvasRef} className={styles.canvas} role="img" aria-label="Procedural flower plate" />}
       </div>
     </div>
