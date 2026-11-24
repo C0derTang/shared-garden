@@ -250,3 +250,62 @@ lock. The existing `/api/media/*` routes take a server-validated `garden`
 discriminator (`"v2"`; absent or `"legacy"` keeps legacy behavior). Intent
 limits are counted per garden. See the
 [media API contract](../media/backend.md#new-garden-media-issue-178).
+
+### Recorded choice: lakeside house landing ([#180](https://github.com/C0derTang/shared-garden/issues/180))
+
+The landing at `/` is a second composition of the shared world renderer
+(`composition: "landing"`), not a separate engine. It reuses the sky, the
+painterly filter, the water, the stroke primitive, the WebGPU gate and the
+device-loss handling.
+
+- **Composition:**
+  - A wooden house front stands in a forest clearing. It has a fieldstone
+    foundation and chimney, honey clapboard siding, slate shingles and cream
+    trim. Its covered porch has posts, railings, wide steps and flowering
+    hydrangeas. Window boxes hold geraniums.
+  - Warm six-pane windows and two iron lanterns flank a red plank door, which
+    is the focal point.
+  - Stepping stones lead up to the house. The clearing has long grass and
+    wildflowers, with mixed conifers, broadleaves and birches around it.
+  - The lake opens on the viewer's left toward the garden's far shore and
+    mountains.
+  - There are no mounds.
+- **Orientation:** the viewer faces north with the lake to the west. The low
+  evening sun lights the lake side, and the house front takes raking golden
+  light for much of the year. The sky follows the same Los Angeles solar time.
+  The windows and lanterns warm as the sky darkens. A warm local lamp (a
+  `World` uniform that the garden leaves off) lights the porch, the path and
+  the nearby grass.
+- **Visitors:**
+  - Visitors see only the scene and a handwritten "log in". It floats above the
+    porch and is a plain POST form to `/auth/start`, so it works without
+    JavaScript.
+  - Until the world places it, "log in" waits low in the middle of the scene.
+  - Visitors see no other text or links.
+- **Members:**
+  - For members, the door's edges and its little window breathe with warm light,
+    and "come in" floats above the porch. A small "old garden" link sits in the
+    corner.
+  - Tapping the words or the painted door plays a 4.8-second walk-through. The
+    camera walks up the path and the door swings about 104° inward as warm light
+    spills out. The camera then climbs onto the porch and pushes through the
+    doorway into the lit room.
+  - The walk-through dissolves into a warm light overlay, then navigates to
+    `/garden`, which is prefetched.
+  - If the walk-through never reports its end, the landing navigates after 7
+    seconds.
+  - With reduced motion, the landing crossfades into the warm light for 450 ms
+    instead.
+- **Fallbacks:**
+  - Without WebGPU, visitors see "This house is painted with WebGPU." with a
+    working "log in". Members get "come in" (`/garden`) and "old garden"
+    (`/legacy`).
+  - After a failure, the same controls appear under "The painting stopped."
+    with a reload button.
+- **Sunset home:** the sunset home from
+  [decision 0066](0066-private-sunset-home.md) is unrouted. Its components,
+  `lib/landing`, `/api/home/*`, its media and its tests remain. The new
+  landing reuses the guarded `loadLandingAccess` membership check.
+- **Development preview:** `/dev/landing?sky=dusk&member=1` shows a fixed sky
+  and the member view without a session. It is available in development only
+  and returns 404 in production.

@@ -1,4 +1,4 @@
-import { World, aerial, belowMirror, distanceAlpha, fbm, shadowFactor, srgbToLinear, valueNoise } from "./common.wgsl";
+import { World, aerial, belowMirror, distanceAlpha, fbm, lampLight, shadowFactor, srgbToLinear, valueNoise } from "./common.wgsl";
 
 // Terrain: a painted meadow of tonal patches, the damp shore bank, the lakebed
 // and the far shore. Receives the key light's shadows.
@@ -57,7 +57,7 @@ struct GroundOut {
   // Wrapped so a low sun still rakes the meadow and long shadows read.
   let direct = clamp(dot(n, light) * 0.55 + 0.45, 0.0, 1.0) * shadow;
   let sky = world.ambient * (0.55 + 0.45 * n.y) * mix(vec3f(0.8, 0.88, 1.08), vec3f(1.0), direct);
-  var color = albedo * (sky * 0.75 + world.lightColor * world.lightIntensity * direct);
+  var color = albedo * (sky * 0.75 + world.lightColor * world.lightIntensity * direct + lampLight(input.worldPos, n, world));
   color = aerial(color, input.worldPos, world);
   return vec4f(color, distanceAlpha(input.worldPos, world));
 }
