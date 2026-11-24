@@ -50,6 +50,21 @@ describe("FlowerHero", () => {
       unmount();
       expect(disposals).toHaveBeenCalled();
     });
+
+    it("blows a dandelion's seed puff over its golden head when asked (#201)", async () => {
+      updates.mockClear();
+      const spec = { type: "dandelion", seed: 3, growth: 1 } as const;
+      const { rerender } = render(<FlowerHero spec={spec} />);
+      await flush();
+      expect(created[0]!.state.seeds).toBeNull();
+      rerender(<FlowerHero spec={spec} blowSeeds={1} />);
+      const state = updates.mock.calls.at(-1)![0] as StudioState;
+      expect(state.seeds).toEqual({ token: 1, seed: 3, puff: flowerModel({ ...spec, puff: true }) });
+      expect(state.seeds!.puff.puffSeeds.length).toBeGreaterThan(0);
+      // Only dandelions have seeds to blow.
+      rerender(<FlowerHero spec={{ type: "rose", seed: 3, growth: 1 }} blowSeeds={2} />);
+      expect((updates.mock.calls.at(-1)![0] as StudioState).seeds).toBeNull();
+    });
   });
 
   it("frames the whole plant or a close-up of the bloom", () => {

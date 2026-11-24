@@ -1,6 +1,7 @@
 import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { StudioState } from "@/components/world/flowers/studio-renderer";
 import type { WorldRendererCallbacks, WorldSceneState } from "@/components/world/renderer";
 import { awayKey, takeAwaySnapshot } from "@/lib/garden-v2/away";
 import type { GardenState } from "@/lib/garden-v2/model";
@@ -17,11 +18,23 @@ vi.mock("@/components/world/renderer", () => ({
     return { update: (next: WorldSceneState) => record.states.push(next), travel: vi.fn(), pan: vi.fn(), dispose: vi.fn() };
   },
 }));
+const studios = vi.hoisted(() => ({ states: [] as StudioState[] }));
 vi.mock("@/components/world/flowers/studio-renderer", () => ({
-  createStudioRenderer: () => ({ update: vi.fn(), dispose: vi.fn() }),
+  createStudioRenderer: (_canvas: HTMLCanvasElement, state: StudioState) => {
+    studios.states.push(state);
+    return { update: (next: StudioState) => studios.states.push(next), dispose: vi.fn() };
+  },
 }));
+// The flower layer needs WebGPU; record the Dandelion seed blows it is asked for (#201).
+type SeedRequest = { id: string; onStart?: () => void };
+const seeds = vi.hoisted(() => ({ requests: [] as SeedRequest[], deferred: [] as (string | null)[] }));
 vi.mock("@/components/world/flowers/flower-layer", () => ({
-  createFlowerLayer: () => ({ draw: vi.fn(), setFlowers: vi.fn() }),
+  createFlowerLayer: () => ({
+    draw: vi.fn(),
+    setFlowers: vi.fn(),
+    blowSeeds: (id: string, options?: { onStart?: () => void }) => seeds.requests.push({ id, onStart: options?.onStart }),
+    deferSeeds: (id: string | null) => seeds.deferred.push(id),
+  }),
 }));
 // The night fireworks layer needs WebGPU; record what it is asked to play.
 type Play = { seed: number; still: boolean; onStart?: () => void; onEnd?: () => void };
@@ -92,6 +105,9 @@ function garden(): GardenState {
 
 beforeEach(() => {
   worlds.length = 0;
+  studios.states.length = 0;
+  seeds.requests.length = 0;
+  seeds.deferred.length = 0;
   window.localStorage.clear();
   // These tests start after the first-visit guide (#183 has its own tests).
   window.localStorage.setItem(guideKey(1), "1");
@@ -376,5 +392,90 @@ describe("GardenV2", () => {
   it("explains when the garden cannot load", () => {
     render(<GardenV2 initial={{ state: null, error: "The garden could not refresh." }} />);
     expect(screen.getByRole("alert")).toHaveTextContent("The garden could not refresh.");
+  });
+
+  describe("a Dandelion's seeds blowing away (#201)", () => {
+    function withDandelion(fulfilledBy: 1 | 2 | null): GardenState {
+      const state = garden();
+      const flower = state.plants[0]!.flower;
+      Object.assign(flower, {
+        type_key: "dandelion",
+        shared_wish: "A synthetic wish",
+        growth_units: 5,
+        first_bloom_at: "2026-11-01T17:00:00Z",
+        first_bloom_day: "2026-11-01",
+        fulfilled_at: fulfilledBy ? "2026-11-02T17:00:00Z" : null,
+        fulfilled_by: fulfilledBy,
+      });
+      return state;
+    }
+
+    it("blows them in the painting when you make the wish come true, then in the world as you return", async () => {
+      const user = userEvent.setup();
+      const state = withDandelion(null);
+      const id = state.plants[0]!.flower.id;
+      await mount(state, id);
+      const dialog = await screen.findByRole("dialog", { name: "dandelion" });
+      expect(studios.states.at(-1)!.seeds).toBeNull();
+      expect(seeds.requests).toEqual([]);
+      // While its painting is open, the world holds this flower's seeds back.
+      expect(seeds.deferred.at(-1)).toBe(id);
+      await user.click(within(dialog).getByRole("button", { name: "our wish came true" }));
+      api.mutateGardenV2.mockResolvedValue({ state: withDandelion(1), saved: true, error: null });
+      await user.click(within(dialog).getByRole("button", { name: "blow the seeds" }));
+      await flush();
+      expect(api.mutateGardenV2).toHaveBeenCalledWith({ kind: "fulfillDandelion", flowerId: id });
+      const studio = studios.states.at(-1)!;
+      expect(studio.seeds).toMatchObject({ token: expect.any(Number), seed: state.plants[0]!.flower.seed });
+      expect(studio.seeds!.puff.puffSeeds.length).toBeGreaterThan(0);
+      // The painting itself now shows the golden head.
+      expect(studio.flowers[0]!.model.puffSeeds).toHaveLength(0);
+      expect(seeds.requests.map((r) => r.id)).toEqual([id]);
+      expect(window.localStorage.getItem("garden-v2:dandelion-seeds:1")).toBe(JSON.stringify({ ids: [id] }));
+
+      // Returning: the world paints again and holds its close look while the seeds lift.
+      await user.keyboard("{Escape}");
+      expect(screen.queryByRole("dialog")).toBeNull();
+      expect(worlds[0]!.states.at(-1)).toMatchObject({ paused: false, focus: { position: expect.any(Array) } });
+      expect(seeds.deferred.at(-1)).toBeNull();
+      act(() => seeds.requests[0]!.onStart?.());
+      // Reopening the painting shows the golden head directly.
+      await user.click(screen.getByRole("link", { name: /^dandelion,/ }));
+      await screen.findByRole("dialog", { name: "dandelion" });
+      expect(studios.states.at(-1)!.seeds).toBeNull();
+    });
+
+    it("shows the partner a wish that came true once, the first time they see it", async () => {
+      const state = withDandelion(2);
+      const id = state.plants[0]!.flower.id;
+      const first = await mount(state);
+      expect(seeds.requests.map((r) => r.id)).toEqual([id]);
+      // Remembered only once the world actually blows them.
+      expect(window.localStorage.getItem("garden-v2:dandelion-seeds:1")).toBeNull();
+      act(() => seeds.requests[0]!.onStart?.());
+      expect(window.localStorage.getItem("garden-v2:dandelion-seeds:1")).toBe(JSON.stringify({ ids: [id] }));
+      first.unmount();
+
+      seeds.requests.length = 0;
+      worlds.length = 0;
+      await mount(state);
+      expect(seeds.requests).toEqual([]);
+    });
+
+    it("plays in the painting for a partner who arrives by a link", async () => {
+      const state = withDandelion(2);
+      const id = state.plants[0]!.flower.id;
+      await mount(state, id);
+      await screen.findByRole("dialog", { name: "dandelion" });
+      expect(studios.states.at(-1)!.seeds).toMatchObject({ token: expect.any(Number) });
+      expect(window.localStorage.getItem("garden-v2:dandelion-seeds:1")).toBe(JSON.stringify({ ids: [id] }));
+      // …and again in the world as they return.
+      expect(seeds.requests.map((r) => r.id)).toEqual([id]);
+    });
+
+    it("never replays a wish you made come true yourself", async () => {
+      await mount(withDandelion(1));
+      expect(seeds.requests).toEqual([]);
+    });
   });
 });

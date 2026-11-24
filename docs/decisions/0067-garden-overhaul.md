@@ -466,7 +466,8 @@ discretion and the look in "World look":
   decides whether a type's activity exists, and it now includes all 13.
 - **The Dandelion in the world:** growing, it shows its golden head; bloomed
   and waiting on its wish, a seed puff; once fulfilled, its seeds have flown and
-  it shows its golden head again as a keepsake.
+  it shows its golden head again as a keepsake. Its seeds blow away as the wish
+  comes true (see "Dandelion seeds blowing away" below).
 - **Planting:** tapping a glowing seed mark or "plant a seed" glides to the spot
   and opens the same split view: the left half paints the chosen type in bloom
   from a fixed preview seed ("every seed grows its own way"), the right half
@@ -738,3 +739,54 @@ interaction", made under this decision's discretion:
   `World` uniform gains `lampColor`, `lampFalloff` and `showDim`.
 - **Development showcase:** `/dev/world` has "fireworks" and "still fireworks"
   buttons and shows a sample caption (development only, 404 in production).
+
+### Recorded choice: Dandelion seeds blowing away ([#201](https://github.com/C0derTang/shared-garden/issues/201))
+
+The user asked (2026-11-24): "for the dandelions when wish fulfilled add a
+blowing away animation". Conservative choices under this decision's
+discretion; fulfilment rules and data are unchanged.
+
+- **The moment:** the seed puff's own seeds (the same achene, beak and pappus
+  parts, paint and light the puff is drawn with, so the first frame matches it
+  exactly) let go over about 1.1 seconds, the side facing downwind first. Each
+  is pushed outward, eases into the breeze, rises, curls through gentle eddies
+  and tumbles: its pappus swings toward the air streaming past, overshoots and
+  rights itself, spinning slowly. Each seed flies 3.2 to 4.5 seconds and fades
+  into the sky over the second half of its flight, so the whole moment lasts
+  about five seconds (never more than 5.6). Timing and flight are seeded per flower. Aloft, the
+  seeds catch a soft extra glow that blooms. The puff's white glow dissolves
+  over 2.2 seconds while, in the painting, the golden head's glow kindles over
+  2.4 seconds. The golden head is there under the seeds from the first frame.
+- **Who sees it and where:**
+  - The member who blows the seeds sees it at once in the flower's painting.
+    Closing the painting, the world blows them again; the camera holds its close
+    look for 2.8 seconds while they lift, then glides back (any other navigation
+    takes over at once).
+  - The partner sees it once, the first time they see that fulfilled Dandelion:
+    in the world once it is in view and within 6.4 world units of the camera
+    (where flower names appear), or in its painting if they open it first (then
+    in the world again as they return). Until then, from the overview, its seeds
+    stay attached and it still looks like a puff. A Realtime update while the
+    partner is in the garden follows the same rule.
+  - The browser remembers which Dandelions each member has watched in local
+    storage (`garden-v2:dandelion-seeds:<member slot>`, flower ids only, the
+    newest 200). Later visits, reloads and links show the golden head directly.
+    A wish you fulfilled yourself is never replayed from storage (another of
+    your devices shows the golden head). When storage cannot be read, nothing
+    plays by itself; blowing the seeds yourself still plays.
+- **Reduced motion:** no drift and no camera glide: the puff's seeds fade in
+  place over 0.9 seconds over the golden head (a brief crossfade), and on
+  return the camera holds for 1.2 seconds.
+- **Rendering:** a compute pass (vgpu) simulates each seed's position,
+  velocity and rotation (up to four blows of 100 seeds at once, buffers
+  allocated once, no per-frame allocations). One instanced draw paints every
+  seed from the flower templates; it is translucent so the seeds fade, and
+  near seeds keep their detail through the painterly filter. Attached seeds
+  sway with their plant and let go of the sway as they lift. The world's
+  flower layer and the painting's studio share it. The seeds cast no shadows
+  and are not drawn into the lake's mirror image. In the world the golden
+  head's own glow appears at once (the world's aura strength is shared by all
+  flowers).
+- **Development gallery:** `/dev/flowers` hero view has "blow the seeds" and
+  "seed puff again" for a bloomed Dandelion (development only, 404 in
+  production).

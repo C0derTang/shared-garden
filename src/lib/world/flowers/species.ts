@@ -1020,8 +1020,11 @@ const dandelion: Builder = (b, options) => {
       const d = normalize(madd(madd(scale(head.axis, yy), head.b1, rr * Math.cos(az)), head.b2, rr * Math.sin(az)));
       const reach = R * range(sr, 0.9, 1.04);
       b.blob({ material: MATERIAL.disk, center: madd(tip, d, 0.009), up: d, front: perpendicularTo(d), radii: [0.0012, 0.0032, 0.0012], base: linear("#6a5434"), tip: linear("#9a8058") });
+      const achene = b.blobs[b.blobs.length - 1]!;
       b.segment(madd(tip, d, 0.012), madd(tip, d, reach), 0.0005, 0.0004, { base: linear("#e8e2d0"), tip: pappus }, MATERIAL.filament);
+      const beak = b.tubes[b.tubes.length - 1]!;
       b.blob({ material: MATERIAL.pappus, center: madd(tip, d, reach), up: d, front: perpendicularTo(d), radii: [0.013, 0.0045, 0.013], base: pappus, tip: linear("#ffffff"), translucency: 0.9, glow: 0.12 });
+      b.puffSeeds.push({ axis: d, achene, beak, pappus: b.blobs[b.blobs.length - 1]! });
     }
     b.aura = { center: tip, radius: R * 2.6, color: linear("#f3efe2") };
     return;
