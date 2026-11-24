@@ -102,6 +102,8 @@ export function GardenOverlays({ view, memberId, arrivedByLink, canGreet, flower
               return;
             }
             requestAnimationFrame(() => {
+              // A flower's view that waited for the moment opens now and takes focus itself.
+              if (document.querySelector('[role="dialog"]')) return;
               const reopen = document.querySelector<HTMLElement>('[data-private-notice-host="garden"] button');
               (reopen ?? document.querySelector<HTMLElement>("[data-garden-world]"))?.focus();
             });

@@ -32,9 +32,11 @@ const HERO_MIN_EXTENT = 0.32;
 const themeStyle = { "--hand": handFont.style.fontFamily } as CSSProperties;
 
 /**
- * While open, the view holds a slot in the shared sheet scope, as the legacy
- * flower sheets do (decision 0019): a pending private moment waits behind it,
- * keeping the draft and focus, and its notices show in the view's notice slot.
+ * While open, the view takes its turn in the shared sheet scope, as the legacy
+ * flower sheets do (decision 0019, `BottomSheet`): a private moment that
+ * becomes pending waits behind an open view, keeping its draft and focus, and
+ * a view asked for while the moment is showing waits until the moment closes.
+ * Its notices show in the view's notice slot. Without a scope it simply opens.
  */
 function useSheetSlot(open: boolean) {
   const id = useId();
@@ -46,7 +48,8 @@ function useSheetSlot(open: boolean) {
     if (open) request?.(id);
     return () => release?.(id);
   }, [id, open, request, release]);
-  return useCallback((element: HTMLDivElement | null) => register?.(id, element), [id, register]);
+  const noticeRef = useCallback((element: HTMLDivElement | null) => register?.(id, element), [id, register]);
+  return { visible: open && (!scope || scope.active === id), noticeRef };
 }
 
 /**
@@ -57,9 +60,9 @@ function useSheetSlot(open: boolean) {
  */
 export function SplitView({ open, onClose, spec, heroLabel, heroName, heroStage, title, subtitle, onReturnFocus, children, closeLabel = "Back to the garden" }: SplitViewProps) {
   const titleRef = useRef<HTMLHeadingElement>(null);
-  const noticeRef = useSheetSlot(open);
+  const { visible, noticeRef } = useSheetSlot(open);
   return (
-    <Dialog.Root open={open} onOpenChange={(next) => !next && onClose()}>
+    <Dialog.Root open={visible} onOpenChange={(next) => !next && onClose()}>
       <Dialog.Portal>
         <Dialog.Content
           className={`${styles.theme} ${styles.split} ${handFont.className}`}

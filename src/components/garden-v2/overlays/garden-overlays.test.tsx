@@ -6,7 +6,7 @@ import { V2_ACHIEVEMENT_COUNT, type AchievementStateV2 } from "@/lib/garden-v2/a
 import type { GardenState } from "@/lib/garden-v2/model";
 import { guideKey, type GardenView } from "@/lib/garden-v2/views";
 import type { MemoryItem } from "@/lib/memories/model";
-import { v2GardenFixture } from "@/test/garden-v2-fixture";
+import { v2EntryFixture, v2GardenFixture } from "@/test/garden-v2-fixture";
 import { memoryFixture } from "@/test/memory-fixture";
 
 const worlds: { callbacks: WorldRendererCallbacks; states: WorldSceneState[] }[] = [];
@@ -65,7 +65,7 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-const { GardenV2 } = await import("../garden-v2");
+const { GardenV2, GLIDE_MS } = await import("../garden-v2");
 const { MemberPreferences } = await import("@/components/settings/member-preferences");
 const { MemberNamesProvider } = await import("@/components/auth/member-names");
 const { SheetScope } = await import("@/components/ui/sheet-scope");
@@ -330,6 +330,98 @@ describe("the garden's overlays", () => {
     window.localStorage.clear();
     await mount({ seen: false, flower: state.plants[0]!.flower.id });
     expect(screen.queryByRole("dialog", { name: "a little guide" })).toBeNull();
+  });
+
+  describe("with motion on, across a flower-to-flower glide", () => {
+    // The camera glides (GLIDE_MS) between one flower's view and the next; a
+    // moment that becomes pending in that gap must stay on top, and the next
+    // view must wait for it to close.
+    const tick = (ms: number) => act(() => vi.advanceTimersByTimeAsync(ms));
+    function motionOn() {
+      vi.stubGlobal("matchMedia", (query: string) => ({ matches: false, media: query, addEventListener: vi.fn(), removeEventListener: vi.fn() }));
+    }
+    async function deliverMomentDuringGlide() {
+      api.readPrivateInteraction.mockResolvedValue(pendingMoment);
+      await act(async () => {
+        window.dispatchEvent(new Event("focus"));
+      });
+      await tick(0);
+      expect(screen.getByRole("dialog", { name: "A synthetic moment" })).toBeInTheDocument();
+    }
+    async function expectViewWaitsThenOpens(name: string) {
+      // The glide ends while the moment shows: the next view waits, focus stays in the moment.
+      await tick(GLIDE_MS + 50);
+      expect(screen.queryByRole("dialog", { name })).toBeNull();
+      const moment = screen.getByRole("dialog", { name: "A synthetic moment" });
+      expect(moment.contains(document.activeElement)).toBe(true);
+      // Closing the moment lets the view open, with focus inside it.
+      await act(async () => {
+        document.activeElement!.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+      });
+      await tick(50);
+      const view = screen.getByRole("dialog", { name });
+      expect(screen.queryByRole("dialog", { name: "A synthetic moment" })).toBeNull();
+      expect(view.contains(document.activeElement)).toBe(true);
+    }
+
+    // Testing Library only advances fake timers it recognizes as Jest's.
+    function useGlideTimers() {
+      vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "requestAnimationFrame", "cancelAnimationFrame"] });
+      vi.stubGlobal("jest", { advanceTimersByTime: (ms: number) => vi.advanceTimersByTime(ms) });
+    }
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("holds the next view behind a moment that arrives during a \"next:\" handoff", async () => {
+      motionOn();
+      const rose = state.plants[0]!;
+      rose.member1_submitted = false;
+      rose.entries = [];
+      const marigold = { ...structuredClone(rose), flower: { ...rose.flower, id: "00000000-0000-4000-8000-0000000000cc", spot: 2, type_key: "marigold" as const } };
+      state.plants.push(marigold);
+      state.garden.next_spot = 3;
+      await mount();
+      useGlideTimers();
+      const user = userEvent.setup({ delay: null });
+      await user.click(screen.getByRole("link", { name: /^rose,/ }));
+      await tick(GLIDE_MS + 50);
+      const split = screen.getByRole("dialog", { name: "rose" });
+      await user.type(within(split).getByRole("textbox", { name: "Care" }), "A synthetic note");
+      const saved = structuredClone(state);
+      saved.plants[0]!.member1_submitted = true;
+      saved.plants[0]!.entries = [{ ...v2EntryFixture(), payload: { text: "A synthetic note" } }];
+      api.mutateGardenV2.mockResolvedValue({ state: saved, saved: true, error: null });
+      state = saved;
+      await user.click(within(split).getByRole("button", { name: "share" }));
+      await tick(0);
+      await user.click(screen.getByRole("button", { name: /next: marigold/ }));
+      expect(screen.queryByRole("dialog", { name: "rose" })).toBeNull();
+      await deliverMomentDuringGlide();
+      await expectViewWaitsThenOpens("marigold");
+    });
+
+    it("holds the new flower's view behind a moment that arrives after planting", async () => {
+      motionOn();
+      await mount();
+      useGlideTimers();
+      const user = userEvent.setup({ delay: null });
+      await user.click(screen.getByRole("button", { name: "Plant a seed in spot 2" }));
+      await tick(GLIDE_MS + 50);
+      const plant = screen.getByRole("dialog", { name: "plant a seed" });
+      await user.click(within(plant).getByRole("radio", { name: /^marigold/ }));
+      const planted = structuredClone(state);
+      planted.plants.push({ ...structuredClone(state.plants[0]!), flower: { ...state.plants[0]!.flower, id: "00000000-0000-4000-8000-0000000000dd", spot: 2, type_key: "marigold" } });
+      planted.garden.next_spot = 3;
+      api.mutateGardenV2.mockResolvedValue({ state: planted, saved: true, error: null });
+      // Later reads (the moment's focus refresh also refreshes the garden) see the planted flower.
+      state = planted;
+      await user.click(within(plant).getByRole("button", { name: "plant the marigold" }));
+      await tick(0);
+      expect(screen.queryByRole("dialog", { name: "plant a seed" })).toBeNull();
+      await deliverMomentDuringGlide();
+      await expectViewWaitsThenOpens("marigold");
+    });
   });
 
   it("does not greet after a deep-linked overlay closes before the world is painted", async () => {

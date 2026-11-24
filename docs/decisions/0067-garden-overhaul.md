@@ -570,11 +570,17 @@ Settings and guide, made under this decision's discretion and the look in
     appear in Settings, as in the old garden.
   - As in the old garden ([decision 0019](0019-tutorial-and-settings.md)),
     `/garden` is wrapped in the shared sheet scope. A flower's split view, or
-    the planting view, holds a slot while it is open. A moment that becomes
-    pending meanwhile waits behind it, keeping the draft and focus, and opens
-    when the view closes. While it waits, its notices show in the view's notice
-    slot. Closing the moment returns focus inside an open overlay, otherwise to
-    the visible "Open your garden moment" control, otherwise to the world.
+    the planting view, takes its turn in that scope, like a legacy flower sheet.
+  - A moment that becomes pending while a view is open waits behind it,
+    keeping the draft and focus. It opens when the view closes, and its notices
+    show in the view's notice slot meanwhile.
+  - A view asked for while the moment is showing waits until the moment
+    closes, then opens with focus inside it. This includes the next flower
+    after the camera's glide from "next:" or from planting. The moment stays on
+    top.
+  - Closing the moment returns focus inside an open overlay, otherwise to the
+    visible "Open your garden moment" control, otherwise to the world, unless a
+    waiting view opens and takes focus.
   - Its sheets take the new garden's washes through an optional class, and
     the old garden is unchanged. They sit above the overlays.
 - **The guide:**
