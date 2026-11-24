@@ -1,5 +1,6 @@
 "use client";
 import { gardenBrowserClient } from "@/lib/auth/browser";
+import { mediaBuckets, type MediaGarden } from "./garden";
 
 export const photoTypes = ["image/jpeg", "image/png", "image/webp"];
 export const photoAccept = photoTypes.join(",");
@@ -67,12 +68,15 @@ export type MediaAttempt = {
   };
 };
 export type PhotoAttempt = MediaAttempt;
+// New-garden callers pass garden "v2"; the legacy default sends no
+// discriminator, so legacy requests are byte-for-byte unchanged.
 export async function savePhoto(
   file: File,
   flowerId: string,
   replacementEntryId: number | undefined,
   attempt: PhotoAttempt,
   checkCurrent: () => void,
+  garden: MediaGarden = "legacy",
 ) {
   return saveMedia(
     file,
@@ -81,6 +85,7 @@ export async function savePhoto(
     replacementEntryId,
     attempt,
     checkCurrent,
+    garden,
   );
 }
 export async function saveVoice(
@@ -89,6 +94,7 @@ export async function saveVoice(
   replacementEntryId: number | undefined,
   attempt: MediaAttempt,
   checkCurrent: () => void,
+  garden: MediaGarden = "legacy",
 ) {
   return saveMedia(
     file,
@@ -97,7 +103,11 @@ export async function saveVoice(
     replacementEntryId,
     attempt,
     checkCurrent,
+    garden,
   );
+}
+export function mediaGardenField(garden: MediaGarden) {
+  return garden === "legacy" ? {} : { garden };
 }
 async function saveMedia(
   file: File,
@@ -106,6 +116,7 @@ async function saveMedia(
   replacementEntryId: number | undefined,
   attempt: MediaAttempt,
   checkCurrent: () => void,
+  garden: MediaGarden,
 ) {
   checkCurrent();
   attempt.intent ??= await mediaRequest("intents", {
@@ -114,6 +125,7 @@ async function saveMedia(
     mimeType,
     byteLength: file.size,
     ...(replacementEntryId ? { replacementEntryId } : {}),
+    ...mediaGardenField(garden),
   });
   const intent = attempt.intent!;
   if (intent.status === "pending") {
@@ -123,7 +135,7 @@ async function saveMedia(
     // discovers whether the object arrived; retries never overwrite its bytes.
     try {
       await client.storage
-        .from("garden-staging")
+        .from(mediaBuckets[garden].staging)
         .upload(intent.staging_path, file, {
           contentType: intent.mime_type,
           upsert: false,
@@ -135,6 +147,7 @@ async function saveMedia(
   checkCurrent();
   const result = await mediaRequest<{ status: string }>("finalize", {
     mediaId: intent.id,
+    ...mediaGardenField(garden),
   });
   if (result.status !== "submitted") throw new MediaError("media_unavailable");
 }

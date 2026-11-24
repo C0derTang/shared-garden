@@ -1,7 +1,17 @@
 import { afterEach, expect, it, vi } from "vitest";
-const { upload } = vi.hoisted(() => ({ upload: vi.fn() }));
+const { upload, bucket } = vi.hoisted(() => ({
+  upload: vi.fn(),
+  bucket: vi.fn(),
+}));
 vi.mock("@/lib/auth/browser", () => ({
-  gardenBrowserClient: () => ({ storage: { from: () => ({ upload }) } }),
+  gardenBrowserClient: () => ({
+    storage: {
+      from: (name: string) => {
+        bucket(name);
+        return { upload };
+      },
+    },
+  }),
 }));
 import {
   photoInputError,
@@ -146,4 +156,60 @@ it("uploads an actual voice File with canonical MIME and preserves retry identit
     contentType: "audio/webm",
     upsert: false,
   });
+});
+it("keeps legacy requests unchanged and addresses only the legacy staging bucket", async () => {
+  const request = vi
+    .fn()
+    .mockResolvedValueOnce(
+      json({
+        id: "media",
+        status: "pending",
+        staging_path: "media/source",
+        mime_type: "image/png",
+      }),
+    )
+    .mockResolvedValueOnce(json({ status: "submitted" }));
+  vi.stubGlobal("fetch", request);
+  upload.mockResolvedValue({ error: null });
+  const file = new File(["x"], "p.png", { type: "image/png" });
+  await savePhoto(file, "flower", undefined, { requestId: "key" }, () => {});
+  expect(request.mock.calls.map((c) => JSON.parse(c[1].body))).toEqual([
+    {
+      requestId: "key",
+      flowerId: "flower",
+      mimeType: "image/png",
+      byteLength: 1,
+    },
+    { mediaId: "media" },
+  ]);
+  expect(bucket.mock.calls).toEqual([["garden-staging"]]);
+});
+it("names the new garden explicitly and uploads only to its private staging bucket", async () => {
+  for (const save of [savePhoto, saveVoice]) {
+    vi.clearAllMocks();
+    const request = vi
+      .fn()
+      .mockResolvedValueOnce(
+        json({
+          id: "v2-media",
+          status: "pending",
+          staging_path: "v2-media/source",
+          mime_type: "image/png",
+        }),
+      )
+      .mockResolvedValueOnce(json({ status: "submitted" }));
+    vi.stubGlobal("fetch", request);
+    upload.mockResolvedValue({ error: null });
+    const file = new File(["x"], "p.png", { type: "image/png" });
+    await save(file, "v2-flower", 7, { requestId: "v2-key" }, () => {}, "v2");
+    const bodies = request.mock.calls.map((c) => JSON.parse(c[1].body));
+    expect(bodies[0]).toMatchObject({
+      requestId: "v2-key",
+      flowerId: "v2-flower",
+      replacementEntryId: 7,
+      garden: "v2",
+    });
+    expect(bodies[1]).toEqual({ mediaId: "v2-media", garden: "v2" });
+    expect(bucket.mock.calls).toEqual([["garden-v2-staging"]]);
+  }
 });

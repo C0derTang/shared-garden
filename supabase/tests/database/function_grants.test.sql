@@ -93,6 +93,21 @@ insert into expected_function_grants values
   ('public.v2_reply_to_entry(bigint,text,uuid)', 'authenticated'),
   ('public.v2_submit_flower_entry(uuid,jsonb)', 'authenticated');
 
+-- New-garden private media (issue #178).
+insert into expected_function_grants values
+  ('private.v2_guard_media_entry()', null),
+  ('private.v2_media_upload_json(private.v2_media_uploads)', null),
+  ('private.v2_validate_nonmedia_entry_payload(text,jsonb,date)', null),
+  ('public.v2_attest_audio_upload(uuid,uuid,integer,integer,integer,text)', 'service_role'),
+  ('public.v2_attest_media_upload(uuid,uuid,integer,integer,integer,text)', 'service_role'),
+  ('public.v2_claim_media_upload(uuid)', 'authenticated'),
+  ('public.v2_create_media_upload(uuid,uuid,text,integer,bigint)', 'authenticated'),
+  ('public.v2_media_cleanup_candidates()', 'service_role'),
+  ('public.v2_media_cleanup_done(uuid,boolean,boolean)', 'service_role'),
+  ('public.v2_media_read_path(uuid)', 'authenticated'),
+  ('public.v2_media_upload_allowed(text)', 'authenticated'),
+  ('public.v2_media_upload_state(uuid)', 'authenticated');
+
 create temporary view application_functions as
 select p.oid, p.proowner, p.proacl
 from pg_proc p
