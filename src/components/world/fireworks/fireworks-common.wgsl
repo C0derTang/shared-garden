@@ -23,10 +23,12 @@ export struct Spark {
   seed: f32,
   // Multiplier of the world's spark gravity.
   gravity: f32,
-  // 0..1 twinkle.
+  // 0..1 glitter: late twinkling flashes.
   flicker: f32,
-  pad0: f32,
-  pad1: f32,
+  // The colour it drifts toward as it burns (8 bits per channel, see unpackColor).
+  fade: f32,
+  // Fraction of its life when the drift begins (> 1: never).
+  shift: f32,
 }
 
 // The simulated state of a particle (age < 0: not alive).
@@ -46,8 +48,9 @@ export struct Shell {
   radius: f32,
   brightness: f32,
   willow: f32,
-  pad0: f32,
-  pad1: f32,
+  // Packed colour its smoke cools toward (see unpackColor).
+  fade: f32,
+  pad: f32,
 }
 
 export const KIND_ROCKET: f32 = 0.0;
@@ -67,4 +70,10 @@ export fn rocketPosition(base: vec3f, burst: vec3f, launch: f32, flight: f32, t:
 
 export fn sparkHash(x: f32) -> f32 {
   return fract(sin(x * 127.1 + 311.7) * 43758.5453);
+}
+
+// Must match packColor() in src/lib/world/fireworks.ts.
+export fn unpackColor(packed: f32) -> vec3f {
+  let v = u32(max(packed, 0.0) + 0.5);
+  return vec3f(f32((v >> 16u) & 255u), f32((v >> 8u) & 255u), f32(v & 255u)) / 255.0;
 }

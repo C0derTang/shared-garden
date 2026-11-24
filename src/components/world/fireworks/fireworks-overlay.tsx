@@ -1,4 +1,5 @@
 "use client";
+import { handFont } from "../hand-font";
 import styles from "./fireworks.module.css";
 
 export interface FireworksOverlayProps {
@@ -22,7 +23,7 @@ export function FireworksOverlay({ caption, playing, canReplay, onReplay, hidden
   if (hidden) return null;
   return (
     <>
-      <p className={styles.caption} role="status" aria-live="polite">
+      <p className={`${styles.caption} ${handFont.className}`} role="status" aria-live="polite">
         {playing && caption ? (
           <span className={styles.captionText}>
             <span className={styles.star} aria-hidden="true">
@@ -33,7 +34,7 @@ export function FireworksOverlay({ caption, playing, canReplay, onReplay, hidden
         ) : null}
       </p>
       {canReplay && !playing && (
-        <button type="button" className={styles.replay} onClick={onReplay}>
+        <button type="button" className={`${styles.replay} ${handFont.className}`} onClick={onReplay}>
           replay fireworks
         </button>
       )}

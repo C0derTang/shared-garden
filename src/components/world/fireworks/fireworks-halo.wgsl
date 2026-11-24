@@ -1,5 +1,5 @@
 import { World, valueNoise } from "../shaders/common.wgsl";
-import { Shell } from "./fireworks-common.wgsl";
+import { Shell, unpackColor } from "./fireworks-common.wgsl";
 
 // The glow each burst throws into the night air around it: a large, soft,
 // slightly mottled bloom of its colour that flares at the burst and lingers
@@ -25,14 +25,14 @@ struct HaloOut {
 
 // Must match flashAt() in src/lib/world/fireworks.ts.
 fn flashAt(age: f32) -> f32 {
-  return exp(-age * 2.4) + 0.18 * exp(-age * 0.7);
+  return exp(-age * 2.6) + 0.22 * exp(-age * 0.55);
 }
 
 @vertex fn vs_main(@builtin(vertex_index) vertex: u32, @builtin(instance_index) instance: u32) -> HaloOut {
   let shell = shells[instance];
   let age = halo.time - shell.time;
   var out: HaloOut;
-  if (age < 0.0 || age > 7.0 || halo.fade <= 0.0) {
+  if (age < 0.0 || age > 8.0 || halo.fade <= 0.0) {
     out.clip = vec4f(2.0, 2.0, 2.0, 1.0);
     return out;
   }
@@ -42,13 +42,15 @@ fn flashAt(age: f32) -> f32 {
   );
   let c = corners[vertex];
   // The smoke spreads a little and sinks as it lingers.
-  let radius = shell.radius * (1.5 + 0.9 * (1.0 - exp(-age * 2.0)));
-  let center = shell.burst - vec3f(0.0, age * 0.25, 0.0);
+  let radius = shell.radius * (1.6 + 1.0 * (1.0 - exp(-age * 1.6)));
+  let center = shell.burst - vec3f(0.0, age * 0.3, 0.0);
   let position = center + (world.camRight * c.x + world.camUp * c.y) * radius;
   out.clip = world.viewProjection * vec4f(position, 1.0);
   out.quad = c;
-  let tint = mix(shell.color, vec3f(1.0, 0.7, 0.4), 0.2);
-  out.color = tint * flashAt(age) * shell.brightness * halo.fade * halo.gain * select(0.45, 0.32, shell.willow > 0.5);
+  // A bright flash of the burst's colour, then smoke tinted by its cooling hue.
+  let smoke = mix(unpackColor(shell.fade), vec3f(0.55, 0.45, 0.5), 0.35);
+  let tint = mix(shell.color, smoke, smoothstep(0.2, 2.0, age));
+  out.color = tint * flashAt(age) * shell.brightness * halo.fade * halo.gain * select(0.32, 0.22, shell.willow > 0.5);
   out.seed = f32(instance) * 7.31;
   return out;
 }
@@ -58,9 +60,8 @@ fn flashAt(age: f32) -> f32 {
   if (r >= 1.0) {
     discard;
   }
-  // A broad, flat-topped falloff: lit air around the burst, not a bright core.
-  let edge = 1.0 - smoothstep(0.15, 1.0, r);
-  let falloff = edge * edge;
+  // A soft falloff: lit air around the burst, not a disc.
+  let falloff = exp(-r * r * 3.2) * (1.0 - r * r);
   // Brushy, smoky mottling so the glow reads as lit air, not a disc.
   let mottle = 0.65 + 0.7 * valueNoise(input.quad * 2.6 + vec2f(input.seed, input.seed * 0.37));
   return vec4f(input.color * falloff * mottle, 0.0);

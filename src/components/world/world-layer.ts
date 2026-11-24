@@ -44,6 +44,8 @@ export interface WorldUniforms {
   readonly lampColor: readonly number[];
   /** How quickly `lamp` falls off: 1 / (1 + distance² × falloff). */
   readonly lampFalloff: number;
+  /** 0..1 while a night show plays: the moon, its glitter and the sky recede. */
+  readonly showDim: number;
 }
 
 /** A local light a layer throws on the scene for one frame (e.g. fireworks bursts). */
@@ -54,6 +56,8 @@ export interface WorldLight {
   readonly level: number;
   /** 1 / (1 + distance² × falloff). */
   readonly falloff: number;
+  /** 0..1: how far the moon and sky recede for the layer's show (default 0). */
+  readonly skyDim?: number;
 }
 
 /** Timing handed to `WorldLayer.update` once per painted frame. */

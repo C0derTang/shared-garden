@@ -10,6 +10,7 @@ import {
   STILL_MOMENT,
   buildFireworksShow,
   fireworksLightAt,
+  showDimAt,
   packFireworks,
   type FireworksShow,
 } from "@/lib/world/fireworks";
@@ -24,13 +25,15 @@ const STATE_FLOATS = 8;
 const STILL_STEPS = 30;
 /** Fireworks light falls off gently: the meadow is ~70 units from the bursts. */
 const LIGHT_FALLOFF = 0.0006;
-const LIGHT_GAIN = 0.75;
+const LIGHT_GAIN = 1.0;
 const WIND: [number, number, number] = [0.35, 0, 0.08];
 
 export interface FireworksPlayOptions {
   readonly seed: number;
   /** Reduced motion: a still sky of open bursts that fades after a while, instead of the animated show. */
   readonly still: boolean;
+  /** A narrow portrait screen: bursts gather toward the middle of the lake. */
+  readonly narrow?: boolean;
   /** The show's first frame was painted. */
   readonly onStart?: () => void;
   /** The show finished (or the world stopped under it). */
@@ -148,7 +151,7 @@ export function createFireworksLayer(): FireworksLayer {
     },
     play(options) {
       finish(false);
-      const show = buildFireworksShow(options.seed, { still: options.still });
+      const show = buildFireworksShow(options.seed, { still: options.still, narrow: options.narrow });
       const packed = packFireworks(show, options.seed);
       running = {
         options,
@@ -196,11 +199,12 @@ export function createFireworksLayer(): FireworksLayer {
         step(frame, show, dt);
       }
       const light = fireworksLightAt(show.show, show.time);
-      if (!light) return null;
-      return { position: light.position, color: light.color, level: light.level * LIGHT_GAIN * fade, falloff: LIGHT_FALLOFF };
+      const skyDim = showDimAt(show.show, show.time) * fade;
+      if (!light) return { position: [0, 12, -50], color: [0, 0, 0], level: 0, falloff: LIGHT_FALLOFF, skyDim };
+      return { position: light.position, color: light.color, level: light.level * LIGHT_GAIN * fade, falloff: LIGHT_FALLOFF, skyDim };
     },
     drawReflection(pass, frame) {
-      if (mirror) encode(pass, frame, mirror, 1.6);
+      if (mirror) encode(pass, frame, mirror, 2.6);
     },
     draw(pass, frame) {
       if (scene) encode(pass, frame, scene, 1);

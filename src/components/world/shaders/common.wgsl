@@ -34,6 +34,8 @@ export struct World {
   // Linear colour of the local light and how quickly it falls off with distance².
   lampColor: vec3f,
   lampFalloff: f32,
+  // 0..1 while a night show plays: the moon and sky recede so it can shine.
+  showDim: f32,
 }
 
 export fn hash21(p: vec2f) -> f32 {
@@ -106,7 +108,7 @@ export fn skyColor(ray: vec3f, world: World) -> vec3f {
   color = mix(color, world.lightColor * 1.1 + world.horizon * 0.2, warmSide * (1.0 - height) * 0.6 * sunAbove);
   color += world.lightColor * (pow(sunDot, 8.0) * 0.5 * (0.35 + world.glow) + pow(sunDot, 64.0) * 0.6) * sunAbove;
   let moonDot = max(dot(ray, normalize(world.moonDir)), 0.0);
-  color += world.night * vec3f(0.45, 0.55, 0.85) * (pow(moonDot, 24.0) * 0.18 + pow(moonDot, 200.0) * 0.5);
+  color += world.night * (1.0 - 0.7 * world.showDim) * vec3f(0.45, 0.55, 0.85) * (pow(moonDot, 24.0) * 0.18 + pow(moonDot, 200.0) * 0.5);
   return color;
 }
 

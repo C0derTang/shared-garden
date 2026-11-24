@@ -99,6 +99,7 @@ export function useNightFireworks({
       layer.play({
         seed: fireworksSeed(day, replays.current),
         still: reducedMotion,
+        narrow: window.innerWidth < window.innerHeight * 0.8,
         onStart: () => writeFireworksSeen(memberId, day),
         onEnd: () => setPlaying(false),
       });

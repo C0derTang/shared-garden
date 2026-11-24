@@ -7,6 +7,7 @@ import { SKY_PRESETS, type SkyPreset } from "@/lib/world/sky-presets";
 import { skyStateAt } from "@/lib/world/solar";
 import { GardenWorld, type WorldCaption } from "../garden-world";
 import { createFireworksLayer } from "../fireworks/fireworks-layer";
+import { FireworksOverlay } from "../fireworks/fireworks-overlay";
 import { createFlowerLayer } from "../flowers/flower-layer";
 import { worldFlowerAnchors, type WorldFlower } from "../flowers/flower-models";
 import styles from "./world-showcase.module.css";
@@ -45,7 +46,7 @@ export function WorldShowcase({ preset: initialPreset, planted: initialPlanted }
   const [fireworks, setFireworks] = useState<"off" | "show" | "still">("off");
   const layers = useMemo(() => [flowerLayer, fireworksLayer], [flowerLayer, fireworksLayer]);
   const playFireworks = (still: boolean) => {
-    fireworksLayer.play({ seed: Math.floor(Math.random() * 2 ** 31), still, onEnd: () => setFireworks("off") });
+    fireworksLayer.play({ seed: Math.floor(Math.random() * 2 ** 31), still, narrow: window.innerWidth < window.innerHeight * 0.8, onEnd: () => setFireworks("off") });
     setFireworks(still ? "still" : "show");
   };
   const sky = skyStateAt(time ?? new Date());
@@ -80,6 +81,12 @@ export function WorldShowcase({ preset: initialPreset, planted: initialPlanted }
           setOccupied((previous) => [...previous, spot]);
         }}
         onPickFlower={(id) => record(`picked ${id}`)}
+      />
+      <FireworksOverlay
+        caption="for today’s achievement: First seed planted"
+        playing={fireworks !== "off"}
+        canReplay={false}
+        onReplay={() => playFireworks(false)}
       />
       <aside className={styles.panel} aria-label="World showcase controls">
         <p className={styles.heading}>Painted world · dev showcase</p>

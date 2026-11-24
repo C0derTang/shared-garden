@@ -727,6 +727,7 @@ export function createWorldRenderer(
           lampLevel: landing ? warmth * 0.9 + invite * 0.35 + spill * 3 : (lampLight?.level ?? 0),
           lampColor: landing ? PORCH_LAMP_COLOR : (lampLight?.color ?? [0, 0, 0]),
           lampFalloff: landing ? PORCH_LAMP_FALLOFF : (lampLight?.falloff ?? 1),
+          showDim: lampLight?.skyDim ?? 0,
         };
         const mirrored: WorldUniforms = {
           ...world,
