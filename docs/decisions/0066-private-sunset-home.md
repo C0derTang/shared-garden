@@ -1,5 +1,7 @@
 # 0066 — Private sunset home
 
+> Superseded for the new garden: [decision 0067](0067-garden-overhaul.md) unroutes this home in favour of a new landing at `/`; its code and media remain in the repository.
+
 Status: approved visual revision on 2026-11-14; implementation details under
 [0004](0004-finalized-launch-rules.md). Source: [issue #165](https://github.com/C0derTang/shared-garden/issues/165).
 

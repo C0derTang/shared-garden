@@ -91,7 +91,7 @@ describe("While you were away", () => {
     }), [firstSeed, streak]);
     other().focus();
     const card = await screen.findByRole("region", { name: "While you were away" });
-    await waitFor(() => expect(within(card).getByRole("link", { name: /New badge: Three-day streak/ })).toHaveAttribute("href", "/achievements"));
+    await waitFor(() => expect(within(card).getByRole("link", { name: /New badge: Three-day streak/ })).toHaveAttribute("href", "/legacy?panel=achievements"));
     expect(other()).toHaveFocus();
     expect(screen.getByRole("status")).toHaveTextContent(
       "While you were away: Your Rose bloomed. Daisy unlocked. Your partner cared for Rose and Tulip. New badge: Three-day streak.",

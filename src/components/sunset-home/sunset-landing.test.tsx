@@ -42,7 +42,7 @@ it("offers one local audio panel without requesting media or any provider before
   expect(container.querySelector("iframe, video")).toBeNull();
   expect(container.innerHTML).not.toMatch(/youtube|ytimg|googlevideo|spotify/);
   expect(screen.getAllByRole("link")).toHaveLength(1);
-  expect(screen.getByRole("link", { name: "old garden" })).toHaveAttribute("href", "/garden");
+  expect(screen.getByRole("link", { name: "old garden" })).toHaveAttribute("href", "/legacy");
 });
 
 const phrase = (lyrics: HTMLElement, kind = "current") => lyrics.querySelector<HTMLElement>(`[data-lyric="${kind}"]`);

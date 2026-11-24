@@ -3,11 +3,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:signin": "node scripts/dev-signin.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "vitest run && node --test content/daisy-questions.test.mjs && node --test scripts/release/production.test.mjs && node --test scripts/setup-home-media.test.mjs",
+    "test": "vitest run && node --test content/daisy-questions.test.mjs && node --test scripts/release/production.test.mjs && node --test scripts/setup-home-media.test.mjs && node --test scripts/dev-signin.test.mjs",
     "check:wgsl": "for f in src/components/world/shaders/*.wgsl src/components/world/post/*.wgsl src/components/world/strokes/*.wgsl; do vgpu check \"$f\" --require-validation > /dev/null || { echo \"WGSL validation failed: $f\"; exit 1; }; done",
     "db:start": "supabase start",
     "db:reset": "supabase db reset --local",

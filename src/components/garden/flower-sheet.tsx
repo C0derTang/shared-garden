@@ -32,6 +32,7 @@ import { flowerCards, nextDueFlower, type FlowerCard } from "./flower-cards";
 import { careStatus } from "./due-today";
 import { SheetCue } from "./today-card";
 import type { Mutate } from "./seed-picker";
+import { legacyPanelHref } from "@/lib/legacy/routes";
 import styles from "./garden.module.css";
 import sheetStyles from "./flower-sheet.module.css";
 
@@ -451,7 +452,7 @@ export function FlowerSheet({
       ) : (
         <>
           {item.type_key === "tulip" && (
-            <Link href="/garden/songs">Our song collection</Link>
+            <Link href={legacyPanelHref("songs")}>Our song collection</Link>
           )}
           <DandelionWish
             flower={flower}

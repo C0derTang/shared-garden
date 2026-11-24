@@ -1,8 +1,9 @@
 import type { GardenState } from "./model";
+import { legacyPath } from "@/lib/legacy/routes";
 
 /**
  * A request to open one flower in the garden (decision 0055). It comes from a
- * direct `/garden?spot=N` or `/garden?flower=cactus` URL, or from an in-app
+ * direct `/legacy?spot=N` or `/legacy?flower=cactus` URL, or from an in-app
  * link that also records it here, so the persistent garden can open the sheet
  * once the route panel above it has closed.
  */
@@ -35,8 +36,8 @@ export const spotRequestSnapshot = () => snapshot;
 const empty: SpotRequestSnapshot = { request: null, notice: "" };
 export const serverSpotRequestSnapshot = () => empty;
 
-export const spotHref = (spot: number) => `/garden?spot=${spot}`;
-export const cactusHref = "/garden?flower=cactus";
+export const spotHref = (spot: number) => `${legacyPath}?spot=${spot}`;
+export const cactusHref = `${legacyPath}?flower=cactus`;
 
 /** Reads a request from a URL query. Anything unrecognized is ignored. */
 export function parseSpotRequest(search: string): SpotRequest | null {

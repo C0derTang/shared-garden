@@ -2,9 +2,9 @@ vi.mock("@/lib/replies/actions", () => ({ readReplies: vi.fn().mockResolvedValue
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, expect, it, vi } from "vitest";
-const route = vi.hoisted(() => ({ pathname: "/garden", back: vi.fn(), replace: vi.fn(), push: vi.fn() }));
+const route = vi.hoisted(() => ({ href: "/legacy", back: vi.fn(), replace: vi.fn(), push: vi.fn() }));
 const api = vi.hoisted(() => ({ refreshGarden: vi.fn(), readSettings: vi.fn(), saveSetting: vi.fn(), readPrivateInteraction: vi.fn(), controlPrivateInteraction: vi.fn() }));
-vi.mock("next/navigation", () => ({ usePathname: () => route.pathname, useRouter: () => route }));
+vi.mock("next/navigation", () => ({ useSearchParams: () => new URL(route.href, "http://garden.test").searchParams, useRouter: () => route }));
 vi.mock("@/lib/peony/actions", () => ({ readPeony: vi.fn(), mutatePeony: vi.fn() }));
 vi.mock("@/lib/auth/browser", () => ({ gardenBrowserClient: () => null }));
 vi.mock("@/lib/garden/actions", () => ({ refreshGarden: api.refreshGarden, loadFlowerHistory: vi.fn() }));
@@ -19,7 +19,7 @@ const state = gardenFixture();
 const settings = { state: { revision: 0, guide: "open" as const, gentle_motion: true }, error: null };
 function App() { return <MemberPreferences initial={settings}><SheetScope><GardenStage initial={{ state, error: null }}><SettingsClient /></GardenStage></SheetScope></MemberPreferences>; }
 beforeEach(() => {
-  vi.clearAllMocks(); route.pathname = "/garden";
+  vi.clearAllMocks(); route.href = "/legacy";
   api.refreshGarden.mockResolvedValue({ state, error: null }); api.readSettings.mockResolvedValue(settings);
   api.saveSetting.mockResolvedValue(settings); api.readPrivateInteraction.mockResolvedValue({ state: { status: "idle" }, error: null });
 });
@@ -27,12 +27,12 @@ it("releases the guide for history navigation and reopens it from Settings after
   const user = userEvent.setup(); const view = render(<App />);
   expect(screen.getByRole("dialog", { name: "Tap your Cactus to say hello" })).toBeVisible();
   expect(screen.getByText("cc’s garden").closest("[inert]")).not.toBeNull();
-  route.pathname = "/settings"; view.rerender(<App />);
+  route.href = "/legacy?panel=settings"; view.rerender(<App />);
   expect(await screen.findByRole("dialog", { name: "Settings" })).toBeVisible();
   expect(screen.queryByRole("dialog", { name: "Tap your Cactus to say hello" })).not.toBeInTheDocument();
   await user.click(screen.getByRole("button", { name: "Reopen garden guide" }));
-  expect(route.push).toHaveBeenCalledWith("/garden");
-  route.pathname = "/garden"; view.rerender(<App />);
+  expect(route.push).toHaveBeenCalledWith("/legacy");
+  route.href = "/legacy"; view.rerender(<App />);
   expect(await screen.findByRole("dialog", { name: "Tap your Cactus to say hello" })).toContainElement(document.activeElement as HTMLElement);
   await user.keyboard("{Escape}");
   expect(screen.getByRole("button", { name: "Show garden guide" })).toHaveFocus();
@@ -44,7 +44,7 @@ it("keeps a flower draft focused through navigation and presents the destination
   const user = userEvent.setup(); const view = render(<App />);
   await user.click(screen.getByRole("button", { name: "Visit Cactus" }));
   const action = screen.getByRole("button", { name: "I’m here · Check in" }); action.focus();
-  route.pathname = "/settings"; view.rerender(<App />);
+  route.href = "/legacy?panel=settings"; view.rerender(<App />);
   expect(action).toHaveFocus();
   expect(screen.queryByRole("dialog", { name: "Settings" })).not.toBeInTheDocument();
   await user.keyboard("{Escape}");

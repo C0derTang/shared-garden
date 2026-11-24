@@ -14,7 +14,7 @@ it("persists reopen before navigation and retains errors without claiming succes
   await screen.findByText("Not confirmed"); expect(push).not.toHaveBeenCalled();
   saveSetting.mockResolvedValueOnce({ state: { ...initial.state, guide: "open", revision: 4 }, error: null });
   fireEvent.click(screen.getByRole("button", { name: "Reopen garden guide" }));
-  await waitFor(() => expect(push).toHaveBeenCalledExactlyOnceWith("/garden"));
+  await waitFor(() => expect(push).toHaveBeenCalledExactlyOnceWith("/legacy"));
   expect(saveSetting).toHaveBeenLastCalledWith({ guide: "open" });
 });
 it("has separate signout POST, fixed clock copy, and own optional motion control", async () => {

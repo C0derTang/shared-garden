@@ -3,9 +3,9 @@ import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ComponentProps, MouseEvent } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-const route = vi.hoisted(() => ({ pathname: "/memories", back: vi.fn(), replace: vi.fn(), push: vi.fn() }));
+const route = vi.hoisted(() => ({ href: "/legacy?panel=memories", back: vi.fn(), replace: vi.fn(), push: vi.fn() }));
 const api = vi.hoisted(() => ({ refreshGarden: vi.fn(), readSettings: vi.fn(), saveSetting: vi.fn(), readPrivateInteraction: vi.fn(), loadMemories: vi.fn() }));
-vi.mock("next/navigation", () => ({ usePathname: () => route.pathname, useRouter: () => route }));
+vi.mock("next/navigation", () => ({ useSearchParams: () => new URL(route.href, "http://garden.test").searchParams, useRouter: () => route }));
 // A client navigation: the link changes the route after its own click handler.
 vi.mock("next/link", () => ({
   default: ({ href, onClick, ...rest }: ComponentProps<"a"> & { prefetch?: boolean; scroll?: boolean }) => {
@@ -15,7 +15,7 @@ vi.mock("next/link", () => ({
     return <a {...props} href={String(href)} onClick={(event: MouseEvent<HTMLAnchorElement>) => {
       onClick?.(event);
       event.preventDefault();
-      if (!event.metaKey && !event.ctrlKey) route.pathname = new URL(String(href), "http://garden.test").pathname;
+      if (!event.metaKey && !event.ctrlKey) route.href = String(href);
     }} />;
   },
 }));
@@ -44,13 +44,13 @@ function garden() {
 const state = garden();
 function App({ items = [memoryFixture()] }: { items?: MemoryItem[] }) {
   return <MemberPreferences initial={settings}><SheetScope><GardenStage initial={{ state, error: null }}>
-    {route.pathname === "/memories" && <MemoriesClient memberId={1} initial={{ items, more: false, error: null }} />}
+    {route.href === "/legacy?panel=memories" && <MemoriesClient memberId={1} initial={{ items, more: false, error: null }} />}
   </GardenStage></SheetScope></MemberPreferences>;
 }
 beforeEach(() => {
   vi.clearAllMocks();
-  route.pathname = "/memories";
-  window.history.replaceState(null, "", "/memories");
+  route.href = "/legacy?panel=memories";
+  window.history.replaceState(null, "", "/legacy?panel=memories");
   api.refreshGarden.mockResolvedValue({ state, error: null });
   api.readSettings.mockResolvedValue(settings);
   api.readPrivateInteraction.mockResolvedValue({ state: { status: "idle" }, error: null });
@@ -66,7 +66,7 @@ it("opens a memory's flower from the Memories panel with focus inside its sheet"
   const view = render(<App />);
   const panel = await screen.findByRole("dialog", { name: "Memories" });
   await user.click(within(panel).getByRole("link", { name: "Open in garden: Rose, spot 2" }));
-  expect(route.pathname).toBe("/garden");
+  expect(route.href).toBe("/legacy?spot=2");
   view.rerender(<App />);
   const sheet = await screen.findByRole("dialog", { name: "Rose" });
   await waitFor(() => expect(sheet).toContainElement(document.activeElement as HTMLElement));
@@ -77,17 +77,17 @@ it("opens a memory's flower from the Memories panel with focus inside its sheet"
 });
 
 it("opens a flower from a direct garden URL and then forgets the one-shot query", async () => {
-  route.pathname = "/garden";
-  window.history.replaceState(null, "", "/garden?spot=2");
+  route.href = "/legacy";
+  window.history.replaceState(null, "", "/legacy?spot=2");
   render(<App />);
   const sheet = await screen.findByRole("dialog", { name: "Rose" });
   await waitFor(() => expect(sheet).toContainElement(document.activeElement as HTMLElement));
-  expect(window.location.pathname).toBe("/garden");
+  expect(window.location.pathname).toBe("/legacy");
   expect(window.location.search).toBe("");
 });
 
 it("keeps the notice's live region rendered and empty before any notice text arrives", async () => {
-  route.pathname = "/memories";
+  route.href = "/legacy?panel=memories";
   const view = render(<App />);
   await screen.findByRole("dialog", { name: "Memories" });
   const region = document.querySelector<HTMLElement>('[role="status"][data-spot-notice]');
@@ -95,19 +95,19 @@ it("keeps the notice's live region rendered and empty before any notice text arr
   expect(region).toBeEmptyDOMElement();
   // Leaving the panel for an empty spot fills the same, already-present region.
   act(() => requestSpot({ spot: 5 }));
-  route.pathname = "/garden";
+  route.href = "/legacy";
   view.rerender(<App />);
   await waitFor(() => expect(region).toHaveTextContent("Spot 5 has no flower right now."));
   expect(document.querySelector('[role="status"][data-spot-notice]')).toBe(region);
 });
 
 it.each([
-  ["/garden?spot=5", "Spot 5 has no flower right now."],
-  ["/garden?spot=99", "That flower isn’t in your garden."],
-  ["/garden?spot=oops", "That flower isn’t in your garden."],
+  ["/legacy?spot=5", "Spot 5 has no flower right now."],
+  ["/legacy?spot=99", "That flower isn’t in your garden."],
+  ["/legacy?spot=oops", "That flower isn’t in your garden."],
 ])("explains %s instead of opening a sheet", async (url, message) => {
   const user = userEvent.setup();
-  route.pathname = "/garden";
+  route.href = "/legacy";
   window.history.replaceState(null, "", url);
   render(<App />);
   expect(await screen.findByText(message)).toBeVisible();
@@ -133,11 +133,11 @@ it("does not queue a flower for a modified click that opens elsewhere", async ()
   const view = render(<App />);
   const panel = await screen.findByRole("dialog", { name: "Memories" });
   const link = within(panel).getByRole("link", { name: "Open in garden: Rose, spot 2" });
-  expect(link).toHaveAttribute("href", "/garden?spot=2");
+  expect(link).toHaveAttribute("href", "/legacy?spot=2");
   await user.keyboard("{Control>}");
   await user.click(link);
   await user.keyboard("{/Control}");
-  route.pathname = "/garden";
+  route.href = "/legacy";
   view.rerender(<App />);
   await waitFor(() => expect(screen.queryByRole("dialog", { name: "Memories" })).not.toBeInTheDocument());
   expect(screen.queryByRole("dialog", { name: "Rose" })).not.toBeInTheDocument();

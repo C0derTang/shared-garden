@@ -1,8 +1,8 @@
 import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, expect, it, vi } from "vitest";
-const route = vi.hoisted(() => ({ pathname: "/settings", back: vi.fn(), replace: vi.fn() }));
-vi.mock("next/navigation", () => ({ usePathname: () => route.pathname, useRouter: () => route }));
+const route = vi.hoisted(() => ({ href: "/legacy?panel=settings", back: vi.fn(), replace: vi.fn() }));
+vi.mock("next/navigation", () => ({ useSearchParams: () => new URL(route.href, "http://garden.test").searchParams, useRouter: () => route }));
 vi.mock("@/lib/auth/browser", () => ({ gardenBrowserClient: () => null }));
 const api = vi.hoisted(() => ({
   readPrivateInteraction: vi.fn(),
@@ -21,7 +21,7 @@ const owner = (unread = false) => ({ state: { status: "owner", detail: { status:
 beforeEach(() => {
   vi.clearAllMocks();
   for (const mock of Object.values(api)) mock.mockReset();
-  route.pathname = "/settings";
+  route.href = "/legacy?panel=settings";
   api.readPrivateInteraction.mockResolvedValue(owner());
   api.controlPrivateInteraction.mockResolvedValue(owner());
 });
@@ -31,7 +31,7 @@ it("opens direct routes over the inert actual garden and places owner controls i
   expect(screen.getByText("Actual garden").closest("[inert]")).not.toBeNull();
   expect(await within(panel).findByText("Private owner controls")).toBeVisible();
   await userEvent.click(within(panel).getByRole("button", { name: "Close panel" }));
-  expect(route.replace).toHaveBeenCalledWith("/garden", { scroll: false });
+  expect(route.replace).toHaveBeenCalledWith("/legacy", { scroll: false });
 });
 it("lets a nested sheet open and close without losing the parent draft or trapping focus behind it", async () => {
   const user = userEvent.setup(); render(<App />);
@@ -48,7 +48,7 @@ it("keeps one private lifecycle while routes change and delivers pending moments
   let resolve!: (result: unknown) => void;
   api.readPrivateInteraction.mockReturnValue(new Promise((done) => { resolve = done; }));
   const view = render(<App />);
-  route.pathname = "/memories"; view.rerender(<App />);
+  route.href = "/legacy?panel=memories"; view.rerender(<App />);
   await act(async () => resolve({ state: { status: "pending", content: { title: "Fixture moment", message: "Synthetic", choices: [{ key: "a", label: "Yes" }, { key: "b", label: "Later" }] } }, error: null }));
   expect(await screen.findByRole("dialog", { name: "Fixture moment" })).toBeVisible();
   expect(api.readPrivateInteraction).toHaveBeenCalledTimes(1);
@@ -56,8 +56,8 @@ it("keeps one private lifecycle while routes change and delivers pending moments
   expect(screen.getByRole("dialog", { name: "Memories" })).toBeVisible();
   expect(screen.getByRole("button", { name: "Close panel" })).toHaveFocus();
 });
-it.each([["/garden", null], ["/settings", "Settings"]] as const)("keeps a dismissed recipient moment reachable and reopenable on %s", async (path, panelName) => {
-  route.pathname = path;
+it.each([["/legacy", null], ["/legacy?panel=settings", "Settings"]] as const)("keeps a dismissed recipient moment reachable and reopenable on %s", async (path, panelName) => {
+  route.href = path;
   api.readPrivateInteraction.mockResolvedValue({ state: { status: "pending", content: { title: "Fixture moment", message: "Synthetic", choices: [{ key: "a", label: "Yes" }, { key: "b", label: "Later" }] } }, error: null });
   const user = userEvent.setup(); render(<App />);
   await screen.findByRole("dialog", { name: "Fixture moment" });
@@ -80,8 +80,8 @@ it("abandons a preview when history leaves Settings and does not revive it on re
   const view = render(<App />);
   await user.click(await screen.findByRole("button", { name: "Preview privately" }));
   expect(await screen.findByRole("dialog", { name: "Preview — nothing will be sent" })).toBeVisible();
-  route.pathname = "/garden"; view.rerender(<App />);
-  route.pathname = "/settings"; view.rerender(<App />);
+  route.href = "/legacy"; view.rerender(<App />);
+  route.href = "/legacy?panel=settings"; view.rerender(<App />);
   expect(screen.queryByRole("dialog", { name: "Preview — nothing will be sent" })).not.toBeInTheDocument();
 });
 it("keeps preview failures and their keyboard retry inside Settings", async () => {
@@ -110,8 +110,8 @@ it("keeps initial read and arm failures recoverable inside Settings", async () =
   expect(await within(panel).findByRole("alert")).toHaveTextContent("not confirmed");
   expect(screen.getAllByRole("alert")).toHaveLength(1);
 });
-it.each([["/garden", null], ["/memories", "Memories"]] as const)("shows one owner answer immediately on %s", async (path, panelName) => {
-  route.pathname = path;
+it.each([["/legacy", null], ["/legacy?panel=memories", "Memories"]] as const)("shows one owner answer immediately on %s", async (path, panelName) => {
+  route.href = path;
   api.readPrivateInteraction.mockResolvedValue(owner(true));
   render(<App />);
   const notice = await screen.findByRole("heading", { name: "A new answer is here" });
@@ -126,7 +126,7 @@ it.each([["/garden", null], ["/memories", "Memories"]] as const)("shows one owne
   }
 });
 it("moves one owner answer into a nested sheet and preserves the panel draft", async () => {
-  route.pathname = "/memories";
+  route.href = "/legacy?panel=memories";
   api.readPrivateInteraction.mockResolvedValue(owner(true));
   api.controlPrivateInteraction.mockResolvedValue(owner(false));
   const user = userEvent.setup(); render(<App />);
@@ -148,13 +148,13 @@ it("moves one owner answer into a nested sheet and preserves the panel draft", a
   expect(screen.queryByRole("heading", { name: "A new answer is here" })).not.toBeInTheDocument();
   expect(screen.getByLabelText("Panel draft")).toHaveValue("Keep me");
 });
-it.each([["/memories", "Memories"], ["/achievements", "Achievements"], ["/garden/songs", "Our songs"]])("renders direct %s inside its panel without owner controls", async (path, name) => {
-  route.pathname = path;
+it.each([["/legacy?panel=memories", "Memories"], ["/legacy?panel=achievements", "Achievements"], ["/legacy?panel=songs", "Our songs"]])("renders direct %s inside its panel without owner controls", async (path, name) => {
+  route.href = path;
   render(<App />);
   expect(await screen.findByRole("dialog", { name })).toBeVisible();
   expect(screen.queryByText("Private owner controls")).not.toBeInTheDocument();
   await userEvent.keyboard("{Escape}");
-  expect(route.replace).toHaveBeenCalledWith("/garden", { scroll: false });
+  expect(route.replace).toHaveBeenCalledWith("/legacy", { scroll: false });
 });
 it("traps keyboard focus in the route panel and restores its navigation opener after Back", async () => {
   const user = userEvent.setup(); const view = render(<App />);
@@ -163,21 +163,28 @@ it("traps keyboard focus in the route panel and restores its navigation opener a
   buttons.at(-1)!.focus();
   await user.keyboard("{Tab}");
   expect(within(panel).getByRole("button", { name: "Close panel" })).toHaveFocus();
-  route.pathname = "/garden"; view.rerender(<App />);
+  route.href = "/legacy"; view.rerender(<App />);
   expect(screen.getByRole("link", { name: "Settings" })).toHaveFocus();
   expect(screen.getByText("Actual garden").closest("[inert]")).toBeNull();
   expect(api.readPrivateInteraction).toHaveBeenCalledTimes(1);
 });
 
 it("defers a history-opened route panel behind an existing flower draft", async () => {
-  route.pathname = "/garden";
+  route.href = "/legacy";
   const user = userEvent.setup(); const view = render(<App />);
   await user.click(screen.getByRole("button", { name: "Open garden draft" }));
   await user.type(screen.getByLabelText("Garden draft text"), "Keep the flower thought");
-  route.pathname = "/memories"; view.rerender(<App />);
+  route.href = "/legacy?panel=memories"; view.rerender(<App />);
   expect(screen.getByLabelText("Garden draft text")).toHaveValue("Keep the flower thought");
   expect(screen.getByLabelText("Garden draft text")).toHaveFocus();
   expect(screen.queryByRole("dialog", { name: "Memories" })).not.toBeInTheDocument();
   await user.keyboard("{Escape}");
   expect(await screen.findByRole("dialog", { name: "Memories" })).toBeVisible();
+});
+it("ignores an unknown panel query and leaves the garden uncovered", () => {
+  route.href = "/legacy?panel=elsewhere";
+  render(<App />);
+  expect(screen.queryByRole("dialog", { name: /Settings|Memories|Achievements|Our songs/ })).not.toBeInTheDocument();
+  expect(screen.getByText("Actual garden").closest("[inert]")).toBeNull();
+  expect(screen.getByRole("link", { name: "Garden" })).toHaveAttribute("aria-current", "page");
 });

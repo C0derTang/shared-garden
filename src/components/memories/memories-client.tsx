@@ -12,6 +12,7 @@ import {
 } from "@/lib/memories/model";
 import { useMemories } from "@/lib/memories/use-memories";
 import { MemoryCard, flowerName } from "./memory-card";
+import { legacyPath } from "@/lib/legacy/routes";
 import styles from "./memories.module.css";
 const all: MemoryFilters = {};
 function activeFilterLabels(
@@ -194,7 +195,7 @@ export function MemoriesClient({
         <summary>About saved memories</summary>
         <p>
           Memories are read-only. To edit a current contribution during its
-          allowed window, open the flower in the <Link href="/garden">garden</Link>.
+          allowed window, open the flower in the <Link href={legacyPath}>garden</Link>.
           Original posting times stay the same.
         </p>
       </details>
