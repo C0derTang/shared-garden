@@ -45,6 +45,17 @@ it("subscribes only to v2 tables, coalesces invalidations and cleans up", async 
   expect(refresh).toHaveBeenCalledTimes(1);
   expect(removeChannel).toHaveBeenCalledWith(channel);
 });
+it("includes the Peony and achievement tables", () => {
+  expect(V2_REALTIME_TABLES).toEqual(
+    expect.arrayContaining([
+      "v2_peony_contributions",
+      "v2_peony_plans",
+      "v2_peony_acceptances",
+      "v2_achievement_progress",
+      "v2_achievement_awards",
+    ]),
+  );
+});
 it("shares one channel between consumers", () => {
   const channel = { on: vi.fn(() => channel), subscribe: vi.fn(() => channel) };
   const client = { channel: vi.fn(() => channel), removeChannel: vi.fn() };
