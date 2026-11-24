@@ -3,6 +3,7 @@ import { SongPlayer } from "@/components/music/song-player";
 import { moodLabel, moodPick, moodSwatches, OTHER_MOOD, type MoodPick } from "@/lib/garden/moods";
 import type { Entry } from "@/lib/garden-v2/model";
 import styles from "./garden-v2.module.css";
+import { PhotoEntry, VoiceEntry } from "./media-care";
 
 /** Small painted swatches for a mood pick, with its words. */
 export function MoodChip({ pick }: { pick: MoodPick }) {
@@ -20,6 +21,8 @@ export function MoodChip({ pick }: { pick: MoodPick }) {
 /** One saved contribution, shown the way its flower shares it. */
 export function EntryContent({ entry, type }: { entry: Entry; type: string }) {
   const payload = entry.payload;
+  if (type === "sunflower" && payload.media_id) return <PhotoEntry mediaId={payload.media_id} />;
+  if (type === "bluebell" && payload.media_id) return <VoiceEntry mediaId={payload.media_id} />;
   if (type === "cactus") return <p className={styles.entryText}>Checked in. I’m here.</p>;
   if (type === "hydrangea") {
     const pick = moodPick(payload);

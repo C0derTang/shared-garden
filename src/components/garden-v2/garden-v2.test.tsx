@@ -30,6 +30,8 @@ const api = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/garden-v2/actions", () => api);
 vi.mock("@/lib/replies/actions", () => ({ readReplies: vi.fn(), saveReply: vi.fn() }));
+const peonyApi = vi.hoisted(() => ({ readPeonyV2: vi.fn(), mutatePeonyV2: vi.fn() }));
+vi.mock("@/lib/garden-v2/peony-actions", () => peonyApi);
 vi.mock("@/lib/auth/browser", () => ({ gardenBrowserClient: () => null }));
 vi.mock("next/link", () => ({
   default: ({ href, children, ...rest }: { href: string; children: React.ReactNode }) => (
@@ -105,15 +107,21 @@ describe("GardenV2", () => {
     expect(screen.queryByText(/dev showcase/i)).toBeNull();
   });
 
-  it("never shows a flower without its activity yet as due", async () => {
+  it("shows a Sunflower's care like any daily flower, and keeps the Peony quiet", async () => {
     const state = garden();
     const rose = state.plants[0]!;
-    state.plants.push({ ...structuredClone(rose), flower: { ...rose.flower, id: "00000000-0000-4000-8000-0000000000bb", spot: 2, type_key: "sunflower" }, member2_submitted: false });
+    state.plants.push(
+      { ...structuredClone(rose), flower: { ...rose.flower, id: "00000000-0000-4000-8000-0000000000bb", spot: 2, type_key: "sunflower" }, member2_submitted: false },
+      { ...structuredClone(rose), flower: { ...rose.flower, id: "00000000-0000-4000-8000-0000000000cc", spot: 3, type_key: "peony" }, member2_submitted: false },
+    );
+    state.garden.next_spot = 4;
     await mount(state);
     const sunflower = screen.getByRole("link", { name: /^sunflower,/ });
-    expect(sunflower.getAttribute("aria-label")).not.toMatch(/care|cared/i);
-    expect(sunflower.className).toMatch(/quiet/);
-    expect(screen.getByRole("link", { name: /^rose,/ }).className).not.toMatch(/quiet/);
+    expect(sunflower.getAttribute("aria-label")).toMatch(/Your care is open/);
+    expect(sunflower.className).not.toMatch(/quiet/);
+    const peony = screen.getByRole("link", { name: /^peony,/ });
+    expect(peony.getAttribute("aria-label")).not.toMatch(/care|cared/i);
+    expect(peony.className).toMatch(/quiet/);
   });
 
   it("glides to a flower, opens its split view, and returns focus when Escape closes it", async () => {

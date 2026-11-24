@@ -5,11 +5,13 @@ import { EntryReplies, type ReplyActions } from "@/components/garden/entry-repli
 import { sheetCue } from "@/lib/garden/care";
 import { moodBlend, moodLabel } from "@/lib/garden/moods";
 import { loadFlowerHistoryV2, readRepliesV2, saveReplyV2 } from "@/lib/garden-v2/actions";
-import { gardenCareStatus, gardenDayLabel, gardenTodayPlan, hasCareActivity } from "@/lib/garden-v2/flowers";
+import { gardenCareStatus, gardenDayLabel, gardenTodayPlan } from "@/lib/garden-v2/flowers";
 import { canEditAt, type CatalogItem, type Entry, type GardenState, type Plant } from "@/lib/garden-v2/model";
 import { CareForm, type MutateV2 } from "./care-form";
 import { EntryContent, gardenDate, gardenTime, MoodChip } from "./entry-view";
 import styles from "./garden-v2.module.css";
+import { PhotoCare, VoiceCare } from "./media-care";
+import { PeonyMilestones } from "./peony-milestones";
 
 const v2Replies: ReplyActions = { read: readRepliesV2, save: saveReplyV2 };
 
@@ -45,8 +47,12 @@ function Growth({ plant, item }: { plant: Plant; item: CatalogItem }) {
           <i key={index} data-filled={index < units || undefined} />
         ))}
       </div>
-      {!bloomed && item.type_key !== "peony" && (
-        <p className={styles.quiet}>It grows by one when you both care on the same garden day. Nothing is ever lost.</p>
+      {!bloomed && (
+        <p className={styles.quiet}>
+          {item.type_key === "peony"
+            ? "It grows by one each time you finish a milestone together. Nothing is ever lost."
+            : "It grows by one when you both care on the same garden day. Nothing is ever lost."}
+        </p>
       )}
     </section>
   );
@@ -276,7 +282,8 @@ export function FlowerPanel({ plant, state, item, now, busy, mutate, onVisit }: 
   const nextRef = useRef<HTMLButtonElement>(null);
   const flower = plant.flower;
   const type = flower.type_key;
-  const activity = hasCareActivity(type);
+  const media = type === "sunflower" || type === "bluebell";
+  const MediaCare = type === "bluebell" ? VoiceCare : PhotoCare;
   const bloomed = flower.first_bloom_at !== null;
   const optionalMood = type === "hydrangea" && bloomed;
   // Bloomed flowers are complete, except the Cactus (check-ins continue) and the Hydrangea (optional colors).
@@ -292,21 +299,11 @@ export function FlowerPanel({ plant, state, item, now, busy, mutate, onVisit }: 
     if (saved === "share") nextRef.current?.focus({ preventScroll: false });
   }, [saved]);
 
-  if (!activity)
+  if (type === "peony")
     return (
       <div className={styles.panelBody}>
         <Growth plant={plant} item={item} />
-        <section className={styles.callout} aria-label="Coming soon">
-          <p className={styles.calloutLabel}>coming soon</p>
-          <p className={styles.question}>
-            {type === "sunflower"
-              ? "Sharing a photo here is on its way."
-              : type === "bluebell"
-                ? "Leaving a voice memo here is on its way."
-                : "The peony’s four shared milestones are on their way."}
-          </p>
-          <p className={styles.quiet}>For now it grows here with you, just as it is.</p>
-        </section>
+        <PeonyMilestones flowerId={flower.id} refreshKey={state.server_now} now={now} busy={busy} mutate={mutate} />
       </div>
     );
 
@@ -317,16 +314,29 @@ export function FlowerPanel({ plant, state, item, now, busy, mutate, onVisit }: 
         {entry.updated_at !== entry.original_posted_at && " · edited"}
       </p>
       {editing?.id === entry.id ? (
-        <CareForm
-          key={entry.id}
-          {...{ plant, state, item, now, busy, mutate }}
-          editing={entry}
-          onSaved={() => {
-            setEditing(null);
-            setSaved("edit");
-          }}
-          onCancel={() => setEditing(null)}
-        />
+        media ? (
+          <MediaCare
+            key={entry.id}
+            {...{ plant, state, now, busy, mutate }}
+            editing={entry}
+            onSaved={() => {
+              setEditing(null);
+              setSaved("edit");
+            }}
+            onCancel={() => setEditing(null)}
+          />
+        ) : (
+          <CareForm
+            key={entry.id}
+            {...{ plant, state, item, now, busy, mutate }}
+            editing={entry}
+            onSaved={() => {
+              setEditing(null);
+              setSaved("edit");
+            }}
+            onCancel={() => setEditing(null)}
+          />
+        )
       ) : (
         <>
           <EntryContent entry={entry} type={type} />
@@ -340,7 +350,7 @@ export function FlowerPanel({ plant, state, item, now, busy, mutate, onVisit }: 
                   setSaved(null);
                 }}
               >
-                edit
+                {type === "sunflower" ? "replace photo" : type === "bluebell" ? "record again" : "edit"}
               </button>
               <small>
                 until {gardenTime(entry.edit_deadline!)} · the original time stays
@@ -361,6 +371,8 @@ export function FlowerPanel({ plant, state, item, now, busy, mutate, onVisit }: 
     <Card who="you" title="You">
       {mine ? (
         myEntry(mine)
+      ) : dailyCare && media ? (
+        <MediaCare {...{ plant, state, now, busy, mutate }} onSaved={() => setSaved("share")} />
       ) : dailyCare ? (
         <CareForm
           {...{ plant, state, item, now, busy, mutate }}

@@ -5,10 +5,12 @@ import { SongPlayer } from "@/components/music/song-player";
 import { SpotifyPicker } from "@/components/music/spotify-picker";
 import { characters, draftHasContent, draftValid, ENTRY_TEXT_LIMIT, entryPayload, SONG_FIELD_LIMIT } from "@/lib/garden/entry-draft";
 import { MOOD_NOTE_LIMIT, moods, OTHER_MOOD, toggleMood } from "@/lib/garden/moods";
+import type { SyncMutation } from "@/lib/garden/use-garden-sync";
 import { canEditAt, type CatalogItem, type Entry, type GardenCommand, type GardenResult, type GardenState, type Plant } from "@/lib/garden-v2/model";
 import styles from "./garden-v2.module.css";
 
-export type MutateV2 = (command: GardenCommand) => Promise<GardenResult>;
+/** A garden command, or work done elsewhere (media, Peony) followed by a refresh. */
+export type MutateV2 = (command: SyncMutation<GardenCommand>) => Promise<GardenResult>;
 
 /** Placeholder prompts for the text flowers, in the garden's voice. */
 const PROMPTS: Partial<Record<string, string>> = {

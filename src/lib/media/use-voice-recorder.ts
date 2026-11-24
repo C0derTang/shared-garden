@@ -25,6 +25,8 @@ type View = {
   preview: string | null;
   error: string | null;
   canPause: boolean;
+  /** The live microphone while capturing, for a local level meter only. */
+  stream: MediaStream | null;
 };
 const empty: View = {
   phase: "idle",
@@ -33,6 +35,7 @@ const empty: View = {
   preview: null,
   error: null,
   canPause: false,
+  stream: null,
 };
 
 export function stopVoicePlayback(except?: HTMLAudioElement) {
@@ -247,6 +250,7 @@ export function useVoiceRecorder() {
       setView({
         ...empty,
         phase: "recording",
+        stream,
         canPause:
           typeof recorder.pause === "function" &&
           typeof recorder.resume === "function",

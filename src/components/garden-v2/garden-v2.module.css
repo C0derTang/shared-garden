@@ -968,6 +968,410 @@
 }
 
 /* ---------------------------------------------------------------------------
+ * Sunflower photos and Bluebell voice memos (#182) */
+
+.field select {
+  width: 100%;
+  min-height: 2.9rem;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--control-border);
+  border-radius: 16px 20px 18px 22px / 20px 16px 22px 18px;
+  background: rgb(40 31 21);
+  color: var(--v2-ink);
+  font-family: var(--font-display);
+  font-size: 1rem;
+}
+
+.field input[type="datetime-local"] {
+  color-scheme: dark;
+}
+
+.pickers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+/* A label styled as a button wraps each visually hidden file input, so the
+   input keeps the label as its name and stays in the tab order. */
+.picker {
+  position: relative;
+  flex: 1 1 10rem;
+}
+
+.picker[data-disabled] {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.fileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.picker:has(.fileInput:focus-visible) {
+  outline: 3px solid var(--focus-ring-color);
+  outline-offset: 3px;
+}
+
+.mediaReview {
+  display: grid;
+  gap: 0.55rem;
+  justify-items: start;
+  min-width: 0;
+  margin: 0;
+}
+
+/* A soft painted mount: the whole photo, never cropped (decision 0025). */
+.photoFrame,
+.theme .photoFrame {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  padding: 0.5rem;
+  border: 0;
+  border-image: none;
+  border-radius: var(--v2-brush);
+  background:
+    radial-gradient(120% 120% at 20% 0%, rgb(255 214 160 / 0.14), transparent 60%),
+    rgb(18 14 9 / 0.55);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 236 200 / 0.16),
+    0 0 2rem rgb(255 196 120 / 0.12);
+}
+
+.photoFrame img {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: contain;
+  border-radius: 12px;
+  image-orientation: from-image;
+}
+
+.photoFrame [role="status"] {
+  color: var(--v2-dim);
+  font-family: var(--hand), cursive;
+  font-size: 1.2rem;
+}
+
+/* Native audio controls on the dark wash. */
+.audio {
+  width: 100%;
+  min-width: 0;
+}
+
+.audio audio {
+  width: 100%;
+  color-scheme: dark;
+  border-radius: 999px;
+}
+
+.audio p {
+  margin: 0;
+  color: var(--v2-dim);
+  font-size: 0.85rem;
+}
+
+.progress {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.progressBar {
+  position: relative;
+  height: 0.7rem;
+  overflow: hidden;
+  border-radius: 999px 900px 999px 950px;
+  background: rgb(255 240 214 / 0.1);
+  box-shadow: inset 0 0 0 1px rgb(255 236 200 / 0.18);
+}
+
+.progressBar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background: radial-gradient(120% 140% at 30% 20%, #fff6dc, #f4d49a 55%, #e7b56c);
+  box-shadow: 0 0 1rem rgb(255 205 130 / 0.55);
+  transition: width 600ms ease;
+}
+
+/* While the bytes travel (no byte count is reported), the paint breathes. */
+.progressBar[data-stage="uploading"] i {
+  animation: breathe 1.6s ease-in-out infinite;
+}
+
+.progressWords {
+  margin: 0;
+  font-family: var(--hand), cursive;
+  font-size: 1.2rem;
+  color: var(--v2-soft);
+}
+
+.recStatus {
+  margin: 0;
+  font-family: var(--hand), cursive;
+  font-size: 1.3rem;
+  color: var(--v2-dim);
+}
+
+.recStatus[data-phase="recording"] {
+  color: var(--v2-partner);
+}
+
+.recorder {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 1.2rem;
+}
+
+.meter {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 2.6rem;
+  flex: 1 1 10rem;
+  max-width: 18rem;
+}
+
+.meter i {
+  flex: 1;
+  height: calc(10% + 90% * var(--level, 0));
+  min-height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fff3dc, var(--v2-partner));
+  opacity: calc(0.35 + 0.65 * var(--level, 0));
+  box-shadow: 0 0 0.5rem rgb(246 185 189 / calc(0.5 * var(--level, 0)));
+  transition: height 90ms linear;
+}
+
+.meter:not([data-live]) i {
+  height: 3px;
+  opacity: 0.35;
+}
+
+.clock {
+  margin: 0;
+  font-family: var(--hand), cursive;
+  font-size: 1.8rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.clock span {
+  font-size: 1.1rem;
+  color: var(--v2-dim);
+}
+
+.recDot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: #c8553d;
+  box-shadow: 0 0 0.5rem rgb(200 85 61 / 0.7);
+}
+
+.reviewTitle {
+  margin: 0;
+  font-family: var(--hand), cursive;
+  font-size: 1.35rem;
+  font-weight: 400;
+  color: var(--v2-gold);
+  outline: none;
+}
+
+.reviewTitle:focus-visible {
+  text-shadow: 0 0 0.6em rgb(255 220 170 / 0.7);
+}
+
+/* ---------------------------------------------------------------------------
+ * Peony milestones (#182): four steps in order, painted down a stem. */
+
+.peony {
+  display: grid;
+  gap: 1rem;
+  justify-items: stretch;
+}
+
+.peony > button {
+  justify-self: start;
+}
+
+.steps {
+  position: relative;
+  display: grid;
+  gap: 0.9rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The stem joining the steps. */
+.steps::before {
+  content: "";
+  position: absolute;
+  top: 1.2rem;
+  bottom: 1.2rem;
+  left: 1.15rem;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, rgb(201 226 166 / 0.5), rgb(201 226 166 / 0.12));
+}
+
+.step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.3rem minmax(0, 1fr);
+  gap: 0.8rem;
+  align-items: start;
+}
+
+.stepMark {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 2.3rem;
+  height: 2.3rem;
+  border-radius: 46% 54% 50% 50% / 55% 45% 55% 45%;
+  background: rgb(36 29 21);
+  box-shadow: inset 0 0 0 1.5px rgb(255 236 200 / 0.35);
+  color: var(--v2-dim);
+  font: 400 1.35rem/1 var(--hand), cursive;
+}
+
+.step[data-state="current"] .stepMark {
+  background: radial-gradient(circle at 35% 35%, #fff4d6, #f6c3c6 60%, #d98a95);
+  box-shadow: 0 0 1.1rem rgb(246 185 189 / 0.6);
+  color: #2a1d0f;
+}
+
+.step[data-state="complete"] .stepMark {
+  background: radial-gradient(circle at 35% 35%, #fff4d6, var(--v2-gold) 60%, #d99a4e);
+  box-shadow: 0 0 0.8rem rgb(255 200 120 / 0.5);
+  color: #2a1d0f;
+}
+
+.stepBody {
+  display: grid;
+  gap: 0.55rem;
+  min-width: 0;
+  padding: 0.75rem 1.1rem 0.95rem;
+  border-radius: var(--v2-brush);
+  background: var(--v2-wash);
+  box-shadow: inset 0 0 0 1px rgb(255 236 200 / 0.09);
+}
+
+.step[data-state="current"] .stepBody {
+  background:
+    radial-gradient(120% 100% at 0% 0%, rgb(246 185 189 / 0.12), transparent 60%),
+    var(--v2-wash-strong);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 236 200 / 0.2),
+    0 0 2rem rgb(246 185 189 / 0.08);
+}
+
+.step[data-state="later"] .stepBody {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px rgb(255 236 200 / 0.07);
+}
+
+.stepTitle {
+  margin: 0;
+  font-family: var(--hand), cursive;
+  font-size: 1.45rem;
+  font-weight: 400;
+  line-height: 1.1;
+  color: var(--v2-ink);
+}
+
+.step[data-state="later"] .stepTitle {
+  color: var(--v2-dim);
+}
+
+.stepStatus {
+  font-size: 1.1rem;
+  color: var(--v2-dim);
+}
+
+.step[data-state="current"] .stepStatus {
+  color: var(--v2-partner);
+}
+
+.contributions {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contribution {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+  padding-left: 0.8rem;
+  border-left: 2px solid rgb(201 226 166 / 0.4);
+}
+
+.contribution[data-who="partner"] {
+  border-left-color: rgb(246 185 189 / 0.45);
+}
+
+.contributionWho {
+  margin: 0;
+  font-family: var(--hand), cursive;
+  font-size: 1.2rem;
+  line-height: 1;
+  color: var(--v2-you);
+}
+
+.contribution[data-who="partner"] .contributionWho {
+  color: var(--v2-partner);
+}
+
+.planCard {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.planWhen {
+  margin: 0;
+  font-family: var(--hand), cursive;
+  font-size: 1.35rem;
+  color: var(--v2-gold);
+}
+
+.planAccepts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1.2rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--hand), cursive;
+  font-size: 1.2rem;
+  color: var(--v2-dim);
+}
+
+.planAccepts li[data-accepted][data-who="you"] {
+  color: var(--v2-you);
+}
+
+.planAccepts li[data-accepted][data-who="partner"] {
+  color: var(--v2-partner);
+}
+
+/* ---------------------------------------------------------------------------
  * Phones and portrait screens: the painting on top, the panel below. */
 
 @media (max-width: 760px), (orientation: portrait) and (max-width: 1100px) {
@@ -1069,6 +1473,16 @@
   }
 }
 
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0.75;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 @keyframes drift {
   0%,
   100% {
@@ -1083,8 +1497,14 @@
   .split[data-state] .hero,
   .split[data-state] .panel,
   .away,
-  .hint {
+  .hint,
+  .progressBar i {
     animation: none;
+  }
+
+  .progressBar i,
+  .meter i {
+    transition: none;
   }
 
   .primary,
