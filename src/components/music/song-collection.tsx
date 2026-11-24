@@ -12,6 +12,7 @@ import {
   type SongQuery,
 } from "@/lib/music/collection";
 import { SongPlayer } from "./song-player";
+import { legacyPath } from "@/lib/legacy/routes";
 import styles from "./song-collection.module.css";
 
 export function SongCollection({
@@ -106,7 +107,7 @@ export function SongCollection({
 
   return (
     <section className={styles.collection} aria-label="Shared song collection">
-      <Link href="/garden" className={styles.back}>← Back to our garden</Link>
+      <Link href={legacyPath} className={styles.back}>← Back to our garden</Link>
       {/* The route panel title names the page; this is the jukebox's marquee. */}
       <header className={styles.marquee}>
         <p className={styles.marqueeTitle}>Tulip jukebox</p>
