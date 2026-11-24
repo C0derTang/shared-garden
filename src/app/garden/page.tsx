@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { MemberNamesProvider } from "@/components/auth/member-names";
 import { GardenV2 } from "@/components/garden-v2/garden-v2";
 import { MemberPreferences } from "@/components/settings/member-preferences";
+import { SheetScope } from "@/components/ui/sheet-scope";
 import { partnerDisplayName } from "@/lib/auth/display-names";
 import { requireMember } from "@/lib/auth/server";
 import { refreshGardenV2 } from "@/lib/garden-v2/actions";
@@ -19,7 +20,8 @@ function flowerParam(value: string | string[] | undefined) {
 /**
  * The new garden (decision 0067): members only; `?flower=<id>` opens that
  * flower and `?view=<memories|achievements|songs|settings|guide>` an overlay.
- * Member settings are shared with the old garden.
+ * Member settings are shared with the old garden. The sheet scope queues a
+ * pending private moment behind an open flower view, as in the old garden.
  */
 export default async function GardenPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const { member } = await requireMember();
@@ -27,7 +29,9 @@ export default async function GardenPage({ searchParams }: { searchParams: Promi
   return (
     <MemberNamesProvider partnerName={partnerDisplayName(member.member_id)}>
       <MemberPreferences initial={preferences}>
-        <GardenV2 initial={initial} initialFlowerId={flowerParam(params.flower)} initialView={gardenView(params.view)} />
+        <SheetScope>
+          <GardenV2 initial={initial} initialFlowerId={flowerParam(params.flower)} initialView={gardenView(params.view)} />
+        </SheetScope>
       </MemberPreferences>
     </MemberNamesProvider>
   );

@@ -1,6 +1,7 @@
 "use client";
 import * as Dialog from "@radix-ui/react-dialog";
-import { useRef, type CSSProperties, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useRef, type CSSProperties, type ReactNode } from "react";
+import { useSheetScope } from "@/components/ui/sheet-scope";
 import { FlowerHero } from "@/components/world/flowers/flower-hero";
 import { handFont } from "@/components/world/hand-font";
 import type { PlantSpec } from "@/lib/garden-v2/flowers";
@@ -31,6 +32,24 @@ const HERO_MIN_EXTENT = 0.32;
 const themeStyle = { "--hand": handFont.style.fontFamily } as CSSProperties;
 
 /**
+ * While open, the view holds a slot in the shared sheet scope, as the legacy
+ * flower sheets do (decision 0019): a pending private moment waits behind it,
+ * keeping the draft and focus, and its notices show in the view's notice slot.
+ */
+function useSheetSlot(open: boolean) {
+  const id = useId();
+  const scope = useSheetScope();
+  const request = scope?.request;
+  const release = scope?.release;
+  const register = scope?.registerNoticeContainer;
+  useEffect(() => {
+    if (open) request?.(id);
+    return () => release?.(id);
+  }, [id, open, request, release]);
+  return useCallback((element: HTMLDivElement | null) => register?.(id, element), [id, register]);
+}
+
+/**
  * The split view: one flower painted large on the left half, its activity and
  * details on the right half; stacked on phones (painting on top). A modal
  * dialog: focus stays inside, Escape or "back to the garden" closes it, and
@@ -38,6 +57,7 @@ const themeStyle = { "--hand": handFont.style.fontFamily } as CSSProperties;
  */
 export function SplitView({ open, onClose, spec, heroLabel, heroName, heroStage, title, subtitle, onReturnFocus, children, closeLabel = "Back to the garden" }: SplitViewProps) {
   const titleRef = useRef<HTMLHeadingElement>(null);
+  const noticeRef = useSheetSlot(open);
   return (
     <Dialog.Root open={open} onOpenChange={(next) => !next && onClose()}>
       <Dialog.Portal>
@@ -75,6 +95,7 @@ export function SplitView({ open, onClose, spec, heroLabel, heroName, heroStage,
                 <span aria-hidden="true">×</span>
               </Dialog.Close>
             </header>
+            <div ref={noticeRef} className={styles.slotNotices} data-private-notice-host="sheet" />
             {children}
             <Dialog.Close className={styles.back}>
               <span aria-hidden="true">← </span>back to the garden

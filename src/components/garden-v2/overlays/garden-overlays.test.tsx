@@ -68,6 +68,7 @@ vi.mock("next/link", () => ({
 const { GardenV2 } = await import("../garden-v2");
 const { MemberPreferences } = await import("@/components/settings/member-preferences");
 const { MemberNamesProvider } = await import("@/components/auth/member-names");
+const { SheetScope } = await import("@/components/ui/sheet-scope");
 
 async function flush() {
   await act(async () => {
@@ -125,21 +126,29 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-async function mount({ view = null, flower = null, seen = true }: { view?: GardenView | null; flower?: string | null; seen?: boolean } = {}) {
+async function mount({ view = null, flower = null, seen = true, ready = true }: { view?: GardenView | null; flower?: string | null; seen?: boolean; ready?: boolean } = {}) {
   if (seen) window.localStorage.setItem(guideKey(1), "1");
+  // As on the page: the sheet scope queues the private moment behind flower views.
   const result = render(
     <MemberNamesProvider partnerName="Rowan">
       <MemberPreferences initial={{ state: settings, error: null }}>
-        <GardenV2 initial={{ state, error: null }} initialFlowerId={flower} initialView={view} />
+        <SheetScope>
+          <GardenV2 initial={{ state, error: null }} initialFlowerId={flower} initialView={view} />
+        </SheetScope>
       </MemberPreferences>
     </MemberNamesProvider>,
   );
   await flush();
   await flush();
-  act(() => worlds[0]!.callbacks.onReady());
+  if (ready) act(() => worlds[0]!.callbacks.onReady());
   await flush();
   return result;
 }
+
+const pendingMoment = {
+  state: { status: "pending", content: { title: "A synthetic moment", message: "Placeholder.", choices: [{ key: "a", label: "One" }, { key: "b", label: "Two" }] } },
+  error: null,
+};
 
 describe("the garden's overlays", () => {
   it("floats a handwritten menu whose words are real deep links", async () => {
@@ -248,13 +257,44 @@ describe("the garden's overlays", () => {
     expect(within(dialog).getByRole("button", { name: "sign out" }).closest("form")).toHaveAttribute("action", "/auth/sign-out");
   });
 
-  it("delivers a pending private moment in the new garden too", async () => {
-    api.readPrivateInteraction.mockResolvedValue({
-      state: { status: "pending", content: { title: "A synthetic moment", message: "Placeholder.", choices: [{ key: "a", label: "One" }, { key: "b", label: "Two" }] } },
-      error: null,
-    });
+  it("delivers a pending private moment in the new garden too, and closing it lands on a visible control", async () => {
+    const user = userEvent.setup();
+    api.readPrivateInteraction.mockResolvedValue(pendingMoment);
     await mount();
     expect(await screen.findByRole("dialog", { name: "A synthetic moment" })).toBeInTheDocument();
+    await user.keyboard("{Escape}");
+    await flush();
+    expect(screen.queryByRole("dialog")).toBeNull();
+    const reopen = screen.getByRole("button", { name: "Open your garden moment" });
+    await waitFor(() => expect(document.activeElement).toBe(reopen));
+    expect(reopen.closest("[aria-hidden]")).toBeNull();
+  });
+
+  it("queues a moment that arrives while a flower's view is open, keeping the draft and focus", async () => {
+    const user = userEvent.setup();
+    const rose = state.plants[0]!;
+    rose.member1_submitted = false;
+    rose.entries = [];
+    await mount({ flower: rose.flower.id });
+    const split = await screen.findByRole("dialog", { name: "rose" });
+    const note = within(split).getAllByRole("textbox")[0]!;
+    await user.click(note);
+    await user.type(note, "an unsaved synthetic draft");
+    // The moment becomes pending and the next refresh (focus) delivers it.
+    api.readPrivateInteraction.mockResolvedValue(pendingMoment);
+    await act(async () => {
+      window.dispatchEvent(new Event("focus"));
+    });
+    await flush();
+    expect(api.readPrivateInteraction).toHaveBeenCalledTimes(2);
+    expect(screen.queryByRole("dialog", { name: "A synthetic moment" })).toBeNull();
+    expect(document.activeElement).toBe(note);
+    expect(note).toHaveValue("an unsaved synthetic draft");
+    // Closing the flower's view releases the scope: the moment opens now.
+    await user.keyboard("{Escape}");
+    const moment = await screen.findByRole("dialog", { name: "A synthetic moment" });
+    expect(moment.contains(document.activeElement)).toBe(true);
+    expect(screen.queryByRole("dialog", { name: "rose" })).toBeNull();
   });
 
   it("greets a first visit with a short guide, once, and Settings can replay it", async () => {
@@ -290,6 +330,16 @@ describe("the garden's overlays", () => {
     window.localStorage.clear();
     await mount({ seen: false, flower: state.plants[0]!.flower.id });
     expect(screen.queryByRole("dialog", { name: "a little guide" })).toBeNull();
+  });
+
+  it("does not greet after a deep-linked overlay closes before the world is painted", async () => {
+    const user = userEvent.setup();
+    await mount({ view: "settings", seen: false, ready: false });
+    await screen.findByRole("dialog", { name: "settings" });
+    await user.keyboard("{Escape}");
+    act(() => worlds[0]!.callbacks.onReady());
+    await flush();
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 
   it("opens a deep-linked overlay without greeting", async () => {

@@ -36,7 +36,9 @@ export interface GardenOverlaysProps {
   /** The open overlay, from `?view=` or the menu. */
   readonly view: GardenView | null;
   readonly memberId: 1 | 2;
-  /** The first-visit guide waits for the painted world, and never follows a link to a flower. */
+  /** Arrived by a link to a flower or an overlay: no first-visit greeting this visit. */
+  readonly arrivedByLink: boolean;
+  /** The first-visit guide waits for the painted world and an idle garden. */
   readonly canGreet: boolean;
   /** A flower's view is open: the menu steps out of its painting. */
   readonly flowerOpen: boolean;
@@ -52,7 +54,7 @@ export interface GardenOverlaysProps {
  * legacy gate and behavior (decisions 0020 and 0067): recipients get it here
  * too, and its owner controls show in Settings.
  */
-export function GardenOverlays({ view, memberId, canGreet, flowerOpen, onOpen, onClose, onVisit }: GardenOverlaysProps) {
+export function GardenOverlays({ view, memberId, arrivedByLink, canGreet, flowerOpen, onOpen, onClose, onVisit }: GardenOverlaysProps) {
   const [notices, setNotices] = useState<HTMLDivElement | null>(null);
   const [owner, setOwner] = useState<HTMLDivElement | null>(null);
   const [coach, setCoach] = useState(false);
@@ -60,12 +62,12 @@ export function GardenOverlays({ view, memberId, canGreet, flowerOpen, onOpen, o
   const guideFrom = useRef<GardenView | null>(null);
 
   // First visit in this browser: open the guide once the world is painted.
-  const greeted = useRef(false);
+  const greeted = useRef(arrivedByLink);
   useEffect(() => {
     if (greeted.current || !canGreet) return;
     greeted.current = true;
-    // Arriving at another overlay by link, or a moment already open (the
-    // private moment), skips the greeting this visit; it is not marked seen.
+    // An overlay already open, or the private moment, skips the greeting this
+    // visit; it is not marked seen.
     if (view !== null || document.querySelector('[role="dialog"]') || !guideUnseen(memberId)) return;
     guideFrom.current = null;
     onOpen("guide");
@@ -91,12 +93,18 @@ export function GardenOverlays({ view, memberId, canGreet, flowerOpen, onOpen, o
           noticeContainer={view ? notices : undefined}
           sheetClassName={`${v2.theme} ${styles.momentSheet}`}
           onMomentCloseAutoFocus={(event) => {
-            // The moment's trigger may sit behind an open overlay; resume inside the overlay instead.
+            event.preventDefault();
+            // Resume inside an open overlay; otherwise at the visible "Open your
+            // garden moment" control if the moment is still waiting, else the world.
             const open = document.querySelector<HTMLElement>("[data-garden-overlay]");
             if (open?.isConnected) {
-              event.preventDefault();
               open.querySelector<HTMLElement>("button, a[href]")?.focus();
+              return;
             }
+            requestAnimationFrame(() => {
+              const reopen = document.querySelector<HTMLElement>('[data-private-notice-host="garden"] button');
+              (reopen ?? document.querySelector<HTMLElement>("[data-garden-world]"))?.focus();
+            });
           }}
         />
       </div>

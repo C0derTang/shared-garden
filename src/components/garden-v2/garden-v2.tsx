@@ -275,7 +275,8 @@ export function GardenV2({
       <GardenOverlays
         view={view}
         memberId={state.member_id}
-        canGreet={worldStatus === "ready" && !initialFlowerId && mode.kind === "idle"}
+        arrivedByLink={!!initialFlowerId || !!initialView}
+        canGreet={worldStatus === "ready" && mode.kind === "idle"}
         flowerOpen={mode.kind !== "idle"}
         onOpen={openView}
         onClose={closeView}

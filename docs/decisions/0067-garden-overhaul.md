@@ -568,9 +568,15 @@ Settings and guide, made under this decision's discretion and the look in
     garden mounts the same `PrivateInteraction`, so the recipient's pending
     moment and the owner's answer notice appear here too. The owner controls
     appear in Settings, as in the old garden.
+  - As in the old garden ([decision 0019](0019-tutorial-and-settings.md)),
+    `/garden` is wrapped in the shared sheet scope. A flower's split view, or
+    the planting view, holds a slot while it is open. A moment that becomes
+    pending meanwhile waits behind it, keeping the draft and focus, and opens
+    when the view closes. While it waits, its notices show in the view's notice
+    slot. Closing the moment returns focus inside an open overlay, otherwise to
+    the visible "Open your garden moment" control, otherwise to the world.
   - Its sheets take the new garden's washes through an optional class, and
-    the old garden is unchanged. They sit above the overlays and the split
-    view.
+    the old garden is unchanged. They sit above the overlays.
 - **The guide:**
   - On a member's first visit in this browser, once the world is painted, a
     small guide card opens low over the scene (`?view=guide`). It has four pages:
@@ -580,5 +586,6 @@ Settings and guide, made under this decision's discretion and the look in
     in local storage per member. Storage that cannot be read shows nothing.
   - The shared `guide` member setting is not used: it records the old garden's
     tour, which members have already finished.
-  - The guide does not greet a link to a flower or an overlay, or a visit
-    where the private moment is already open. Settings can replay it.
+  - The guide does not greet a visit that arrives by a link to a flower or an
+    overlay (even after that overlay closes), or a visit where the private
+    moment is already open. Settings can replay it.
