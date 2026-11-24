@@ -74,7 +74,24 @@ insert into expected_function_grants values
   ('public.save_member_setting(jsonb)', 'authenticated'),
   ('public.set_peony_plan(uuid,bigint,text,text)', 'authenticated'),
   ('public.submit_flower_entry(uuid,jsonb)', 'authenticated'),
-  ('public.submit_peony_contribution(uuid,integer,jsonb)', 'authenticated');
+  ('public.submit_peony_contribution(uuid,integer,jsonb)', 'authenticated'),
+  ('private.v2_assign_daisy_question(date,timestamptz)', null),
+  ('private.v2_begin_garden_operation()', null),
+  ('private.v2_capture_noon_snapshot(date)', null),
+  ('private.v2_entry_state_at(uuid,smallint,timestamptz)', null),
+  ('private.v2_evaluate_achievements(timestamptz)', null),
+  ('private.v2_plant_flower(text,text,numeric)', null),
+  ('private.v2_record_first_bloom_at(uuid,date,timestamptz)', null),
+  ('private.v2_settle_garden_at(timestamptz)', null),
+  ('private.v2_validate_entry_payload(text,jsonb,date)', null),
+  ('public.v2_current_garden_state()', 'authenticated'),
+  ('public.v2_edit_flower_entry(bigint,jsonb)', 'authenticated'),
+  ('public.v2_entry_history(uuid,integer,bigint)', 'authenticated'),
+  ('public.v2_entry_reply_history(bigint,integer,bigint)', 'authenticated'),
+  ('public.v2_fulfill_dandelion(uuid)', 'authenticated'),
+  ('public.v2_plant_flower_at(text,numeric,text)', 'authenticated'),
+  ('public.v2_reply_to_entry(bigint,text,uuid)', 'authenticated'),
+  ('public.v2_submit_flower_entry(uuid,jsonb)', 'authenticated');
 
 create temporary view application_functions as
 select p.oid, p.proowner, p.proacl
