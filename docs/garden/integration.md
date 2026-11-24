@@ -50,8 +50,8 @@ are recorded in [decision 0011](../decisions/0011-working-garden.md).
   Memories, Achievements, Settings and Songs are in-page panels selected by
   `/legacy?panel=…`; the guarded `/legacy` page verifies membership itself before
   reading any panel's data. `/memories`, `/achievements`, `/settings` and
-  `/garden/songs` no longer exist, and `/garden` is a member-guarded placeholder
-  for the new garden.
+  `/garden/songs` no longer exist, and `/garden` is the new members-only garden
+  ([decision 0067](../decisions/0067-garden-overhaul.md)).
 
 ## Disposable local verification
 
