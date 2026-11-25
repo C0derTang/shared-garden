@@ -88,6 +88,8 @@ export type MemoryItem = {
     updated_at: string;
     payload: Record<string, string>;
     question: string | null;
+    /** New garden only: who asked a custom Daisy question; null for the daily one. */
+    question_asked_by?: 1 | 2 | null;
   } | null;
   peony: MemoryPeony | null;
 };
@@ -297,6 +299,10 @@ export function parseMemoryPage(value: unknown): MemoryPage {
         updated_at: time(e.updated_at),
         payload,
         question: flower.type_key === "daisy" ? string(e.question) : null,
+        question_asked_by:
+          flower.type_key === "daisy" && e.question_asked_by !== undefined && e.question_asked_by !== null
+            ? author(e.question_asked_by)
+            : null,
       };
     } else if (i.kind === "peony") {
       assert(flower.type_key === "peony" && i.source_id === flower.id);

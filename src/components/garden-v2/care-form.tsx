@@ -6,7 +6,7 @@ import { SpotifyPicker } from "@/components/music/spotify-picker";
 import { characters, draftHasContent, draftValid, ENTRY_TEXT_LIMIT, entryPayload, SONG_FIELD_LIMIT } from "@/lib/garden/entry-draft";
 import { MOOD_NOTE_LIMIT, moods, OTHER_MOOD, toggleMood } from "@/lib/garden/moods";
 import type { SyncMutation } from "@/lib/garden/use-garden-sync";
-import { canEditAt, type CatalogItem, type Entry, type GardenCommand, type GardenResult, type GardenState, type Plant } from "@/lib/garden-v2/model";
+import { canEditAt, daisyQuestionFor, type CatalogItem, type Entry, type GardenCommand, type GardenResult, type GardenState, type Plant } from "@/lib/garden-v2/model";
 import styles from "./garden-v2.module.css";
 
 /** A garden command, or work done elsewhere (media, Peony) followed by a refresh. */
@@ -61,16 +61,23 @@ export function CareForm({
   const lock = useRef(false);
   const songTitle = useRef<HTMLInputElement>(null);
   const type = item.type_key;
+  // A Daisy answer carries the question it answers; an edit keeps the original's (#212).
+  const question = type === "daisy" ? (editing ? (editing.payload.question_id ?? null) : (daisyQuestionFor(plant, state.member_id)?.key ?? null)) : null;
+  const [draftQuestion, setDraftQuestion] = useState(question);
+  const answering = type === "daisy" && !editing ? daisyQuestionFor(plant, state.member_id)?.kind : undefined;
   const expired = !!editing && !canEditAt(editing, state, now);
   const hasDraft = draftHasContent(draft);
   const newDay = draftDay !== state.garden_day && hasDraft;
   const unresolvedRollover = now >= Date.parse(state.next_rollover_at);
-  const context = { daisyQuestionId: plant.daisy_question?.question_id };
+  // The question changed under a draft (your partner asked, revised or withdrew theirs): reread before sharing.
+  const questionChanged = type === "daisy" && !editing && hasDraft && !newDay && draftQuestion !== question;
+  const context = { daisyQuestionId: question };
   const valid = draftValid(type, draft, context);
   const optionalMood = type === "hydrangea" && plant.flower.first_bloom_at !== null;
 
   const touch = () => {
     if (!hasDraft && draftDay !== state.garden_day) setDraftDay(state.garden_day);
+    if (!hasDraft && draftQuestion !== question) setDraftQuestion(question);
   };
   const change = (key: string, value: string) => {
     touch();
@@ -79,7 +86,7 @@ export function CareForm({
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (!valid || expired || newDay || unresolvedRollover || unavailable || lock.current || busy) return;
+    if (!valid || expired || newDay || questionChanged || unresolvedRollover || unavailable || lock.current || busy) return;
     lock.current = true;
     setPending(true);
     setError(null);
@@ -200,7 +207,7 @@ export function CareForm({
       ) : (
         <div className={styles.field}>
           <label className={styles.fieldLabel}>
-            <span>{item.action_label}</span>
+            <span>{answering === "custom" ? `Answer ${partner.possessive} question` : item.action_label}</span>
             <textarea
               rows={4}
               required
@@ -234,6 +241,14 @@ export function CareForm({
           </button>
         </div>
       )}
+      {questionChanged && !unresolvedRollover && (
+        <div className={styles.note} role="status">
+          <p>Your question just changed. Read it again above before sharing your answer.</p>
+          <button type="button" className={styles.textButton} onClick={() => setDraftQuestion(question)}>
+            answer this question
+          </button>
+        </div>
+      )}
       {expired && (
         <p className={styles.note} role="status">
           The edit window has ended. Your draft stays here to copy, but the entry is now read-only.
@@ -248,7 +263,7 @@ export function CareForm({
         <button
           type="submit"
           className={styles.primary}
-          disabled={!valid || busy || pending || expired || newDay || unresolvedRollover || !!unavailable}
+          disabled={!valid || busy || pending || expired || newDay || questionChanged || unresolvedRollover || !!unavailable}
         >
           {pending ? "saving…" : editing ? "save edit" : type === "cactus" ? "I’m here" : optionalMood ? "save my color" : "share"}
         </button>

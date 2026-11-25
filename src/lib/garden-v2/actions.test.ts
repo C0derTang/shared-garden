@@ -22,6 +22,8 @@ it("calls only v2 RPCs and rereads the authoritative v2 state", async () => {
     [{ kind: "submit", flowerId: "f", payload: { text: "Hi" } }, "v2_submit_flower_entry", { p_flower_id: "f", p_payload: { text: "Hi" } }],
     [{ kind: "edit", entryId: 2, payload: { text: "New" } }, "v2_edit_flower_entry", { p_entry_id: 2, p_payload: { text: "New" } }],
     [{ kind: "fulfillDandelion", flowerId: "w" }, "v2_fulfill_dandelion", { p_flower_id: "w" }],
+    [{ kind: "askDaisy", flowerId: "d", prompt: "A synthetic question?" }, "v2_ask_daisy_question", { p_flower_id: "d", p_question: { prompt: "A synthetic question?" } }],
+    [{ kind: "removeDaisyQuestion", flowerId: "d" }, "v2_remove_daisy_question", { p_flower_id: "d" }],
   ] as const;
   for (const [command, name, args] of commands) {
     rpc.mockReset().mockResolvedValueOnce({ data: {}, error: null }).mockResolvedValueOnce({ data: v2GardenFixture(), error: null });
@@ -73,4 +75,35 @@ it("reads bounded history and replies from v2 RPCs", async () => {
   const rejected = await saveReplyV2(9, "", "token");
   expect(rejected.rejected).toBe(true);
   expect(JSON.stringify(rejected)).not.toContain("PRIVATE_DETAIL");
+});
+it("maps Daisy question rejections to fixed wording", async () => {
+  const cases = [
+    ["Your question changed; refresh and answer again", /question just changed/],
+    ["Answer the question asked of you", /question just changed/],
+    ["The question is locked", /already answered/],
+    ["An edit keeps its original question", /same question/],
+    ["Ask a question of 1 to 300 characters", /1 to 300 characters/],
+    ["Invalid question fields", /1 to 300 characters/],
+  ] as const;
+  for (const [message, wording] of cases) {
+    rpc.mockReset().mockResolvedValueOnce({ error: { code: "22023", message } }).mockResolvedValueOnce({ data: v2GardenFixture(), error: null });
+    const result = await mutateGardenV2({ kind: "askDaisy", flowerId: "d", prompt: "x" });
+    expect(result.saved).toBe(false);
+    expect(result.error).toMatch(wording);
+    expect(result.error).not.toContain(message);
+  }
+});
+it("labels earlier Daisy answers with the question each one answered", async () => {
+  const daisy = { ...v2EntryFixture(), id: 4, daisy_assignment_day: "2026-11-01", daisy_custom_question_id: 9 };
+  const rose = { ...v2EntryFixture(), id: 3 };
+  rpc
+    .mockResolvedValueOnce({ data: [daisy, rose], error: null })
+    .mockResolvedValueOnce({ data: [{ entry_id: 4, question: { kind: "custom", prompt: "A synthetic question?", asked_by: 2 } }], error: null });
+  const { entries } = await loadFlowerHistoryV2("f");
+  expect(rpc).toHaveBeenLastCalledWith("v2_daisy_entry_questions", { p_entry_ids: [4] });
+  expect(entries[0].question).toEqual({ kind: "custom", prompt: "A synthetic question?", asked_by: 2 });
+  expect(entries[1].question).toBeUndefined();
+  // A failed lookup keeps the history readable.
+  rpc.mockReset().mockResolvedValueOnce({ data: [daisy], error: null }).mockResolvedValueOnce({ data: null, error: { message: "x" } });
+  expect((await loadFlowerHistoryV2("f")).entries).toEqual([daisy]);
 });

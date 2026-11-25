@@ -8,6 +8,7 @@ import { loadFlowerHistoryV2, readRepliesV2, saveReplyV2 } from "@/lib/garden-v2
 import { gardenCareStatus, gardenDayLabel, gardenTodayPlan } from "@/lib/garden-v2/flowers";
 import { canEditAt, type CatalogItem, type Entry, type GardenState, type Plant } from "@/lib/garden-v2/model";
 import { CareForm, type MutateV2 } from "./care-form";
+import { DaisyQuestions } from "./daisy-questions";
 import { EntryContent, gardenDate, gardenTime, MoodChip } from "./entry-view";
 import styles from "./garden-v2.module.css";
 import { PhotoCare, VoiceCare } from "./media-care";
@@ -75,17 +76,6 @@ function Today({ plant, item, state }: { plant: Plant; item: CatalogItem; state:
         </li>
       </ul>
       {cue && <p className={styles.cue}>{cue}</p>}
-    </section>
-  );
-}
-
-function DaisyQuestion({ plant }: { plant: Plant }) {
-  const question = plant.daisy_question;
-  if (plant.flower.type_key !== "daisy" || !question) return null;
-  return (
-    <section className={styles.callout} aria-label="Question of the day">
-      <p className={styles.calloutLabel}>today’s {question.category === "light" ? "light" : "deeper"} question</p>
-      <p className={styles.question}>{question.prompt}</p>
     </section>
   );
 }
@@ -256,7 +246,7 @@ function History({ plant, state, type }: { plant: Plant; state: GardenState; typ
                   {gardenDayLabel(entry.garden_day)}, {gardenTime(entry.original_posted_at)}
                 </time>
               </p>
-              <EntryContent entry={entry} type={type} />
+              <EntryContent entry={entry} type={type} memberId={state.member_id} />
               <div className={styles.replies}>
                 <EntryReplies entryId={entry.id} authorId={entry.author_id} memberId={state.member_id} refreshKey={state.server_now} actions={v2Replies} />
               </div>
@@ -356,7 +346,7 @@ export function FlowerPanel({ plant, state, item, now, busy, mutate, onVisit, on
         )
       ) : (
         <>
-          <EntryContent entry={entry} type={type} />
+          <EntryContent entry={entry} type={type} memberId={state.member_id} />
           {canEditAt(entry, state, now) ? (
             <p className={styles.editRow}>
               <button
@@ -407,7 +397,7 @@ export function FlowerPanel({ plant, state, item, now, busy, mutate, onVisit, on
             <time dateTime={theirs.original_posted_at}>{gardenTime(theirs.original_posted_at)}</time>
             {theirs.updated_at !== theirs.original_posted_at && " · edited"}
           </p>
-          <EntryContent entry={theirs} type={type} />
+          <EntryContent entry={theirs} type={type} memberId={state.member_id} />
           <div className={styles.replies}>
             <EntryReplies entryId={theirs.id} authorId={theirs.author_id} memberId={state.member_id} refreshKey={state.server_now} actions={v2Replies} />
           </div>
@@ -424,7 +414,7 @@ export function FlowerPanel({ plant, state, item, now, busy, mutate, onVisit, on
     <div className={styles.panelBody}>
       <Growth plant={plant} item={item} />
       <Today plant={plant} item={item} state={state} />
-      <DaisyQuestion plant={plant} />
+      <DaisyQuestions plant={plant} state={state} now={now} busy={busy} mutate={mutate} />
       <HydrangeaColors plant={plant} state={state} />
       <DandelionWish plant={plant} state={state} busy={busy} mutate={mutate} onSeedsBlown={onSeedsBlown} />
       {dailyCare ? (
