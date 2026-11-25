@@ -4,10 +4,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { DOOR_CAPTION } from "@/lib/world/landing-frame";
+import { markGardenArrival } from "@/lib/garden-v2/arrival";
 import { legacyPath } from "@/lib/legacy/routes";
 import { GardenWorld, usePrefersReducedMotion, type WorldCaption, type WorldStatus } from "@/components/world/garden-world";
 import { handFont } from "@/components/world/hand-font";
 import type { WorldView } from "@/components/world/renderer";
+import warm from "@/components/world/warm-light.module.css";
 import styles from "./lakeside-landing.module.css";
 
 /** Where members go when they walk through the door. */
@@ -18,6 +20,16 @@ export const CROSSFADE_MS = 450;
 export const WALK_SAFETY_MS = 7000;
 
 type Phase = "idle" | "walking" | "fading" | "leaving";
+
+/**
+ * Loads the garden's own world code (its flowers and night sky layers) ahead
+ * of time, so it is cached before the walk-through ends. The GPU work itself
+ * belongs to the garden's page and starts when it opens.
+ */
+export function warmGarden(): void {
+  void import("@/components/world/flowers/flower-layer").catch(() => {});
+  void import("@/components/world/fireworks/fireworks-layer").catch(() => {});
+}
 
 export interface LakesideLandingProps {
   /** A verified member of the garden (the server decides). */
@@ -48,6 +60,14 @@ export function LakesideLanding({ member, time }: LakesideLandingProps) {
     if (member) router.prefetch(GARDEN_PATH);
   }, [member, router]);
 
+  // Once the house is painted, quietly fetch the garden's world code too.
+  const warmed = useRef(false);
+  useEffect(() => {
+    if (!member || status !== "ready" || warmed.current) return;
+    warmed.current = true;
+    warmGarden();
+  }, [member, status]);
+
   useEffect(() => {
     const pending = timers.current;
     return () => pending.forEach((id) => window.clearTimeout(id));
@@ -62,11 +82,17 @@ export function LakesideLanding({ member, time }: LakesideLandingProps) {
     if (phaseRef.current === "leaving") return;
     move("leaving");
     if (lightRef.current) lightRef.current.style.opacity = "1";
+    // The garden opens under this same light and reveals itself when ready (#204).
+    markGardenArrival();
     router.push(GARDEN_PATH);
   };
 
   const enter = () => {
     if (!member || phaseRef.current !== "idle") return;
+    if (!warmed.current) {
+      warmed.current = true;
+      warmGarden();
+    }
     if (reducedMotion || status !== "ready") {
       move("fading");
       timers.current.push(window.setTimeout(leave, CROSSFADE_MS));
@@ -144,7 +170,7 @@ export function LakesideLanding({ member, time }: LakesideLandingProps) {
           old garden
         </Link>
       )}
-      <div ref={lightRef} className={styles.light} aria-hidden="true" />
+      <div ref={lightRef} className={`${styles.light} ${warm.warmLight}`} aria-hidden="true" />
       <p className={styles.announce} aria-live="polite">
         {phase === "idle" ? "" : "Opening the door. Walking into the garden…"}
       </p>

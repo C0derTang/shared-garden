@@ -40,11 +40,10 @@ export function headOnScreen(m: Float32Array, head: Vec3, margin = 0.9): boolean
 interface SeedRequest {
   readonly id: string;
   readonly onStart?: () => void;
-  /** Its seed puff, once drawn golden. */
-  puff: FlowerModel | null;
-  /** No slot was free to hold it: it blows straight from its golden head once seen. */
-  overflow: boolean;
-  /** Held drift slot (seeds attached, looking like the puff), or -1 before it is drawn golden. */
+  /**
+   * Held drift slot (seeds attached, looking exactly like the puff), or -1
+   * while none is free; until then the flower batch keeps painting its puff.
+   */
   slot: number;
   /** Where its seed head is, once held. */
   head: Vec3 | null;
@@ -58,15 +57,19 @@ export interface FlowerLayer extends WorldLayer {
    */
   setFlowers(flowers: readonly WorldFlower[]): void;
   /**
-   * Blows a dandelion's seeds away (#201) the first painted moment it is drawn
-   * with its golden head, in view and near (`SEE_NEAR`). Until then, once
-   * golden, its seeds stay attached exactly as the puff painted them.
-   * `onStart` runs as they let go.
+   * Blows a dandelion's seeds away (#201) the first painted moment it is in
+   * view and near (`SEE_NEAR`), with no hold on (`holdSeeds`, `deferSeeds`).
+   * Until then it always looks like its puff: the batch keeps painting the
+   * puff until a drift slot is free, then its seeds are held in the drift
+   * (identical) and the golden head is swapped in beneath them. It never
+   * shows its golden head before the blow. `onStart` runs as they let go.
    * A second request for the same flower while one waits is ignored.
    */
   blowSeeds(id: string, options?: { readonly onStart?: () => void }): void;
   /** Holds back this flower's waiting blow (e.g. while the camera glides to open its painting); null lets it go. */
   deferSeeds(id: string | null): void;
+  /** Holds every waiting blow (e.g. until the arrival from the house has settled). */
+  holdSeeds(hold: boolean): void;
   /** Blows asked for that have not started yet. */
   readonly waitingSeeds: number;
 }
@@ -91,12 +94,32 @@ export function createFlowerLayer(initial: readonly WorldFlower[] = []): FlowerL
   const camRight: [number, number, number] = [1, 0, 0];
   const eye: [number, number, number] = [0, 0, 0];
   let deferred: string | null = null;
+  let holdAll = false;
   let generation = 0;
+  /** The rebuild whose batch is compiling, or 0. */
+  let compiling = 0;
   let scheduled: ReturnType<typeof setTimeout> | undefined;
   let worldWritten: WorldUniforms | undefined;
 
   const build = (set: readonly WorldFlower[]) =>
     createFlowerBatch(gpu!, packFlowers(placeWorldFlowers(set)), { shadow: shadow!, castShadows: true, detail: "world", label: "garden-world.flowers" });
+
+  const waitingUnheld = (id: string) => {
+    for (const request of seedRequests) if (request.id === id && request.slot < 0) return true;
+    return false;
+  };
+
+  /** The flowers as drawn: a waiting dandelion whose seeds are not held yet keeps its puff. */
+  const asDrawn = (set: readonly WorldFlower[]): readonly WorldFlower[] => {
+    if (seedRequests.length === 0) return set;
+    let out: WorldFlower[] | null = null;
+    set.forEach((flower, index) => {
+      if (!showsGoldenHead(flower.spec) || !waitingUnheld(flower.id)) return;
+      out ??= [...set];
+      out[index] = { ...flower, spec: { ...flower.spec, puff: true } };
+    });
+    return out ?? set;
+  };
 
   const swap = (next: FlowerBatch, set: readonly WorldFlower[]) => {
     batch?.dispose();
@@ -136,41 +159,35 @@ export function createFlowerLayer(initial: readonly WorldFlower[] = []): FlowerL
     for (let i = 0; i < seedRequests.length; i += 1) {
       const request = seedRequests[i]!;
       const id = request.id;
-      if (request.slot < 0) {
-        // Only bloomed dandelions have seeds to blow; anything else is dropped, not scanned forever.
-        const latest = findFlower(flowers, id);
-        if (!latest || latest.spec.type !== "dandelion" || quantisedGrowth(latest.spec.growth) < 1) {
-          seedRequests.splice(i--, 1);
-          continue;
-        }
-        const flower = findFlower(drawnFlowers, id);
-        // Not drawn (yet) with its golden head: the batch still paints its puff.
-        if (!flower || !showsGoldenHead(flower.spec)) continue;
-        if (!request.head) {
-          request.puff = flowerModel({ ...flower.spec, puff: true });
-          request.head = [flower.position[0], flower.position[1] + request.puff.height, flower.position[2]];
-        }
-        if (!request.overflow && drift.hasFreeSlot) {
-          // Hold its seeds, exactly as the puff painted them, until it is seen.
-          request.slot = blowFor(flower, request.puff!, reducedMotion, true);
-        }
-        // Slots busy with seeds still flying free up soon: keep waiting for one.
-        if (request.slot < 0 && !request.overflow && !drift.allHeld) continue;
-        if (request.slot < 0) {
-          // Every slot holds another waiting puff (rare: more than DRIFT_MAX_BLOWS
-          // of the partner's recent wishes at once). This one shows its golden
-          // head and blows from it once it is seen and a slot is free; it never
-          // turns back into a puff.
-          request.overflow = true;
-          if (id === deferred || !near(request.head) || !drift.hasFreeSlot) continue;
-          if (blowFor(flower, request.puff!, reducedMotion, false) < 0) continue;
-          seedRequests.splice(i--, 1);
-          if (request.onStart) queueMicrotask(request.onStart);
-          continue;
-        }
+      // Only bloomed dandelions have seeds to blow; anything else is dropped, not scanned forever.
+      const latest = findFlower(flowers, id);
+      if (!latest || latest.spec.type !== "dandelion" || quantisedGrowth(latest.spec.growth) < 1) {
+        seedRequests.splice(i--, 1);
+        continue;
       }
-      const head = request.head!;
-      if (id === deferred || !near(head)) continue;
+      const drawn = findFlower(drawnFlowers, id);
+      if (!drawn) continue;
+      if (request.slot < 0) {
+        if (!drift.hasFreeSlot) {
+          // Every slot is busy (holding other puffs, or seeds still flying): the
+          // batch keeps painting its puff. (Restore it if it was ever drawn golden.)
+          if (showsGoldenHead(drawn.spec)) redraw();
+          continue;
+        }
+        // The wish has not reached the drawn data yet: the batch paints the real puff.
+        if (!showsGoldenHead(latest.spec)) continue;
+        const puff = flowerModel({ ...latest.spec, puff: true });
+        request.slot = blowFor(latest, puff, reducedMotion, true);
+        if (request.slot < 0) continue;
+        request.head = [latest.position[0], latest.position[1] + puff.height, latest.position[2]];
+      }
+      if (!showsGoldenHead(drawn.spec)) {
+        // The held seeds paint exactly over the batch's puff: swap the golden head in beneath them.
+        if (showsGoldenHead(latest.spec)) redraw();
+        continue;
+      }
+      // Held back, or not seen yet.
+      if (holdAll || id === deferred || !near(request.head!)) continue;
       drift.release(request.slot, { wind: [camRight[0], 0, camRight[2] - 0.35], speed: SEED_BREEZE, still: reducedMotion });
       seedRequests.splice(i--, 1);
       if (request.onStart) queueMicrotask(request.onStart);
@@ -181,7 +198,7 @@ export function createFlowerLayer(initial: readonly WorldFlower[] = []): FlowerL
   const rebuild = () => {
     scheduled = undefined;
     if (!gpu || !shadow || !sceneTarget) return;
-    const set = flowers;
+    const set = asDrawn(flowers);
     let next: FlowerBatch;
     try {
       next = build(set);
@@ -192,12 +209,15 @@ export function createFlowerLayer(initial: readonly WorldFlower[] = []): FlowerL
       return;
     }
     const token = ++generation;
+    compiling = token;
     void next.compile(sceneTarget).then(
       () => {
+        if (compiling === token) compiling = 0;
         if (token !== generation || !gpu) next.dispose();
         else swap(next, set);
       },
       (error: unknown) => {
+        if (compiling === token) compiling = 0;
         // Never swap in flowers whose pipelines failed to compile.
         console.error("Garden flowers could not be compiled", error);
         next.dispose();
@@ -207,6 +227,11 @@ export function createFlowerLayer(initial: readonly WorldFlower[] = []): FlowerL
 
   const schedule = () => {
     if (scheduled === undefined) scheduled = setTimeout(rebuild, 0);
+  };
+
+  /** A rebuild for a waiting dandelion's look, unless one is already on its way (it will see the change). */
+  const redraw = () => {
+    if (compiling === 0) schedule();
   };
 
   /** The shared camera and light are written once per frame, not per pass. */
@@ -222,7 +247,8 @@ export function createFlowerLayer(initial: readonly WorldFlower[] = []): FlowerL
       shadow = context.shadow;
       sceneTarget = context.sceneTarget;
       const token = ++generation;
-      const set = flowers;
+      const latest = flowers;
+      const set = asDrawn(latest);
       const first = build(set);
       // The seeds belong to this GPU context, not to whichever flower batch
       // wins: a rebuild that supersedes this first batch must not lose them.
@@ -242,7 +268,7 @@ export function createFlowerLayer(initial: readonly WorldFlower[] = []): FlowerL
       if (token !== generation || !gpu) first.dispose();
       else {
         swap(first, set);
-        if (flowers !== set) schedule();
+        if (flowers !== latest) schedule();
       }
     },
     update(frame, step) {
@@ -291,10 +317,13 @@ export function createFlowerLayer(initial: readonly WorldFlower[] = []): FlowerL
     },
     blowSeeds(id, options) {
       for (const request of seedRequests) if (request.id === id) return;
-      seedRequests.push({ id, onStart: options?.onStart, puff: null, overflow: false, slot: -1, head: null });
+      seedRequests.push({ id, onStart: options?.onStart, slot: -1, head: null });
     },
     deferSeeds(id) {
       deferred = id;
+    },
+    holdSeeds(hold) {
+      holdAll = hold;
     },
     setFlowers(next) {
       if (next === flowers) return;

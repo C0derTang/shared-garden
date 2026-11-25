@@ -2,7 +2,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { WorldLayerSetup } from "../world-layer";
 import type { WorldFlower } from "./flower-models";
 
-type FakeBatch = { id: number; compile: ReturnType<typeof vi.fn>; dispose: ReturnType<typeof vi.fn>; encode: ReturnType<typeof vi.fn> };
+type FakeBatch = {
+  id: number;
+  /** The flowers it paints (as the layer chose to draw them). */
+  set: readonly WorldFlower[];
+  compile: ReturnType<typeof vi.fn>;
+  dispose: ReturnType<typeof vi.fn>;
+  encode: ReturnType<typeof vi.fn>;
+};
 const fake = vi.hoisted(() => ({
   batches: [] as FakeBatch[],
   /** Per build: throw, or a compile result to settle later. */
@@ -11,11 +18,12 @@ const fake = vi.hoisted(() => ({
 }));
 
 vi.mock("./flower-batch", () => ({
-  createFlowerBatch: () => {
+  createFlowerBatch: (_gpu: unknown, packed: { set?: readonly WorldFlower[] }) => {
     if (fake.plan.shift() === "throw") throw new Error("synthetic build failure");
     const id = fake.batches.length;
     const batch: FakeBatch = {
       id,
+      set: packed.set ?? [],
       compile: vi.fn(
         () =>
           new Promise<void>((resolve, reject) => {
@@ -36,7 +44,7 @@ vi.mock("./flower-batch", () => ({
     };
   },
 }));
-vi.mock("@/lib/world/flowers/generate", () => ({ packFlowers: () => ({}), flowerPhase: () => 0.25, flowerYaw: () => 0 }));
+vi.mock("@/lib/world/flowers/generate", () => ({ packFlowers: (set: unknown) => ({ set }), flowerPhase: () => 0.25, flowerYaw: () => 0 }));
 vi.mock("./flower-models", () => ({
   placeWorldFlowers: (set: unknown) => set,
   quantisedGrowth: (growth: number) => growth,
@@ -189,14 +197,22 @@ describe("a dandelion's seeds blowing away (#201)", () => {
     layer.update!({} as never, step);
     expect(drift.blows).toHaveLength(0);
 
-    // The golden head is swapped in: its seeds now stay attached, held.
+    // The wish comes true: the layer keeps painting the puff, then holds its
+    // seeds (exactly over it) and only then swaps the golden head in beneath.
     layer.setFlowers([dandelion("d", false)]);
     await flush();
     fake.settle[1]!.resolve();
     await flush();
+    expect(fake.batches[1]!.set[0]!.spec.puff).toBe(true);
     layer.draw!({} as never, frameAt([0, 0.3, 30]));
     layer.update!({} as never, step);
     expect(drift.blows).toEqual([{ hold: true, still: false, x: 0 }]);
+    await flush();
+    fake.settle[2]!.resolve();
+    await flush();
+    expect(fake.batches[2]!.set[0]!.spec.puff).toBeUndefined();
+    layer.draw!({} as never, frameAt([0, 0.3, 30]));
+    layer.update!({} as never, step);
     expect(drift.releases).toHaveLength(0);
 
     // Walking closer lets them go, once.
@@ -273,35 +289,90 @@ describe("a dandelion's seeds blowing away (#201)", () => {
     expect(drift.releases).toHaveLength(1);
   });
 
-  it("waits for a slot while others' seeds are still flying, without giving up its puff", async () => {
-    const layer = await golden([dandelion("a", false), dandelion("b", false, [20, 0, 0])]);
+  /** How each batch built so far paints flower `id` ("puff" or "golden"). */
+  const looks = (id: string) => fake.batches.map((batch) => batch.set.find((f) => f.id === id)?.spec.puff === true ? "puff" : "golden");
+  /** Lets every compiling batch finish (the newest one is swapped in). */
+  async function compileAll() {
+    await flush();
+    for (const settle of fake.settle) settle?.resolve();
+    await flush();
+  }
+
+  it("keeps painting the puff while every slot is busy with flying seeds, and holds it once one frees", async () => {
+    const layer = createFlowerLayer([dandelion("a", false), dandelion("b", true, [20, 0, 0])]);
+    const setup = layer.setup!(context);
+    fake.settle[0]!.resolve();
+    await setup;
     drift.capacity = 1;
     layer.blowSeeds("a");
     layer.draw!({} as never, frameAt([0, 0.3, 2]));
-    layer.update!({} as never, step); // a is held and released at once; its seeds fly
+    layer.update!({} as never, step); // a is held and released at once: its seeds fly, using the only slot
+    expect(drift.releases.map((r) => r.x)).toEqual([0]);
+
+    // b's wish comes true (as the page does: new flowers and the request together).
+    layer.setFlowers([dandelion("a", false), dandelion("b", false, [20, 0, 0])]);
     layer.blowSeeds("b");
-    layer.update!({} as never, step);
+    await compileAll();
+    for (let frame = 0; frame < 5; frame += 1) {
+      layer.update!({} as never, step);
+      await compileAll();
+    }
+    // No slot yet: every batch built since still paints b's puff — never its golden head.
+    expect(looks("b")).toEqual(["puff", "puff"]);
     expect(drift.blows).toHaveLength(1);
+
     drift.slots[0] = null; // a's seeds have faded
     layer.update!({} as never, step);
-    // b is held (its puff kept) rather than blowing from a golden head.
+    // b's seeds are held (exactly over the painted puff), and only then is the golden head swapped in beneath them.
     expect(drift.blows.at(-1)).toEqual({ hold: true, still: false, x: 20 });
+    await compileAll();
+    expect(looks("b")).toEqual(["puff", "puff", "golden"]);
+    layer.draw!({} as never, frameAt([20, 0.3, 2]));
+    layer.update!({} as never, step);
+    expect(drift.releases.map((r) => r.x)).toEqual([0, 20]);
   });
 
-  it("never lets a waiting blow steal another's slot when more wait than there are slots", async () => {
-    // Ten golden dandelions far apart along x, all waiting to be seen.
-    const set = Array.from({ length: 10 }, (_, k) => dandelion(`d${k}`, false, [k * 20, 0, 0]));
-    const layer = await golden(set);
-    const started = set.map(() => vi.fn());
-    set.forEach((f, k) => layer.blowSeeds(f.id, { onStart: started[k] }));
+  it("never blows under the arrival's light, and goes once it has settled", async () => {
+    const layer = await golden([dandelion("d", false)]);
+    layer.holdSeeds(true);
+    layer.blowSeeds("d");
+    layer.draw!({} as never, frameAt([0, 0.3, 2]));
+    layer.update!({} as never, step);
+    expect(drift.blows).toHaveLength(1);
+    expect(drift.releases).toHaveLength(0);
+    layer.holdSeeds(false);
+    layer.update!({} as never, step);
+    expect(drift.releases).toHaveLength(1);
+  });
+
+  it("never lets a waiting blow steal another's slot, and the extra ones keep their puff until a slot frees", async () => {
+    // Ten dandelions far apart along x; all their wishes come true at once.
+    const puffs = Array.from({ length: 10 }, (_, k) => dandelion(`d${k}`, true, [k * 20, 0, 0]));
+    const golden10 = puffs.map((f) => dandelion(f.id, false, f.position as [number, number, number]));
+    const layer = createFlowerLayer(puffs);
+    const setup = layer.setup!(context);
+    fake.settle[0]!.resolve();
+    await setup;
+    const started = puffs.map(() => vi.fn());
+    layer.setFlowers(golden10);
+    golden10.forEach((f, k) => layer.blowSeeds(f.id, { onStart: started[k] }));
+    await compileAll();
     layer.draw!({} as never, frameAt([500, 0.3, 2])); // nothing near
     layer.update!({} as never, step);
     // The eight earliest are held, each in its own slot; two wait without one.
-    expect(drift.blows.map((b) => [b.hold, b.x])).toEqual(set.slice(0, 8).map((_, k) => [true, k * 20]));
-    expect(new Set(drift.slots.map((s) => s!.x)).size).toBe(8);
+    expect(drift.blows.map((b) => [b.hold, b.x])).toEqual(golden10.slice(0, 8).map((_, k) => [true, k * 20]));
+    expect(new Set(drift.slots.map((slot) => slot!.x)).size).toBe(8);
+    await compileAll();
     layer.update!({} as never, step);
+    await compileAll();
     expect(drift.blows).toHaveLength(8);
     expect(layer.waitingSeeds).toBe(10);
+    // The held ones show their golden head beneath their held seeds; the other two still paint their puff.
+    const last = fake.batches.at(-1)!;
+    expect(last.set.map((f) => (f.spec.puff ? "puff" : "golden"))).toEqual([...Array(8).fill("golden"), "puff", "puff"]);
+    // …and no batch ever painted those two golden.
+    expect(looks("d8").every((look) => look === "puff")).toBe(true);
+    expect(looks("d9").every((look) => look === "puff")).toBe(true);
 
     // Walking up to the third: its own seeds go, and only its own start fires.
     layer.draw!({} as never, frameAt([40, 0.3, 2]));
@@ -310,17 +381,17 @@ describe("a dandelion's seeds blowing away (#201)", () => {
     await flush();
     expect(started.map((fn) => fn.mock.calls.length)).toEqual([0, 0, 1, 0, 0, 0, 0, 0, 0, 0]);
 
-    // A waiting one without a slot blows from its golden head once seen and a slot is free.
-    // (The third's flying seeds keep its slot for now, so the ninth and tenth simply wait.)
-    layer.draw!({} as never, frameAt([180, 0.3, 2]));
+    // Its seeds fade and free the slot: the ninth is held there, then swapped golden beneath; the tenth keeps its puff.
+    drift.slots[2] = null;
     layer.update!({} as never, step);
-    expect(drift.blows).toHaveLength(8);
-    drift.slots[2] = null; // the third's seeds have faded
+    expect(drift.blows.at(-1)).toEqual({ hold: true, still: false, x: 160 });
+    await compileAll();
+    expect(fake.batches.at(-1)!.set.map((f) => (f.spec.puff ? "puff" : "golden")).slice(8)).toEqual(["golden", "puff"]);
+    layer.draw!({} as never, frameAt([160, 0.3, 2]));
     layer.update!({} as never, step);
-    expect(drift.blows.at(-1)).toEqual({ hold: false, still: false, x: 180 });
     await flush();
-    expect(started[9]).toHaveBeenCalledTimes(1);
-    expect(started[8]).not.toHaveBeenCalled();
+    expect(started[8]).toHaveBeenCalledTimes(1);
+    expect(started[9]).not.toHaveBeenCalled();
     expect(layer.waitingSeeds).toBe(8);
   });
 });

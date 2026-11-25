@@ -27,13 +27,15 @@ vi.mock("@/components/world/flowers/studio-renderer", () => ({
 }));
 // The flower layer needs WebGPU; record the Dandelion seed blows it is asked for (#201).
 type SeedRequest = { id: string; onStart?: () => void };
-const seeds = vi.hoisted(() => ({ requests: [] as SeedRequest[], deferred: [] as (string | null)[] }));
+const seeds = vi.hoisted(() => ({ requests: [] as SeedRequest[], deferred: [] as (string | null)[], holds: [] as boolean[] }));
 vi.mock("@/components/world/flowers/flower-layer", () => ({
   createFlowerLayer: () => ({
     draw: vi.fn(),
     setFlowers: vi.fn(),
     blowSeeds: (id: string, options?: { onStart?: () => void }) => seeds.requests.push({ id, onStart: options?.onStart }),
     deferSeeds: (id: string | null) => seeds.deferred.push(id),
+    holdSeeds: (hold: boolean) => seeds.holds.push(hold),
+    waitingSeeds: 0,
   }),
 }));
 // The night fireworks layer needs WebGPU; record what it is asked to play.
@@ -108,6 +110,7 @@ beforeEach(() => {
   studios.states.length = 0;
   seeds.requests.length = 0;
   seeds.deferred.length = 0;
+  seeds.holds.length = 0;
   window.localStorage.clear();
   // These tests start after the first-visit guide (#183 has its own tests).
   window.localStorage.setItem(guideKey(1), "1");
@@ -474,6 +477,8 @@ describe("GardenV2", () => {
       const id = state.plants[0]!.flower.id;
       const first = await mount(state);
       expect(seeds.requests.map((r) => r.id)).toEqual([id]);
+      // A direct visit has no arrival to wait for.
+      expect(seeds.holds.at(-1)).toBe(false);
       // Remembered only once the world actually blows them.
       expect(window.localStorage.getItem("garden-v2:dandelion-seeds:1")).toBeNull();
       act(() => seeds.requests[0]!.onStart?.());

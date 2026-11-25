@@ -897,26 +897,55 @@ function easeOut(t: number): number {
   return 1 - (1 - c) ** 3;
 }
 
-function easeIn(t: number): number {
-  const c = Math.min(1, Math.max(0, t));
-  return c * c * c;
+/** Cubic Hermite between `a` and `b` with end velocities `va`, `vb` (per unit of `u`). */
+function hermite(a: Vec3, b: Vec3, va: Vec3, vb: Vec3, u: number): Vec3 {
+  const c = Math.min(1, Math.max(0, u));
+  const c2 = c * c;
+  const c3 = c2 * c;
+  const h00 = 2 * c3 - 3 * c2 + 1;
+  const h10 = c3 - 2 * c2 + c;
+  const h01 = -2 * c3 + 3 * c2;
+  const h11 = c3 - c2;
+  const at = (i: 0 | 1 | 2) => h00 * a[i] + h10 * va[i] + h01 * b[i] + h11 * vb[i];
+  return [at(0), at(1), at(2)];
 }
 
-function mixVec(a: Vec3, b: Vec3, t: number): Vec3 {
-  return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+function scaleVec(v: Vec3, k: number): Vec3 {
+  return [v[0] * k, v[1] * k, v[2] * k];
+}
+
+function subVec(a: Vec3, b: Vec3): Vec3 {
+  return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+}
+
+/** When the walk reaches the porch steps, and when it comes to rest inside, in seconds. */
+const WALK_STEPS_AT = 2.8;
+const WALK_INSIDE_AT = WALK_SECONDS;
+/** Pace at the steps as a share of the push's average pace: it slows at the door but never stops. */
+const WALK_STEPS_PACE = 1;
+
+/**
+ * Two eased segments, home → the steps → inside, joined with a shared
+ * velocity so the pace never jumps: starting from rest, slowing (without
+ * stopping) at the door, then easing to rest inside, well under the light.
+ */
+function walkPath(t: number, home: Vec3, steps: Vec3, inside: Vec3): Vec3 {
+  const push = WALK_INSIDE_AT - WALK_STEPS_AT;
+  // Velocity at the steps (world units per second), straight along the doorway.
+  const atSteps = scaleVec(subVec(inside, steps), WALK_STEPS_PACE / push);
+  if (t <= WALK_STEPS_AT) return hermite(home, steps, [0, 0, 0], scaleVec(atSteps, WALK_STEPS_AT), t / WALK_STEPS_AT);
+  return hermite(steps, inside, scaleVec(atSteps, push), [0, 0, 0], (t - WALK_STEPS_AT) / push);
 }
 
 /**
  * The walk-through at `seconds` after a member taps the door: walk up the
  * path to the steps, the door swings inward and warm light spills out, then
  * the camera climbs onto the porch and pushes through the doorway into the
- * light.
+ * light. The pace eases in and out with no sudden changes of speed (#204).
  */
 export function walkThroughAt(seconds: number, home: JourneyPose = LANDING_HOME): WalkFrame {
-  const t = Number.isFinite(seconds) ? Math.max(0, seconds) : 0;
-  const approach = ease(t / 2.2);
-  const door = easeOut((t - 1.7) / 1.2);
-  const push = easeIn((t - 2.6) / 1.6);
+  const t = Number.isFinite(seconds) ? Math.min(WALK_SECONDS, Math.max(0, seconds)) : 0;
+  const door = easeOut((t - 1.5) / 1.3);
   const fade = ease((t - 3.4) / 1.2);
   const n = FRONT_NORMAL;
   const doorway = houseToWorld([0, 0, 0]);
@@ -924,11 +953,10 @@ export function walkThroughAt(seconds: number, home: JourneyPose = LANDING_HOME)
   const inside: Vec3 = [doorway[0] - n[0] * 2.2, HOUSE.floor + 1.5, doorway[2] - n[2] * 2.2];
   const lookDoor: Vec3 = [doorway[0] - n[0] * 3, 1.75, doorway[2] - n[2] * 3];
   const lookDeep: Vec3 = [doorway[0] - n[0] * 8, HOUSE.floor + 1.45, doorway[2] - n[2] * 8];
-  let eye = mixVec(home.eye, atSteps, approach);
-  eye = mixVec(eye, inside, push);
-  let look = mixVec(home.look, lookDoor, approach);
-  look = mixVec(look, lookDeep, push);
-  return { eye, look, door, spill: Math.max(door, push), fade, done: t >= WALK_SECONDS };
+  const eye = walkPath(t, home.eye, atSteps, inside);
+  const look = walkPath(t, home.look, lookDoor, lookDeep);
+  const push = ease((t - WALK_STEPS_AT) / (WALK_INSIDE_AT - WALK_STEPS_AT));
+  return { eye, look, door, spill: Math.max(door, push), fade, done: Number.isFinite(seconds) && seconds >= WALK_SECONDS };
 }
 
 /** Picks the door when the ray passes through it before anything closer is plausible. */

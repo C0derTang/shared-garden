@@ -134,6 +134,27 @@ describe("the walk-through", () => {
     expect(walkThroughAt(Number.NaN).done).toBe(false);
   });
 
+  it("paces the walk smoothly: easing in and out, slowing at the door but never stopping (#204)", () => {
+    for (const home of [LANDING_HOME, landingHomePose(390 / 844)]) {
+      const step = 1 / 60;
+      let previous = walkThroughAt(0, home);
+      let previousSpeed = 0;
+      let slowestMidway = Number.POSITIVE_INFINITY;
+      for (let t = step; t <= WALK_SECONDS + 1e-9; t += step) {
+        const frame = walkThroughAt(t, home);
+        const speed = Math.hypot(frame.eye[0] - previous.eye[0], frame.eye[1] - previous.eye[1], frame.eye[2] - previous.eye[2]) / step;
+        // No sudden changes of pace from one frame to the next.
+        expect(Math.abs(speed - previousSpeed)).toBeLessThan(0.25);
+        if (t > 0.6 && t < WALK_SECONDS - 0.6) slowestMidway = Math.min(slowestMidway, speed);
+        previous = frame;
+        previousSpeed = speed;
+      }
+      // It keeps moving through the doorway (no pause at the steps) and comes to rest at the end.
+      expect(slowestMidway).toBeGreaterThan(2.5);
+      expect(previousSpeed).toBeLessThan(0.1);
+    }
+  });
+
   it("steps back on portrait screens so the house stays in frame", () => {
     const wide = landingHomePose(1.6);
     const tall = landingHomePose(390 / 844);
