@@ -273,7 +273,7 @@ export function GardenV2({
       />
       <FireworksOverlay {...fireworks.overlay} hidden={covered} />
       {worldStatus !== "unsupported" && worldStatus !== "stopped" && plots.length > 0 && (
-        <PlotNavigator plots={plots} selected={selectedSpot} onSelect={selectPlot} onVisit={visitPlot} />
+        <PlotNavigator plots={plots} selected={selectedSpot} onSelect={selectPlot} onVisit={visitPlot} hidden={covered} />
       )}
       {worldStatus === "ready" && !wandered && !covered && (
         <p className={styles.hint}>scroll to wander closer · tap a flower to visit</p>

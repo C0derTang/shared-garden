@@ -16,7 +16,7 @@ import {
   type Target,
 } from "vgpu";
 import { invert, lookAt, multiply, orthographic, perspective, rayFromNdc } from "@/lib/world/camera";
-import { gardenFovY, gardenPose } from "@/lib/world/garden-camera";
+import { gardenFovY, gardenPose, gardenSettle, withDrift } from "@/lib/world/garden-camera";
 import { PLOT_GLOW, plotGlowLevel, sceneExposure } from "@/lib/world/glow";
 import { blendPoses, plotPose, type FocusTarget, type JourneyPose } from "@/lib/world/journey";
 import {
@@ -724,18 +724,11 @@ export function createWorldRenderer(
         const t = motionTime;
         // Idle drift and pointer parallax settle while the walk-through takes over, and
         // quieten while a plot is framed so the selected plot stays put under the pointer.
-        const settle = (walk ? Math.max(0, 1 - entry.seconds / 1.2) : 1) * (1 - focus.value) * (1 - 0.7 * browse.weight);
+        const settle = (walk ? Math.max(0, 1 - entry.seconds / 1.2) : 1) * gardenSettle(focus.value, browse.weight);
         const sway = landing ? 0.45 : 0.6;
-        const eye: Vec3 = [
-          pose.eye[0] + (Math.sin(t * 0.11) * 0.25 + pointer.smoothX * sway) * settle,
-          pose.eye[1] + (Math.sin(t * 0.07) * 0.06 + pointer.smoothY * 0.2) * settle,
-          pose.eye[2],
-        ];
-        const look: Vec3 = [
-          pose.look[0] + (Math.sin(t * 0.09 + 1) * 0.1 + pointer.smoothX * 0.12) * settle,
-          pose.look[1] + pointer.smoothY * 0.06 * settle,
-          pose.look[2],
-        ];
+        const drifted = withDrift(pose, t, settle);
+        const eye: Vec3 = [drifted.eye[0] + pointer.smoothX * sway * settle, drifted.eye[1] + pointer.smoothY * 0.2 * settle, drifted.eye[2]];
+        const look: Vec3 = [drifted.look[0] + pointer.smoothX * 0.12 * settle, drifted.look[1] + pointer.smoothY * 0.06 * settle, drifted.look[2]];
         lookAt(eye, look, [0, 1, 0], view);
         multiply(projection, view, viewProjection);
         invert(viewProjection, inverseViewProjection);

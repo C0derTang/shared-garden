@@ -49,6 +49,36 @@ export function gardenPose(state: GardenCameraState, aspect: number, fovY: numbe
   return { eye: pose.eye, look: [pose.look[0], pose.look[1] - tilt, pose.look[2]] };
 }
 
+/**
+ * How much of the idle drift and pointer parallax stays: all of it in the
+ * open, none once glided close to a flower, and 30% while the navigator frames
+ * a plot (so the selected plot stays put under the pointer).
+ */
+export function gardenSettle(focusWeight: number, browseWeight: number): number {
+  return (1 - focusWeight) * (1 - 0.7 * browseWeight);
+}
+
+/**
+ * The idle drift the renderer adds to a pose at animation time `t`, scaled by
+ * `settle`. Reduced motion freezes `t` at 0, which still leaves a small fixed
+ * sideways lean of the look point (sin(1) × 0.1 × settle).
+ */
+export function idleDrift(t: number, settle: number): JourneyPose {
+  return {
+    eye: [Math.sin(t * 0.11) * 0.25 * settle, Math.sin(t * 0.07) * 0.06 * settle, 0],
+    look: [Math.sin(t * 0.09 + 1) * 0.1 * settle, 0, 0],
+  };
+}
+
+/** A pose with the idle drift added (as the renderer paints it, before pointer parallax). */
+export function withDrift(pose: JourneyPose, t: number, settle: number): JourneyPose {
+  const drift = idleDrift(t, settle);
+  return {
+    eye: [pose.eye[0] + drift.eye[0], pose.eye[1] + drift.eye[1], pose.eye[2] + drift.eye[2]],
+    look: [pose.look[0] + drift.look[0], pose.look[1] + drift.look[1], pose.look[2] + drift.look[2]],
+  };
+}
+
 /** View-projection of the garden camera for a canvas of `width` × `height` with the given eye and look. */
 export function gardenViewProjection(width: number, height: number, pose: JourneyPose): Float32Array {
   const aspect = width / Math.max(height, 1);

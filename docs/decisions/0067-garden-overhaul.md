@@ -790,7 +790,12 @@ choices made under this decision's discretion:
   "plant" (an empty spot) beside the words.
   - **Placement:** on landscape screens it floats at the right of the meadow,
     vertically centred; on portrait screens it floats low in the middle, with
-    the hint, the away note and messages resting above it.
+    the hint and messages resting above it. On portrait screens the "while you
+    were away" note moves up over the sky (under the corner links, the menu and
+    the fireworks replay), clear of the beds and the navigator, so it never
+    blocks a tap on a plot. While a full-screen view (a flower, planting or an
+    overlay) covers the garden, the navigator fades out and is `inert` and
+    hidden from assistive technology.
   - **Words:** "rose · 3 of 5" (growth as in the panel), "rose · in bloom"
     once bloomed (the Dandelion's own stage words), "♡" after them when your
     partner cared and you have not, brighter when your care is open, and
@@ -805,8 +810,8 @@ choices made under this decision's discretion:
     plot), right and left (and Page Down and Up) jump to the first plot of the
     next or previous bed, Home and End go to the ends, Enter or Space visits,
     and Escape returns to the whole garden. Instructions are its description.
-  - **Touch and pointer:** the chevrons step (quieted, `aria-disabled` and
-    doing nothing at the ends); a swipe of 28 px or more on the navigator
+  - **Touch and pointer:** the chevrons (at least 44 px tall) step (quieted,
+    `aria-disabled` and doing nothing at the ends); a swipe of 28 px or more on the navigator
     steps: up for the next plot, down for the previous, left for the next bed,
     right for the previous. Tapping the selected words or "visit"/"plant" opens
     it. Steps made with the chevrons or swipes are announced politely.

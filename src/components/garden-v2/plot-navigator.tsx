@@ -17,6 +17,8 @@ export interface PlotNavigatorProps {
   onSelect(spot: number | null): void;
   /** Visit a plot: a flower's split view, or the planting view for an empty spot. */
   onVisit(plot: GardenPlot): void;
+  /** A full-screen view covers the garden: the navigator fades and is inert and hidden from assistive technology. */
+  readonly hidden?: boolean;
 }
 
 /**
@@ -28,7 +30,7 @@ export interface PlotNavigatorProps {
  * listbox (with `aria-activedescendant`) whose options are every plot, and it
  * also answers the on-screen arrows and swipes on phones.
  */
-export function PlotNavigator({ plots, selected, onSelect, onVisit }: PlotNavigatorProps) {
+export function PlotNavigator({ plots, selected, onSelect, onVisit, hidden = false }: PlotNavigatorProps) {
   const id = useId();
   const swipe = useRef<{ x: number; y: number; pointer: number } | null>(null);
   const swiped = useRef(0);
@@ -108,6 +110,9 @@ export function PlotNavigator({ plots, selected, onSelect, onVisit }: PlotNaviga
       data-plot-navigator=""
       data-active={active ? "" : undefined}
       data-due={active?.due ? "" : undefined}
+      data-hidden={hidden ? "" : undefined}
+      inert={hidden || undefined}
+      aria-hidden={hidden || undefined}
       onKeyDown={onKey}
       onPointerDown={onPointerDown}
       onPointerUp={onPointerUp}

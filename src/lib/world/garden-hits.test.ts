@@ -2,12 +2,13 @@
  * Automated hit tests for the garden's plots (#206): a seeded garden of every
  * type and stage, seen through the real garden camera at 1280×800 and
  * 390×844 (overview, among the beds, and the plot navigator's framing of each
- * bed), picked with the same function the world uses for the pointer.
+ * bed), with the idle drift the renderer still applies under reduced motion,
+ * picked with the same function the world uses for the pointer.
  */
 import { describe, expect, it } from "vitest";
 import { worldFlowerAnchors, type WorldFlower } from "@/components/world/flowers/flower-models";
 import { FLOWER_TYPES } from "./flowers/generate";
-import { gardenFovY, gardenPose, gardenViewProjection, type GardenCameraState } from "./garden-camera";
+import { gardenFovY, gardenPose, gardenSettle, gardenViewProjection, withDrift, type GardenCameraState } from "./garden-camera";
 import { plotPose } from "./journey";
 import { bedAt, layoutPlantingSpots, spotPosition } from "./layout";
 import { MIN_TARGET_PX, pickOnScreen, plotFootprints, spineDistance, type ScreenView } from "./picking";
@@ -31,10 +32,20 @@ const SIZES = [
   [390, 844],
 ] as const;
 
+/**
+ * The camera exactly as the renderer paints it under reduced motion (no
+ * pointer parallax): the pose plus the idle drift frozen at time 0.
+ */
+function painted(width: number, height: number, state: GardenCameraState): ScreenView {
+  const aspect = width / height;
+  const pose = withDrift(gardenPose(state, aspect, gardenFovY(aspect)), 0, gardenSettle(state.focusWeight ?? 0, state.browse ? (state.browseWeight ?? 0) : 0));
+  return { viewProjection: gardenViewProjection(width, height, pose), width, height };
+}
+
 function views(width: number, height: number): { name: string; view: ScreenView }[] {
   const aspect = width / height;
   const fovY = gardenFovY(aspect);
-  const at = (state: GardenCameraState): ScreenView => ({ viewProjection: gardenViewProjection(width, height, gardenPose(state, aspect, fovY)), width, height });
+  const at = (state: GardenCameraState): ScreenView => painted(width, height, state);
   const list = [
     { name: "overview", view: at({ journey: 0, pan: 0 }) },
     { name: "among the beds", view: at({ journey: 1, pan: 0 }) },
@@ -107,8 +118,7 @@ describe.each(SIZES)("garden plots at %i×%i", (width, height) => {
   });
 
   it("gives a lone sprout a whole 44 px target even from the far overview", () => {
-    const aspect = width / height;
-    const view: ScreenView = { viewProjection: gardenViewProjection(width, height, gardenPose({ journey: 0, pan: 0 }, aspect, gardenFovY(aspect))), width, height };
+    const view = painted(width, height, { journey: 0, pan: 0 });
     const lone = worldFlowerAnchors([{ id: "sprout", spec: { type: "rose", seed: 7, growth: 0 }, position: spotPosition(1).position }]);
     const [footprint] = plotFootprints(view, [], lone);
     const [x, y] = footprint!.centre;
@@ -125,7 +135,7 @@ describe.each(SIZES)("garden plots at %i×%i", (width, height) => {
     const fovY = gardenFovY(aspect);
     for (const bed of [0, 1]) {
       const framed = plotPose({ position: bedAt(bed).center, height: 0, bedCenter: bedAt(bed).center }, aspect, fovY);
-      const view: ScreenView = { viewProjection: gardenViewProjection(width, height, gardenPose({ journey: 0, pan: 0, browse: framed, browseWeight: 1 }, aspect, fovY)), width, height };
+      const view = painted(width, height, { journey: 0, pan: 0, browse: framed, browseWeight: 1 });
       for (let k = 0; k < 12; k += 1) {
         const spot = spotPosition(bed * 12 + k + 1).position;
         const [footprint] = plotFootprints(view, [{ spot: 0, position: spot }], []);

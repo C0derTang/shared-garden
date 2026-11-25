@@ -161,8 +161,14 @@ describe("GardenV2", () => {
     expect(within(dialog).getByRole("img", { name: /The rose, in bud/ })).toBeInTheDocument();
     expect(within(dialog).getByRole("progressbar")).toHaveAttribute("aria-valuenow", "2");
     expect(document.activeElement).toBe(within(dialog).getByRole("heading", { name: "rose" }));
+    // Under the split view the navigator is inert and hidden from assistive technology.
+    const navigator = document.querySelector("[data-plot-navigator]")!;
+    expect(navigator).toHaveAttribute("inert");
+    expect(navigator).toHaveAttribute("aria-hidden", "true");
     await user.keyboard("{Escape}");
     expect(screen.queryByRole("dialog")).toBeNull();
+    expect(navigator).not.toHaveAttribute("inert");
+    expect(navigator).not.toHaveAttribute("aria-hidden");
     // Back to the framed plot, with focus on the navigator.
     expect(worlds[0]!.states.at(-1)).toMatchObject({ paused: false, focus: null, selected: { spot: 1 } });
     expect(window.location.search).toBe("");

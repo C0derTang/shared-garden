@@ -26,14 +26,23 @@
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
+  transition:
+    opacity 300ms ease,
+    visibility 300ms;
   animation: nav-in 900ms ease both;
+}
+
+/* Under a full-screen view (a flower, planting, an overlay): faded and inert. */
+.navigator[data-hidden] {
+  opacity: 0;
+  visibility: hidden;
 }
 
 .step {
   display: grid;
   place-items: center;
   min-width: 3.4rem;
-  min-height: 2.4rem;
+  min-height: 2.75rem;
   padding: 0;
   border: 0;
   border-radius: 1.2rem;
