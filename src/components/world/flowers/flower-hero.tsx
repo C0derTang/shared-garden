@@ -19,7 +19,7 @@ export type HeroFraming = "plant" | "bloom";
 export function heroCamera(model: FlowerModel, framing: HeroFraming = "plant", minExtent = 0.08): StudioCamera {
   const fovY = (30 * Math.PI) / 180;
   const aura = model.aura;
-  if (framing === "bloom" && aura) {
+  if (framing === "bloom" && model.stage !== "seedling") {
     const extent = Math.max(aura.radius * 0.55, 0.05);
     return { kind: "orbit", target: aura.center, distance: extent / Math.tan(fovY / 2), elevation: (18 * Math.PI) / 180, fovY, spin: HERO_SPIN };
   }

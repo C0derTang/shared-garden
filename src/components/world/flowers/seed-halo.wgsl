@@ -2,7 +2,7 @@
 // dandelion's seeds blow away (#201): it dissolves as they drift, so the
 // golden head's glow takes over without a jump. Additive; never writes
 // depth or alpha. Must match HALO_FLOATS / packPuffHalo in seed-drift.ts.
-import { World } from "../shaders/common.wgsl";
+import { World, plotHalo } from "../shaders/common.wgsl";
 
 struct PuffHalo {
   // Centre, radius.
@@ -51,7 +51,6 @@ struct HaloOut {
 }
 
 @fragment fn fs_main(input: HaloOut) -> @location(0) vec4f {
-  let r = length(input.corner);
-  let falloff = (exp(-r * r * 6.0) * 0.55 + exp(-r * r * 14.0) * 0.6) * (1.0 - smoothstep(0.6, 1.0, r));
-  return vec4f(input.color * falloff, 0.0);
+  // The halo profile every plot glow shares (#206), so the held puff matches its aura.
+  return vec4f(input.color * plotHalo(length(input.corner)), 0.0);
 }

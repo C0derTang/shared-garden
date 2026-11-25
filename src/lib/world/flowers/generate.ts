@@ -4,6 +4,7 @@
  */
 
 import { flowerTypes, type FlowerType } from "@/lib/garden-v2/model";
+import { SPROUT_GLOW, evenGlowColor, evenGlowRadius } from "../glow";
 import { PlantBuilder, growthFor, type Aura, type GrowthStage, type PuffSeed } from "./builder";
 import { linear, streamFor } from "./math";
 import {
@@ -45,8 +46,12 @@ export interface FlowerModel {
   readonly height: number;
   /** Horizontal reach from the stem axis. */
   readonly radius: number;
-  /** Soft coloured glow around the head, if the plant has one yet. */
-  readonly aura: Aura | null;
+  /**
+   * Soft coloured glow around the head (around the shoot for a seedling). Its
+   * colour has the shared glow luminance of `lib/world/glow`, so every type
+   * and stage glows alike.
+   */
+  readonly aura: Aura;
   /** A dandelion seed puff's seeds (their parts are also in the lists above); empty otherwise. */
   readonly puffSeeds: readonly PuffSeed[];
 }
@@ -60,15 +65,20 @@ export function generateFlower(spec: FlowerSpec): FlowerModel {
   const moods = (spec.moodColors ?? []).filter((hex) => HEX.test(hex)).map((hex) => linear(hex));
   SPECIES[spec.type](builder, { moods, puff: spec.puff === true });
   const bounds = builder.bounds();
+  const height = Math.max(bounds.height, 0.05);
+  // Seedlings have no head yet: they glow softly around the shoot, like the seed mark they grew from.
+  const aura: Aura = builder.aura
+    ? { ...builder.aura, color: evenGlowColor(builder.aura.color) }
+    : { center: [0, height * 0.7, 0], radius: Math.max(0.06, height * 0.9), color: SPROUT_GLOW };
   return {
     type: spec.type,
     stage: growth.stage,
     sheets: builder.sheets,
     tubes: builder.tubes,
     blobs: builder.blobs,
-    height: Math.max(bounds.height, 0.05),
+    height,
     radius: Math.max(bounds.radius, 0.03),
-    aura: builder.aura,
+    aura,
     puffSeeds: builder.puffSeeds,
   };
 }
@@ -108,7 +118,16 @@ export interface PackedFlowers {
 
 export const AURA_FLOATS = 8;
 
-export function packFlowers(flowers: readonly PlacedFlower[]): PackedFlowers {
+export interface PackOptions {
+  /**
+   * Keep every aura's world radius within the shared plot-glow band (the
+   * world, where every plot should glow alike). The close-up hero keeps each
+   * flower's own aura size.
+   */
+  readonly evenAuraRadius?: boolean;
+}
+
+export function packFlowers(flowers: readonly PlacedFlower[], options: PackOptions = {}): PackedFlowers {
   let sheetCount = 0;
   let tubeCount = 0;
   let blobCount = 0;
@@ -117,7 +136,7 @@ export function packFlowers(flowers: readonly PlacedFlower[]): PackedFlowers {
     sheetCount += f.model.sheets.length;
     tubeCount += f.model.tubes.length;
     blobCount += f.model.blobs.length;
-    if (f.model.aura) auraCount += 1;
+    auraCount += 1;
   }
   const sheets = new Float32Array(sheetCount * PART_FLOATS);
   const tubes = new Float32Array(tubeCount * PART_FLOATS);
@@ -138,11 +157,10 @@ export function packFlowers(flowers: readonly PlacedFlower[]): PackedFlowers {
     for (const part of f.model.tubes) packTube(tubes, t++, part, f.placement, info);
     for (const part of f.model.blobs) packBlob(blobs, b++, part, f.placement, info);
     const aura = f.model.aura;
-    if (aura) {
-      const c = placePoint(aura.center, f.placement);
-      auras.set([c[0], c[1], c[2], aura.radius * f.placement.scale, aura.color[0], aura.color[1], aura.color[2], index], a * AURA_FLOATS);
-      a += 1;
-    }
+    const c = placePoint(aura.center, f.placement);
+    const radius = aura.radius * f.placement.scale;
+    auras.set([c[0], c[1], c[2], options.evenAuraRadius ? evenGlowRadius(radius) : radius, aura.color[0], aura.color[1], aura.color[2], index], a * AURA_FLOATS);
+    a += 1;
   });
   return { sheets, tubes, blobs, sheetCount, tubeCount, blobCount, auras, auraCount };
 }

@@ -269,7 +269,8 @@ discretion and the look in "World look":
   margins. They let light through when backlit and take a rim of light and
   the world's shadows. Each head has a soft coloured aura. In the world the
   aura is strongest in the golden hour and faint at night, and it brightens
-  under the pointer.
+  under the pointer. (Superseded in the world by the one plot-glow rule of
+  [#206](#recorded-choice-even-glows-easy-picking-and-the-plot-navigator-206).)
 - **Painterly finish:** flowers within 14 world units keep most of their
   botanical detail through the world's painterly filter (they write the
   detail alpha); the canvas brush streaks and weave still pass over them.
@@ -414,7 +415,11 @@ discretion and the look in "World look":
   flower directly. No development showcase controls appear on the page;
   `/dev/world`, `/dev/flowers` and `/dev/landing` are unchanged and still 404 in
   production.
-- **Floating words:** every flower has its lower-case name floating above it
+- **Floating words:** (superseded by
+  [#206](#recorded-choice-even-glows-easy-picking-and-the-plot-navigator-206):
+  no names float over the plants or seed marks any more, and the plot
+  navigator names each plot instead; focus returns to the navigator.)
+  Every flower has its lower-case name floating above it
   (Gochi Hand, soft glow). Names fade in as the camera walks closer (within
   about 6.4 world units) so the overview stays a painting; a focused name always
   shows (names outside the view are pinned inside the screen edge, by their own
@@ -841,7 +846,8 @@ discretion; fulfilment rules and data are unchanged.
   - The partner sees it once, the first time they see that fulfilled Dandelion:
     in the world once it is in view and within 6.4 world units of the camera
     (close enough to see the seeds, which are only a few pixels across from
-    the overview), or in its painting if they open it first (then in the world
+    the overview) or in view in a bed the plot navigator has settled on
+    framing (#206), or in its painting if they open it first (then in the world
     again as they return). Until then its seeds stay attached and it still
     looks like a puff. A Realtime update while the partner is in the garden
     follows the same rule.
@@ -882,3 +888,118 @@ discretion; fulfilment rules and data are unchanged.
 - **Development gallery:** `/dev/flowers` hero view has "blow the seeds" and
   "seed puff again" for a bloomed Dandelion (development only, 404 in
   production).
+
+### Recorded choice: even glows, easy picking and the plot navigator ([#206](https://github.com/C0derTang/shared-garden/issues/206))
+
+The user's feedback (2026-11-24) asked for even glows, easy plot picking
+(sprouts were hard to click on a phone), no names over the plants, and an
+up/down way to step through the plots with the camera following. Conservative
+choices made under this decision's discretion:
+
+- **One glow rule** (`lib/world/glow.ts`), shared by the empty seed marks and
+  every flower's aura, at every type and stage:
+  - Every glow colour is softened 40% toward white (saturated halos look
+    brighter than their luminance) and then normalised to one linear
+    luminance, 0.55. Past a channel of 1.35, white is mixed in instead, so a
+    deep blue keeps the same luminance without flaring.
+  - Seedlings now glow too, softly around the shoot in the seed mark's warmth
+    with a little green; the seed marks use the same halo profile and the
+    smallest halo of the band.
+  - In the world every halo's radius stays within 0.17–0.27 world units, from
+    a seed mark to a full bloom. The close-up hero keeps each flower's own aura
+    size (its colour follows the same normalisation).
+  - The level is set so the displayed peak (after the scene's exposure) is the
+    same by day, dawn and dusk, and 45% quieter in full night, where a dark
+    meadow makes any glow read stronger. The bloom threshold is unchanged.
+  - Hovering or selecting a plot brightens its glow 2.1× and widens its halo
+    1.35×, the same for a seed mark, a seedling or a bloom (the flower's own
+    petals keep their gentle 12% lift). The seed marks no longer pulse.
+- **Picking** (`pickOnScreen` in `lib/world/picking.ts`) is done in screen
+  space. A flower's body is its thin stalk and a head as wide as the flower; a
+  sprout's body is as small as the sprout. Every plot answers within its body
+  or within 24 CSS px of its spine (a 48 px target, above the 44 px minimum),
+  whatever its size or the zoom. Where targets overlap, the plot whose spine
+  (stalk or seed mark) is nearest the pointer wins, then the one nearer the
+  camera, so there are no misses between petals and a sprout at the foot of a
+  bloom stays a sprout. Hover uses the same pick, so the highlight always shows
+  what a click will open. A press only becomes a drag past 6 px, so a tap never
+  nudges the camera. Where plots are closer together on screen than the
+  minimum target (a far overview on a phone), each keeps the part of the target
+  nearest to it; the navigator is the way to reach any plot exactly.
+- **No floating names:** the names over the flowers and "plant a seed" are
+  gone, with their caption options (distance fade, quiet tone, accessible
+  label). The landing's captions and the garden's title stay.
+- **The plot navigator** (`PlotNavigator`): a small handwritten control in the
+  garden's floating type: a hand-drawn up chevron, the plot's words, a quieter
+  "bed N" under them, a hand-drawn down chevron, and "visit" (a flower) or
+  "plant" (an empty spot) beside the words.
+  - **Placement:** on landscape screens it floats at the right of the meadow,
+    vertically centred; on portrait screens it floats low in the middle, with
+    the hint and messages resting above it. On portrait screens the "while you
+    were away" note moves up over the sky (under the corner links, the menu and
+    the fireworks replay), clear of the beds in the overview and of the
+    navigator. While the navigator frames a bed, the note steps aside (on
+    every screen) and returns with the whole garden, so it never covers a
+    framed plot. While a full-screen view (a flower, planting or an overlay)
+    or a scoped sheet (such as the private moment) covers the garden, the
+    navigator fades out and is `inert` and hidden from assistive technology.
+    It becomes hidden only after its 300 ms fade, but shows again at once when
+    the view closes, so focus returns to it straight away (a refused focus is
+    retried over the next frames before falling back to the world). It also
+    stays inert until the first-visit greeting is decided, so it is never live
+    for the frame before the guide opens.
+  - **After the arrival:** the navigator appears only once the arrival from
+    the house ([#204](#recorded-choice-the-house-to-garden-arrival-204)) has
+    settled, so nothing can start a bed framing under the warm light or during
+    the arrival's camera move. Without an arrival it is there from the start.
+  - **Words:** "rose · 3 of 5" (growth as in the panel), "rose · in bloom"
+    once bloomed (the Dandelion's own stage words), "♡" after them when your
+    partner cared and you have not, brighter when your care is open, and
+    "empty spot". With nothing selected it reads "step through the plots".
+  - **Order:** every spot of the open beds, planted or empty. Beds go in the
+    order they opened ("bed 1" is the middle bed), so their numbers only grow.
+    Within a bed, spots go row by row (four rows) from the back of the bed to
+    the front, left to right within a row.
+  - **Keys:** it is a listbox (`aria-activedescendant`) whose options are every
+    plot, with a full accessible name (type, stage, growth, who has cared,
+    bed). Down and up step one plot (no wrapping; from nothing, the first
+    plot), right and left (and Page Down and Up) jump to the first plot of the
+    next or previous bed, Home and End go to the ends, Enter or Space visits,
+    and Escape returns to the whole garden. Instructions are its description.
+  - **Touch and pointer:** the chevrons (at least 44 px tall) step (quieted,
+    `aria-disabled` and doing nothing at the ends); a swipe of 28 px or more on the navigator
+    steps: up for the next plot, down for the previous, left for the next bed,
+    right for the previous. Tapping the selected words or "visit"/"plant" opens
+    it. Steps made with the chevrons or swipes are announced politely.
+  - **Camera:** the selected plot's whole bed is framed from in front, 36°
+    above it, leaning toward the plot (a bed always fits; it sits a little left
+    of the middle on landscape screens and a little above it on portrait ones,
+    clear of the navigator). Stepping within a bed sways gently; a new plot
+    glides over 1.1 s with easing in and out; the drift and pointer parallax
+    quieten to 30% while framed. The selected plot carries the same highlight
+    as the hovered one. Reduced motion moves at once.
+  - **Visiting:** Enter, a tap or "visit" glides close and opens the split
+    view as before (an empty spot opens the planting view); closing glides back
+    to the framed bed, and focus returns to the navigator (the world when it is
+    not shown). Direct taps on flowers and seed marks keep working; while a
+    plot is framed, any visit (a tap in the world, "next: …" in the panel)
+    also moves the navigator to that plot.
+  - **Wandering off:** scrolling, dragging or the world's arrow keys while a
+    plot is framed let the framing go; the walk picks up near the framed bed
+    rather than jumping back to the overview.
+  - **Stepping takes over the camera:** choosing a plot (or Escape) ends any
+    glide toward a flower and the 2.8-second close look held while a
+    Dandelion's seeds lift
+    ([#201](#recorded-choice-dandelion-seeds-blowing-away-201)); the bed
+    framing glides in from there.
+  - **Seeing a waiting Dandelion:** a bed the navigator frames counts as seen
+    once the framing has settled: a partner's waiting Dandelion in that bed
+    blows its seeds then, as if walked up to (`SEE_NEAR` still applies
+    everywhere else). Measured from the framing, the selected plot's head is
+    4.8–6.0 world units away at 1280×800, 3.5–4.7 at 768×1024 and up to 6.4
+    at 390×844, so the bed rule keeps phones from depending on that edge. The
+    held puff's halo uses the shared halo profile and, in the world, the
+    shared radius band.
+  - The navigator is shown while the painted world loads and runs (not with the
+    WebGPU notices, and not before the arrival settles), and it carries no data
+    or storage of its own.

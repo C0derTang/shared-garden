@@ -17,7 +17,9 @@ import {
 } from "vgpu";
 import { invert, lookAt, multiply, orthographic, perspective, rayFromNdc } from "@/lib/world/camera";
 import { ARRIVAL_LAYER_WAIT_SECONDS, ARRIVAL_STILL_SETTLE_SECONDS, ARRIVAL_SETTLE_SECONDS, ARRIVAL_WARM_FRAMES, arrivalPose } from "@/lib/world/arrival";
-import { blendPoses, focusPose, journeyPose, type FocusTarget, type JourneyPose } from "@/lib/world/journey";
+import { gardenFovY, gardenPose, gardenSettle, withDrift } from "@/lib/world/garden-camera";
+import { PLOT_GLOW, plotGlowLevel, sceneExposure } from "@/lib/world/glow";
+import { blendPoses, plotPose, type FocusTarget, type JourneyPose } from "@/lib/world/journey";
 import {
   DOOR_HINGE,
   DOOR_OPEN_ANGLE,
@@ -34,8 +36,8 @@ import {
   walkThroughAt,
 } from "@/lib/world/landing";
 import { bedEdgingRocks, buildMountainMesh, buildRockMesh, shoreRocks } from "@/lib/world/landforms";
-import { BED_RADIUS, WATER_LEVEL, bedAt, bedCountFor, layoutPlantingSpots, type Vec3 } from "@/lib/world/layout";
-import { pickAlongRay, type FlowerAnchor, type PickResult } from "@/lib/world/picking";
+import { BED_RADIUS, WATER_LEVEL, bedAt, bedCountFor, layoutPlantingSpots, spotPosition, type Vec3 } from "@/lib/world/layout";
+import { pickOnScreen, type FlowerAnchor, type PickResult } from "@/lib/world/picking";
 import {
   buildBedMesh,
   buildFarShoreStrokes,
@@ -87,6 +89,19 @@ const PORCH_LAMP_FALLOFF = 0.45;
 /** Which scene the world paints: the garden meadow, or the landing's lakeside house. */
 export type WorldComposition = "garden" | "landing";
 
+/** The plot the garden's plot navigator selected: the camera frames its bed and it is lit like the hovered plot. */
+export interface SelectedPlot {
+  /** One-based spot. */
+  readonly spot: number;
+  /** The flower growing there, or null for an empty spot. */
+  readonly flowerId: string | null;
+  /** Height of the plant (0 for an empty spot). */
+  readonly height: number;
+}
+
+/** Seconds of the camera's glide from one framed plot to the next. */
+const BROWSE_GLIDE_SECONDS = 1.1;
+
 export interface WorldSceneState {
   /** Fixed when the renderer is created; defaults to the garden. */
   readonly composition?: WorldComposition;
@@ -103,6 +118,8 @@ export interface WorldSceneState {
   readonly reducedMotion: boolean;
   /** Garden: the camera glides to this flower (and back when it becomes null). */
   readonly focus?: FocusTarget | null;
+  /** Garden: the plot navigator's selection; the camera glides to frame its bed. */
+  readonly selected?: SelectedPlot | null;
   /**
    * Stop painting new frames once the camera has settled (e.g. while a
    * full-screen view covers the world). The last frame stays on the canvas.
@@ -144,6 +161,8 @@ export interface WorldRendererCallbacks {
   onFrame?(view: WorldView): void;
   /** Landing: the walk-through has finished. Called once. */
   onEntered?(): void;
+  /** Garden: the visitor scrolled, dragged or walked while a plot was framed (to let the framing go). */
+  onWander?(): void;
 }
 
 export interface WorldRenderer {
@@ -206,16 +225,28 @@ export function createWorldRenderer(
   const setUpLayers = new Set<WorldLayer>();
   const readyLayers = new Set<WorldLayer>();
 
-  const pointer = { x: 0, y: 0, smoothX: 0, smoothY: 0, downX: 0, downY: 0, down: false, touchY: 0, dragX: 0 };
+  const pointer = { x: 0, y: 0, smoothX: 0, smoothY: 0, downX: 0, downY: 0, down: false, dragged: false, touchY: 0, dragX: 0 };
   const journey = { target: 0, value: 0, panTarget: 0, pan: 0 };
   // Glide toward a picked flower; the last target is kept so closing glides back from it.
   const focus: { value: number; target: FocusTarget | null } = { value: 0, target: null };
+  // The plot navigator's bed framing: how far the camera has blended into it, and a
+  // timed glide (from → current pose) whenever the selected plot changes.
+  const browse: { weight: number; spot: number; pose: JourneyPose | null; from: JourneyPose | null; progress: number; released: number } = {
+    weight: 0,
+    spot: 0,
+    pose: null,
+    from: null,
+    progress: 1,
+    released: 0,
+  };
   const entry = { seconds: 0, active: false, finished: false };
   // The garden's arrival from the walk-through: held, then warmed (layers painted), then played to the end.
   const arrival = { active: !landing && Boolean(initial.arrival), playing: false, warmFrames: 0, waited: 0, seconds: -1 };
   let doorHover = 0;
   let hovered: PickResult | null = null;
   const inverseViewProjection = new Float32Array(16);
+  // The painted frame's camera, kept for picking between frames.
+  const pickViewProjection = new Float32Array(16);
   let cameraReady = false;
 
   const emptySpotTargets = () => {
@@ -230,18 +261,39 @@ export function createWorldRenderer(
     if (!cameraReady) return null;
     const rect = canvas.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) return null;
-    const ndcX = ((clientX - rect.left) / rect.width) * 2 - 1;
-    const ndcY = 1 - ((clientY - rect.top) / rect.height) * 2;
     if (landing) {
       if (!state.doorInvite || entry.active) return null;
+      const ndcX = ((clientX - rect.left) / rect.width) * 2 - 1;
+      const ndcY = 1 - ((clientY - rect.top) / rect.height) * 2;
       const distance = pickDoor(rayFromNdc(inverseViewProjection, ndcX, ndcY));
       return distance === null ? null : { kind: "door", distance };
     }
-    return pickAlongRay(rayFromNdc(inverseViewProjection, ndcX, ndcY), emptySpots, state.flowers);
+    // Every plot has a generous on-screen target; the nearest plot to the pointer wins.
+    const view = { viewProjection: pickViewProjection, width: rect.width, height: rect.height };
+    return pickOnScreen(view, clientX - rect.left, clientY - rect.top, emptySpots, state.flowers);
+  };
+
+  /**
+   * The visitor walks off on their own while a plot is framed: the walk picks
+   * up near the framed bed (the camera glides there from the framing) and the
+   * page is told once, so it can let the navigator's framing go.
+   */
+  const wander = () => {
+    if (browse.weight > 0.5 && browse.pose) {
+      journey.value = journey.target = Math.max(journey.target, 0.8);
+      const limit = panLimit();
+      journey.pan = journey.panTarget = Math.min(limit, Math.max(-limit, browse.pose.look[0]));
+    }
+    const selected = state.selected;
+    if (selected && browse.released !== selected.spot) {
+      browse.released = selected.spot;
+      callbacks.onWander?.();
+    }
   };
 
   const travel = (delta: number) => {
     if (landing) return;
+    wander();
     journey.target = Math.min(1, Math.max(0, journey.target + delta));
   };
 
@@ -253,6 +305,7 @@ export function createWorldRenderer(
   };
   const pan = (delta: number) => {
     if (landing) return;
+    wander();
     const limit = panLimit();
     journey.panTarget = Math.min(limit, Math.max(-limit, journey.panTarget + delta));
   };
@@ -261,11 +314,15 @@ export function createWorldRenderer(
     const rect = canvas.getBoundingClientRect();
     pointer.x = ((event.clientX - rect.left) / Math.max(rect.width, 1)) * 2 - 1;
     pointer.y = 1 - ((event.clientY - rect.top) / Math.max(rect.height, 1)) * 2;
-    if (pointer.down && event.pointerType === "touch") {
+    // A press only becomes a drag past the click slop, so a tap never nudges the camera.
+    if (pointer.down && !pointer.dragged && Math.hypot(event.clientX - pointer.downX, event.clientY - pointer.downY) > CLICK_SLOP_PX) {
+      pointer.dragged = true;
+    }
+    if (pointer.dragged && event.pointerType === "touch") {
       travel((pointer.touchY - event.clientY) / Math.max(rect.height, 1));
       pointer.touchY = event.clientY;
     }
-    if (pointer.down) {
+    if (pointer.dragged) {
       // Dragging sideways walks along the beds (the scene follows the finger).
       pan(((pointer.dragX - event.clientX) / Math.max(rect.width, 1)) * PAN_PER_WIDTH);
       pointer.dragX = event.clientX;
@@ -275,6 +332,7 @@ export function createWorldRenderer(
   };
   const onPointerDown = (event: PointerEvent) => {
     pointer.down = true;
+    pointer.dragged = false;
     pointer.downX = event.clientX;
     pointer.downY = event.clientY;
     pointer.touchY = event.clientY;
@@ -283,6 +341,7 @@ export function createWorldRenderer(
   const onPointerUp = (event: PointerEvent) => {
     if (!pointer.down) return;
     pointer.down = false;
+    pointer.dragged = false;
     if (Math.hypot(event.clientX - pointer.downX, event.clientY - pointer.downY) > CLICK_SLOP_PX) return;
     const result = pickAt(event.clientX, event.clientY);
     if (result) callbacks.onPick(result);
@@ -291,6 +350,7 @@ export function createWorldRenderer(
     pointer.x = 0;
     pointer.y = 0;
     pointer.down = false;
+    pointer.dragged = false;
     hovered = null;
     canvas.style.cursor = "";
   };
@@ -626,13 +686,32 @@ export function createWorldRenderer(
         const focusGoal = state.focus ? 1 : 0;
         focus.value = still ? focusGoal : focus.value + (focusGoal - focus.value) * Math.min(1, dt * 3.2);
         if (Math.abs(focus.value - focusGoal) < 0.002) focus.value = focusGoal;
+        // The navigator's framing: blend in or out, and glide from plot to plot.
+        const selected = landing ? null : (state.selected ?? null);
+        if (!selected) browse.released = 0;
+        const browseGoal = selected ? 1 : 0;
+        browse.weight = still ? browseGoal : browse.weight + (browseGoal - browse.weight) * Math.min(1, dt * 2.6);
+        if (Math.abs(browse.weight - browseGoal) < 0.002) browse.weight = browseGoal;
+        if (selected && selected.spot !== browse.spot) {
+          // From wherever the framing is now; a fresh framing simply blends in.
+          browse.from = browse.weight > 0.001 ? browse.pose : null;
+          browse.progress = browse.from ? 0 : 1;
+          browse.spot = selected.spot;
+        }
+        browse.progress = still ? 1 : Math.min(1, browse.progress + dt / BROWSE_GLIDE_SECONDS);
         // Covered by a full-screen view: keep the settled frame and save the GPU.
-        if (state.paused && focus.value === focusGoal && cameraReady) return;
+        if (state.paused && focus.value === focusGoal && browse.weight === browseGoal && browse.progress === 1 && cameraReady) return;
 
         const [w, h] = scene.size;
         const aspect = output.size[0] / Math.max(output.size[1], 1);
-        const fovY = Math.min((68 * Math.PI) / 180, Math.max((38 * Math.PI) / 180, 2 * Math.atan(Math.tan((24 * Math.PI) / 180) / Math.max(aspect, 0.01))));
+        const fovY = gardenFovY(aspect);
         perspective(fovY, aspect, 0.1, 420, projection);
+        if (selected) {
+          const spot = spotPosition(selected.spot);
+          const target = plotPose({ position: spot.position, height: selected.height, bedCenter: bedAt(spot.bed).center }, aspect, fovY);
+          browse.pose = browse.from && browse.progress < 1 ? blendPoses(browse.from, target, browse.progress) : target;
+          if (browse.progress >= 1) browse.from = null;
+        }
         let pose: JourneyPose;
         let walk: ReturnType<typeof walkThroughAt> | null = null;
         if (landing) {
@@ -650,9 +729,13 @@ export function createWorldRenderer(
           }
           pose = walk ?? home;
         } else {
-          const walked = journeyPose(journey.value);
-          pose = { eye: [walked.eye[0] + journey.pan, walked.eye[1], walked.eye[2]], look: [walked.look[0] + journey.pan, walked.look[1], walked.look[2]] };
-          if (focus.target && focus.value > 0) pose = blendPoses(pose, focusPose(focus.target, aspect, fovY), focus.value);
+          // Journey, sideways walk, the navigator's framing and the glide to a flower (portrait tilt included).
+          pose = gardenPose(
+            { journey: journey.value, pan: journey.pan, browse: browse.pose, browseWeight: browse.weight, focus: focus.target, focusWeight: focus.value },
+            aspect,
+            fovY,
+          );
+          // The arrival from the walk-through (#204) glides into this pose.
           if (arrival.active) {
             if (state.arrival === "play") arrival.playing = true;
             if (!arrival.playing && !state.arrival) {
@@ -672,24 +755,17 @@ export function createWorldRenderer(
           }
         }
         const t = motionTime;
-        // Idle drift and pointer parallax settle while the walk-through takes over.
-        const settle = (walk ? Math.max(0, 1 - entry.seconds / 1.2) : 1) * (1 - focus.value);
+        // Idle drift and pointer parallax settle while the walk-through takes over, and
+        // quieten while a plot is framed so the selected plot stays put under the pointer.
+        const settle = (walk ? Math.max(0, 1 - entry.seconds / 1.2) : 1) * gardenSettle(focus.value, browse.weight);
         const sway = landing ? 0.45 : 0.6;
-        const eye: Vec3 = [
-          pose.eye[0] + (Math.sin(t * 0.11) * 0.25 + pointer.smoothX * sway) * settle,
-          pose.eye[1] + (Math.sin(t * 0.07) * 0.06 + pointer.smoothY * 0.2) * settle,
-          pose.eye[2],
-        ];
-        // Portrait screens tilt down a little so the garden, not the sky, fills the frame.
-        const portraitTilt = landing ? 0 : (1 - Math.min(aspect, 1)) * 7 * (1 - focus.value);
-        const look: Vec3 = [
-          pose.look[0] + (Math.sin(t * 0.09 + 1) * 0.1 + pointer.smoothX * 0.12) * settle,
-          pose.look[1] - portraitTilt + pointer.smoothY * 0.06 * settle,
-          pose.look[2],
-        ];
+        const drifted = withDrift(pose, t, settle);
+        const eye: Vec3 = [drifted.eye[0] + pointer.smoothX * sway * settle, drifted.eye[1] + pointer.smoothY * 0.2 * settle, drifted.eye[2]];
+        const look: Vec3 = [drifted.look[0] + pointer.smoothX * 0.12 * settle, drifted.look[1] + pointer.smoothY * 0.06 * settle, drifted.look[2]];
         lookAt(eye, look, [0, 1, 0], view);
         multiply(projection, view, viewProjection);
         invert(viewProjection, inverseViewProjection);
+        pickViewProjection.set(viewProjection);
         cameraReady = true;
         multiply(view, reflect, mirrorView);
         multiply(projection, mirrorView, mirrorViewProjection);
@@ -760,6 +836,10 @@ export function createWorldRenderer(
           lampColor: landing ? PORCH_LAMP_COLOR : (lampLight?.color ?? [0, 0, 0]),
           lampFalloff: landing ? PORCH_LAMP_FALLOFF : (lampLight?.falloff ?? 1),
           showDim: lampLight?.skyDim ?? 0,
+          plotGlow: plotGlowLevel(lighting),
+          plotBoost: PLOT_GLOW.hoverBoost,
+          plotGrow: PLOT_GLOW.hoverGrow,
+          selectedSpot: selected && selected.flowerId === null ? selected.spot : -1,
         };
         const mirrored: WorldUniforms = {
           ...world,
@@ -778,6 +858,11 @@ export function createWorldRenderer(
           lighting,
           sky: skyState,
           hoveredFlowerId: hovered?.kind === "flower" ? hovered.id : null,
+          selectedFlowerId: selected?.flowerId ?? null,
+          framedBed:
+            selected && browse.weight === 1 && browse.progress === 1 && focus.value === 0
+              ? { center: bedAt(spotPosition(selected.spot).bed).center, radius: BED_RADIUS }
+              : null,
           world,
         };
         const mirroredContext: WorldFrameContext = { ...context, viewProjection: mirrorViewProjection, eye: mirroredEye, world: mirrored };
@@ -835,7 +920,7 @@ export function createWorldRenderer(
         });
 
         // 3. Glow, then the painterly chain.
-        const exposure = 0.8 + lighting.glow * 0.2 + lighting.night * 0.55;
+        const exposure = sceneExposure(lighting);
         prep.set({ params: { texel: [1 / w, 1 / h], exposure, pad: 0 } });
         composite.set({
           params: {

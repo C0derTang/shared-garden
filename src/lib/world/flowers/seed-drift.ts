@@ -6,6 +6,7 @@
  * compute pass simulates (`src/components/world/flowers/seed-drift*.wgsl`).
  */
 
+import { evenGlowRadius } from "../glow";
 import type { Vec3 } from "../layout";
 import type { PuffSeed } from "./builder";
 import type { FlowerModel } from "./generate";
@@ -157,7 +158,7 @@ export const HALO_FADE = 2.2;
  * The seed puff's own soft glow for blow `slot`: it stays while the seeds are
  * held and dissolves as they drift (the golden head's glow takes over).
  */
-export function packPuffHalo(out: Float32Array, slot: number, puff: FlowerModel, placement: Placement, start: number, still: boolean) {
+export function packPuffHalo(out: Float32Array, slot: number, puff: FlowerModel, placement: Placement, start: number, still: boolean, evenRadius = false) {
   const o = slot * HALO_FLOATS;
   const aura = puff.aura;
   if (!aura) {
@@ -165,7 +166,9 @@ export function packPuffHalo(out: Float32Array, slot: number, puff: FlowerModel,
     return;
   }
   const center = placePoint(aura.center, placement);
-  put(out, o, center[0], center[1], center[2], aura.radius * placement.scale);
+  // In the world the puff's halo keeps the shared plot-glow radius band, like the flowers' auras (#206).
+  const radius = aura.radius * placement.scale;
+  put(out, o, center[0], center[1], center[2], evenRadius ? evenGlowRadius(radius) : radius);
   put(out, o + 4, aura.color[0], aura.color[1], aura.color[2], start);
   put(out, o + 8, still ? STILL_FADE : HALO_FADE, 0, 0, 0);
 }

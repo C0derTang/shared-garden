@@ -74,15 +74,7 @@ a.caption {
   text-decoration: none;
 }
 
-.quiet {
-  color: rgb(255 250 240 / 0.8);
-}
-
-/* Faded by distance or out of view: not clickable, but a focused caption always shows. */
-.caption[data-faded] {
-  pointer-events: none;
-}
-
+/* Out of view: not clickable, but a focused caption always shows. */
 .caption[data-offscreen] {
   opacity: 0;
   pointer-events: none;
@@ -91,11 +83,6 @@ a.caption {
 .caption:focus-visible,
 .caption:focus-within {
   opacity: 1 !important;
-}
-
-.quiet:hover,
-.quiet:focus-visible {
-  color: #fffaf0;
 }
 
 .captionButton {

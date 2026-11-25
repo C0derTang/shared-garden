@@ -246,6 +246,25 @@ describe("a dandelion's seeds blowing away (#201)", () => {
     expect(drift.releases).toHaveLength(1);
   });
 
+  it("counts a bed the plot navigator frames as seen, once the framing has settled (#206)", async () => {
+    const layer = await golden([dandelion("d", false, [0, 0, 0])]);
+    layer.blowSeeds("d");
+    layer.update!({} as never, step);
+    expect(drift.blows).toHaveLength(1);
+    // In view but beyond SEE_NEAR: it waits.
+    layer.draw!({} as never, frameAt([0, 0.3, 9]));
+    layer.update!({} as never, step);
+    expect(drift.releases).toHaveLength(0);
+    // Another bed framed: still waiting.
+    layer.draw!({} as never, { ...(frameAt([0, 0.3, 9]) as object), framedBed: { center: [6, 0, 0], radius: 1.3 } } as never);
+    layer.update!({} as never, step);
+    expect(drift.releases).toHaveLength(0);
+    // Its own bed framed: it blows.
+    layer.draw!({} as never, { ...(frameAt([0, 0.3, 9]) as object), framedBed: { center: [0.4, 0, 0.3], radius: 1.3 } } as never);
+    layer.update!({} as never, step);
+    expect(drift.releases).toHaveLength(1);
+  });
+
   it("fades the puff in place under reduced motion", async () => {
     const layer = await golden([dandelion("d", false)]);
     layer.blowSeeds("d");

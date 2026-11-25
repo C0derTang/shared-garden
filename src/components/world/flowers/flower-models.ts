@@ -49,10 +49,14 @@ export function placeWorldFlowers(flowers: readonly WorldFlower[]): PlacedFlower
   }));
 }
 
-/** Pick targets matching each flower's real size. */
+/**
+ * Pick targets matching each flower's real size: a sprout's body is as small
+ * as the sprout (its on-screen target never is: see `MIN_TARGET_PX`), so a
+ * bloom's broad leaves never swallow the sprout beside it.
+ */
 export function worldFlowerAnchors(flowers: readonly WorldFlower[]): FlowerAnchor[] {
   return flowers.map((flower) => {
     const model = flowerModel(flower.spec);
-    return { id: flower.id, position: flower.position, height: Math.max(0.25, model.height + 0.05), radius: Math.min(0.45, Math.max(0.16, model.radius * 0.9)) };
+    return { id: flower.id, position: flower.position, height: model.height + 0.03, radius: Math.min(0.45, Math.max(0.04, model.radius * 0.9)) };
   });
 }

@@ -18,8 +18,18 @@ export struct FlowerParams {
   sway: f32,
   // Pixels nearer than this keep their botanical detail through the painterly filter.
   detailNear: f32,
-  // Strength of the soft coloured aura.
+  // Strength of the soft coloured aura (the shared plot-glow level in the world).
   aura: f32,
+  // Index of the flower the plot navigator selected, or -1. It is lit like the hovered one.
+  selected: f32,
+  // How much a hovered or selected flower's aura brightens and widens.
+  boost: f32,
+  grow: f32,
+}
+
+// True for the hovered or the selected flower: they share one highlight.
+export fn flowerHighlighted(index: f32, params: FlowerParams) -> bool {
+  return abs(index - params.hovered) < 0.5 || abs(index - params.selected) < 0.5;
 }
 
 // ---------------------------------------------------------------- sheets

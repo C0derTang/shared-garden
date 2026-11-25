@@ -160,7 +160,7 @@ export function createSeedDrift(gpu: Gpu, shadow: WorldShadow, options: { detail
       still: blow.still,
     });
     ends[slot] = packed.end;
-    packPuffHalo(haloRecords, slot, blow.puff, blow.placement, start, blow.still);
+    packPuffHalo(haloRecords, slot, blow.puff, blow.placement, start, blow.still, options.detail === "world");
     if (start !== HELD) releasedAt = start;
     dirty = true;
     seedBuffer.write(records);

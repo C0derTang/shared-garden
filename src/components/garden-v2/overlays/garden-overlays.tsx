@@ -46,6 +46,12 @@ export interface GardenOverlaysProps {
   readonly onClose: () => void;
   /** Leave the overlay for a flower in the world. */
   readonly onVisit: (flowerId: string) => void;
+  /**
+   * The first-visit greeting has been decided (the guide opened, or will not
+   * this visit). The plot navigator waits for it, so it is never live for the
+   * frame before the guide opens (#206).
+   */
+  readonly onGreeted?: () => void;
 }
 
 /**
@@ -54,7 +60,7 @@ export interface GardenOverlaysProps {
  * legacy gate and behavior (decisions 0020 and 0067): recipients get it here
  * too, and its owner controls show in Settings.
  */
-export function GardenOverlays({ view, memberId, arrivedByLink, canGreet, flowerOpen, onOpen, onClose, onVisit }: GardenOverlaysProps) {
+export function GardenOverlays({ view, memberId, arrivedByLink, canGreet, flowerOpen, onOpen, onClose, onVisit, onGreeted }: GardenOverlaysProps) {
   const [notices, setNotices] = useState<HTMLDivElement | null>(null);
   const [owner, setOwner] = useState<HTMLDivElement | null>(null);
   const [coach, setCoach] = useState(false);
@@ -64,14 +70,20 @@ export function GardenOverlays({ view, memberId, arrivedByLink, canGreet, flower
   // First visit in this browser: open the guide once the world is painted.
   const greeted = useRef(arrivedByLink);
   useEffect(() => {
-    if (greeted.current || !canGreet) return;
+    if (greeted.current) {
+      onGreeted?.();
+      return;
+    }
+    if (!canGreet) return;
     greeted.current = true;
     // An overlay already open, or the private moment, skips the greeting this
     // visit; it is not marked seen.
-    if (view !== null || document.querySelector('[role="dialog"]') || !guideUnseen(memberId)) return;
-    guideFrom.current = null;
-    onOpen("guide");
-  }, [canGreet, view, memberId, onOpen]);
+    if (view === null && !document.querySelector('[role="dialog"]') && guideUnseen(memberId)) {
+      guideFrom.current = null;
+      onOpen("guide");
+    }
+    onGreeted?.();
+  }, [canGreet, view, memberId, onOpen, onGreeted]);
 
   const close = () => {
     if (view === "guide") {
