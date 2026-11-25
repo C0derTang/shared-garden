@@ -16,7 +16,19 @@ vi.mock("@/components/world/renderer", () => ({
   },
 }));
 
+// The garden's own world layers are fetched ahead of time (#204); count those loads.
+const warmed = vi.hoisted(() => ({ flowers: 0, fireworks: 0 }));
+vi.mock("@/components/world/flowers/flower-layer", () => {
+  warmed.flowers += 1;
+  return { createFlowerLayer: vi.fn() };
+});
+vi.mock("@/components/world/fireworks/fireworks-layer", () => {
+  warmed.fireworks += 1;
+  return { createFireworksLayer: vi.fn() };
+});
+
 const { CROSSFADE_MS, GARDEN_PATH, LakesideLanding, WALK_SAFETY_MS } = await import("./lakeside-landing");
+const { ARRIVAL_KEY } = await import("@/lib/garden-v2/arrival");
 
 async function flush() {
   await act(async () => {
@@ -34,7 +46,8 @@ function stubReducedMotion(reduce: boolean) {
 }
 
 beforeEach(() => {
-  push.mockClear();
+  window.sessionStorage.clear();
+  push.mockReset();
   prefetch.mockClear();
   created.length = 0;
 });
@@ -99,10 +112,25 @@ describe("with WebGPU", () => {
     expect(screen.getByText(/Walking into the garden/)).toHaveAttribute("aria-live", "polite");
     expect(push).not.toHaveBeenCalled();
 
-    act(() => world.callbacks.onFrame?.({ viewProjection: new Float32Array(16), width: 100, height: 100, entryFade: 0.5 }));
+    act(() => world.callbacks.onFrame?.({ viewProjection: new Float32Array(16), width: 100, height: 100, entryFade: 0.5, arrival: null }));
+    // The garden is told it is being entered from the house, just before navigating (#204).
+    let marked: string | null = null;
+    push.mockImplementation(() => {
+      marked = window.sessionStorage.getItem(ARRIVAL_KEY);
+    });
     act(() => world.callbacks.onEntered?.());
     expect(push).toHaveBeenCalledTimes(1);
     expect(push).toHaveBeenCalledWith(GARDEN_PATH);
+    expect(marked).toMatch(/^\d+$/);
+  });
+
+  it("fetches the garden's world code once the house is painted", async () => {
+    render(<LakesideLanding member />);
+    await flush();
+    act(() => created[0]!.callbacks.onReady());
+    await flush();
+    expect(warmed.flowers).toBe(1);
+    expect(warmed.fireworks).toBe(1);
   });
 
   it("also enters when the painted door itself is tapped", async () => {
@@ -128,6 +156,7 @@ describe("with WebGPU", () => {
     expect(push).not.toHaveBeenCalled();
     act(() => vi.advanceTimersByTime(CROSSFADE_MS));
     expect(push).toHaveBeenCalledWith(GARDEN_PATH);
+    expect(window.sessionStorage.getItem(ARRIVAL_KEY)).not.toBeNull();
   });
 
   it("navigates after the safety delay if the walk-through never reports its end", async () => {

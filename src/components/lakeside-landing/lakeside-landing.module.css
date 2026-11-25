@@ -45,13 +45,12 @@
     0 1px 2px rgb(40 30 20 / 0.3);
 }
 
-/* Warm light the walk-through (or the reduced-motion crossfade) dissolves into. */
+/* Warm light the walk-through (or the reduced-motion crossfade) dissolves into (painted by warm-light.module.css). */
 .light {
   position: absolute;
   inset: 0;
   pointer-events: none;
   opacity: 0;
-  background: radial-gradient(ellipse at 50% 55%, #fff8ea 0%, #ffe2b0 42%, #f6bf7a 100%);
 }
 
 .landing[data-phase="fading"] .light,

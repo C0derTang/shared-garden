@@ -1,0 +1,53 @@
+/* The warm light the garden opens under after the walk-through (#204). */
+.light {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  opacity: 1;
+  /* Holds input while the world gets ready and the camera arrives. */
+  pointer-events: auto;
+}
+
+.light[data-arrival-light="chrome"],
+.light[data-arrival-light="fading"] {
+  pointer-events: none;
+}
+
+/* While the light thins, the world paints at once underneath it. */
+.chromeHidden :global([data-garden-world]) canvas,
+.chromeShowing :global([data-garden-world]) canvas {
+  transition: none;
+}
+
+/*
+ * The title, the floating words, the menus and every other control wait for
+ * the arrival, hidden and out of the keyboard order, so nothing opens under
+ * the light. The painted world and the page heading stay.
+ */
+.chromeHidden > :not(h1):not([data-garden-world]):not([data-arrival-light]),
+.chromeHidden :global([data-caption]) {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none;
+}
+
+/* …then fade in: the title first, then the words, then the menus. */
+.chromeShowing :global([data-caption]) {
+  transition: opacity 1100ms ease 150ms;
+}
+
+.chromeShowing :global([data-caption="title"]) {
+  transition: opacity 1100ms ease;
+}
+
+.chromeShowing nav {
+  transition: opacity 1000ms ease 400ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chromeShowing :global([data-caption]),
+  .chromeShowing :global([data-caption="title"]),
+  .chromeShowing nav {
+    transition: opacity 400ms ease;
+  }
+}
