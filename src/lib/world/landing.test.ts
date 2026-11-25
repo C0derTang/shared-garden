@@ -39,6 +39,69 @@ function close(a: Vec3, b: Vec3, epsilon = 1e-6) {
   a.forEach((value, i) => expect(value).toBeCloseTo(b[i]!, -Math.log10(epsilon)));
 }
 
+function dot3(a: Vec3, b: Vec3): number {
+  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+
+function cross3(a: Vec3, b: Vec3): Vec3 {
+  return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+}
+
+function unit(a: Vec3): Vec3 {
+  const length = Math.hypot(...a);
+  return [a[0] / length, a[1] / length, a[2] / length];
+}
+
+interface HouseTriangle {
+  corners: Vec3[];
+  centroid: Vec3;
+  normal: Vec3;
+  /** Signed distance of the triangle's plane from the house origin. */
+  offset: number;
+  /** Index of the quad the triangle came from (each quad has four vertices). */
+  quad: number;
+}
+
+/** The house mesh's triangles in house-local space. */
+function houseTriangles(mesh: ReturnType<typeof buildHouseMesh>): HouseTriangle[] {
+  // Position (0..2) and outward normal (3..5) of a vertex, back in house-local space.
+  const attribute = (index: number, at: number): Vec3 =>
+    worldToHouse([mesh.vertices[index * HOUSE_STRIDE + at]!, mesh.vertices[index * HOUSE_STRIDE + at + 1]!, mesh.vertices[index * HOUSE_STRIDE + at + 2]!]);
+  const triangles: HouseTriangle[] = [];
+  for (let i = 0; i < mesh.indices.length; i += 3) {
+    const ids = [mesh.indices[i]!, mesh.indices[i + 1]!, mesh.indices[i + 2]!];
+    const corners = ids.map((id) => attribute(id, 0));
+    const [p0, p1, p2] = corners as [Vec3, Vec3, Vec3];
+    // The stored normal, not the winding: the house draws without culling.
+    const normal = unit(attribute(ids[0]!, 3));
+    const centroid: Vec3 = [(p0[0] + p1[0] + p2[0]) / 3, (p0[1] + p1[1] + p2[1]) / 3, (p0[2] + p1[2] + p2[2]) / 3];
+    triangles.push({ corners, centroid, normal, offset: dot3(normal, p0), quad: Math.floor(ids[0]! / 4) });
+  }
+  return triangles;
+}
+
+/** Whether two (near-)coplanar triangles share more than an edge: no separating axis in their plane. */
+function trianglesOverlap(a: HouseTriangle, b: HouseTriangle, margin = 1e-3): boolean {
+  const u = unit(cross3(a.normal, Math.abs(a.normal[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0]));
+  const v = cross3(a.normal, u);
+  const flat = (t: HouseTriangle) => t.corners.map((c) => [dot3(c, u), dot3(c, v)] as const);
+  const pa = flat(a);
+  const pb = flat(b);
+  for (const polygon of [pa, pb]) {
+    for (let k = 0; k < 3; k += 1) {
+      const p = polygon[k]!;
+      const q = polygon[(k + 1) % 3]!;
+      const axis = [p[1] - q[1], q[0] - p[0]] as const;
+      const length = Math.hypot(axis[0], axis[1]);
+      const project = (points: typeof pa) => points.map((point) => (point[0] * axis[0] + point[1] * axis[1]) / length);
+      const ra = project(pa);
+      const rb = project(pb);
+      if (Math.min(Math.max(...ra), Math.max(...rb)) - Math.max(Math.min(...ra), Math.min(...rb)) < margin) return false;
+    }
+  }
+  return true;
+}
+
 describe("landing layout", () => {
   it("turns the design a quarter so the lake and the sunset lie west, to the viewer's left", () => {
     close(worldToDesign(designToWorld([1.5, 2, -3])), [1.5, 2, -3]);
@@ -94,6 +157,21 @@ describe("the house", () => {
     close(worldToHouse(houseToWorld([1, 2, 3])), [1, 2, 3]);
     // The floating words sit in front of the house, above the porch.
     expect(worldToHouse(DOOR_CAPTION)[2]).toBeGreaterThan(0);
+  });
+
+  it("has no coplanar overlapping faces in the roof to z-fight (#213)", () => {
+    // Same-facing triangles sharing a plane and an area flicker as the depth
+    // test picks either; the ridge cap's ends once sat flush with the slabs'.
+    // Above the eaves: the roof slabs, ridge cap, gables and chimney top (not the hidden wall tops).
+    const triangles = houseTriangles(mesh).filter((t) => t.centroid[1] > HOUSE.eaves + 0.05);
+    const fights: string[] = [];
+    triangles.forEach((a, i) => {
+      for (const b of triangles.slice(i + 1)) {
+        if (a.quad === b.quad || dot3(a.normal, b.normal) < 0.9999 || Math.abs(a.offset - b.offset) > 0.01) continue;
+        if (trianglesOverlap(a, b)) fights.push(`${a.centroid.map((v) => v.toFixed(2))} / ${b.centroid.map((v) => v.toFixed(2))}`);
+      }
+    });
+    expect(fights).toEqual([]);
   });
 
   it("picks the door from the viewer and nothing else", () => {
