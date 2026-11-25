@@ -417,8 +417,11 @@ discretion and the look in "World look":
   production.
 - **Floating words:** (superseded by
   [#206](#recorded-choice-even-glows-easy-picking-and-the-plot-navigator-206):
-  no names float over the plants or seed marks any more, and the plot
-  navigator names each plot instead; focus returns to the navigator.)
+  no names float over the plants or seed marks any more. The plot navigator
+  that named each plot instead was itself removed by
+  [#210](#recorded-choice-removing-the-plot-navigator-210):
+  a hidden keyboard plot list reaches every plot, and focus returns to the
+  plot that opened a view, else to the world.)
   Every flower has its lower-case name floating above it
   (Gochi Hand, soft glow). Names fade in as the camera walks closer (within
   about 6.4 world units) so the overview stays a painting; a focused name always
@@ -442,9 +445,10 @@ discretion and the look in "World look":
   hazy, ragged horizon and a dim meadow in loose dabs and leaning brush
   strokes, under the studio's canvas tooth and vignette, kept well below the
   flower so its colours and aura lead. Focus starts at the flower's name, stays inside,
-  and returns to the flower's floating name; Escape, "×" or "back to the
-  garden" close it. Seedlings stay small in the painting (a minimum framing) and
-  grow into the frame. Text is cream on the dark wash (above WCAG AA); headings
+  and returns to the flower's floating name (superseded: see
+  [#210](#recorded-choice-removing-the-plot-navigator-210));
+  Escape, "×" or "back to the garden" close it. Seedlings stay small in the
+  painting (a minimum framing) and grow into the frame. Text is cream on the dark wash (above WCAG AA); headings
   and controls are handwritten, entries are set in the display serif.
 - **Phones and portrait screens** (up to 760 px wide, or portrait up to
   1100 px): the split view stacks, with the painting on top at 45% of the
@@ -777,11 +781,17 @@ under this decision's discretion:
   show, so scrolling during the arrival is kept. Both run from the renderer's
   own frame clock, so they stay in step through slow frames; the light only
   ever thins.
-- **Words and menu:** the floating words, the menus, the corner links and the
-  page's other controls stay hidden and out of the keyboard order (so no view
-  can open under the light) until 2.4 seconds in. They then fade in: the "our
-  garden" title first (1.1 s), then the other words (0.15 s later), then the
-  menus (0.4 s later). The painted world and the page heading stay available.
+- **Title and menu:** the "our garden" title, the menus, the corner links and
+  the page's other controls stay hidden and out of the keyboard order (so no
+  view can open under the light) until 2.4 seconds in. They then fade in: the
+  title first (1.1 s), then the menus (0.4 s later). The painted world and the
+  page heading stay available. (Amended for
+  [#206](#recorded-choice-even-glows-easy-picking-and-the-plot-navigator-206)
+  and
+  [#210](#recorded-choice-removing-the-plot-navigator-210):
+  no names float over the plants any more, so the title is the only floating
+  word in the garden, and the hidden keyboard plot list is added only once the
+  arrival has settled.)
 - **Afterwards:** the arrival settles at 4 seconds. While it plays, it holds
   the head of the page's sheet scope, so a pending private moment (or any
   other scoped sheet) waits and never opens over the light. On settling the
@@ -797,8 +807,8 @@ under this decision's discretion:
   overview and never replays it. A device loss in the middle of the arrival
   restarts the camera move; the light never comes back.
 - **Reduced motion:** no camera move. After the same hold, the light
-  crossfades away linearly over 0.6 seconds while the words fade in over
-  0.4 seconds, and the arrival settles at 0.8 seconds.
+  crossfades away linearly over 0.6 seconds while the title and menus fade in
+  over 0.4 seconds, and the arrival settles at 0.8 seconds.
 - **Fallbacks:** the arrival gives up and settles, fading whatever light is
   left over 0.7 seconds, whenever the world is unsupported or stops (a
   failure, or a second GPU device loss) at any point before it settles, and
@@ -846,10 +856,11 @@ discretion; fulfilment rules and data are unchanged.
   - The partner sees it once, the first time they see that fulfilled Dandelion:
     in the world once it is in view and within 6.4 world units of the camera
     (close enough to see the seeds, which are only a few pixels across from
-    the overview) or in view in a bed the plot navigator has settled on
-    framing (#206), or in its painting if they open it first (then in the world
-    again as they return). Until then its seeds stay attached and it still
-    looks like a puff. A Realtime update while the partner is in the garden
+    the overview), or in its painting if they open it first (then in the world
+    again as they return). (The #206 rule that a bed framed by the plot
+    navigator also counted as seen was removed with the navigator in
+    [#210](#recorded-choice-removing-the-plot-navigator-210).)
+    Until then its seeds stay attached and it still looks like a puff. A Realtime update while the partner is in the garden
     follows the same rule.
   - Nothing blows in the world while the arrival from the house is still
     settling (#204): waiting puffs simply wait under the fading light and may
@@ -911,9 +922,10 @@ choices made under this decision's discretion:
   - The level is set so the displayed peak (after the scene's exposure) is the
     same by day, dawn and dusk, and 45% quieter in full night, where a dark
     meadow makes any glow read stronger. The bloom threshold is unchanged.
-  - Hovering or selecting a plot brightens its glow 2.1× and widens its halo
-    1.35×, the same for a seed mark, a seedling or a bloom (the flower's own
-    petals keep their gentle 12% lift). The seed marks no longer pulse.
+  - Hovering a plot (or, until #210, selecting it in the navigator) brightens
+    its glow 2.1× and widens its halo 1.35×, the same for a seed mark, a
+    seedling or a bloom (the flower's own petals keep their gentle 12% lift).
+    The seed marks no longer pulse.
 - **Picking** (`pickOnScreen` in `lib/world/picking.ts`) is done in screen
   space. A flower's body is its thin stalk and a head as wide as the flower; a
   sprout's body is as small as the sprout. Every plot answers within its body
@@ -925,14 +937,22 @@ choices made under this decision's discretion:
   what a click will open. A press only becomes a drag past 6 px, so a tap never
   nudges the camera. Where plots are closer together on screen than the
   minimum target (a far overview on a phone), each keeps the part of the target
-  nearest to it; the navigator is the way to reach any plot exactly.
+  nearest to it; walking closer separates them. (The plot navigator offered
+  exact reach until
+  [#210](#recorded-choice-removing-the-plot-navigator-210);
+  the hidden keyboard plot list now does so for keyboard and screen-reader
+  users.)
 - **No floating names:** the names over the flowers and "plant a seed" are
   gone, with their caption options (distance fade, quiet tone, accessible
   label). The landing's captions and the garden's title stay.
-- **The plot navigator** (`PlotNavigator`): a small handwritten control in the
-  garden's floating type: a hand-drawn up chevron, the plot's words, a quieter
-  "bed N" under them, a hand-drawn down chevron, and "visit" (a flower) or
-  "plant" (an empty spot) beside the words.
+- **The plot navigator** (`PlotNavigator`; superseded and removed by
+  [#210](#recorded-choice-removing-the-plot-navigator-210)
+  and kept here for the record: of everything below, only the portrait
+  placement of the "while you were away" note, without the navigator, and the
+  held puff's halo in "Seeing a waiting Dandelion" still apply): a small
+  handwritten control in the garden's floating type: a hand-drawn up chevron,
+  the plot's words, a quieter "bed N" under them, a hand-drawn down chevron,
+  and "visit" (a flower) or "plant" (an empty spot) beside the words.
   - **Placement:** on landscape screens it floats at the right of the meadow,
     vertically centred; on portrait screens it floats low in the middle, with
     the hint and messages resting above it. On portrait screens the "while you
@@ -1003,3 +1023,67 @@ choices made under this decision's discretion:
   - The navigator is shown while the painted world loads and runs (not with the
     WebGPU notices, and not before the arrival settles), and it carries no data
     or storage of its own.
+
+### Recorded choice: removing the plot navigator ([#210](https://github.com/C0derTang/shared-garden/issues/210))
+
+The user asked (2026-11-24): "remove plot navigator completely". This
+supersedes the navigator part of
+[#206](#recorded-choice-even-glows-easy-picking-and-the-plot-navigator-206);
+its even glows, generous screen-space picking and the absence of floating
+names stay. You browse by scrolling and panning the painted world and tapping
+plots directly. Conservative choices, the hidden list among them as an
+orchestrator decision required because the names and the navigator are both
+gone:
+
+- **Removed:** the navigator itself (its component, styles and tests), its
+  on-screen chevrons and swipes, the camera's bed framing of a selected plot
+  (`plotPose`, the renderer's selection and its glide, the quieter drift while
+  framed, "wandering off" a framed plot), the selection highlight of a plot in
+  the world (only the hovered plot lights up now), the navigator's focus
+  return, its wait for the first-visit greeting, the "while you were away"
+  note stepping aside while a bed was framed, and the hint and error toast
+  resting higher on portrait screens to clear the navigator. The plot reading
+  order's step helpers went with it.
+- **Seeing a waiting Dandelion:** the framed-bed rule is gone; a partner's
+  waiting Dandelion blows once it is in view and within `SEE_NEAR` (6.4 world
+  units) of the camera, or in its painting, as in
+  [#201](#recorded-choice-dandelion-seeds-blowing-away-201). Its helpers live
+  in the flower layer again.
+- **Kept:** the portrait placement of the "while you were away" note over the
+  sky (clear of the beds in the overview), the one plot-glow rule, the
+  screen-space picking (and its 6 px drag threshold), no floating names, the
+  arrival, the Dandelion animation, the night fireworks, the overlays and the
+  page's sheet-scope queueing.
+- **The hidden keyboard plot list** (`PlotList`): every plot stays reachable
+  and operable by keyboard and screen reader without visible UI.
+  - A navigation landmark, "Plots in the garden", holding a list of buttons,
+    one per spot of the open beds, planted or empty, in reading order: bed by
+    bed in the order the beds opened, and within a bed row by row from back to
+    front, left to right (as recorded for #206).
+  - Each button's words name its plot: "rose · 3 of 5 · bed 1" (growth as in
+    the panel, the stage once bloomed, "♡" after it when your partner cared
+    and you have not), or "empty spot · bed 2". Its accessible name says more:
+    type, stage, growth, who has cared today and the bed ("Empty spot, bed 2"
+    for an empty one).
+  - Every button is visually hidden. Only the button with keyboard focus
+    shows, as a small skip-link-style chip low in the middle of the scene: the
+    plot's words in the garden's handwriting, cream on a dark umber wash
+    (above WCAG AA), with the app's focus ring. There is no other visible
+    chrome, and a pointer never meets it.
+  - Enter or Space opens the flower's split view, or the planting view for an
+    empty spot, with the usual glide.
+  - It sits after the page's other controls in the keyboard order (the world,
+    the corner links, the menus), so each plot is one Tab stop and the rest of
+    the page stays quick to reach.
+  - It is added only once the arrival from the house has settled (and only
+    while the painted world loads and runs, not with the WebGPU notices). It
+    is `inert` and hidden from assistive technology while a flower, planting
+    or overlay view, or a scoped sheet such as the private moment or the
+    first-visit guide, covers the garden.
+- **Focus after closing a view:** it returns to the hidden plot button that
+  opened the view (its chip shows again, so Escape lands back on the plot),
+  retried over the next frames while the list is still inert. A view opened
+  from the world (a tap, an overlay or a link) returns focus to the world. A
+  visit begun from the list stays with it: after planting, focus returns to
+  that spot, and "next: …" in the panel moves the return to the next
+  flower's plot.

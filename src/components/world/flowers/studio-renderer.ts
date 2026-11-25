@@ -319,7 +319,6 @@ export function createStudioRenderer(canvas: HTMLCanvasElement, initial: StudioS
           plotGlow: 0,
           plotBoost: 1,
           plotGrow: 1,
-          selectedSpot: -1,
         };
         backdrop.set({ backdrop: state.backdrop === "sky" ? skyBackdrop(lighting) : plateBackdrop(lighting) });
 

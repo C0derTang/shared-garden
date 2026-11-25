@@ -1,9 +1,9 @@
 // The soft coloured aura behind each flower head (botanical-plate glow), or
 // around a seedling's shoot. It shares the one plot-glow halo with the empty
-// seed marks, brightening and widening for the hovered or selected flower.
+// seed marks, brightening and widening for the hovered flower.
 // Additive; never writes depth or alpha.
 import { World, plotHalo } from "../shaders/common.wgsl";
-import { FlowerParams, flowerHighlighted } from "./flower-core.wgsl";
+import { FlowerParams } from "./flower-core.wgsl";
 
 @group(0) @binding(0) var<uniform> world: World;
 @group(0) @binding(1) var<uniform> flowers: FlowerParams;
@@ -25,7 +25,7 @@ struct AuraOut {
 @vertex fn vs_main(input: AuraIn) -> AuraOut {
   var corners = array<vec2f, 6>(vec2f(-1.0, -1.0), vec2f(1.0, -1.0), vec2f(1.0, 1.0), vec2f(-1.0, -1.0), vec2f(1.0, 1.0), vec2f(-1.0, 1.0));
   let c = corners[input.vertex];
-  let lit = flowerHighlighted(input.paint.w, flowers);
+  let lit = abs(input.paint.w - flowers.hovered) < 0.5;
   let radius = input.sphere.w * select(1.0, flowers.grow, lit);
   let toEye = normalize(world.eye - input.sphere.xyz);
   // Sit behind the head so the petals stay crisp in front of their glow.

@@ -68,7 +68,7 @@ describe("one glow rule for every plot", () => {
     expect(plotGlowLevel(dark)).toBeLessThan(plotGlowLevel(day));
   });
 
-  it("brightens a hovered or selected plot by one moderate boost", () => {
+  it("brightens a hovered plot by one moderate boost", () => {
     expect(PLOT_GLOW.hoverBoost).toBeGreaterThan(1.5);
     expect(PLOT_GLOW.hoverBoost).toBeLessThan(2.5);
     expect(PLOT_GLOW.hoverGrow).toBeGreaterThan(1);

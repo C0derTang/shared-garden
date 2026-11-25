@@ -139,102 +139,90 @@ async function mount(state = garden(), initialFlowerId: string | null = null, in
 }
 
 describe("GardenV2", () => {
-  it("paints the garden with no floating names and lists every plot in the navigator", async () => {
+  it("paints the garden with no floating names and lists every plot in a hidden keyboard list", async () => {
     const { state } = await mount();
     const scene = worlds[0]!.states.at(-1)!;
-    expect(scene).toMatchObject({ spotCapacity: 12, occupiedSpots: [1], paused: false, focus: null, selected: null });
+    expect(scene).toMatchObject({ spotCapacity: 12, occupiedSpots: [1], paused: false, focus: null });
+    expect(scene).not.toHaveProperty("selected");
     expect(scene.flowers.map((f) => f.id)).toEqual([state.plants[0]!.flower.id]);
     // Only the world's title floats in the scene; no names over the plants or seed marks (#206).
     expect([...document.querySelectorAll("[data-caption]")].map((element) => element.getAttribute("data-caption"))).toEqual(["title"]);
     expect(screen.queryByRole("link", { name: /^rose/i })).toBeNull();
-    expect(screen.queryByRole("button", { name: /plant a seed/i })).toBeNull();
-    const list = screen.getByRole("listbox", { name: "Plots in the garden" });
-    const options = within(list).getAllByRole("option");
-    expect(options).toHaveLength(12);
-    expect(within(list).getByRole("option", { name: /^rose, in bud, 2 of 5\. Your care is open; partner cared today\. Bed 1$/ })).toHaveTextContent("rose · 2 of 5 ♡");
-    expect(within(list).getAllByRole("option", { name: "Empty spot, bed 1" })).toHaveLength(11);
+    // No plot navigator (#210): no listbox, chevrons or visit/plant controls.
+    expect(screen.queryByRole("listbox")).toBeNull();
+    expect(screen.queryByRole("button", { name: /previous plot|next plot|^visit$|^plant$/i })).toBeNull();
+    // Every plot is in the hidden list, in reading order, with its full name.
+    const list = screen.getByRole("navigation", { name: "Plots in the garden" });
+    const plots = within(list).getAllByRole("button");
+    expect(plots).toHaveLength(12);
+    expect(within(list).getByRole("button", { name: /^rose, in bud, 2 of 5\. Your care is open; partner cared today\. Bed 1$/ })).toHaveTextContent("rose · 2 of 5 ♡ · bed 1");
+    expect(within(list).getAllByRole("button", { name: "Empty spot, bed 1" })).toHaveLength(11);
+    expect(within(list).getAllByRole("button", { name: "Empty spot, bed 1" })[0]).toHaveTextContent("empty spot · bed 1");
     expect(screen.getByRole("link", { name: "old garden" })).toHaveAttribute("href", "/legacy");
     expect(screen.queryByText(/dev showcase/i)).toBeNull();
   });
 
-  it("steps through the plots, framing each one, and visits a flower with Enter", async () => {
+  it("reaches the hidden plot list by keyboard, opens a flower with Enter and returns focus to it on Escape", async () => {
     const user = userEvent.setup();
     const { state } = await mount();
-    const rose = state.plants[0]!.flower;
-    const list = screen.getByRole("listbox", { name: "Plots in the garden" });
-    list.focus();
-    await user.keyboard("{ArrowDown}");
-    const first = worlds[0]!.states.at(-1)!.selected!;
-    expect(first).toMatchObject({ spot: expect.any(Number) });
-    expect(list).toHaveAttribute("aria-activedescendant", within(list).getByRole("option", { selected: true }).id);
-    // Step until the rose is selected; the world frames it and lights it like the hovered plot.
-    for (let i = 0; i < 12 && !within(list).getByRole("option", { selected: true }).getAttribute("aria-label")!.startsWith("rose"); i += 1) {
-      await user.keyboard("{ArrowDown}");
-    }
-    expect(worlds[0]!.states.at(-1)!.selected).toMatchObject({ spot: 1, flowerId: rose.id, height: expect.any(Number) });
-    expect(screen.getByRole("button", { name: "visit" })).toBeInTheDocument();
+    const list = screen.getByRole("navigation", { name: "Plots in the garden" });
+    const rose = within(list).getByRole("button", { name: /^rose,/ });
+    // Tabbing from the world reaches the plots after the page's other controls.
+    screen.getByRole("link", { name: "home" }).focus();
+    for (let i = 0; i < 20 && !list.contains(document.activeElement); i += 1) await user.tab();
+    expect(list.contains(document.activeElement)).toBe(true);
+    rose.focus();
     await user.keyboard("{Enter}");
     const dialog = await screen.findByRole("dialog", { name: "rose" });
-    expect(worlds[0]!.states.at(-1)).toMatchObject({ paused: true, focus: { position: expect.any(Array) }, selected: { spot: 1 } });
-    expect(window.location.search).toBe(`?flower=${rose.id}`);
+    expect(worlds[0]!.states.at(-1)).toMatchObject({ paused: true, focus: { position: expect.any(Array) } });
+    expect(window.location.search).toBe(`?flower=${state.plants[0]!.flower.id}`);
     expect(within(dialog).getByRole("img", { name: /The rose, in bud/ })).toBeInTheDocument();
     expect(within(dialog).getByRole("progressbar")).toHaveAttribute("aria-valuenow", "2");
     expect(document.activeElement).toBe(within(dialog).getByRole("heading", { name: "rose" }));
-    // Under the split view the navigator is inert and hidden from assistive technology.
-    const navigator = document.querySelector("[data-plot-navigator]")!;
-    expect(navigator).toHaveAttribute("inert");
-    expect(navigator).toHaveAttribute("aria-hidden", "true");
+    // Under the split view the list is inert and hidden from assistive technology.
+    const nav = document.querySelector("[data-plot-list]")!;
+    expect(nav).toHaveAttribute("inert");
+    expect(nav).toHaveAttribute("aria-hidden", "true");
     await user.keyboard("{Escape}");
     expect(screen.queryByRole("dialog")).toBeNull();
-    expect(navigator).not.toHaveAttribute("inert");
-    expect(navigator).not.toHaveAttribute("aria-hidden");
-    // Back to the framed plot, with focus on the navigator.
-    expect(worlds[0]!.states.at(-1)).toMatchObject({ paused: false, focus: null, selected: { spot: 1 } });
+    expect(nav).not.toHaveAttribute("inert");
+    expect(nav).not.toHaveAttribute("aria-hidden");
+    expect(worlds[0]!.states.at(-1)).toMatchObject({ paused: false, focus: null });
     expect(window.location.search).toBe("");
-    expect(document.activeElement).toBe(list);
-    // Escape from the navigator returns to the whole garden.
-    await user.keyboard("{Escape}");
-    expect(worlds[0]!.states.at(-1)!.selected).toBeNull();
-    expect(list).not.toHaveAttribute("aria-activedescendant");
+    expect(document.activeElement).toBe(rose);
   });
 
-  it("returns focus to the navigator with motion on, after the glide and the close", async () => {
+  it("returns focus to the hidden plot with motion on, after the glide and the close", async () => {
     vi.stubGlobal("matchMedia", (query: string) => ({ matches: false, media: query, addEventListener: vi.fn(), removeEventListener: vi.fn() }));
     const user = userEvent.setup();
     await mount();
-    const list = screen.getByRole("listbox", { name: "Plots in the garden" });
-    list.focus();
-    for (let i = 0; i < 12 && !within(list).queryByRole("option", { selected: true })?.getAttribute("aria-label")?.startsWith("rose"); i += 1) {
-      await user.keyboard("{ArrowDown}");
-    }
+    const rose = within(screen.getByRole("navigation", { name: "Plots in the garden" })).getByRole("button", { name: /^rose,/ });
+    rose.focus();
     await user.keyboard("{Enter}");
     // The camera glides first; the split view opens after it.
     expect(screen.queryByRole("dialog")).toBeNull();
     const dialog = await screen.findByRole("dialog", { name: "rose" }, { timeout: 3000 });
-    expect(list.closest("[data-plot-navigator]")).toHaveAttribute("data-hidden");
     await user.click(within(dialog).getByRole("button", { name: /back to the garden/ }));
     expect(screen.queryByRole("dialog")).toBeNull();
-    expect(list.closest("[data-plot-navigator]")).not.toHaveAttribute("data-hidden");
     await act(() => new Promise((resolve) => setTimeout(resolve, 60)));
-    expect(document.activeElement).toBe(list);
+    expect(document.activeElement).toBe(rose);
   });
 
-  it("keeps the navigator inert until the first-visit greeting is decided, so it is never live under the guide", async () => {
+  it("is inert and hidden while the first-visit guide is open", async () => {
     window.localStorage.removeItem(guideKey(1));
     const state = garden();
     api.refreshGardenV2.mockResolvedValue({ state, error: null });
     render(<GardenV2 initial={{ state, error: null }} />);
     await flush();
     await flush();
-    const navigator = () => document.querySelector("[data-plot-navigator]");
-    expect(navigator()).toHaveAttribute("inert");
     act(() => worlds[0]!.callbacks.onReady());
     expect(await screen.findByRole("dialog", { name: /guide/i })).toBeInTheDocument();
-    expect(navigator()).toHaveAttribute("inert");
+    const nav = document.querySelector("[data-plot-list]");
+    expect(nav).toHaveAttribute("inert");
+    expect(nav).toHaveAttribute("aria-hidden", "true");
   });
 
-  it("marks a flower whose care is open for you, and keeps the Peony quiet", async () => {
-    const user = userEvent.setup();
+  it("shows a Sunflower's care like any daily flower, and keeps the Peony quiet", async () => {
     const state = garden();
     const rose = state.plants[0]!;
     state.plants.push(
@@ -243,52 +231,35 @@ describe("GardenV2", () => {
     );
     state.garden.next_spot = 4;
     await mount(state);
-    const list = screen.getByRole("listbox", { name: "Plots in the garden" });
-    const sunflower = within(list).getByRole("option", { name: /^sunflower,/ });
+    const list = screen.getByRole("navigation", { name: "Plots in the garden" });
+    const sunflower = within(list).getByRole("button", { name: /^sunflower,/ });
     expect(sunflower.getAttribute("aria-label")).toMatch(/Your care is open/);
-    const peony = within(list).getByRole("option", { name: /^peony,/ });
+    const peony = within(list).getByRole("button", { name: /^peony,/ });
     expect(peony.getAttribute("aria-label")).not.toMatch(/care|cared/i);
-    const navigator = list.closest("[data-plot-navigator]")!;
-    list.focus();
-    const seen: Record<string, boolean> = {};
-    for (let i = 0; i < 12; i += 1) {
-      await user.keyboard("{ArrowDown}");
-      const name = within(list).getByRole("option", { selected: true }).getAttribute("aria-label")!.split(",")[0]!;
-      seen[name] = navigator.hasAttribute("data-due");
-    }
-    expect(seen).toMatchObject({ sunflower: true, peony: false });
   });
 
-  it("plants on an empty plot from the navigator", async () => {
+  it("plants on an empty plot from the hidden list, and returns focus to that plot", async () => {
     const user = userEvent.setup();
     await mount();
-    const list = screen.getByRole("listbox", { name: "Plots in the garden" });
-    list.focus();
-    await user.keyboard("{Home}");
-    if (within(list).getByRole("option", { selected: true }).getAttribute("aria-label")!.startsWith("rose")) await user.keyboard("{ArrowDown}");
-    expect(within(list).getByRole("option", { selected: true })).toHaveTextContent("empty spot");
-    const spot = worlds[0]!.states.at(-1)!.selected!.spot;
-    expect(worlds[0]!.states.at(-1)!.selected).toMatchObject({ flowerId: null, height: 0 });
-    await user.click(screen.getByRole("button", { name: "plant" }));
+    const empty = within(screen.getByRole("navigation", { name: "Plots in the garden" })).getAllByRole("button", { name: "Empty spot, bed 1" })[0]!;
+    empty.focus();
+    await user.keyboard("{Enter}");
     expect(await screen.findByRole("dialog", { name: "plant a seed" })).toBeInTheDocument();
-    expect(spot).toBeGreaterThan(1);
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).toBeNull();
+    await act(() => new Promise((resolve) => setTimeout(resolve, 30)));
+    expect(document.activeElement).toBe(empty);
   });
 
-  it("keeps direct taps in the world working, and lets the framing go when you wander off", async () => {
+  it("keeps direct taps in the world working, and returns focus to the world after them", async () => {
     const user = userEvent.setup();
     const { state } = await mount();
-    const list = screen.getByRole("listbox", { name: "Plots in the garden" });
-    list.focus();
-    await user.keyboard("{ArrowDown}");
-    expect(worlds[0]!.states.at(-1)!.selected).not.toBeNull();
-    // Tapping the rose in the world moves the navigator there and opens it.
     act(() => worlds[0]!.callbacks.onPick({ kind: "flower", id: state.plants[0]!.flower.id, distance: 1 }));
     expect(await screen.findByRole("dialog", { name: "rose" })).toBeInTheDocument();
-    expect(worlds[0]!.states.at(-1)!.selected).toMatchObject({ spot: 1 });
     await user.keyboard("{Escape}");
-    // Scrolling or dragging the world while a plot is framed lets the framing go.
-    act(() => worlds[0]!.callbacks.onWander?.());
-    expect(worlds[0]!.states.at(-1)!.selected).toBeNull();
+    expect(screen.queryByRole("dialog")).toBeNull();
+    await act(() => new Promise((resolve) => setTimeout(resolve, 30)));
+    expect(document.activeElement).toBe(document.querySelector("[data-garden-world]"));
   });
 
   it("opens a deep-linked flower straight away", async () => {
@@ -328,14 +299,7 @@ describe("GardenV2", () => {
     const note = screen.getByRole("region", { name: "while you were away…" });
     expect(note).toHaveTextContent("partner cared for the rose");
     expect(note).toHaveTextContent("the rose grew");
-    // It steps aside while the navigator frames a bed, and comes back with the whole garden.
-    const list = screen.getByRole("listbox", { name: "Plots in the garden" });
-    list.focus();
-    await userEvent.setup().keyboard("{ArrowDown}");
-    expect(screen.queryByRole("region", { name: "while you were away…" })).toBeNull();
-    await userEvent.setup().keyboard("{Escape}");
-    expect(screen.getByRole("region", { name: "while you were away…" })).toBeInTheDocument();
-    await userEvent.setup().click(within(screen.getByRole("region", { name: "while you were away…" })).getByRole("button", { name: "lovely, thanks" }));
+    await userEvent.setup().click(within(note).getByRole("button", { name: "lovely, thanks" }));
     expect(screen.queryByRole("region", { name: "while you were away…" })).toBeNull();
   });
 
@@ -552,13 +516,6 @@ describe("GardenV2", () => {
       expect(screen.queryByRole("dialog")).toBeNull();
       expect(worlds[0]!.states.at(-1)).toMatchObject({ paused: false, focus: { position: expect.any(Array) } });
       expect(seeds.deferred.at(-1)).toBeNull();
-      // Stepping the navigator during the close-look hold takes over the camera at once (#206).
-      const list = screen.getByRole("listbox", { name: "Plots in the garden" });
-      list.focus();
-      await user.keyboard("{ArrowDown}");
-      expect(worlds[0]!.states.at(-1)).toMatchObject({ focus: null, selected: { spot: expect.any(Number) } });
-      await user.keyboard("{Escape}");
-      expect(worlds[0]!.states.at(-1)).toMatchObject({ focus: null, selected: null });
       act(() => seeds.requests[0]!.onStart?.());
       // Reopening the painting shows the golden head directly.
       act(() => worlds[0]!.callbacks.onPick({ kind: "flower", id, distance: 1 }));
@@ -630,7 +587,7 @@ describe("GardenV2", () => {
       Object.assign(state.plants[0]!.flower, { first_bloom_at: "2026-10-10T17:00:00Z", first_bloom_day: "2026-10-10", fulfilled_at: "2026-10-20T17:00:00Z" });
       await mount(state);
       // The garden loaded (the Dandelion is there), but nothing waits to blow.
-      expect(screen.getByRole("option", { name: /^dandelion,/ })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /^dandelion,/ })).toBeInTheDocument();
       expect(seeds.requests).toEqual([]);
     });
   });

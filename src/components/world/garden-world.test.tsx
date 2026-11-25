@@ -123,22 +123,13 @@ describe("GardenWorld with WebGPU", () => {
     expect(moves.pan.mock.calls.map(([d]) => Math.sign(d as number))).toEqual([-1, 1]);
   });
 
-  it("passes the camera focus, the navigator's selection and pause to the renderer", async () => {
+  it("passes the camera focus and pause to the renderer", async () => {
     const focus = { position: [1, 0, 2] as [number, number, number], height: 0.8 };
-    const selected = { spot: 3, flowerId: "rose", height: 0.6 };
     const { rerender } = render(<GardenWorld />);
     await flush();
     updates.length = 0;
-    rerender(<GardenWorld focus={focus} selected={selected} paused />);
-    expect(updates.at(-1)).toMatchObject({ focus, selected, paused: true });
-  });
-
-  it("tells the page when the visitor wanders off a framed plot", async () => {
-    const wander = vi.fn();
-    render(<GardenWorld onWander={wander} />);
-    await flush();
-    act(() => created[0]!.onWander?.());
-    expect(wander).toHaveBeenCalledTimes(1);
+    rerender(<GardenWorld focus={focus} paused />);
+    expect(updates.at(-1)).toMatchObject({ focus, paused: true });
   });
 
   it("renders link captions that still work as links and run their handler on a plain click", async () => {

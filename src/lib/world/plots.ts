@@ -1,6 +1,6 @@
 /**
- * The order the plot navigator steps through the garden's spots (#206): bed by
- * bed, row by row. Beds go in the order they opened (bed 1 in the middle of
+ * The order the garden's hidden keyboard plot list reads its spots in (#210):
+ * bed by bed, row by row. Beds go in the order they opened (bed 1 in the middle of
  * the meadow, then the beds that opened around it), so their numbers only
  * ever grow as you step on. Within a bed, spots go row by row from the back
  * of the bed (the top of the screen) to the front, left to right within a
@@ -40,32 +40,3 @@ export function plotOrder(capacity: number): number[] {
 /** Zero-based bed of a one-based spot. */
 export const bedOfSpot = (spot: number) => Math.floor((spot - 1) / SPOTS_PER_BED);
 
-/**
- * The index `step` plots along `order` from `index` (no wrapping). With no
- * selection (index -1), any step starts at the first plot.
- */
-export function stepPlot(length: number, index: number, step: number): number {
-  if (length === 0) return -1;
-  if (index < 0 || index >= length) return 0;
-  return Math.min(length - 1, Math.max(0, index + step));
-}
-
-/**
- * The first plot of the next (`direction` 1) or previous (-1) bed along
- * `order`, from `index`. From the first bed, "previous" goes to its first
- * plot; from the last bed, "next" stays put. With no selection, it starts at
- * the first plot.
- */
-export function stepBed(order: readonly number[], index: number, direction: 1 | -1): number {
-  if (order.length === 0) return -1;
-  if (index < 0 || index >= order.length) return 0;
-  const bed = bedOfSpot(order[index]!);
-  if (direction > 0) {
-    const next = order.findIndex((spot, i) => i > index && bedOfSpot(spot) !== bed);
-    return next === -1 ? index : next;
-  }
-  const bedStart = order.findIndex((spot) => bedOfSpot(spot) === bed);
-  if (bedStart <= 0) return 0;
-  const previousBed = bedOfSpot(order[bedStart - 1]!);
-  return order.findIndex((spot) => bedOfSpot(spot) === previousBed);
-}

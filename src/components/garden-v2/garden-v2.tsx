@@ -7,7 +7,6 @@ import type { FlowerLayer } from "@/components/world/flowers/flower-layer";
 import { worldFlowerAnchors, type WorldFlower } from "@/components/world/flowers/flower-models";
 import { FireworksOverlay } from "@/components/world/fireworks/fireworks-overlay";
 import { GardenWorld, usePrefersReducedMotion, type WorldCaption, type WorldStatus } from "@/components/world/garden-world";
-import type { SelectedPlot } from "@/components/world/renderer";
 import { handFont } from "@/components/world/hand-font";
 import { legacyPath } from "@/lib/legacy/routes";
 import { diffAway, hasAwayNews, noAwayNews, readAwaySnapshot, takeAwaySnapshot, writeAwaySnapshot, type AwayNews } from "@/lib/garden-v2/away";
@@ -24,7 +23,7 @@ import { FlowerPanel } from "./flower-panel";
 import { useNightFireworks } from "./night-fireworks";
 import { GardenOverlays } from "./overlays/garden-overlays";
 import { PlantView } from "./plant-view";
-import { PlotNavigator, focusPlotNavigator } from "./plot-navigator";
+import { PlotList, focusPlot } from "./plot-list";
 import { useSeedBlows } from "./seed-blows";
 import { SplitView } from "./split-view";
 import styles from "./garden-v2.module.css";
@@ -62,9 +61,9 @@ const TITLE: readonly WorldCaption[] = [{ id: "title", text: "our garden", posit
 /**
  * The new garden: a full-screen painted world fed by the v2 state and its
  * Realtime channel. Empty seed marks plant any flower; tapping a flower glides
- * the camera to it and opens the split view. The plot navigator steps through
- * every plot with the camera framing each one (#206); no names float over the
- * plants.
+ * the camera to it and opens the split view. No names float over the plants
+ * (#206); keyboard and screen-reader users reach every plot through a hidden
+ * plot list that shows only the focused plot's name (#210).
  */
 export function GardenV2({
   initial,
@@ -86,14 +85,12 @@ export function GardenV2({
   const [news, setNews] = useState<AwayNews>(noAwayNews);
   const [wandered, setWandered] = useState(false);
   const [view, setView] = useState<GardenView | null>(initialFlowerId ? null : initialView);
-  const [selectedSpot, setSelectedSpot] = useState<number | null>(null);
-  // The first-visit greeting has been decided; the navigator waits for it (#206).
-  const [greeted, setGreeted] = useState(false);
-  const markGreeted = useCallback(() => setGreeted(true), []);
   /** The flower the camera is gliding to or showing in its painting (its seeds wait for the painting). */
   const [visiting, setVisiting] = useState<string | null>(null);
   const timer = useRef<number | undefined>(undefined);
   const visitSpot = useRef<number | null>(null);
+  // Where focus returns when a view closes (#210): the hidden plot that opened it, else the world.
+  const returnSpot = useRef<number | null>(null);
   // The flower layer (GPU code and shaders) loads with the world, not in the page's first bundle.
   const [flowerLayer, setFlowerLayer] = useState<FlowerLayer | null>(null);
   useEffect(() => {
@@ -144,21 +141,17 @@ export function GardenV2({
     (id: string, immediate = false) => {
       const anchor = anchors.find((candidate) => candidate.id === id);
       if (!anchor) return;
-      // While navigating, any visit (a tap in the world, "next: …") moves the navigator there too.
-      const spot = state?.plants.find((plant) => plant.flower.id === id)?.flower.spot;
-      if (spot !== undefined) setSelectedSpot((current) => (current === null ? null : spot));
       setMode({ kind: "idle" });
       setVisiting(id);
       setWandered(true);
       window.history.replaceState(window.history.state, "", flowerHref(id));
       glide({ position: anchor.position, height: anchor.height ?? 0.8 }, () => setMode({ kind: "flower", id }), immediate);
     },
-    [state, anchors, glide],
+    [anchors, glide],
   );
 
   const startPlant = useCallback(
     (spot: number) => {
-      setSelectedSpot((current) => (current === null ? null : spot));
       setMode({ kind: "idle" });
       setVisiting(null);
       setWandered(true);
@@ -233,27 +226,40 @@ export function GardenV2({
     writeAwaySnapshot(state.member_id, takeAwaySnapshot(state));
   }, [state]);
 
-  // The plot navigator (#206): every plot of the open beds, in order; the camera frames the selected one.
+  // The hidden keyboard plot list (#210): every plot of the open beds, in reading order.
   const plots = useMemo(() => (state ? gardenPlots(state, partner.short) : []), [state, partner.short]);
-  const selected = useMemo<SelectedPlot | null>(() => {
-    const plot = selectedSpot === null ? undefined : plots.find((candidate) => candidate.spot === selectedSpot);
-    if (!plot) return null;
-    const id = plot.plant?.flower.id ?? null;
-    const anchor = id === null ? undefined : anchors.find((candidate) => candidate.id === id);
-    return { spot: plot.spot, flowerId: anchor ? id : null, height: anchor?.height ?? 0 };
-  }, [selectedSpot, plots, anchors]);
-  // Stepping the navigator takes over the camera: any glide toward a flower, or the close
-  // look held while a dandelion's seeds lift (#201), ends and the bed framing glides in.
-  const selectPlot = useCallback((spot: number | null) => {
-    window.clearTimeout(timer.current);
-    setFocus(null);
-    setVisiting(null);
-    if (window.location.search) window.history.replaceState(window.history.state, "", GARDEN_PATH);
-    setSelectedSpot(spot);
-    if (spot !== null) setWandered(true);
-  }, []);
-  const visitPlot = useCallback((plot: GardenPlot) => (plot.plant ? visit(plot.plant.flower.id) : startPlant(plot.spot)), [visit, startPlant]);
-  const wanderOff = useCallback(() => setSelectedSpot(null), []);
+  const openPlot = useCallback(
+    (plot: GardenPlot) => {
+      returnSpot.current = plot.spot;
+      if (plot.plant) visit(plot.plant.flower.id);
+      else startPlant(plot.spot);
+    },
+    [visit, startPlant],
+  );
+  // A tap in the world (or a flower chosen in an overlay) returns focus to the world.
+  const pickFlower = useCallback(
+    (id: string) => {
+      returnSpot.current = null;
+      visit(id);
+    },
+    [visit],
+  );
+  const pickSpot = useCallback(
+    (spot: number) => {
+      returnSpot.current = null;
+      startPlant(spot);
+    },
+    [startPlant],
+  );
+  // "next: …" in the panel: a visit begun from the list returns to the next flower's plot.
+  const visitNext = useCallback(
+    (id: string) => {
+      if (returnSpot.current !== null) returnSpot.current = state?.plants.find((plant) => plant.flower.id === id)?.flower.spot ?? null;
+      visit(id);
+    },
+    [state, visit],
+  );
+  const returnFocus = useCallback(() => focusPlot(returnSpot.current), []);
 
   if (!state)
     return (
@@ -292,14 +298,12 @@ export function GardenV2({
         layers={layers}
         captions={TITLE}
         focus={focus}
-        selected={selected}
         paused={covered}
         arrival={arrival.world}
         onView={arrival.onView}
         onStatusChange={setWorldStatus}
-        onPickFlower={visit}
-        onPickSpot={startPlant}
-        onWander={wanderOff}
+        onPickFlower={pickFlower}
+        onPickSpot={pickSpot}
         label={`Our painted garden by the lake, with ${state.plants.length} ${state.plants.length === 1 ? "flower" : "flowers"}`}
       />
       <nav className={styles.corner} aria-label="Leave the garden">
@@ -314,25 +318,17 @@ export function GardenV2({
         flowerOpen={mode.kind !== "idle"}
         onOpen={openView}
         onClose={closeView}
-        onGreeted={markGreeted}
         onVisit={(id) => {
           setView(null);
-          visit(id);
+          pickFlower(id);
         }}
       />
       <FireworksOverlay {...fireworks.overlay} hidden={covered} />
-      {/* The plot navigator (#206) appears once the arrival from the house has settled. */}
-      {worldStatus !== "unsupported" && worldStatus !== "stopped" && arrival.settled && plots.length > 0 && (
-        <PlotNavigator plots={plots} selected={selectedSpot} onSelect={selectPlot} onVisit={visitPlot} hidden={covered || sheetOpen || !greeted} />
-      )}
       {worldStatus === "ready" && arrival.settled && !wandered && !covered && !sheetOpen && (
         <p className={styles.hint}>scroll to wander closer · tap a flower to visit</p>
       )}
-      {/* The away note waits for the fireworks to finish, so their words never overlap, and steps
-          aside while the navigator frames a bed (it would cover the bed's plots on a phone, #206). */}
-      {!covered && arrival.settled && !fireworks.overlay.playing && selectedSpot === null && hasAwayNews(news) && (
-        <AwayNote news={news} state={state} onDismiss={() => setNews(noAwayNews)} />
-      )}
+      {/* The away note waits for the fireworks to finish, so their words never overlap. */}
+      {!covered && arrival.settled && !fireworks.overlay.playing && hasAwayNews(news) && <AwayNote news={news} state={state} onDismiss={() => setNews(noAwayNews)} />}
       {error && !covered && (
         <p className={styles.toast} role="status">
           {error}
@@ -341,6 +337,11 @@ export function GardenV2({
       <p className={styles.srOnly} aria-live="polite">
         {announcement}
       </p>
+      {/* The hidden plot list (#210) is there once the arrival from the house has settled; it
+          comes last in the keyboard order, after the page's other controls. */}
+      {worldStatus !== "unsupported" && worldStatus !== "stopped" && arrival.settled && plots.length > 0 && (
+        <PlotList plots={plots} onOpen={openPlot} hidden={covered || sheetOpen} />
+      )}
       {openPlant && openItem && (
         <SplitView
           open
@@ -351,7 +352,7 @@ export function GardenV2({
           heroStage={stageWords(openPlant, openItem)}
           title={openName}
           subtitle={`planted by ${openPlant.flower.planted_by === state.member_id ? "you" : partner.short} · ${gardenDayLabel(openPlant.flower.planted_day)}`}
-          onReturnFocus={focusPlotNavigator}
+          onReturnFocus={returnFocus}
           blowSeeds={seedBlows.heroToken}
         >
           <FlowerPanel
@@ -362,7 +363,7 @@ export function GardenV2({
             now={now}
             busy={busy}
             mutate={mutate}
-            onVisit={visit}
+            onVisit={visitNext}
             onSeedsBlown={seedBlows.fulfilled}
           />
         </SplitView>
@@ -373,7 +374,7 @@ export function GardenV2({
         busy={busy}
         mutate={mutate}
         onClose={close}
-        onReturnFocus={focusPlotNavigator}
+        onReturnFocus={returnFocus}
         onPlanted={(result, spot) => {
           const planted = result.state?.plants.find((plant) => plant.flower.spot === spot);
           const name = planted ? captionName(catalogItem(result.state!, planted.flower.type_key), planted.flower.type_key) : "flower";

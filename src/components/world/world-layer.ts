@@ -48,12 +48,10 @@ export interface WorldUniforms {
   readonly showDim: number;
   /** The shared plot-glow level for this sky (`plotGlowLevel` in lib/world/glow.ts). */
   readonly plotGlow: number;
-  /** How much a hovered or selected plot's glow brightens. */
+  /** How much a hovered plot's glow brightens. */
   readonly plotBoost: number;
   /** How much its halo widens. */
   readonly plotGrow: number;
-  /** One-based empty spot the plot navigator selected, or -1. */
-  readonly selectedSpot: number;
 }
 
 /** A local light a layer throws on the scene for one frame (e.g. fireworks bursts). */
@@ -90,13 +88,6 @@ export interface WorldFrameContext {
   readonly sky: SkyState;
   /** Flower under the pointer, if any. */
   readonly hoveredFlowerId: string | null;
-  /** Flower the plot navigator selected, if any; it shares the hover highlight. */
-  readonly selectedFlowerId: string | null;
-  /**
-   * The bed the plot navigator frames, once the camera has settled on it
-   * (null otherwise): its plots count as seen up close (#206).
-   */
-  readonly framedBed?: { readonly center: Vec3; readonly radius: number } | null;
   /** The shared `World` uniform values for this frame. */
   readonly world: WorldUniforms;
 }
