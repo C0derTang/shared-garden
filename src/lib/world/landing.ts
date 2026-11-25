@@ -348,8 +348,11 @@ export function buildHouseMesh(): MeshData {
       "axes",
     );
   }
-  // Ridge cap.
-  b.aabox([-0.12, R + 0.02, back], [0.12, R + 0.16, front], M.roof);
+  // Ridge cap. Its ends stand a little proud of the slabs' end faces: flush,
+  // the cap's roof-coloured ends and the slabs' trim ends were coplanar and
+  // z-fought, so the roof apex flickered (#213).
+  const capLip = 0.04;
+  b.aabox([-0.12, R + 0.02, back - capLip], [0.12, R + 0.16, front + capLip], M.roof);
 
   // Chimney on the right side wall.
   b.aabox([W + 0.02, -0.5, -4.35], [W + 0.8, R + 0.9, -3.05], M.stone);

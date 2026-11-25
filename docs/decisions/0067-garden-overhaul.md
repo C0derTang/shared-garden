@@ -397,6 +397,14 @@ device-loss handling.
 - **Development preview:** `/dev/landing?sky=dusk&member=1` shows a fixed sky
   and the member view without a session. It is available in development only
   and returns 404 in production.
+- **Roof apex flicker ([#213](https://github.com/C0derTang/shared-garden/issues/213)):**
+  the ridge cap's end faces were flush with the roof slabs' end faces, so the
+  cap's slate ends and the slabs' cream trim ends were coplanar and z-fought at
+  the apex (at every sky, at desktop and phone widths). It was not shadow acne
+  or the painterly filter. The cap now overhangs each slab end by 4 cm, so its
+  slate end always wins and the apex is a steady small slate cap, as in the
+  frames where the cap had won. A house test fails if any faces above the eaves
+  share a plane and an area again.
 
 ### Recorded choice: the garden page and flower activities ([#181](https://github.com/C0derTang/shared-garden/issues/181))
 
