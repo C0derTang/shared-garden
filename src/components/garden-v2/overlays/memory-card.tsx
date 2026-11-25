@@ -198,6 +198,9 @@ function Content({ item, memberId }: { item: MemoryItem; memberId: 1 | 2 }) {
     case "daisy":
       return (
         <>
+          {entry.question && entry.question_asked_by && (
+            <p className={styles.meta}>{entry.question_asked_by === memberId ? "you asked" : `${partner.short} asked`}</p>
+          )}
           {entry.question && <p className={styles.question}>{entry.question}</p>}
           <Expandable text={entry.payload.text ?? ""} />
         </>

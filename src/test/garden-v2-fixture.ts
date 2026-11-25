@@ -69,6 +69,7 @@ export function v2GardenFixture(): GardenState {
         entries: [v2EntryFixture()],
         hydrangea_picks: [null, null],
         daisy_question: null,
+        daisy_custom_questions: [],
         member1_submitted: true,
         member2_submitted: false,
       },

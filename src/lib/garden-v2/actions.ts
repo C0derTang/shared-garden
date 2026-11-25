@@ -4,7 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireMember } from "@/lib/auth/server";
 import { MemberAccessUnavailableError } from "@/lib/auth/access-error";
 import { parseReply, validEntryId, type Reply } from "@/lib/replies/model";
-import { parseEntries, parseGardenState, type Entry, type GardenCommand, type GardenResult } from "./model";
+import { parseEntries, parseEntryQuestion, parseGardenState, type Entry, type GardenCommand, type GardenResult } from "./model";
 
 // Server Actions are public endpoints: every call rechecks live membership.
 async function actionClient() {
@@ -46,6 +46,13 @@ function rejection(error: { code?: string; message?: string }) {
   if (/bloomed/i.test(message)) return "This flower has bloomed and needs no more daily care. Its memories stay here.";
   if (/spot/i.test(message)) return "That spot is no longer available. The refreshed garden shows the open spots.";
   if (/dedicated workflow/i.test(message)) return "This flower's care is not available yet.";
+  // Daisy questions (#212): the server never attaches an answer to a question you did not see.
+  if (/question changed|question asked of you|assigned daily question/i.test(message))
+    return "Your question just changed. Read it again above; your answer is still here.";
+  if (/keeps its original question/i.test(message)) return "An edit answers the same question. Your draft is still here.";
+  if (/question is locked/i.test(message)) return "Your partner has already answered, so today's question stays as it is.";
+  if (/1 to 300 characters|question fields/i.test(message)) return "Your question needs 1 to 300 characters.";
+  if (/not a garden member/i.test(message)) return "Your partner can't be asked a question right now.";
   if (error.code === "22023")
     return "That contribution could not be saved. Check the form and current care window, then try again.";
   return unconfirmed;
@@ -70,6 +77,10 @@ export async function mutateGardenV2(command: GardenCommand): Promise<GardenResu
       response = await client.rpc("v2_edit_flower_entry", { p_entry_id: command.entryId, p_payload: command.payload });
     else if (command?.kind === "fulfillDandelion")
       response = await client.rpc("v2_fulfill_dandelion", { p_flower_id: command.flowerId });
+    else if (command?.kind === "askDaisy")
+      response = await client.rpc("v2_ask_daisy_question", { p_flower_id: command.flowerId, p_question: { prompt: command.prompt } });
+    else if (command?.kind === "removeDaisyQuestion")
+      response = await client.rpc("v2_remove_daisy_question", { p_flower_id: command.flowerId });
     else return { ...(await readState(client)), saved: false, error: "Choose a valid garden action." };
     if (response.error)
       error =
@@ -89,6 +100,23 @@ export async function mutateGardenV2(command: GardenCommand): Promise<GardenResu
   };
 }
 
+/**
+ * Attach the question each earlier Daisy answer responded to. Questions are a
+ * label on top of the entries, so a failed lookup leaves the entries readable.
+ */
+async function withDaisyQuestions(client: SupabaseClient, entries: Entry[]): Promise<Entry[]> {
+  const ids = entries.filter((entry) => entry.daisy_assignment_day).map((entry) => entry.id);
+  if (!ids.length) return entries;
+  try {
+    const { data, error } = await client.rpc("v2_daisy_entry_questions", { p_entry_ids: ids });
+    if (error || !Array.isArray(data)) return entries;
+    const questions = new Map(data.map((row: { entry_id: number; question: unknown }) => [row.entry_id, parseEntryQuestion(row.question)]));
+    return entries.map((entry) => (questions.has(entry.id) ? { ...entry, question: questions.get(entry.id) } : entry));
+  } catch {
+    return entries;
+  }
+}
+
 export async function loadFlowerHistoryV2(
   flowerId: string,
   beforeId: number | null = null,
@@ -98,7 +126,7 @@ export async function loadFlowerHistoryV2(
   try {
     const { data, error } = await client.rpc("v2_entry_history", { p_flower_id: flowerId, p_limit: 20, p_before_id: beforeId });
     if (error) throw new Error("History unavailable");
-    return { entries: parseEntries(data), error: null };
+    return { entries: await withDaisyQuestions(client, parseEntries(data)), error: null };
   } catch {
     return { entries: [], error: "History could not load. Try again when connected." };
   }

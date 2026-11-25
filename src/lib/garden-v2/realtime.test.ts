@@ -45,9 +45,10 @@ it("subscribes only to v2 tables, coalesces invalidations and cleans up", async 
   expect(refresh).toHaveBeenCalledTimes(1);
   expect(removeChannel).toHaveBeenCalledWith(channel);
 });
-it("includes the Peony and achievement tables", () => {
+it("includes the Peony, achievement and Daisy question tables", () => {
   expect(V2_REALTIME_TABLES).toEqual(
     expect.arrayContaining([
+      "v2_daisy_custom_questions",
       "v2_peony_contributions",
       "v2_peony_plans",
       "v2_peony_acceptances",

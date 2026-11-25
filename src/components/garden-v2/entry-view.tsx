@@ -2,6 +2,7 @@
 import { SongPlayer } from "@/components/music/song-player";
 import { moodLabel, moodPick, moodSwatches, OTHER_MOOD, type MoodPick } from "@/lib/garden/moods";
 import type { Entry } from "@/lib/garden-v2/model";
+import { AnsweredQuestion } from "./daisy-questions";
 import styles from "./garden-v2.module.css";
 import { PhotoEntry, VoiceEntry } from "./media-care";
 
@@ -18,9 +19,16 @@ export function MoodChip({ pick }: { pick: MoodPick }) {
   );
 }
 
-/** One saved contribution, shown the way its flower shares it. */
-export function EntryContent({ entry, type }: { entry: Entry; type: string }) {
+/** One saved contribution, shown the way its flower shares it. A Daisy answer leads with its question. */
+export function EntryContent({ entry, type, memberId }: { entry: Entry; type: string; memberId?: 1 | 2 }) {
   const payload = entry.payload;
+  if (type === "daisy" && entry.question && memberId)
+    return (
+      <>
+        <AnsweredQuestion question={entry.question} memberId={memberId} />
+        <p className={styles.entryText}>{payload.text ?? "This contribution has a format this view cannot show yet."}</p>
+      </>
+    );
   if (type === "sunflower" && payload.media_id) return <PhotoEntry mediaId={payload.media_id} />;
   if (type === "bluebell" && payload.media_id) return <VoiceEntry mediaId={payload.media_id} />;
   if (type === "cactus") return <p className={styles.entryText}>Checked in. I’m here.</p>;
