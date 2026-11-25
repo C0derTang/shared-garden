@@ -23,6 +23,8 @@ export interface SplitViewProps {
   readonly onReturnFocus?: () => void;
   readonly children: ReactNode;
   readonly closeLabel?: string;
+  /** Blows a Dandelion's seeds away in the painting (#201): each new token plays once. */
+  readonly blowSeeds?: number | null;
 }
 
 /** Seedlings stay small in the painting and grow into the frame as they grow. */
@@ -58,7 +60,20 @@ function useSheetSlot(open: boolean) {
  * dialog: focus stays inside, Escape or "back to the garden" closes it, and
  * focus returns to the flower's words in the world.
  */
-export function SplitView({ open, onClose, spec, heroLabel, heroName, heroStage, title, subtitle, onReturnFocus, children, closeLabel = "Back to the garden" }: SplitViewProps) {
+export function SplitView({
+  open,
+  onClose,
+  spec,
+  heroLabel,
+  heroName,
+  heroStage,
+  title,
+  subtitle,
+  onReturnFocus,
+  children,
+  closeLabel = "Back to the garden",
+  blowSeeds = null,
+}: SplitViewProps) {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const { visible, noticeRef } = useSheetSlot(open);
   return (
@@ -80,7 +95,7 @@ export function SplitView({ open, onClose, spec, heroLabel, heroName, heroStage,
           }}
         >
           <div className={styles.hero}>
-            <FlowerHero spec={spec} label={heroLabel} className={styles.heroCanvas} minExtent={HERO_MIN_EXTENT} backdrop="sky" />
+            <FlowerHero spec={spec} label={heroLabel} className={styles.heroCanvas} minExtent={HERO_MIN_EXTENT} backdrop="sky" blowSeeds={blowSeeds} />
             <p className={styles.heroWords} aria-hidden="true">
               <span className={styles.heroName}>{heroName}</span>
               {heroStage && <span className={styles.heroStage}>{heroStage}</span>}

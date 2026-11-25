@@ -1,6 +1,6 @@
 import { clock, draw, effect, frameLoop, init, sampler, surface, target, type FrameLoopHandle, type Gpu, type Target } from "vgpu";
 import { lookAt, multiply, orthographic, perspective } from "@/lib/world/camera";
-import { packFlowers, type PlacedFlower } from "@/lib/world/flowers/generate";
+import { packFlowers, type FlowerModel, type PlacedFlower } from "@/lib/world/flowers/generate";
 import type { Vec3 } from "@/lib/world/layout";
 import { worldLightingFor } from "@/lib/world/sky-palette";
 import { skyStateAt } from "@/lib/world/solar";
@@ -9,6 +9,7 @@ import brightShader from "../post/bright.wgsl";
 import { maxDprFor, watchDeviceLoss } from "../device-loss";
 import type { WorldShadow, WorldUniforms } from "../world-layer";
 import { createFlowerBatch, type FlowerBatch } from "./flower-batch";
+import { createSeedDrift } from "./seed-drift";
 import backdropShader from "./studio-backdrop.wgsl";
 import compositeShader from "./studio-composite.wgsl";
 
@@ -35,6 +36,12 @@ export interface StudioState {
    * of day ("sky").
    */
   readonly backdrop?: "plate" | "sky";
+  /**
+   * A dandelion's seeds blowing away (#201): each new `token` blows the seeds
+   * of `puff` (the first flower's seed puff) once the first flower is drawn
+   * with its golden head.
+   */
+  readonly seeds?: { readonly token: number; readonly puff: FlowerModel; readonly seed: number } | null;
 }
 
 export interface StudioView {
@@ -59,6 +66,18 @@ export interface StudioRenderer {
 const HDR: GPUTextureFormat = "rgba16float";
 const RENDER_BUDGET = 1_900_000;
 const SHADOW_SIZE = 2048;
+/** Breeze that carries a blown dandelion's seeds across the hero (flower units per second). */
+const SEED_BREEZE = 0.1;
+/** Glow of the hero's drifting seeds. */
+const SEED_GLOW = 0.45;
+/** Seconds over which a blown dandelion's golden glow kindles (reduced motion: with the puff's fade). */
+const KINDLE = 2.4;
+const STILL_KINDLE = 0.9;
+
+const smoothstep01 = (x: number) => {
+  const t = Math.min(1, Math.max(0, x));
+  return t * t * (3 - 2 * t);
+};
 
 const normalize = (v: Vec3): Vec3 => {
   const l = Math.hypot(v[0], v[1], v[2]) || 1;
@@ -174,9 +193,15 @@ export function createStudioRenderer(canvas: HTMLCanvasElement, initial: StudioS
       batch = createFlowerBatch(gpu!, packFlowers(state.flowers), { shadow, castShadows: true, detail: "hero", label: "flower-studio.flowers" });
     };
     rebuild();
+    const drift = createSeedDrift(gpu, shadow, { detail: "hero", label: "flower-studio.seeds" });
+    cleanups.push(() => drift.dispose());
+    let blownToken: number | null = null;
+    // Reused every frame.
+    const driftParams = { sway: 0, detailNear: 1e6, glow: 0, aura: 0 };
 
     await Promise.all([
       batch?.compile(scene),
+      drift.compile(scene),
       backdrop.compile(scene),
       bright.compile(glowA),
       blurH.compile(glowB),
@@ -241,6 +266,24 @@ export function createStudioRenderer(canvas: HTMLCanvasElement, initial: StudioS
         orthographic(-r * 1.1, r * 1.1, -r * 1.1, r * 1.1, r * 0.5, r * 6, lightProjection);
         multiply(lightProjection, lightView, lightViewProjection);
 
+        // Blow the seeds once the golden head is drawn (it is, from this frame on).
+        const seeds = state.seeds;
+        const first = batchFlowers?.[0];
+        if (seeds && seeds.token !== blownToken && first && first.model.puffSeeds.length === 0) {
+          blownToken = seeds.token;
+          drift.blow({
+            puff: seeds.puff,
+            seed: seeds.seed,
+            placement: first.placement,
+            phase: first.phase,
+            // Across the painting, a little toward the viewer.
+            wind: [right[0] + toEye[0] * 0.3, 0, right[2] + toEye[2] * 0.3],
+            speed: SEED_BREEZE,
+            still,
+          });
+        }
+        drift.step(frame, dt);
+
         const ambient = lighting.ambient.map((v) => v * 0.95 + 0.03);
         const world: WorldUniforms = {
           viewProjection,
@@ -280,18 +323,27 @@ export function createStudioRenderer(canvas: HTMLCanvasElement, initial: StudioS
         };
         backdrop.set({ backdrop: state.backdrop === "sky" ? skyBackdrop(lighting) : plateBackdrop(lighting) });
 
+        // The aura glows brighter as night falls. While a dandelion's seeds
+        // blow away, its golden head's glow kindles as the puff's dissolves.
+        const aura = state.aura * (1 + 0.6 * lighting.night);
+        const kindle = 0.15 + 0.85 * smoothstep01(drift.sinceRelease / (still ? STILL_KINDLE : KINDLE));
         if (batch) {
           batch.setWorld(world);
-          // The aura glows brighter as night falls.
-          const params = { hovered: -1, sway: still ? 0 : state.sway, detailNear: 1e6, aura: state.aura * (1 + 0.6 * lighting.night) };
+          const params = { hovered: -1, sway: still ? 0 : state.sway, detailNear: 1e6, aura: aura * kindle };
           batch.setParams(params);
           batch.setShadowParams(params);
         }
+        drift.setWorld(world);
+        driftParams.sway = still ? 0 : state.sway;
+        driftParams.glow = SEED_GLOW * (1 + 0.5 * lighting.night);
+        driftParams.aura = aura;
+        drift.setParams(driftParams);
         frame.pass({ target: shadowMap, clear: [1, 1, 1, 1], clearDepth: 1 }, (pass) => batch?.encodeShadow(pass));
         frame.pass({ target: scene, clear: [0, 0, 0, 1], clearDepth: 1 }, (pass) => {
           pass.draw(backdrop);
           batch?.encode(pass);
           batch?.encodeAura(pass);
+          drift.encode(pass);
         });
         frame.pass({ target: glowA, clear: [0, 0, 0, 1] }, (pass) => pass.draw(bright));
         for (let i = 0; i < 2; i += 1) {

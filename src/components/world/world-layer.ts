@@ -92,6 +92,11 @@ export interface WorldFrameContext {
   readonly hoveredFlowerId: string | null;
   /** Flower the plot navigator selected, if any; it shares the hover highlight. */
   readonly selectedFlowerId: string | null;
+  /**
+   * The bed the plot navigator frames, once the camera has settled on it
+   * (null otherwise): its plots count as seen up close (#206).
+   */
+  readonly framedBed?: { readonly center: Vec3; readonly radius: number } | null;
   /** The shared `World` uniform values for this frame. */
   readonly world: WorldUniforms;
 }

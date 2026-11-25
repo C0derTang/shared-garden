@@ -131,6 +131,9 @@ export function FlowerGallery({
   const [sky, setSky] = useState<Sky>(initialSky);
   const [growth, setGrowth] = useState(1);
   const [framing, setFraming] = useState<HeroFraming>(initialFraming);
+  // Dandelion in bloom: its seed puff, and its seeds blowing away (#201).
+  const [puff, setPuff] = useState(true);
+  const [blow, setBlow] = useState<number | null>(null);
   const grid = useMemo(() => gridFor(view, type, seed), [view, type, seed]);
 
   return (
@@ -179,10 +182,33 @@ export function FlowerGallery({
             ))}
           </div>
         ) : null}
+        {view === "hero" && type === "dandelion" && growth >= 1 ? (
+          <div className={styles.row} role="group" aria-label="Seeds">
+            <button
+              type="button"
+              disabled={!puff}
+              onClick={() => {
+                setPuff(false);
+                setBlow((token) => (token ?? 0) + 1);
+              }}
+            >
+              blow the seeds
+            </button>
+            <button type="button" disabled={puff} onClick={() => setPuff(true)}>
+              seed puff again
+            </button>
+          </div>
+        ) : null}
       </header>
       {view === "hero" ? (
         <section className={styles.split}>
-          <FlowerHero className={styles.hero} framing={framing} spec={{ type, seed, growth, moodColors: type === "hydrangea" ? MOODS : undefined }} time={new Date(SKY_PRESETS[sky])} />
+          <FlowerHero
+            className={styles.hero}
+            framing={framing}
+            spec={{ type, seed, growth, moodColors: type === "hydrangea" ? MOODS : undefined, puff: type === "dandelion" && puff ? true : undefined }}
+            time={new Date(SKY_PRESETS[sky])}
+            blowSeeds={blow}
+          />
           <div className={styles.details}>
             <p className={styles.detailTitle}>{type}</p>
             <p>seed {seed} · growth {Math.round(growth * 100)}%</p>

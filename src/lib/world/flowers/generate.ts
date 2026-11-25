@@ -5,7 +5,7 @@
 
 import { flowerTypes, type FlowerType } from "@/lib/garden-v2/model";
 import { SPROUT_GLOW, evenGlowColor, evenGlowRadius } from "../glow";
-import { PlantBuilder, growthFor, type Aura, type GrowthStage } from "./builder";
+import { PlantBuilder, growthFor, type Aura, type GrowthStage, type PuffSeed } from "./builder";
 import { linear, streamFor } from "./math";
 import {
   PART_FLOATS,
@@ -22,7 +22,7 @@ import {
 } from "./parts";
 import { SPECIES } from "./species";
 
-export { growthFor, growthStage, type GrowthStage } from "./builder";
+export { growthFor, growthStage, type GrowthStage, type PuffSeed } from "./builder";
 
 export interface FlowerSpec {
   readonly type: FlowerType;
@@ -52,6 +52,8 @@ export interface FlowerModel {
    * and stage glows alike.
    */
   readonly aura: Aura;
+  /** A dandelion seed puff's seeds (their parts are also in the lists above); empty otherwise. */
+  readonly puffSeeds: readonly PuffSeed[];
 }
 
 const HEX = /^#[0-9a-f]{6}$/i;
@@ -77,6 +79,7 @@ export function generateFlower(spec: FlowerSpec): FlowerModel {
     height,
     radius: Math.max(bounds.radius, 0.03),
     aura,
+    puffSeeds: builder.puffSeeds,
   };
 }
 

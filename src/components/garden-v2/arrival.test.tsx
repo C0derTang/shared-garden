@@ -18,8 +18,17 @@ vi.mock("@/components/world/renderer", () => ({
 vi.mock("@/components/world/flowers/studio-renderer", () => ({
   createStudioRenderer: () => ({ update: vi.fn(), dispose: vi.fn() }),
 }));
+// Dandelion seed blows (#201) wait while the arrival's light fades: record the hold.
+const seedHolds = vi.hoisted(() => [] as boolean[]);
 vi.mock("@/components/world/flowers/flower-layer", () => ({
-  createFlowerLayer: () => ({ draw: vi.fn(), setFlowers: vi.fn() }),
+  createFlowerLayer: () => ({
+    draw: vi.fn(),
+    setFlowers: vi.fn(),
+    blowSeeds: vi.fn(),
+    deferSeeds: vi.fn(),
+    holdSeeds: (hold: boolean) => seedHolds.push(hold),
+    waitingSeeds: 0,
+  }),
 }));
 // The night fireworks layer needs WebGPU; record what it is asked to play.
 type Play = { seed: number; still: boolean; onStart?: () => void; onEnd?: () => void };
@@ -137,8 +146,11 @@ afterEach(() => {
 
 describe("arriving from the house (#204)", () => {
   it("opens under the warm light, holds it until the world is ready, then reveals the garden before the guide", async () => {
+    seedHolds.length = 0;
     markGardenArrival();
     await open();
+    // Dandelion seeds never blow under the light.
+    expect(seedHolds.at(-1)).toBe(true);
     // The very first paint is the warm light; the camera waits at the arrival's start.
     expect(light()).toHaveAttribute("data-arrival-light", "hold");
     expect(world().states[0]).toMatchObject({ arrival: "hold" });
@@ -176,6 +188,8 @@ describe("arriving from the house (#204)", () => {
     // The first-visit guide greets only once the arrival has settled.
     await settle();
     expect(guide()).not.toBeNull();
+    // …and waiting seed blows may go once it has.
+    expect(seedHolds.at(-1)).toBe(false);
     // Settled: the plot navigator appears (inert while the guide's sheet is open).
     const navigator = document.querySelector("[data-plot-navigator]");
     expect(navigator).not.toBeNull();

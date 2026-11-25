@@ -129,12 +129,27 @@ export interface Aura {
   readonly color: Rgb;
 }
 
+/**
+ * One seed of a dandelion's seed puff, as the parts that paint it: the dark
+ * achene, its slender beak and the pappus umbrella at the tip. `axis` points
+ * from the head out through the seed. The parts are also in the plant's part
+ * lists; this keeps them together so the seeds can blow away (#201).
+ */
+export interface PuffSeed {
+  readonly axis: Vec3;
+  readonly achene: BlobPart;
+  readonly beak: TubePart;
+  readonly pappus: BlobPart;
+}
+
 /** Accumulates the parts of one plant. */
 export class PlantBuilder {
   readonly sheets: SheetPart[] = [];
   readonly tubes: TubePart[] = [];
   readonly blobs: BlobPart[] = [];
   aura: Aura | null = null;
+  /** A dandelion seed puff's seeds, in order (empty for every other plant). */
+  readonly puffSeeds: PuffSeed[] = [];
   private readonly partSeeds: () => number;
   private top = 0;
   private reach = 0;

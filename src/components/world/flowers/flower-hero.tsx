@@ -52,6 +52,12 @@ export interface FlowerHeroProps {
   readonly minExtent?: number;
   /** The ground behind the flower: a deep botanical plate (default) or the garden's painted sky ("sky"). */
   readonly backdrop?: "plate" | "sky";
+  /**
+   * A dandelion whose wish just came true: each new token blows its seed
+   * puff's seeds away over its golden head (#201). Under reduced motion the
+   * puff fades instead.
+   */
+  readonly blowSeeds?: number | null;
 }
 
 /**
@@ -59,7 +65,7 @@ export interface FlowerHeroProps {
  * plate, slowly turning, with its soft coloured aura. For the flower detail
  * split view. Motion stops under reduced motion. Requires WebGPU.
  */
-export function FlowerHero({ spec, time, className, label, framing = "plant", minExtent = 0.08, backdrop = "plate" }: FlowerHeroProps) {
+export function FlowerHero({ spec, time, className, label, framing = "plant", minExtent = 0.08, backdrop = "plate", blowSeeds = null }: FlowerHeroProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const reducedMotion = usePrefersReducedMotion();
   const key = `${spec.type}|${spec.seed}|${spec.growth}|${spec.puff ? 1 : 0}|${(spec.moodColors ?? []).join(",")}`;
@@ -67,10 +73,11 @@ export function FlowerHero({ spec, time, className, label, framing = "plant", mi
   const state: StudioState = useMemo(() => {
     const model = flowerModel(spec);
     const flowers: PlacedFlower[] = [{ model, placement: { position: [0, 0, 0], yaw: 0, scale: 1 }, phase: flowerPhase(spec.seed) }];
-    return { flowers, camera: heroCamera(model, framing, minExtent), time: timeValue === null ? null : new Date(timeValue), reducedMotion, aura: 0.55, sway: 0.5, backdrop };
+    const seeds = blowSeeds !== null && spec.type === "dandelion" ? { token: blowSeeds, puff: flowerModel({ ...spec, puff: true }), seed: spec.seed } : null;
+    return { flowers, camera: heroCamera(model, framing, minExtent), time: timeValue === null ? null : new Date(timeValue), reducedMotion, aura: 0.55, sway: 0.5, backdrop, seeds };
     // `key` captures every field of `spec`.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, timeValue, reducedMotion, framing, minExtent, backdrop]);
+  }, [key, timeValue, reducedMotion, framing, minExtent, backdrop, blowSeeds]);
   const status = useStudio(canvasRef, state);
   const classes = [styles.studio, className].filter(Boolean).join(" ");
   const description = label ?? `A painted ${spec.type.replace(/-/g, " ")}`;

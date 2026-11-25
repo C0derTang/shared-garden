@@ -6,8 +6,9 @@
  * picked with the same function the world uses for the pointer.
  */
 import { describe, expect, it } from "vitest";
-import { worldFlowerAnchors, type WorldFlower } from "@/components/world/flowers/flower-models";
+import { flowerModel, worldFlowerAnchors, type WorldFlower } from "@/components/world/flowers/flower-models";
 import { FLOWER_TYPES } from "./flowers/generate";
+import { SEE_NEAR, headOnScreen } from "./flowers/seeing";
 import { gardenFovY, gardenPose, gardenSettle, gardenViewProjection, withDrift, type GardenCameraState } from "./garden-camera";
 import { plotPose } from "./journey";
 import { bedAt, layoutPlantingSpots, spotPosition } from "./layout";
@@ -128,6 +129,27 @@ describe.each(SIZES)("garden plots at %i×%i", (width, height) => {
       for (const [px, py] of ring(x, y, radius)) expect(pickOnScreen(view, px, py, [], lone)).toMatchObject({ kind: "flower", id: "sprout" });
     }
     for (const [px, py] of ring(x, y, MIN_TARGET_PX / 2 + 12)) expect(pickOnScreen(view, px, py, [], lone)).toBeNull();
+  });
+
+  it("keeps a framed bed's dandelion heads in view, and the framed one within the seeing distance where the camera allows", () => {
+    const aspect = width / height;
+    const fovY = gardenFovY(aspect);
+    const head = flowerModel({ type: "dandelion", seed: 5, growth: 1, puff: true }).height;
+    for (const bed of [0, 1, 3]) {
+      for (let k = 1; k <= 12; k += 1) {
+        const selected = spotPosition(bed * 12 + k).position;
+        const framed = plotPose({ position: selected, height: head, bedCenter: bedAt(bed).center }, aspect, fovY);
+        const view = painted(width, height, { journey: 0, pan: 0, browse: framed, browseWeight: 1 });
+        const eye = withDrift(gardenPose({ journey: 0, pan: 0, browse: framed, browseWeight: 1 }, aspect, fovY), 0, gardenSettle(0, 1)).eye;
+        for (let j = 1; j <= 12; j += 1) {
+          const p = spotPosition(bed * 12 + j).position;
+          // Every head of the framed bed is in view, so a framed bed counts as seen (flower-layer).
+          expect(headOnScreen(view.viewProjection, [p[0], p[1] + head, p[2]])).toBe(true);
+        }
+        const distance = Math.hypot(eye[0] - selected[0], eye[1] - selected[1] - head, eye[2] - selected[2]);
+        expect(distance).toBeLessThanOrEqual(SEE_NEAR + 0.5);
+      }
+    }
   });
 
   it("frames a whole bed of plots in the navigator view, clear of the navigator", () => {

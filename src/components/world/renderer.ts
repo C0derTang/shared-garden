@@ -859,6 +859,10 @@ export function createWorldRenderer(
           sky: skyState,
           hoveredFlowerId: hovered?.kind === "flower" ? hovered.id : null,
           selectedFlowerId: selected?.flowerId ?? null,
+          framedBed:
+            selected && browse.weight === 1 && browse.progress === 1 && focus.value === 0
+              ? { center: bedAt(spotPosition(selected.spot).bed).center, radius: BED_RADIUS }
+              : null,
           world,
         };
         const mirroredContext: WorldFrameContext = { ...context, viewProjection: mirrorViewProjection, eye: mirroredEye, world: mirrored };
