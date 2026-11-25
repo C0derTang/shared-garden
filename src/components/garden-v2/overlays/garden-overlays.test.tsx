@@ -308,9 +308,15 @@ describe("the garden's overlays", () => {
     await mount({ seen: false });
     const guide = await screen.findByRole("dialog", { name: "a little guide" });
     expect(window.location.search).toBe("?view=guide");
-    expect(within(guide).getByRole("heading", { name: /welcome to our new garden/ })).toBeInTheDocument();
+    expect(within(guide).getByRole("heading", { name: "welcome to our new garden, page 1 of 3" })).toBeInTheDocument();
+    expect(
+      within(guide).getByText("hi cc! i took a few creative liberties with the new garden, lmk if you want any changes!"),
+    ).toBeInTheDocument();
     await user.click(within(guide).getByRole("button", { name: "next" }));
-    expect(within(guide).getByRole("heading", { name: "wander, page 2 of 4" })).toBeInTheDocument();
+    expect(within(guide).getByRole("heading", { name: "wander, page 2 of 3" })).toBeInTheDocument();
+    expect(
+      within(guide).getByText("bc its 3d, you can scroll left and right and in and out to view each plot!"),
+    ).toBeInTheDocument();
     await user.click(within(guide).getByRole("button", { name: "back" }));
     await user.click(within(guide).getByRole("button", { name: "skip" }));
     expect(screen.queryByRole("dialog")).toBeNull();
@@ -320,7 +326,13 @@ describe("the garden's overlays", () => {
     await user.click(screen.getByRole("link", { name: "settings" }));
     await user.click(await screen.findByRole("button", { name: "replay the guide" }));
     const replay = await screen.findByRole("dialog", { name: "a little guide" });
-    for (let page = 0; page < 3; page++) await user.click(within(replay).getByRole("button", { name: "next" }));
+    for (let page = 0; page < 2; page++) await user.click(within(replay).getByRole("button", { name: "next" }));
+    expect(within(replay).getByRole("heading", { name: "keepsakes, page 3 of 3" })).toBeInTheDocument();
+    expect(
+      within(replay).getByText(
+        "all the memories, achievements, songs, settings etc are in the upper left, and our old garden is still accessible via settings!",
+      ),
+    ).toBeInTheDocument();
     // Behind the modal guide the menu is hidden from assistive tech, but it glows.
     expect(document.querySelector(`nav[aria-label="Garden keepsakes"]`)).toHaveAttribute("data-glow");
     await user.click(within(replay).getByRole("button", { name: "let’s wander" }));

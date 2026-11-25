@@ -245,7 +245,9 @@ Observed:
   error, including this one, redirects to `/` and `/auth/error` no longer
   renders a page. Since
   [issue #172](https://github.com/C0derTang/shared-garden/issues/172), this
-  garden lives at `/legacy` and `/garden` is a member-guarded placeholder.)
+  garden lives at `/legacy` and `/garden` became a member-guarded placeholder.
+  Note added 2026-11-24: `/garden` is now the new members-only garden
+  ([decision 0067](../decisions/0067-garden-overhaul.md)).)
 - The first authorized visit produced one Cactus at spot 1 and nothing else, and
   the header read `1 planted · 0 in bloom`. The audit recipe agreed.
 - The first-login guide opened for each member independently, moved focus into

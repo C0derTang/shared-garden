@@ -7,24 +7,20 @@ import styles from "./overlays.module.css";
 export const guideSteps = [
   {
     title: "welcome to our new garden",
-    body: "It starts fresh, just for the two of us. Our first garden is kept safe as a keepsake; you’ll find it in settings.",
+    body: "hi cc! i took a few creative liberties with the new garden, lmk if you want any changes!",
   },
   {
     title: "wander",
-    body: "Scroll, swipe or use the arrow keys to walk closer to the beds. Drag sideways to stroll along them.",
-  },
-  {
-    title: "plant and care",
-    body: "Tap a glowing seed to plant any flower. Tap a flower or its name to care for it. It grows when we both care on the same garden day (4 a.m. Pacific), and nothing is ever lost.",
+    body: "bc its 3d, you can scroll left and right and in and out to view each plot!",
   },
   {
     title: "keepsakes",
-    body: "Memories, achievements, our songs and settings float in the corner of the sky whenever you want them.",
+    body: "all the memories, achievements, songs, settings etc are in the upper left, and our old garden is still accessible via settings!",
   },
 ] as const;
 
 /**
- * A short first-visit guide: four little pages with "next" and "back". Closing
+ * A short first-visit guide: three little pages with "next" and "back". Closing
  * it at any point (Escape, "×", "skip" or the last page) marks it seen, and
  * Settings can replay it.
  */
