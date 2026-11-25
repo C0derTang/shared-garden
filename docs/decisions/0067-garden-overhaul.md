@@ -782,7 +782,9 @@ under this decision's discretion:
   scope is released first, so a waiting moment opens. Then, 150 ms later, the
   first-visit guide may greet (it does not greet over an open moment, as
   before), the night fireworks may start by themselves, the "scroll to wander
-  closer" hint may appear and the "while you were away" note may show.
+  closer" hint may appear (on any visit, it now also waits while a scoped
+  sheet such as the private moment is open) and the "while you were away"
+  note may show.
 - **Plays once:** the page asks the renderer for the arrival only while it is
   under way. A renderer created later (after a GPU device loss once the garden
   has settled, or a world that only paints after the fallback) starts at the
@@ -791,9 +793,13 @@ under this decision's discretion:
 - **Reduced motion:** no camera move. After the same hold, the light
   crossfades away linearly over 0.6 seconds while the words fade in over
   0.4 seconds, and the arrival settles at 0.8 seconds.
-- **Fallbacks:** without WebGPU, after a failure, or if the world is not
-  painting 9 seconds after the page opens, the light fades over 0.7 seconds
-  (and the camera is not left at the arrival's start).
+- **Fallbacks:** the arrival gives up and settles, fading whatever light is
+  left over 0.7 seconds, whenever the world is unsupported or stops (a
+  failure, or a second GPU device loss) at any point before it settles, and
+  whenever it makes no progress for 9 seconds: from the page opening while it
+  waits for the world, or since its last arrival frame (for example frames
+  that stop coming). The controls, any "stopped" notice and a waiting sheet
+  then come back, and the camera is not left at the arrival's start.
 - **The walk's pacing:** the 4.8-second walk-through keeps its door, light
   spill and fade timings, but the camera now moves along two eased cubic
   segments that share their speed at the porch steps (2.8 s). It starts from

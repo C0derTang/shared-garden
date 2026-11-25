@@ -105,6 +105,11 @@ const light = () => document.querySelector<HTMLElement>("[data-arrival-light]");
 const settle = () => act(() => new Promise((resolve) => setTimeout(resolve, ARRIVAL_SETTLE_GAP_MS + 50)));
 /** The GPU device is lost: the world recreates its renderer from the current scene state. */
 const loseDevice = () => act(() => worlds.at(-1)!.callbacks.onLost({ reason: "unknown", message: "synthetic" } as GPUDeviceLostInfo));
+const pendingMoment = () =>
+  moment.read.mockResolvedValue({
+    state: { status: "pending", content: { title: "A synthetic moment", message: "Placeholder.", choices: [{ key: "a", label: "One" }, { key: "b", label: "Two" }] } },
+    error: null,
+  });
 const chromeHidden = () => /chromeHidden/.test(screen.getByRole("main").className);
 const guide = () => document.querySelector("[data-garden-overlay='guide']");
 const world = () => worlds[0]!;
@@ -175,10 +180,7 @@ describe("arriving from the house (#204)", () => {
   });
 
   it("holds a pending private moment until the garden has settled, then lets it open before the guide", async () => {
-    moment.read.mockResolvedValue({
-      state: { status: "pending", content: { title: "A synthetic moment", message: "Placeholder.", choices: [{ key: "a", label: "One" }, { key: "b", label: "Two" }] } },
-      error: null,
-    });
+    pendingMoment();
     markGardenArrival();
     await open();
     await flush();
@@ -191,8 +193,10 @@ describe("arriving from the house (#204)", () => {
     frame(4);
     await settle();
     expect(await screen.findByRole("dialog", { name: "A synthetic moment" })).toBeInTheDocument();
-    // The moment opened first, so the guide does not greet over it this visit.
+    // The moment opened first, so the guide does not greet over it this visit,
+    // and the hint waits while it is open.
     expect(guide()).toBeNull();
+    expect(screen.queryByText(/scroll to wander closer/)).toBeNull();
   });
 
   it("leaves direct visits unchanged", async () => {
@@ -237,7 +241,7 @@ describe("arriving from the house (#204)", () => {
     await open();
     act(() => vi.advanceTimersByTime(ARRIVAL_SAFETY_MS - 500));
     expect(light()).toHaveAttribute("data-arrival-light", "hold");
-    act(() => vi.advanceTimersByTime(500));
+    act(() => vi.advanceTimersByTime(1000));
     expect(light()).toHaveAttribute("data-arrival-light", "fading");
     expect(light()!.style.opacity).toBe("0");
     // The camera does not stay at the arrival's start if the world turns up later.
@@ -249,6 +253,49 @@ describe("arriving from the house (#204)", () => {
     await flush();
     expect(worlds).toHaveLength(2);
     expect(worlds[1]!.states[0]?.arrival ?? null).toBeNull();
+  });
+
+  it.each([
+    ["while the light thins", 1],
+    ["while the words fade in", 2.5],
+  ])("gives up at once if the painting stops %s, releasing the light, the controls and a waiting moment", async (_when, seconds) => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    pendingMoment();
+    markGardenArrival();
+    await open();
+    act(() => world().callbacks.onReady());
+    frame(seconds);
+    await flush();
+    expect(screen.queryByRole("dialog", { name: "A synthetic moment" })).toBeNull();
+    act(() => world().callbacks.onError(new Error("synthetic stop")));
+    expect(light()).toHaveAttribute("data-arrival-light", "fading");
+    expect(light()!.style.opacity).toBe("0");
+    expect(chromeHidden()).toBe(false);
+    act(() => vi.advanceTimersByTime(ARRIVAL_FALLBACK_FADE_MS + ARRIVAL_SETTLE_GAP_MS));
+    await flush();
+    expect(light()).toBeNull();
+    // The stopped notice and the menus are back, and the waiting moment opens.
+    expect(screen.getByText("The painted garden stopped.")).toBeInTheDocument();
+    expect(document.querySelector('nav[aria-label="Garden keepsakes"]')).not.toBeNull();
+    expect(await screen.findByRole("dialog", { name: "A synthetic moment" })).toBeInTheDocument();
+  });
+
+  it("settles anyway when the arrival's frames stop coming", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    pendingMoment();
+    markGardenArrival();
+    await open();
+    act(() => world().callbacks.onReady());
+    frame(1);
+    frame(2.5);
+    act(() => vi.advanceTimersByTime(ARRIVAL_SAFETY_MS - 1000));
+    expect(light()).toHaveAttribute("data-arrival-light", "chrome");
+    act(() => vi.advanceTimersByTime(1500));
+    expect(light()).toHaveAttribute("data-arrival-light", "fading");
+    act(() => vi.advanceTimersByTime(ARRIVAL_FALLBACK_FADE_MS + ARRIVAL_SETTLE_GAP_MS));
+    await flush();
+    expect(light()).toBeNull();
+    expect(await screen.findByRole("dialog", { name: "A synthetic moment" })).toBeInTheDocument();
   });
 
   it("fades the light at once without WebGPU, showing the notice", async () => {

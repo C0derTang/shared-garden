@@ -8,8 +8,14 @@ import { clearGardenArrival, readGardenArrival } from "@/lib/garden-v2/arrival";
 import { arrivalLightOpacity, arrivalStage } from "@/lib/world/arrival";
 import styles from "./arrival.module.css";
 
-/** Gives up waiting for the painted world after this long (ms) and fades the light anyway. */
+/**
+ * Gives up after the arrival has made no progress for this long (ms): from the
+ * page opening while it waits for the world, or since the last arrival frame.
+ * The light then fades anyway and the page settles.
+ */
 export const ARRIVAL_SAFETY_MS = 9000;
+/** How often (ms) the safety check looks. */
+const SAFETY_CHECK_MS = 250;
 /** The fallback fade out of the light (ms), e.g. without WebGPU or after the safety delay. */
 export const ARRIVAL_FALLBACK_FADE_MS = 700;
 /**
@@ -73,6 +79,7 @@ export function useGardenArrival({
   const lightRef = useRef<HTMLDivElement | null>(null);
   const phaseRef = useRef(phase);
   const opacity = useRef(1);
+  const lastSeconds = useRef(Number.NEGATIVE_INFINITY);
   const motion = useRef(reducedMotion);
   useEffect(() => {
     phaseRef.current = phase;
@@ -101,20 +108,29 @@ export function useGardenArrival({
   }, [phase, settled]);
 
   const ready = worldStatus === "ready" && layersLoaded;
+  const failed = worldStatus === "unsupported" || worldStatus === "stopped";
+  const underWay = phase === "hold" || phase === "light" || phase === "chrome";
   useEffect(() => {
-    if (phase !== "hold") return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- the world reports readiness from the GPU
-    if (ready) setPhase("light");
-    else if (worldStatus === "unsupported" || worldStatus === "stopped") setPhase("fading");
-  }, [phase, ready, worldStatus]);
+    // The world stopped (or never could paint) before the arrival settled: give
+    // up at once, wherever it was, so the light, the controls, the notice and
+    // any waiting sheet are never stranded.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- follows the world's reported status
+    if (underWay && failed) setPhase("fading");
+    else if (phase === "hold" && ready) setPhase("light");
+  }, [phase, underWay, ready, failed]);
 
-  // Never strand the light: without a painted world, fade it anyway.
+  // Never strand the arrival: if it makes no progress for a while (no painted
+  // world, or frames that stopped coming), fade the light and settle anyway.
+  const progressAt = useRef(0);
   useEffect(() => {
     if (!enabled) return;
-    const id = window.setTimeout(() => {
-      if (phaseRef.current === "hold" || (phaseRef.current === "light" && opacity.current >= 1)) setPhase("fading");
-    }, ARRIVAL_SAFETY_MS);
-    return () => window.clearTimeout(id);
+    progressAt.current = Date.now();
+    const id = window.setInterval(() => {
+      const current = phaseRef.current;
+      const stalled = Date.now() - progressAt.current >= ARRIVAL_SAFETY_MS;
+      if (stalled && (current === "hold" || current === "light" || current === "chrome")) setPhase("fading");
+    }, SAFETY_CHECK_MS);
+    return () => window.clearInterval(id);
   }, [enabled]);
 
   useEffect(() => {
@@ -136,6 +152,10 @@ export function useGardenArrival({
       opacity.current = 0;
       setPhase("done");
       return;
+    }
+    if (view.arrival > lastSeconds.current) {
+      lastSeconds.current = view.arrival;
+      progressAt.current = Date.now();
     }
     const still = motion.current;
     // Only ever thins (a recreated GPU context restarts its own clock).

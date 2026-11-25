@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { usePartnerName } from "@/components/auth/member-names";
+import { useSheetScope } from "@/components/ui/sheet-scope";
 import type { FlowerLayer } from "@/components/world/flowers/flower-layer";
 import { worldFlowerAnchors, type WorldFlower } from "@/components/world/flowers/flower-models";
 import { FireworksOverlay } from "@/components/world/fireworks/fireworks-overlay";
@@ -94,6 +95,8 @@ export function GardenV2({
   }, []);
   // Opened by the walk through the house door: arrive under its warm light (#204).
   const arrival = useGardenArrival({ allowed: !initialFlowerId && !initialView, worldStatus, layersLoaded: flowerLayer !== null, reducedMotion });
+  // A scoped sheet (such as a private moment) is open: the hint waits.
+  const sheetOpen = Boolean(useSheetScope()?.active);
   const { flowers, anchors } = useWorldFlowers(state);
   useEffect(() => flowerLayer?.setFlowers(flowers), [flowerLayer, flowers]);
   // Any full-screen view (a flower, planting, or an overlay such as Memories) covers the world.
@@ -297,7 +300,7 @@ export function GardenV2({
         }}
       />
       <FireworksOverlay {...fireworks.overlay} hidden={covered} />
-      {worldStatus === "ready" && arrival.settled && !wandered && !covered && (
+      {worldStatus === "ready" && arrival.settled && !wandered && !covered && !sheetOpen && (
         <p className={styles.hint}>scroll to wander closer · tap a flower to visit</p>
       )}
       {/* The away note waits for the fireworks to finish, so their words never overlap. */}
