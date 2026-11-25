@@ -63,6 +63,24 @@
   font-size: clamp(1.05rem, 2vw, 1.45rem);
 }
 
+/*
+ * A small decorative mark (#214): the "♡" over a flower waiting on your care.
+ * It sits just above the point it is anchored to, and its soft warm glow
+ * follows the plot glows' display level (--plot-glow: 1 by day, quieter at
+ * night). A faint dark edge keeps it readable over a sunlit meadow.
+ */
+.mark {
+  margin-top: -0.55em;
+  padding: 0;
+  font-size: clamp(0.95rem, 1.6vw, 1.2rem);
+  pointer-events: none;
+  user-select: none;
+  text-shadow:
+    0 0 0.4em rgb(255 240 214 / calc(0.7 * var(--plot-glow, 1))),
+    0 0 1.1em rgb(255 214 160 / calc(0.45 * var(--plot-glow, 1))),
+    0 1px 2px rgb(40 30 20 / 0.45);
+}
+
 button.caption,
 a.caption,
 .captionButton {

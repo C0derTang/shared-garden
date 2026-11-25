@@ -429,7 +429,9 @@ discretion and the look in "World look":
   that named each plot instead was itself removed by
   [#210](#recorded-choice-removing-the-plot-navigator-210):
   a hidden keyboard plot list reaches every plot, and focus returns to the
-  plot that opened a view, else to the world.)
+  plot that opened a view, else to the world. Only a small "♡" floats over
+  each flower waiting on your care, since
+  [#214](#recorded-choice-a-floating--over-flowers-waiting-on-your-care-and-larger-sprouts-214).)
   Every flower has its lower-case name floating above it
   (Gochi Hand, soft glow). Names fade in as the camera walks closer (within
   about 6.4 world units) so the overview stays a painting; a focused name always
@@ -800,7 +802,10 @@ under this decision's discretion:
   [#210](#recorded-choice-removing-the-plot-navigator-210):
   no names float over the plants any more, so the title is the only floating
   word in the garden, and the hidden keyboard plot list is added only once the
-  arrival has settled.)
+  arrival has settled. Since
+  [#214](#recorded-choice-a-floating--over-flowers-waiting-on-your-care-and-larger-sprouts-214),
+  a small "♡" also floats over each flower waiting on your care; the light
+  hides it and it fades in with the title.)
 - **Afterwards:** the arrival settles at 4 seconds. While it plays, it holds
   the head of the page's sheet scope, so a pending private moment (or any
   other scoped sheet) waits and never opens over the light. On settling the
@@ -953,7 +958,10 @@ choices made under this decision's discretion:
   users.)
 - **No floating names:** the names over the flowers and "plant a seed" are
   gone, with their caption options (distance fade, quiet tone, accessible
-  label). The landing's captions and the garden's title stay.
+  label). The landing's captions and the garden's title stay. (Narrowed by
+  [#214](#recorded-choice-a-floating--over-flowers-waiting-on-your-care-and-larger-sprouts-214):
+  a small decorative "♡" floats over each flower still waiting on your care
+  today. Names and "plant a seed" stay removed.)
 - **The plot navigator** (`PlotNavigator`; superseded and removed by
   [#210](#recorded-choice-removing-the-plot-navigator-210)
   and kept here for the record: of everything below, only the portrait
@@ -1071,7 +1079,9 @@ gone:
     front, left to right (as recorded for #206).
   - Each button's words name its plot: "rose · 3 of 5 · bed 1" (growth as in
     the panel, the stage once bloomed, "♡" after it when your partner cared
-    and you have not), or "empty spot · bed 2". Its accessible name says more:
+    and you have not; since
+    [#214](#recorded-choice-a-floating--over-flowers-waiting-on-your-care-and-larger-sprouts-214),
+    whenever it waits on your care), or "empty spot · bed 2". Its accessible name says more:
     type, stage, growth, who has cared today and the bed ("Empty spot, bed 2"
     for an empty one).
   - Every button is visually hidden. Only the button with keyboard focus
@@ -1096,3 +1106,73 @@ gone:
   visit begun from the list stays with it: after planting, focus returns to
   that spot, and "next: …" in the panel moves the return to the next
   flower's plot.
+
+### Recorded choice: a floating ♡ over flowers waiting on your care, and larger sprouts ([#214](https://github.com/C0derTang/shared-garden/issues/214))
+
+The user found sprouts hard to see and had no in-world sign of which flowers
+still needed care (2026-11-24). Of the options offered, they chose "Small
+floating ♡ above waiting flowers only" and "make the shoot slightly larger".
+This brings back one floating mark over the plants, for waiting flowers only:
+it narrows the "no floating names" rule of
+[#206](#recorded-choice-even-glows-easy-picking-and-the-plot-navigator-206).
+Names and "plant a seed" stay removed. Conservative choices made under this
+decision's discretion:
+
+- **Who gets a ♡:** exactly the flowers whose `dueForYou` is true in the
+  shared care rules (`lib/garden/care.ts`, through `gardenCareStatus`):
+  daily care is open for you now and you have not cared this garden day
+  (`waitingOnYou` in `lib/garden-v2/plots.ts`). There is none for the Peony
+  (no daily care), a bloomed flower that needs no more care (a bloomed Cactus
+  keeps its check-ins, so it keeps its ♡), a fulfilled Dandelion, a
+  Moonflower before its 10 p.m. window, a flower you already cared for, or an
+  empty spot. Your partner's care does not change it. The hidden plot list's
+  accessible names say "Your care is open" for exactly the same flowers.
+- **The plot list's ♡ (orchestrator decision under this decision's wording
+  discretion):** the "♡" in the hidden plot list's chip now means the same as
+  the one in the world: it shows when the flower waits on your care, no
+  longer only when your partner cared and you have not (superseding that
+  wording for
+  [#210](#recorded-choice-removing-the-plot-navigator-210)). Both come from
+  one predicate, `waitsOnYou`, so they cannot drift apart.
+- **Look:** one "♡" in the garden's floating type (Gochi Hand, falling back to
+  the system's heart glyph where the bundled Latin subset has none), cream
+  with a soft warm glow like the title and the landing's captions. It is a
+  small mark, `clamp(0.95rem, 1.6vw, 1.2rem)` (about 19 CSS px on a desktop,
+  15 on a phone), so a bed of waiting flowers reads as a light sprinkle. It
+  sits just above the top of the plant (its pick height, plus 0.02 world
+  units, with the glyph's bottom there), so it rises with the flower as it
+  grows. It keeps a fixed screen size at every distance. It drifts with the
+  other floating words (a few pixels), and not at all under reduced motion.
+- **Day and night:** its glow follows the plot glows' display level
+  (`plotGlowDisplay` in `lib/world/glow.ts`): the same by day, dawn and dusk,
+  and 45% quieter in full night, passed to the page with each frame. A faint
+  dark edge keeps it readable over a sunlit meadow.
+- **Behaviour:** it comes from the garden state, so it appears and disappears
+  live through the existing sync and Realtime path: after your share, at the
+  4 a.m. rollover, and when the Moonflower window opens. It is left out while
+  the camera glides to a flower, while a flower, planting or overlay view (the
+  first-visit guide included) covers the garden, and during the close look
+  held while a Dandelion's seeds lift. Under the arrival from the house the
+  warm light hides it like the title, and it fades in with the floating words.
+  It is decorative (`aria-hidden`) and takes no pointer events, so hovering or
+  tapping where it floats still picks the plot beneath, exactly as before.
+- **Larger sprouts:** every seedling shoot (`seedling` in
+  `lib/world/flowers/species.ts`) is drawn up to 1.3 times its former size
+  (`SEEDLING_SCALE`): height, stem, cotyledons, first true leaves and strap
+  leaves together, from the same random streams, so each sprout keeps its
+  identity. The Cactus's seedling ball and every later stage are unchanged.
+- **The sprout never outgrows its bud (orchestrator decision after review):**
+  each plant's scale (`seedlingScaleFor` in `lib/world/flowers/generate.ts`)
+  is capped so that even its largest seedling is no taller than the same
+  plant's first bud (at growth 25%), and it is never below
+  the former size. Where the cap does not bind, the full 1.3 times applies:
+  every seed of the Rose, Tulip, Marigold, Daisy, Hydrangea, Sunflower,
+  Snapdragon, Moonflower, Bluebell and Peony among seeds 1–300. The
+  Dandelion is usually capped between its former size and 1.3 times. The
+  Forget-me-not's first bud is already shorter than its late seedling, so
+  its sprout keeps its former size. So no sprout shrinks more on becoming
+  a bud than it did before. The sprout's halo, its pick body
+  (`pickOnScreen`) and its floating "♡" all follow the resulting size. The
+  halo stays in the 0.17–0.27 world-unit band, and the sprout's reach
+  (under 0.12 world units) plus the widest bloom stays within the closest
+  spacing of two spots, so it does not clip into a neighbouring plant.

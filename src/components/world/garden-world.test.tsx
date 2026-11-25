@@ -142,4 +142,19 @@ describe("GardenWorld with WebGPU", () => {
     act(() => link.click());
     expect(select).toHaveBeenCalledTimes(1);
   });
+
+  it("floats a decorative mark that never takes a pick and glows at the plots' display level (#214)", async () => {
+    const identity = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+    render(<GardenWorld captions={[{ id: "care-1", text: "♡", position: [0, 0, 0.5], size: "mark" }]} />);
+    await flush();
+    const mark = document.querySelector<HTMLElement>('[data-caption="care-1"]')!;
+    expect(mark.tagName).toBe("SPAN");
+    expect(mark).toHaveAttribute("aria-hidden", "true");
+    expect(screen.queryByText("♡")?.closest("button, a, form")).toBeNull();
+    act(() => created[0]!.onFrame?.({ viewProjection: identity, width: 200, height: 100, entryFade: 0, arrival: null, glow: 0.55 }));
+    expect(mark.style.visibility).toBe("visible");
+    expect(mark.parentElement!.style.getPropertyValue("--plot-glow")).toBe("0.55");
+    act(() => created[0]!.onFrame?.({ viewProjection: identity, width: 200, height: 100, entryFade: 0, arrival: null }));
+    expect(mark.parentElement!.style.getPropertyValue("--plot-glow")).toBe("1.00");
+  });
 });

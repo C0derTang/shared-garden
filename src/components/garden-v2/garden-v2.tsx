@@ -11,12 +11,13 @@ import { handFont } from "@/components/world/hand-font";
 import { legacyPath } from "@/lib/legacy/routes";
 import { diffAway, hasAwayNews, noAwayNews, readAwaySnapshot, takeAwaySnapshot, writeAwaySnapshot, type AwayNews } from "@/lib/garden-v2/away";
 import { captionName, catalogItem, gardenDayLabel, plantSpec, stageWords } from "@/lib/garden-v2/flowers";
-import type { GardenResult, GardenState } from "@/lib/garden-v2/model";
-import { gardenPlots, type GardenPlot } from "@/lib/garden-v2/plots";
+import type { GardenResult, GardenState, Plant } from "@/lib/garden-v2/model";
+import { gardenPlots, waitingOnYou, type GardenPlot } from "@/lib/garden-v2/plots";
 import { useGardenV2 } from "@/lib/garden-v2/use-garden-v2";
 import { gardenViewHref, type GardenView } from "@/lib/garden-v2/views";
 import type { FocusTarget } from "@/lib/world/journey";
 import { spotPosition } from "@/lib/world/layout";
+import { DEFAULT_FLOWER_HEIGHT, type FlowerAnchor } from "@/lib/world/picking";
 import { ArrivalLight, useGardenArrival } from "./arrival";
 import { AwayNote } from "./away-note";
 import { FlowerPanel } from "./flower-panel";
@@ -57,13 +58,29 @@ function useWorldFlowers(state: GardenState | null) {
 }
 
 const TITLE: readonly WorldCaption[] = [{ id: "title", text: "our garden", position: [0, 10, -62], size: "title" }];
+/** How far above the top of a flower (or a sprout's shoot) its "♡" floats, in world units (#214). */
+export const HEART_LIFT = 0.02;
+
+/**
+ * The small "♡" floating over each flower still waiting on your care (#214):
+ * decorative, anchored just above the plant's top, so it rises as it grows.
+ */
+export function careHearts(waiting: readonly Plant[], anchors: readonly FlowerAnchor[]): WorldCaption[] {
+  return waiting.flatMap((plant): WorldCaption[] => {
+    const anchor = anchors.find((candidate) => candidate.id === plant.flower.id);
+    if (!anchor) return [];
+    const [x, y, z] = anchor.position;
+    return [{ id: `care-${plant.flower.id}`, text: "♡", size: "mark", position: [x, y + (anchor.height ?? DEFAULT_FLOWER_HEIGHT) + HEART_LIFT, z] }];
+  });
+}
 
 /**
  * The new garden: a full-screen painted world fed by the v2 state and its
  * Realtime channel. Empty seed marks plant any flower; tapping a flower glides
  * the camera to it and opens the split view. No names float over the plants
- * (#206); keyboard and screen-reader users reach every plot through a hidden
- * plot list that shows only the focused plot's name (#210).
+ * (#206); only a small "♡" floats over each flower still waiting on your care
+ * today (#214). Keyboard and screen-reader users reach every plot through a
+ * hidden plot list that shows only the focused plot's name (#210).
  */
 export function GardenV2({
   initial,
@@ -261,6 +278,16 @@ export function GardenV2({
   );
   const returnFocus = useCallback(() => focusPlot(returnSpot.current), []);
 
+  // A small "♡" floats over every flower still waiting on your care today (#214), following the
+  // plant's height as it grows. It is left out while the camera glides to a flower or a
+  // full-screen view covers the world; the arrival's light hides it like the title.
+  const waiting = useMemo(() => (state ? waitingOnYou(state) : []), [state]);
+  const captions = useMemo<readonly WorldCaption[]>(() => {
+    if (covered || focus !== null) return TITLE;
+    const hearts = careHearts(waiting, anchors);
+    return hearts.length ? [...TITLE, ...hearts] : TITLE;
+  }, [waiting, anchors, covered, focus]);
+
   if (!state)
     return (
       <main id="main-content" className={`${styles.page} ${styles.theme} ${handFont.className}`} style={themeStyle}>
@@ -296,7 +323,7 @@ export function GardenV2({
         occupiedSpots={occupied}
         flowers={anchors}
         layers={layers}
-        captions={TITLE}
+        captions={captions}
         focus={focus}
         paused={covered}
         arrival={arrival.world}

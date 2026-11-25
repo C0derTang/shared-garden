@@ -114,18 +114,28 @@ function bowedStalk(random: () => number, height: number, lean: Vec3, bow = 0.04
   );
 }
 
+/**
+ * How much larger a seedling's shoot is drawn than it first was (#214), at
+ * most: its height, leaf span and stem, so sprouts are easier to see. Each
+ * plant's own scale is capped so its seedling never outgrows its first bud
+ * (`seedlingScaleFor` in `generate.ts`). Later stages and the Cactus's
+ * seedling ball keep their size.
+ */
+export const SEEDLING_SCALE = 1.3;
+
 /** Seedling: a short shoot with two cotyledons, then the first true leaves. */
 function seedling(b: PlantBuilder, leaf: LeafColors, kind: "dicot" | "strap", trueLeaf: { teeth?: number; toothDepth?: number; widthPos?: number } = {}) {
   const r = b.stream("seedling");
   const sprout = smoothstep(0, 0.25, b.growth.fraction);
   const size = 0.45 + 0.55 * sprout;
+  const k = b.seedlingScale;
   const spin = r() * Math.PI * 2;
   if (kind === "strap") {
     const count = 2 + (sprout > 0.5 ? 1 : 0);
     for (let i = 0; i < count; i += 1) {
       b.leaf([0, 0, 0], horizontal(spin + i * 2.3 + jitter(r, 0.3)), 1.25 + jitter(r, 0.15), {
-        length: (0.07 + 0.06 * size) * (1 - i * 0.2),
-        width: 0.014,
+        length: (0.07 + 0.06 * size) * (1 - i * 0.2) * k,
+        width: 0.014 * k,
         widthPos: 0.3,
         tipShape: 1.3,
         curl: -0.5,
@@ -135,18 +145,18 @@ function seedling(b: PlantBuilder, leaf: LeafColors, kind: "dicot" | "strap", tr
     }
     return;
   }
-  const h = 0.04 + 0.06 * size;
-  const top: Vec3 = [jitter(r, 0.01), h, jitter(r, 0.01)];
-  b.segment([0, 0, 0], top, 0.0045, 0.0035, { base: vary(linear("#6d7f3a"), r, 0.1), tip: leaf.tip }, MATERIAL.stem, [jitter(r, 0.008), 0, 0]);
+  const h = (0.04 + 0.06 * size) * k;
+  const top: Vec3 = [jitter(r, 0.01) * k, h, jitter(r, 0.01) * k];
+  b.segment([0, 0, 0], top, 0.0045 * k, 0.0035 * k, { base: vary(linear("#6d7f3a"), r, 0.1), tip: leaf.tip }, MATERIAL.stem, [jitter(r, 0.008) * k, 0, 0]);
   for (const side of [0, Math.PI]) {
-    b.leaf(top, horizontal(spin + side), 0.35 + jitter(r, 0.1), { length: 0.02 + 0.022 * size, width: 0.018 * size + 0.006, widthPos: 0.55, tipShape: 0.5, curl: -0.25, cup: 0.35, veins: 0.25 }, leaf);
+    b.leaf(top, horizontal(spin + side), 0.35 + jitter(r, 0.1), { length: (0.02 + 0.022 * size) * k, width: (0.018 * size + 0.006) * k, widthPos: 0.55, tipShape: 0.5, curl: -0.25, cup: 0.35, veins: 0.25 }, leaf);
   }
   if (sprout > 0.45) {
     const grow = smoothstep(0.45, 1, sprout);
     for (const side of [Math.PI / 2, -Math.PI / 2]) {
-      b.leaf(add(top, [0, 0.004, 0]), horizontal(spin + side), 0.9, {
-        length: 0.012 + 0.03 * grow,
-        width: 0.008 + 0.014 * grow,
+      b.leaf(add(top, [0, 0.004 * k, 0]), horizontal(spin + side), 0.9, {
+        length: (0.012 + 0.03 * grow) * k,
+        width: (0.008 + 0.014 * grow) * k,
         widthPos: trueLeaf.widthPos ?? 0.45,
         tipShape: 0.85,
         teeth: trueLeaf.teeth ?? 0,

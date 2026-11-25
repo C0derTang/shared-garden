@@ -16,8 +16,13 @@ export interface WorldCaption {
   readonly id: string;
   readonly text: string;
   readonly position: Vec3;
-  /** "title" is large display type; "label" is small. */
-  readonly size?: "title" | "label";
+  /**
+   * "title" is large display type; "label" is small. "mark" is a small
+   * decorative sign (the "♡" over a flower waiting on your care, #214): hidden
+   * from assistive technology, never a control, its glow following the
+   * plot-glow display level of the sky.
+   */
+  readonly size?: "title" | "label" | "mark";
   /** Makes the caption a button (or, with `href`, enhances the link). */
   readonly onSelect?: () => void;
   /**
@@ -138,6 +143,7 @@ export function GardenWorld({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<WorldRenderer | null>(null);
   const captionRefs = useRef(new Map<string, HTMLElement>());
+  const captionLayerRef = useRef<HTMLDivElement>(null);
   const captionsRef = useRef(captions);
   const [status, setStatus] = useState<Status>("loading");
   const reducedMotion = usePrefersReducedMotion();
@@ -192,8 +198,15 @@ export function GardenWorld({
     let cancelled = false;
     let renderer: WorldRenderer | null = null;
     let recoveries = 0;
+    let glowLevel = "";
     const placeCaptions = (view: WorldView) => {
       pickRef.current.onView?.(view);
+      // Floating marks glow like the plots: the same display level by day, quieter at night.
+      const glow = (view.glow ?? 1).toFixed(2);
+      if (glow !== glowLevel) {
+        glowLevel = glow;
+        captionLayerRef.current?.style.setProperty("--plot-glow", glow);
+      }
       const t = motionRef.current ? 0 : performance.now() / 1000;
       captionsRef.current.forEach((caption, index) => {
         const element = captionRefs.current.get(caption.id);
@@ -350,11 +363,11 @@ export function GardenWorld({
       }
     >
       <canvas ref={canvasRef} className={styles.canvas} role="img" aria-label={label} />
-      <div className={styles.captions}>
+      <div ref={captionLayerRef} className={styles.captions}>
         {captions.map((caption) => {
           const className = [
             styles.caption,
-            caption.size === "title" ? styles.title : styles.label,
+            caption.size === "title" ? styles.title : caption.size === "mark" ? styles.mark : styles.label,
             caption.standby ? styles.standby : "",
           ]
             .filter(Boolean)
@@ -401,7 +414,7 @@ export function GardenWorld({
               {caption.text}
             </button>
           ) : (
-            <span key={caption.id} ref={ref} className={className} data-caption={caption.id}>
+            <span key={caption.id} ref={ref} className={className} data-caption={caption.id} aria-hidden={caption.size === "mark" || undefined}>
               {caption.text}
             </span>
           );

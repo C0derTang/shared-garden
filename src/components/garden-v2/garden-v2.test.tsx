@@ -78,7 +78,7 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-const { GardenV2 } = await import("./garden-v2");
+const { GardenV2, HEART_LIFT, careHearts } = await import("./garden-v2");
 
 async function flush() {
   await act(async () => {
@@ -138,6 +138,9 @@ async function mount(state = garden(), initialFlowerId: string | null = null, in
   return { ...view, state };
 }
 
+const captionIds = () => [...document.querySelectorAll("[data-caption]")].map((element) => element.getAttribute("data-caption"));
+const hearts = () => [...document.querySelectorAll<HTMLElement>('[data-caption^="care-"]')];
+
 describe("GardenV2", () => {
   it("paints the garden with no floating names and lists every plot in a hidden keyboard list", async () => {
     const { state } = await mount();
@@ -145,8 +148,9 @@ describe("GardenV2", () => {
     expect(scene).toMatchObject({ spotCapacity: 12, occupiedSpots: [1], paused: false, focus: null });
     expect(scene).not.toHaveProperty("selected");
     expect(scene.flowers.map((f) => f.id)).toEqual([state.plants[0]!.flower.id]);
-    // Only the world's title floats in the scene; no names over the plants or seed marks (#206).
-    expect([...document.querySelectorAll("[data-caption]")].map((element) => element.getAttribute("data-caption"))).toEqual(["title"]);
+    // Only the world's title and a "♡" over the flower waiting on your care float in the scene;
+    // no names over the plants or seed marks (#206, #214).
+    expect(captionIds()).toEqual(["title", `care-${state.plants[0]!.flower.id}`]);
     expect(screen.queryByRole("link", { name: /^rose/i })).toBeNull();
     // No plot navigator (#210): no listbox, chevrons or visit/plant controls.
     expect(screen.queryByRole("listbox")).toBeNull();
@@ -464,6 +468,127 @@ describe("GardenV2", () => {
       expect(screen.queryByText(/for today’s achievement/)).toBeNull();
       await user.keyboard("{Escape}");
       expect(screen.getByText(/for today’s achievement: First seed planted/)).toBeInTheDocument();
+    });
+  });
+
+  describe("a ♡ over flowers waiting on your care (#214)", () => {
+    const ids = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
+    /** Rose (sprout, waiting), tulip (you cared), peony, bloomed daisy, closed moonflower, cactus your partner cared for. */
+    function mixed(): GardenState {
+      const state = garden();
+      const rose = state.plants[0]!;
+      rose.flower.growth_units = 0;
+      const plant = (n: number, spot: number, type_key: string, extra: Partial<GardenState["plants"][number]["flower"]> = {}, you = false, partner = false) => ({
+        ...structuredClone(rose),
+        flower: { ...rose.flower, id: ids(n), spot, type_key, growth_units: 1, ...extra },
+        member1_submitted: you,
+        member2_submitted: partner,
+      }) as GardenState["plants"][number];
+      state.plants.push(
+        plant(2, 2, "tulip", {}, true, false),
+        plant(3, 3, "peony"),
+        plant(4, 4, "daisy", { growth_units: 7, first_bloom_at: state.server_now, first_bloom_day: state.garden_day }),
+        plant(5, 5, "moonflower"),
+        plant(6, 6, "cactus", {}, false, true),
+      );
+      state.garden.next_spot = 7;
+      return state;
+    }
+    async function refreshTo(next: GardenState) {
+      api.refreshGardenV2.mockResolvedValue({ state: next, error: null });
+      await act(async () => {
+        window.dispatchEvent(new Event("focus"));
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+      await flush();
+    }
+
+    it("floats one decorative ♡ over each flower whose care is open for you, sprouts included", async () => {
+      const state = mixed();
+      await mount(state);
+      expect(hearts().map((heart) => heart.dataset.caption)).toEqual([`care-${ids(1)}`, `care-${ids(6)}`]);
+      for (const heart of hearts()) {
+        expect(heart).toHaveTextContent("♡");
+        expect(heart).toHaveAttribute("aria-hidden", "true");
+        expect(heart.tagName).toBe("SPAN");
+      }
+      // It never shadows the plot list's words or a control.
+      expect(screen.queryByRole("button", { name: "♡" })).toBeNull();
+    });
+
+    it("sits just above the plant's top and follows it as it grows", async () => {
+      await mount(mixed());
+      const sprout = worlds[0]!.states.at(-1)!.flowers.find((flower) => flower.id === ids(1))!;
+      // It grows: the same flower, three units on, stands taller.
+      const grown = mixed();
+      grown.plants[0]!.flower.growth_units = 3;
+      await refreshTo(grown);
+      const taller = worlds[0]!.states.at(-1)!.flowers.find((flower) => flower.id === ids(1))!;
+      expect(taller.height!).toBeGreaterThan(sprout.height! * 1.5);
+      const [before] = careHearts([mixed().plants[0]!], [sprout]);
+      const [after] = careHearts([grown.plants[0]!], [taller]);
+      expect(before).toMatchObject({ id: `care-${ids(1)}`, text: "♡", size: "mark" });
+      expect(before!.position).toEqual([sprout.position[0], sprout.position[1] + sprout.height! + HEART_LIFT, sprout.position[2]]);
+      expect(after!.position[1]).toBeCloseTo(taller.position[1] + taller.height! + HEART_LIFT, 6);
+      expect(HEART_LIFT).toBeLessThan(0.1);
+    });
+
+    it("updates live: after your share, at the 4 a.m. rollover and when the Moonflower opens", async () => {
+      const state = mixed();
+      await mount(state);
+      expect(hearts()).toHaveLength(2);
+      // Your share on the rose (through the state your save returns, or Realtime).
+      const shared = mixed();
+      shared.plants[0]!.member1_submitted = true;
+      await refreshTo(shared);
+      expect(hearts().map((heart) => heart.dataset.caption)).toEqual([`care-${ids(6)}`]);
+      // 10 p.m.: the Moonflower's window opens.
+      const night = structuredClone(shared);
+      night.moonflower_open = true;
+      await refreshTo(night);
+      expect(hearts().map((heart) => heart.dataset.caption)).toEqual([`care-${ids(5)}`, `care-${ids(6)}`]);
+      // 4 a.m.: a new garden day, nobody has cared yet; the tulip waits again.
+      const rollover = structuredClone(night);
+      rollover.garden_day = "2026-11-03";
+      rollover.moonflower_open = false;
+      for (const plant of rollover.plants) {
+        plant.member1_submitted = false;
+        plant.member2_submitted = false;
+      }
+      await refreshTo(rollover);
+      expect(hearts().map((heart) => heart.dataset.caption)).toEqual([`care-${ids(1)}`, `care-${ids(2)}`, `care-${ids(6)}`]);
+    });
+
+    it("hides under the glide, the flower view, planting and overlays, and comes back after", async () => {
+      vi.stubGlobal("matchMedia", (query: string) => ({ matches: false, media: query, addEventListener: vi.fn(), removeEventListener: vi.fn() }));
+      const user = userEvent.setup();
+      await mount(mixed());
+      expect(hearts()).toHaveLength(2);
+      // Tapping a flower: gone while the camera glides, and while its view is open.
+      act(() => worlds[0]!.callbacks.onPick({ kind: "flower", id: ids(1), distance: 1 }));
+      expect(screen.queryByRole("dialog")).toBeNull();
+      expect(captionIds()).toEqual(["title"]);
+      await screen.findByRole("dialog", { name: "rose" }, { timeout: 3000 });
+      expect(captionIds()).toEqual(["title"]);
+      await user.keyboard("{Escape}");
+      expect(hearts()).toHaveLength(2);
+      // Planting an empty spot.
+      act(() => worlds[0]!.callbacks.onPick({ kind: "spot", spot: 9, distance: 1 }));
+      await screen.findByRole("dialog", { name: "plant a seed" }, { timeout: 3000 });
+      expect(captionIds()).toEqual(["title"]);
+      await user.keyboard("{Escape}");
+      expect(hearts()).toHaveLength(2);
+      // An overlay such as Memories.
+      await user.click(screen.getByRole("link", { name: "memories" }));
+      await screen.findByRole("dialog", { name: /memories/i });
+      expect(captionIds()).toEqual(["title"]);
+    });
+
+    it("shows nothing when nothing waits on you", async () => {
+      const state = mixed();
+      for (const plant of state.plants) plant.member1_submitted = true;
+      await mount(state);
+      expect(captionIds()).toEqual(["title"]);
     });
   });
 
