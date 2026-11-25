@@ -637,9 +637,9 @@ Settings and guide, made under this decision's discretion and the look in
     the old garden is unchanged. They sit above the overlays.
 - **The guide:**
   - On a member's first visit in this browser, once the world is painted, a
-    small guide card opens low over the scene (`?view=guide`). It has four pages:
-    welcome, wander, plant and care, and keepsakes. On the keepsakes page the
-    menu glows.
+    small guide card opens low over the scene (`?view=guide`). It has three
+    pages, worded by the user: welcome, wander and keepsakes. On the keepsakes
+    page the menu glows.
   - Closing it at any point (skip, ×, Escape or "let's wander") marks it seen
     in local storage per member. Storage that cannot be read shows nothing.
   - The shared `guide` member setting is not used: it records the old garden's
