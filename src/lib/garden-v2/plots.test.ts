@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { v2GardenFixture } from "@/test/garden-v2-fixture";
 import { plotOrder } from "@/lib/world/plots";
 import type { FlowerType, GardenState, Plant } from "./model";
-import { gardenPlots, plotGrowth, waitingOnYou } from "./plots";
+import { gardenPlots, plotGrowth, waitingOnYou, waitsOnYou } from "./plots";
 
 function garden() {
   const state = v2GardenFixture();
@@ -23,7 +23,7 @@ describe("gardenPlots", () => {
     expect(plots.filter((plot) => plot.bed === 2)).toHaveLength(12);
   });
 
-  it("names a flower by type and growth, with a heart when your partner cared and you have not", () => {
+  it("names a flower by type and growth, with a heart while it waits on your care", () => {
     const plots = gardenPlots(garden(), "Sam");
     const rose = plots.find((plot) => plot.spot === 1)!;
     expect(rose).toMatchObject({ label: "rose · 3 of 5 ♡ · bed 1", bed: 1 });
@@ -40,6 +40,16 @@ describe("gardenPlots", () => {
     expect(plotGrowth(rose, state)).toBe("in bloom");
     const plot = gardenPlots(state, "Sam").find((candidate) => candidate.spot === 1)!;
     expect(plot.label).toBe("rose · in bloom · bed 1");
+  });
+
+  it("shows the heart whenever your care is open, whether or not your partner has cared (#214)", () => {
+    const state = garden();
+    const rose = state.plants[0]!;
+    rose.member2_submitted = false;
+    expect(gardenPlots(state, "Sam").find((plot) => plot.spot === 1)!.label).toBe("rose · 3 of 5 ♡ · bed 1");
+    // Once you have cared it goes, even if your partner has not.
+    rose.member1_submitted = true;
+    expect(gardenPlots(state, "Sam").find((plot) => plot.spot === 1)!.label).toBe("rose · 3 of 5 · bed 1");
   });
 });
 
@@ -100,13 +110,24 @@ describe("waitingOnYou (#214)", () => {
     expect(types(state)).toEqual(["rose"]);
   });
 
-  it("agrees with the hidden plot list's accessible names", () => {
-    const state = gardenOf([{ type: "rose" }, { type: "tulip", you: true }, { type: "peony" }, { type: "moonflower" }, { type: "daisy", bloomed: true }]);
+  it("agrees with the hidden plot list's chip heart and accessible names", () => {
+    const state = gardenOf([
+      { type: "rose" },
+      { type: "tulip", you: true },
+      { type: "daisy", you: true, partner: true },
+      { type: "marigold", partner: true },
+      { type: "peony" },
+      { type: "moonflower" },
+      { type: "hydrangea", bloomed: true },
+      { type: "cactus", bloomed: true },
+    ]);
     const waiting = new Set(waitingOnYou(state).map((plant) => plant.flower.spot));
     for (const plot of gardenPlots(state, "Sam")) {
       if (!plot.plant) continue;
+      expect(waitsOnYou(plot.plant, state)).toBe(waiting.has(plot.spot));
+      expect(plot.label.includes("♡"), plot.label).toBe(waiting.has(plot.spot));
       expect(plot.ariaLabel.includes("Your care is open"), plot.ariaLabel).toBe(waiting.has(plot.spot));
     }
-    expect(waiting.size).toBe(1);
+    expect(waitingOnYou(state).map((plant) => plant.flower.type_key)).toEqual(["cactus", "marigold", "rose"]);
   });
 });

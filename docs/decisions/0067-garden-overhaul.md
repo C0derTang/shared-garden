@@ -1070,7 +1070,9 @@ gone:
     front, left to right (as recorded for #206).
   - Each button's words name its plot: "rose · 3 of 5 · bed 1" (growth as in
     the panel, the stage once bloomed, "♡" after it when your partner cared
-    and you have not), or "empty spot · bed 2". Its accessible name says more:
+    and you have not; since
+    [#214](#recorded-choice-a-floating--over-flowers-waiting-on-your-care-and-larger-sprouts-214),
+    whenever it waits on your care), or "empty spot · bed 2". Its accessible name says more:
     type, stage, growth, who has cared today and the bed ("Empty spot, bed 2"
     for an empty one).
   - Every button is visually hidden. Only the button with keyboard focus
@@ -1115,10 +1117,14 @@ decision's discretion:
   keeps its check-ins, so it keeps its ♡), a fulfilled Dandelion, a
   Moonflower before its 10 p.m. window, a flower you already cared for, or an
   empty spot. Your partner's care does not change it. The hidden plot list's
-  accessible names say "Your care is open" for exactly the same flowers. (Its
-  chip keeps the "♡" recorded for
-  [#210](#recorded-choice-removing-the-plot-navigator-210), shown when your
-  partner cared and you have not.)
+  accessible names say "Your care is open" for exactly the same flowers.
+- **The plot list's ♡ (orchestrator decision under this decision's wording
+  discretion):** the "♡" in the hidden plot list's chip now means the same as
+  the one in the world: it shows when the flower waits on your care, no
+  longer only when your partner cared and you have not (superseding that
+  wording for
+  [#210](#recorded-choice-removing-the-plot-navigator-210)). Both come from
+  one predicate, `waitsOnYou`, so they cannot drift apart.
 - **Look:** one "♡" in the garden's floating type (Gochi Hand, falling back to
   the system's heart glyph where the bundled Latin subset has none), cream
   with a soft warm glow like the title and the landing's captions. It is a

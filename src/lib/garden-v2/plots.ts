@@ -15,7 +15,10 @@ export interface GardenPlot {
   readonly bed: number;
   /** The flower growing there, if any. */
   readonly plant: Plant | null;
-  /** The chip's short words: "rose · 3 of 5 · bed 1", "rose · in bloom · bed 1", "empty spot · bed 2". */
+  /**
+   * The chip's short words: "rose · 3 of 5 · bed 1", "rose · in bloom · bed 1", "empty spot · bed 2",
+   * with "♡" after the growth when the flower waits on your care ({@link waitsOnYou}, #214).
+   */
   readonly label: string;
   /** What a screen reader hears for the plot. */
   readonly ariaLabel: string;
@@ -53,9 +56,9 @@ export function gardenPlots(state: GardenState, partner: string): GardenPlot[] {
       return { spot, bed, plant, label: `empty spot · bed ${bed}`, ariaLabel: `Empty spot, bed ${bed}` };
     }
     const item = catalogItem(state, plant.flower.type_key);
-    const status = gardenCareStatus(plant, item, state);
     const name = captionName(item, plant.flower.type_key);
-    const waiting = status?.cue === "partner-cared";
+    // The same "♡" as floats over the flower in the world (#214).
+    const waiting = waitsOnYou(plant, state);
     return {
       spot,
       bed,
@@ -67,15 +70,19 @@ export function gardenPlots(state: GardenState, partner: string): GardenPlot[] {
 }
 
 /**
- * Flowers still waiting on your care today (#214), in spot order: exactly
- * those whose daily care is open for you now and that you have not cared for
- * this garden day (`dueForYou` in the shared care rules). Never the Peony
- * (no daily care), a bloomed flower that needs no more care, a Moonflower
- * before its 10 p.m. window or a flower you already cared for. Your partner's
- * care does not change it. Each gets a small floating "♡" in the world.
+ * The one rule for the garden's "♡" (#214): a flower still waits on your care
+ * today when its daily care is open for you now and you have not cared for it
+ * this garden day (`dueForYou` in the shared care rules). Never the Peony (no
+ * daily care), a bloomed flower that needs no more care, a Moonflower before
+ * its 10 p.m. window or a flower you already cared for. Your partner's care
+ * does not change it. Both the ♡ floating over the flower in the world and the
+ * ♡ in the hidden plot list's chip use it, so they always agree.
  */
+export function waitsOnYou(plant: Plant, state: GardenState): boolean {
+  return gardenCareStatus(plant, catalogItem(state, plant.flower.type_key), state)?.dueForYou === true;
+}
+
+/** Flowers still waiting on your care today ({@link waitsOnYou}), in spot order; each gets a floating "♡". */
 export function waitingOnYou(state: GardenState): Plant[] {
-  return state.plants
-    .filter((plant) => gardenCareStatus(plant, catalogItem(state, plant.flower.type_key), state)?.dueForYou === true)
-    .sort((a, b) => a.flower.spot - b.flower.spot);
+  return state.plants.filter((plant) => waitsOnYou(plant, state)).sort((a, b) => a.flower.spot - b.flower.spot);
 }
