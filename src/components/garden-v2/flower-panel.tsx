@@ -131,7 +131,19 @@ function HydrangeaColors({ plant, state }: { plant: Plant; state: GardenState })
 }
 
 /** The Dandelion's shared wish, and blowing its seeds once it has bloomed. */
-function DandelionWish({ plant, state, busy, mutate }: { plant: Plant; state: GardenState; busy: boolean; mutate: MutateV2 }) {
+function DandelionWish({
+  plant,
+  state,
+  busy,
+  mutate,
+  onSeedsBlown,
+}: {
+  plant: Plant;
+  state: GardenState;
+  busy: boolean;
+  mutate: MutateV2;
+  onSeedsBlown?: (flowerId: string) => void;
+}) {
   const partner = usePartnerName();
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -145,7 +157,10 @@ function DandelionWish({ plant, state, busy, mutate }: { plant: Plant; state: Ga
     try {
       const result = await mutate({ kind: "fulfillDandelion", flowerId: flower.id });
       if (!result.saved) setError(result.error ?? "Check this wish before trying again.");
-      else setConfirming(false);
+      else {
+        setConfirming(false);
+        onSeedsBlown?.(flower.id);
+      }
     } finally {
       lock.current = false;
     }
@@ -272,10 +287,12 @@ export interface FlowerPanelProps {
   mutate: MutateV2;
   /** Opens another flower (e.g. the next one waiting for your care). */
   onVisit?: (flowerId: string) => void;
+  /** You blew a Dandelion's seeds: its wish came true (#201). */
+  onSeedsBlown?: (flowerId: string) => void;
 }
 
 /** The right half of a flower's view: its activity, today's care, the partner's entry and history. */
-export function FlowerPanel({ plant, state, item, now, busy, mutate, onVisit }: FlowerPanelProps) {
+export function FlowerPanel({ plant, state, item, now, busy, mutate, onVisit, onSeedsBlown }: FlowerPanelProps) {
   const partner = usePartnerName();
   const [editing, setEditing] = useState<Entry | null>(null);
   const [saved, setSaved] = useState<"share" | "edit" | null>(null);
@@ -409,7 +426,7 @@ export function FlowerPanel({ plant, state, item, now, busy, mutate, onVisit }: 
       <Today plant={plant} item={item} state={state} />
       <DaisyQuestion plant={plant} />
       <HydrangeaColors plant={plant} state={state} />
-      <DandelionWish plant={plant} state={state} busy={busy} mutate={mutate} />
+      <DandelionWish plant={plant} state={state} busy={busy} mutate={mutate} onSeedsBlown={onSeedsBlown} />
       {dailyCare ? (
         <section className={styles.cards} aria-label="Today">
           <h3 className={styles.sectionTitle}>today · {gardenDayLabel(state.garden_day)}</h3>

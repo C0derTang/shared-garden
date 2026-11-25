@@ -18,7 +18,7 @@ vi.mock("@/components/world/renderer", () => ({
   },
 }));
 vi.mock("@/components/world/flowers/studio-renderer", () => ({ createStudioRenderer: () => ({ update: vi.fn(), dispose: vi.fn() }) }));
-vi.mock("@/components/world/flowers/flower-layer", () => ({ createFlowerLayer: () => ({ draw: vi.fn(), setFlowers: vi.fn() }) }));
+vi.mock("@/components/world/flowers/flower-layer", () => ({ createFlowerLayer: () => ({ draw: vi.fn(), setFlowers: vi.fn(), blowSeeds: vi.fn(), deferSeeds: vi.fn(), holdSeeds: vi.fn(), waitingSeeds: 0 }) }));
 // The night fireworks layer (#184) needs WebGPU and .wgsl.
 vi.mock("@/components/world/fireworks/fireworks-layer", () => ({ createFireworksLayer: () => ({ draw: vi.fn(), play: vi.fn(), stop: vi.fn(), playing: false }) }));
 const api = vi.hoisted(() => ({

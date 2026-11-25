@@ -22,11 +22,18 @@ import { FlowerPanel } from "./flower-panel";
 import { useNightFireworks } from "./night-fireworks";
 import { GardenOverlays } from "./overlays/garden-overlays";
 import { PlantView } from "./plant-view";
+import { useSeedBlows } from "./seed-blows";
 import { SplitView } from "./split-view";
 import styles from "./garden-v2.module.css";
 
 /** How long the camera glides toward a flower before its view opens. */
 export const GLIDE_MS = 950;
+/**
+ * Closing a Dandelion whose seeds are about to blow in the world: the camera
+ * holds its close look while they lift, then glides back (#201).
+ */
+export const SEED_HOLD_MS = 2800;
+const STILL_SEED_HOLD_MS = 1200;
 export const GARDEN_PATH = "/garden";
 const flowerHref = (id: string) => `${GARDEN_PATH}?flower=${encodeURIComponent(id)}`;
 const themeStyle = { "--hand": handFont.style.fontFamily } as CSSProperties;
@@ -79,6 +86,8 @@ export function GardenV2({
   const [news, setNews] = useState<AwayNews>(noAwayNews);
   const [wandered, setWandered] = useState(false);
   const [view, setView] = useState<GardenView | null>(initialFlowerId ? null : initialView);
+  /** The flower the camera is gliding to or showing in its painting (its seeds wait for the painting). */
+  const [visiting, setVisiting] = useState<string | null>(null);
   const timer = useRef<number | undefined>(undefined);
   const returnTo = useRef<string | null>(null);
   const visitSpot = useRef<number | null>(null);
@@ -105,6 +114,15 @@ export function GardenV2({
   const fireworks = useNightFireworks({ state, now, covered, worldReady: worldStatus === "ready" && arrival.settled, reducedMotion });
   const layers = useMemo(() => [flowerLayer, fireworks.layer].filter((layer) => layer !== null), [flowerLayer, fireworks.layer]);
   const occupied = useMemo(() => state?.plants.map((plant) => plant.flower.spot) ?? [], [state]);
+  // A Dandelion's seeds blow away when its wish comes true (#201).
+  const seedBlows = useSeedBlows({ state, layer: flowerLayer, openFlowerId: mode.kind === "flower" ? mode.id : null });
+  useEffect(() => {
+    flowerLayer?.deferSeeds(visiting);
+  }, [flowerLayer, visiting]);
+  // Nothing blows under the arrival's fading light (#204); waiting puffs simply wait.
+  useEffect(() => {
+    flowerLayer?.holdSeeds(!arrival.settled);
+  }, [flowerLayer, arrival.settled]);
 
   useEffect(() => () => window.clearTimeout(timer.current), []);
 
@@ -125,6 +143,7 @@ export function GardenV2({
       if (!anchor) return;
       returnTo.current = `flower-${id}`;
       setMode({ kind: "idle" });
+      setVisiting(id);
       setWandered(true);
       window.history.replaceState(window.history.state, "", flowerHref(id));
       glide({ position: anchor.position, height: anchor.height ?? 0.8 }, () => setMode({ kind: "flower", id }), immediate);
@@ -136,6 +155,7 @@ export function GardenV2({
     (spot: number) => {
       returnTo.current = "plant";
       setMode({ kind: "idle" });
+      setVisiting(null);
       setWandered(true);
       glide({ position: spotPosition(spot).position, height: 0.7 }, () => setMode({ kind: "plant", spot }));
     },
@@ -143,8 +163,11 @@ export function GardenV2({
   );
 
   const openView = useCallback((next: GardenView) => {
+    // Ends any glide or close-look hold (#201): the camera is released too.
     window.clearTimeout(timer.current);
+    setFocus(null);
     setMode({ kind: "idle" });
+    setVisiting(null);
     setWandered(true);
     setView(next);
     window.history.replaceState(window.history.state, "", gardenViewHref(next));
@@ -155,12 +178,20 @@ export function GardenV2({
     window.history.replaceState(window.history.state, "", GARDEN_PATH);
   }, []);
 
+  const { awaitsWorld } = seedBlows;
   const close = useCallback(() => {
     window.clearTimeout(timer.current);
+    const closing = visiting;
     setMode({ kind: "idle" });
-    setFocus(null);
+    setVisiting(null);
+    if (closing !== null && awaitsWorld(closing)) {
+      // The seeds blow in the world as you return: hold the close look while they lift.
+      timer.current = window.setTimeout(() => setFocus(null), reducedMotion ? STILL_SEED_HOLD_MS : SEED_HOLD_MS);
+    } else {
+      setFocus(null);
+    }
     window.history.replaceState(window.history.state, "", GARDEN_PATH);
-  }, []);
+  }, [visiting, awaitsWorld, reducedMotion]);
 
   // Deep link: /garden?flower=<id> opens that flower once.
   const deepLink = useRef(initialFlowerId);
@@ -324,6 +355,7 @@ export function GardenV2({
           title={openName}
           subtitle={`planted by ${openPlant.flower.planted_by === state.member_id ? "you" : partner.short} · ${gardenDayLabel(openPlant.flower.planted_day)}`}
           onReturnFocus={() => focusCaption(returnTo.current ?? "")}
+          blowSeeds={seedBlows.heroToken}
         >
           <FlowerPanel
             key={openPlant.flower.id}
@@ -334,6 +366,7 @@ export function GardenV2({
             busy={busy}
             mutate={mutate}
             onVisit={visit}
+            onSeedsBlown={seedBlows.fulfilled}
           />
         </SplitView>
       )}
