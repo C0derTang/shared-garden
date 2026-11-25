@@ -158,6 +158,8 @@ export class PlantBuilder {
     readonly seed: number,
     readonly type: string,
     readonly growth: Growth,
+    /** How much larger a seedling's shoot is drawn (#214; see `seedlingScaleFor`). Later stages ignore it. */
+    readonly seedlingScale = 1,
   ) {
     this.partSeeds = this.stream("part-seeds");
   }

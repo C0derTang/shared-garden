@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { PLOT_GLOW } from "../glow";
 import { spotPosition } from "../layout";
-import { FLOWER_TYPES, generateFlower, growthFor, growthStage, packFlowers, type FlowerSpec } from "./generate";
+import { FLOWER_TYPES, generateFlower, growthFor, growthStage, packFlowers, seedlingScaleFor, type FlowerSpec } from "./generate";
 import { linear, seedHash } from "./math";
 import { IDENTITY_PLACEMENT, MATERIAL, PART_ATTRIBUTES, PART_FLOATS } from "./parts";
 import { SEEDLING_SCALE } from "./species";
@@ -148,15 +148,52 @@ describe("a larger sprout (#214)", () => {
   };
   const GROWTH = [0, 0.12, 0.24, 0.25, 0.5, 1];
 
-  it("draws every seedling shoot about 1.3 times its former size, and nothing else", () => {
+  // Seed 7's first bud is taller than 1.3 times its seedling for these; for the Dandelion and
+  // Forget-me-not the cap below binds, and the Cactus's seedling is a ball that keeps its size.
+  const UNCAPPED = FLOWER_TYPES.filter((type) => !["cactus", "dandelion", "forget-me-not"].includes(type));
+
+  it("draws every seedling shoot 1.3 times its former size where its first bud allows, and nothing else", () => {
     expect(SEEDLING_SCALE).toBe(1.3);
+    for (const type of UNCAPPED) expect(seedlingScaleFor(type, 7), type).toBe(SEEDLING_SCALE);
+    expect(seedlingScaleFor("cactus", 7)).toBe(1);
     for (const type of FLOWER_TYPES) {
       GROWTH.forEach((growth, i) => {
         const height = generateFlower({ type, seed: 7, growth }).height;
-        // The Cactus's seedling ball and every later stage keep their size.
-        const expected = growth < 0.25 && type !== "cactus" ? BEFORE[type]![i]! * SEEDLING_SCALE : BEFORE[type]![i]!;
+        // Every later stage keeps its size.
+        const expected = growth < 0.25 ? BEFORE[type]![i]! * seedlingScaleFor(type, 7) : BEFORE[type]![i]!;
         expect(height, `${type} at ${growth}`).toBeCloseTo(expected, 4);
       });
+    }
+  });
+
+  // Real growth targets (the flower catalogue), so these are the steps a flower actually takes.
+  const TARGETS: Record<string, number> = {
+    rose: 5, cactus: 10, tulip: 7, marigold: 5, daisy: 7, hydrangea: 7, sunflower: 7,
+    snapdragon: 5, moonflower: 5, bluebell: 7, dandelion: 5, "forget-me-not": 10, peony: 4,
+  };
+
+  it("never lets a sprout outgrow its first bud, or shrink into it more than before (seeds 1–300)", () => {
+    for (const type of FLOWER_TYPES) {
+      const target = TARGETS[type]!;
+      const steps = Array.from({ length: target + 1 }, (_, units) => units / target);
+      const lastSeedling = steps.filter((growth) => growth < 0.25).at(-1)!;
+      const firstBud = steps.find((growth) => growth >= 0.25)!;
+      for (let seed = 1; seed <= 300; seed += 1) {
+        const scale = seedlingScaleFor(type, seed);
+        expect(scale).toBeGreaterThanOrEqual(1);
+        expect(scale).toBeLessThanOrEqual(SEEDLING_SCALE);
+        const bud = generateFlower({ type, seed, growth: firstBud }).height;
+        const sprout = generateFlower({ type, seed, growth: lastSeedling }).height;
+        // The shoot scales as a whole, so its height before #214 was sprout / scale.
+        const before = sprout / scale;
+        expect(bud / sprout, `${type} ${seed}`).toBeGreaterThanOrEqual(Math.min(1, bud / before) - 1e-9);
+        if (scale > 1) {
+          // Wherever it is enlarged, even its largest seedling stays within its smallest bud.
+          const peak = generateFlower({ type, seed, growth: 0.25 - 1e-6 }).height;
+          expect(peak, `${type} ${seed}`).toBeLessThanOrEqual(generateFlower({ type, seed, growth: 0.25 }).height + 1e-9);
+          expect(sprout, `${type} ${seed}`).toBeLessThanOrEqual(bud + 1e-9);
+        }
+      }
     }
   });
 
@@ -177,7 +214,8 @@ describe("a larger sprout (#214)", () => {
       peony: 0.06069,
     };
     for (const [type, before] of Object.entries(reach)) {
-      expect(generateFlower({ type: type as FlowerSpec["type"], seed: 7, growth: 0.24 }).radius, type).toBeCloseTo(before * SEEDLING_SCALE, 4);
+      const scale = seedlingScaleFor(type as FlowerSpec["type"], 7);
+      expect(generateFlower({ type: type as FlowerSpec["type"], seed: 7, growth: 0.24 }).radius, type).toBeCloseTo(before * scale, 4);
     }
   });
 

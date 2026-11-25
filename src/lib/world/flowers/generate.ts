@@ -20,7 +20,7 @@ import {
   type SheetPart,
   type TubePart,
 } from "./parts";
-import { SPECIES } from "./species";
+import { SEEDLING_SCALE, SPECIES } from "./species";
 
 export { growthFor, growthStage, type GrowthStage, type PuffSeed } from "./builder";
 
@@ -58,10 +58,44 @@ export interface FlowerModel {
 
 const HEX = /^#[0-9a-f]{6}$/i;
 
+/** Growth just below the bud threshold: a seedling at its largest. */
+const SEEDLING_PEAK = 0.25 - 1e-6;
+const seedlingScales = new Map<string, number>();
+
+/** Height of a plant built with the given seedling scale (no caching). */
+function plantHeight(type: FlowerType, seed: number, growth: number, seedlingScale: number): number {
+  const builder = new PlantBuilder(seed, type, growthFor(growth), seedlingScale);
+  SPECIES[type](builder, { moods: [], puff: false });
+  return Math.max(builder.bounds().height, 0.05);
+}
+
+/**
+ * How much larger this plant's seedling shoot is drawn (#214): the full
+ * {@link SEEDLING_SCALE} where that leaves the seedling no taller than the
+ * same plant's first bud (growth 25%), otherwise just enough to reach the
+ * bud's height, and never smaller than before (1). So a sprout never shrinks
+ * more as it becomes a bud than it did before #214. Its halo, pick target and
+ * floating "♡" all follow the plant's resulting size.
+ */
+export function seedlingScaleFor(type: FlowerType, seed: number): number {
+  // The Cactus's seedling is a small ribbed ball, not a shoot: it keeps its size.
+  if (type === "cactus") return 1;
+  const key = `${type}|${seed}`;
+  let scale = seedlingScales.get(key);
+  if (scale === undefined) {
+    const peak = plantHeight(type, seed, SEEDLING_PEAK, 1);
+    const bud = plantHeight(type, seed, 0.25, 1);
+    scale = Math.min(SEEDLING_SCALE, Math.max(1, bud / peak));
+    if (seedlingScales.size > 2000) seedlingScales.clear();
+    seedlingScales.set(key, scale);
+  }
+  return scale;
+}
+
 /** Builds the plant for a flower. Same spec, same plant. */
 export function generateFlower(spec: FlowerSpec): FlowerModel {
   const growth = growthFor(spec.growth);
-  const builder = new PlantBuilder(spec.seed, spec.type, growth);
+  const builder = new PlantBuilder(spec.seed, spec.type, growth, growth.stage === "seedling" ? seedlingScaleFor(spec.type, spec.seed) : 1);
   const moods = (spec.moodColors ?? []).filter((hex) => HEX.test(hex)).map((hex) => linear(hex));
   SPECIES[spec.type](builder, { moods, puff: spec.puff === true });
   const bounds = builder.bounds();

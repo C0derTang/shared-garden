@@ -115,9 +115,11 @@ function bowedStalk(random: () => number, height: number, lean: Vec3, bow = 0.04
 }
 
 /**
- * How much larger a seedling's shoot is drawn than it first was (#214): its
- * height, leaf span and stem, so sprouts are easier to see. Later stages and
- * the Cactus's seedling ball keep their size.
+ * How much larger a seedling's shoot is drawn than it first was (#214), at
+ * most: its height, leaf span and stem, so sprouts are easier to see. Each
+ * plant's own scale is capped so its seedling never outgrows its first bud
+ * (`seedlingScaleFor` in `generate.ts`). Later stages and the Cactus's
+ * seedling ball keep their size.
  */
 export const SEEDLING_SCALE = 1.3;
 
@@ -126,7 +128,7 @@ function seedling(b: PlantBuilder, leaf: LeafColors, kind: "dicot" | "strap", tr
   const r = b.stream("seedling");
   const sprout = smoothstep(0, 0.25, b.growth.fraction);
   const size = 0.45 + 0.55 * sprout;
-  const k = SEEDLING_SCALE;
+  const k = b.seedlingScale;
   const spin = r() * Math.PI * 2;
   if (kind === "strap") {
     const count = 2 + (sprout > 0.5 ? 1 : 0);

@@ -1148,13 +1148,22 @@ decision's discretion:
   It is decorative (`aria-hidden`) and takes no pointer events, so hovering or
   tapping where it floats still picks the plot beneath, exactly as before.
 - **Larger sprouts:** every seedling shoot (`seedling` in
-  `lib/world/flowers/species.ts`) is drawn 1.3 times its former size
+  `lib/world/flowers/species.ts`) is drawn up to 1.3 times its former size
   (`SEEDLING_SCALE`): height, stem, cotyledons, first true leaves and strap
-  leaves, from the same random streams, so each sprout keeps its identity.
-  The Cactus's seedling ball and every later stage are unchanged. Picking
-  still uses the sprout's own body (`pickOnScreen`), now 1.3 times larger.
-  The sprout's halo stays in the 0.17–0.27 world-unit band, and its reach
+  leaves together, from the same random streams, so each sprout keeps its
+  identity. The Cactus's seedling ball and every later stage are unchanged.
+- **The sprout never outgrows its bud (orchestrator decision after review):**
+  each plant's scale (`seedlingScaleFor` in `lib/world/flowers/generate.ts`)
+  is capped so that even its largest seedling is no taller than the same
+  plant's first bud (at growth 25%), and it is never below
+  the former size. Where the cap does not bind, the full 1.3 times applies:
+  every seed of the Rose, Tulip, Marigold, Daisy, Hydrangea, Sunflower,
+  Snapdragon, Moonflower, Bluebell and Peony among seeds 1–300. The
+  Dandelion is usually capped between its former size and 1.3 times. The
+  Forget-me-not's first bud is already shorter than its late seedling, so
+  its sprout keeps its former size. So no sprout shrinks more on becoming
+  a bud than it did before. The sprout's halo, its pick body
+  (`pickOnScreen`) and its floating "♡" all follow the resulting size. The
+  halo stays in the 0.17–0.27 world-unit band, and the sprout's reach
   (under 0.12 world units) plus the widest bloom stays within the closest
-  spacing of two spots, so it does not clip into a neighbouring plant. A
-  Dandelion's late seedling is now a little taller than its first bud (a
-  Forget-me-not's already was); the stage change rebuilds the plant anyway.
+  spacing of two spots, so it does not clip into a neighbouring plant.
