@@ -51,8 +51,17 @@ export function sceneExposure(lighting: Pick<WorldLighting, "glow" | "night">): 
  * its displayed peak is {@link PLOT_GLOW.base}, eased in the dark.
  */
 export function plotGlowLevel(lighting: Pick<WorldLighting, "glow" | "night">): number {
-  const backdrop = 1 - PLOT_GLOW.nightEase * Math.min(1, Math.max(0, lighting.night));
-  return (PLOT_GLOW.base * backdrop) / (PLOT_GLOW.luminance * sceneExposure(lighting));
+  return (PLOT_GLOW.base * plotGlowDisplay(lighting)) / (PLOT_GLOW.luminance * sceneExposure(lighting));
+}
+
+/**
+ * The displayed glow level for this sky relative to daylight: 1 by day, dawn
+ * and dusk, easing to {@link PLOT_GLOW.nightEase} quieter in full night. The
+ * plot glows use it, and so does the soft glow of the floating "♡" over
+ * flowers waiting on your care (#214), so both read alike at every hour.
+ */
+export function plotGlowDisplay(lighting: Pick<WorldLighting, "night">): number {
+  return 1 - PLOT_GLOW.nightEase * Math.min(1, Math.max(0, lighting.night));
 }
 
 /**

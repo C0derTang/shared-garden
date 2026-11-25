@@ -18,7 +18,7 @@ import {
 import { invert, lookAt, multiply, orthographic, perspective, rayFromNdc } from "@/lib/world/camera";
 import { ARRIVAL_LAYER_WAIT_SECONDS, ARRIVAL_STILL_SETTLE_SECONDS, ARRIVAL_SETTLE_SECONDS, ARRIVAL_WARM_FRAMES, arrivalPose } from "@/lib/world/arrival";
 import { gardenFovY, gardenPose, withDrift } from "@/lib/world/garden-camera";
-import { PLOT_GLOW, plotGlowLevel, sceneExposure } from "@/lib/world/glow";
+import { PLOT_GLOW, plotGlowDisplay, plotGlowLevel, sceneExposure } from "@/lib/world/glow";
 import type { FocusTarget, JourneyPose } from "@/lib/world/journey";
 import {
   DOOR_HINGE,
@@ -132,6 +132,12 @@ export interface WorldView {
    * holds or waits for layers), or null when there is none or it has settled.
    */
   readonly arrival: number | null;
+  /**
+   * The displayed plot-glow level for the sky, relative to daylight
+   * (`plotGlowDisplay`): 1 by day, quieter at night. Floating marks scale
+   * their soft glow by it (#214). Absent means daylight (1).
+   */
+  readonly glow?: number;
 }
 
 export interface WorldRendererCallbacks {
@@ -865,7 +871,7 @@ export function createWorldRenderer(
         currentFrame.pass({ target: painted, clear: [0, 0, 0, 1] }, (pass) => pass.draw(kuwahara));
         currentFrame.pass({ target: output, clear: [0, 0, 0, 1] }, (pass) => pass.draw(composite));
 
-        callbacks.onFrame?.({ viewProjection, width: canvas.clientWidth, height: canvas.clientHeight, entryFade: walk?.fade ?? 0, arrival: arrival.active ? arrival.seconds : null });
+        callbacks.onFrame?.({ viewProjection, width: canvas.clientWidth, height: canvas.clientHeight, entryFade: walk?.fade ?? 0, arrival: arrival.active ? arrival.seconds : null, glow: plotGlowDisplay(lighting) });
         if (arrival.active && arrival.seconds >= (still ? ARRIVAL_STILL_SETTLE_SECONDS : ARRIVAL_SETTLE_SECONDS)) arrival.active = false;
       } catch (error) {
         // A throwing tick ends vgpu's loop; dispose and report the error so the

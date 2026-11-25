@@ -65,3 +65,17 @@ export function gardenPlots(state: GardenState, partner: string): GardenPlot[] {
     };
   });
 }
+
+/**
+ * Flowers still waiting on your care today (#214), in spot order: exactly
+ * those whose daily care is open for you now and that you have not cared for
+ * this garden day (`dueForYou` in the shared care rules). Never the Peony
+ * (no daily care), a bloomed flower that needs no more care, a Moonflower
+ * before its 10 p.m. window or a flower you already cared for. Your partner's
+ * care does not change it. Each gets a small floating "♡" in the world.
+ */
+export function waitingOnYou(state: GardenState): Plant[] {
+  return state.plants
+    .filter((plant) => gardenCareStatus(plant, catalogItem(state, plant.flower.type_key), state)?.dueForYou === true)
+    .sort((a, b) => a.flower.spot - b.flower.spot);
+}

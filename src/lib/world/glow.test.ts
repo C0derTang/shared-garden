@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { FLOWER_TYPES, generateFlower, packFlowers, AURA_FLOATS } from "./flowers/generate";
-import { PLOT_GLOW, SEED_GLOW, SPROUT_GLOW, evenGlowColor, evenGlowRadius, luminance, plotGlowLevel, sceneExposure } from "./glow";
+import { PLOT_GLOW, SEED_GLOW, SPROUT_GLOW, evenGlowColor, evenGlowRadius, luminance, plotGlowDisplay, plotGlowLevel, sceneExposure } from "./glow";
 import { worldLightingFor } from "./sky-palette";
 import { skyStateAt } from "./solar";
 import { SKY_PRESETS } from "./sky-presets";
@@ -66,6 +66,20 @@ describe("one glow rule for every plot", () => {
     const day = worldLightingFor(skyStateAt(new Date(SKY_PRESETS.day)));
     const dark = worldLightingFor(skyStateAt(new Date(SKY_PRESETS.night)));
     expect(plotGlowLevel(dark)).toBeLessThan(plotGlowLevel(day));
+  });
+
+  it("shares its display level with the floating ♡ (#214): the same by day and morning, quieter at night", () => {
+    const level = (preset: keyof typeof SKY_PRESETS) => {
+      const lighting = worldLightingFor(skyStateAt(new Date(SKY_PRESETS[preset])));
+      expect(plotGlowLevel(lighting) * PLOT_GLOW.luminance * sceneExposure(lighting)).toBeCloseTo(PLOT_GLOW.base * plotGlowDisplay(lighting), 6);
+      return plotGlowDisplay(lighting);
+    };
+    expect(level("day")).toBeCloseTo(1, 5);
+    expect(level("morning")).toBeCloseTo(1, 5);
+    expect(level("night")).toBeLessThan(0.6);
+    expect(level("night")).toBeGreaterThanOrEqual(1 - PLOT_GLOW.nightEase);
+    expect(plotGlowDisplay({ night: 2 })).toBeCloseTo(1 - PLOT_GLOW.nightEase, 6);
+    expect(plotGlowDisplay({ night: -1 })).toBe(1);
   });
 
   it("brightens a hovered plot by one moderate boost", () => {
