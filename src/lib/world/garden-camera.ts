@@ -1,8 +1,8 @@
 /**
  * The garden composition's camera without its idle drift and pointer
- * parallax: the scroll journey, the sideways walk, the plot navigator's bed
- * framing and the glide to a flower, blended in that order. The renderer adds
- * the drift on top; tests use it to know where every plot lands on screen.
+ * parallax: the scroll journey, the sideways walk and the glide to a flower,
+ * blended in that order. The renderer adds the drift on top; tests use it to
+ * know where every plot lands on screen.
  */
 
 import { lookAt, multiply, perspective } from "./camera";
@@ -26,9 +26,6 @@ export interface GardenCameraState {
   readonly journey: number;
   /** Sideways walk along the beds (world units). */
   readonly pan: number;
-  /** The navigator's framing of the selected plot's bed, and how far the camera has blended into it. */
-  readonly browse?: JourneyPose | null;
-  readonly browseWeight?: number;
   /** A flower the camera glides close to before its view opens, and how far it has glided. */
   readonly focus?: FocusTarget | null;
   readonly focusWeight?: number;
@@ -41,21 +38,10 @@ export function gardenPose(state: GardenCameraState, aspect: number, fovY: numbe
     eye: [walked.eye[0] + state.pan, walked.eye[1], walked.eye[2]],
     look: [walked.look[0] + state.pan, walked.look[1], walked.look[2]],
   };
-  const browse = state.browse && state.browseWeight ? Math.min(1, Math.max(0, state.browseWeight)) : 0;
-  if (state.browse && browse > 0) pose = blendPoses(pose, state.browse, browse);
   const focus = state.focus && state.focusWeight ? Math.min(1, Math.max(0, state.focusWeight)) : 0;
   if (state.focus && focus > 0) pose = blendPoses(pose, focusPose(state.focus, aspect, fovY), focus);
-  const tilt = portraitTilt(aspect) * (1 - focus) * (1 - browse);
+  const tilt = portraitTilt(aspect) * (1 - focus);
   return { eye: pose.eye, look: [pose.look[0], pose.look[1] - tilt, pose.look[2]] };
-}
-
-/**
- * How much of the idle drift and pointer parallax stays: all of it in the
- * open, none once glided close to a flower, and 30% while the navigator frames
- * a plot (so the selected plot stays put under the pointer).
- */
-export function gardenSettle(focusWeight: number, browseWeight: number): number {
-  return (1 - focusWeight) * (1 - 0.7 * browseWeight);
 }
 
 /**

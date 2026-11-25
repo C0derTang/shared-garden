@@ -2,7 +2,7 @@ import { World, plotHalo } from "./common.wgsl";
 
 // Empty planting spots: a soft, glowing seed mark resting on the soil. It
 // shares the one plot-glow rule with every flower's aura (level, halo and the
-// hover/selected boost), so an empty spot reads like a seedling.
+// hover boost), so an empty spot reads like a seedling.
 @group(0) @binding(0) var<uniform> world: World;
 
 // World radius of a seed mark's halo (the smallest plot glow, PLOT_GLOW.minRadius).
@@ -22,17 +22,13 @@ struct MarkerOut {
   @location(1) @interpolate(flat) strength: f32,
 }
 
-fn highlighted(spot: f32) -> bool {
-  return abs(spot - world.hoveredSpot) < 0.5 || abs(spot - world.selectedSpot) < 0.5;
-}
-
 @vertex fn vs_main(input: MarkerIn) -> MarkerOut {
   var corners = array<vec2f, 6>(
     vec2f(-1.0, -1.0), vec2f(1.0, -1.0), vec2f(1.0, 1.0),
     vec2f(-1.0, -1.0), vec2f(1.0, 1.0), vec2f(-1.0, 1.0),
   );
   let corner = corners[input.vertex];
-  let lit = highlighted(input.spot.w);
+  let lit = abs(input.spot.w - world.hoveredSpot) < 0.5;
   let size = SEED_RADIUS * select(1.0, world.plotGrow, lit);
   // Camera-facing glow, floating just above the soil.
   let center = input.spot.xyz + vec3f(0.0, 0.1, 0.0);

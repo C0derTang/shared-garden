@@ -1,7 +1,7 @@
 /**
- * The plot navigator's list (#206): every spot of the open beds, planted or
- * empty, in the world's navigator order, with the words the navigator shows
- * and says for each.
+ * The garden's hidden keyboard plot list (#210): every spot of the open beds,
+ * planted or empty, in the world's reading order, with the words its chip
+ * shows and what a screen reader hears for each.
  */
 
 import { bedOfSpot, plotOrder } from "@/lib/world/plots";
@@ -11,18 +11,14 @@ import type { GardenState, Plant } from "./model";
 export interface GardenPlot {
   /** One-based spot. */
   readonly spot: number;
-  /** One-based bed number as the navigator says it ("bed 2"). */
+  /** One-based bed number ("bed 2"). */
   readonly bed: number;
   /** The flower growing there, if any. */
   readonly plant: Plant | null;
-  /** The navigator's short words: "rose · 3 of 5", "rose · in bloom", "empty spot". */
+  /** The chip's short words: "rose · 3 of 5 · bed 1", "rose · in bloom · bed 1", "empty spot · bed 2". */
   readonly label: string;
-  /** The quieter line under it: "bed 2". */
-  readonly detail: string;
-  /** What a screen reader hears for the option. */
+  /** What a screen reader hears for the plot. */
   readonly ariaLabel: string;
-  /** Your care is open for this flower today. */
-  readonly due: boolean;
 }
 
 /** Growth in the panel's "x of y" words, or the stage once it has bloomed. */
@@ -47,14 +43,14 @@ export function flowerLabel(plant: Plant, state: GardenState, partner: string) {
   return `${name}, ${growth}${care}`;
 }
 
-/** Every plot of the open beds in navigator order. */
+/** Every plot of the open beds in reading order. */
 export function gardenPlots(state: GardenState, partner: string): GardenPlot[] {
   const bySpot = new Map(state.plants.map((plant) => [plant.flower.spot, plant]));
   return plotOrder(state.garden.spot_capacity).map((spot) => {
     const bed = bedOfSpot(spot) + 1;
     const plant = bySpot.get(spot) ?? null;
     if (!plant) {
-      return { spot, bed, plant, label: "empty spot", detail: `bed ${bed}`, ariaLabel: `Empty spot, bed ${bed}`, due: false };
+      return { spot, bed, plant, label: `empty spot · bed ${bed}`, ariaLabel: `Empty spot, bed ${bed}` };
     }
     const item = catalogItem(state, plant.flower.type_key);
     const status = gardenCareStatus(plant, item, state);
@@ -64,10 +60,8 @@ export function gardenPlots(state: GardenState, partner: string): GardenPlot[] {
       spot,
       bed,
       plant,
-      label: `${name} · ${plotGrowth(plant, state)}${waiting ? " ♡" : ""}`,
-      detail: `bed ${bed}`,
+      label: `${name} · ${plotGrowth(plant, state)}${waiting ? " ♡" : ""} · bed ${bed}`,
       ariaLabel: `${flowerLabel(plant, state, partner)}. Bed ${bed}`,
-      due: Boolean(status?.dueForYou),
     };
   });
 }

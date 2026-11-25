@@ -37,12 +37,10 @@ export struct World {
   // 0..1 while a night show plays: the moon and sky recede so it can shine.
   showDim: f32,
   // The one glow rule every plot shares (lib/world/glow.ts): resting level,
-  // hover/selected brightening and halo widening.
+  // hover brightening and halo widening.
   plotGlow: f32,
   plotBoost: f32,
   plotGrow: f32,
-  // One-based empty spot the plot navigator selected, or -1.
-  selectedSpot: f32,
 }
 
 // The soft halo every plot glow shares, over a camera-facing quad (r = 0 at

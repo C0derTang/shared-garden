@@ -1,17 +1,15 @@
 /**
  * Automated hit tests for the garden's plots (#206): a seeded garden of every
  * type and stage, seen through the real garden camera at 1280×800 and
- * 390×844 (overview, among the beds, and the plot navigator's framing of each
- * bed), with the idle drift the renderer still applies under reduced motion,
+ * 390×844 (overview and among the beds), with the idle drift the renderer
+ * still applies under reduced motion,
  * picked with the same function the world uses for the pointer.
  */
 import { describe, expect, it } from "vitest";
-import { flowerModel, worldFlowerAnchors, type WorldFlower } from "@/components/world/flowers/flower-models";
+import { worldFlowerAnchors, type WorldFlower } from "@/components/world/flowers/flower-models";
 import { FLOWER_TYPES } from "./flowers/generate";
-import { SEE_NEAR, headOnScreen } from "./flowers/seeing";
-import { gardenFovY, gardenPose, gardenSettle, gardenViewProjection, withDrift, type GardenCameraState } from "./garden-camera";
-import { plotPose } from "./journey";
-import { bedAt, layoutPlantingSpots, spotPosition } from "./layout";
+import { gardenFovY, gardenPose, gardenViewProjection, withDrift, type GardenCameraState } from "./garden-camera";
+import { layoutPlantingSpots, spotPosition } from "./layout";
 import { MIN_TARGET_PX, pickOnScreen, plotFootprints, spineDistance, type ScreenView } from "./picking";
 
 /** Twenty flowers on spots 1–20 (bed 1 full, bed 2 two-thirds): every type, every stage. */
@@ -39,24 +37,17 @@ const SIZES = [
  */
 function painted(width: number, height: number, state: GardenCameraState): ScreenView {
   const aspect = width / height;
-  const pose = withDrift(gardenPose(state, aspect, gardenFovY(aspect)), 0, gardenSettle(state.focusWeight ?? 0, state.browse ? (state.browseWeight ?? 0) : 0));
+  const pose = withDrift(gardenPose(state, aspect, gardenFovY(aspect)), 0, 1 - (state.focusWeight ?? 0));
   return { viewProjection: gardenViewProjection(width, height, pose), width, height };
 }
 
 function views(width: number, height: number): { name: string; view: ScreenView }[] {
-  const aspect = width / height;
-  const fovY = gardenFovY(aspect);
   const at = (state: GardenCameraState): ScreenView => painted(width, height, state);
-  const list = [
+  return [
     { name: "overview", view: at({ journey: 0, pan: 0 }) },
     { name: "among the beds", view: at({ journey: 1, pan: 0 }) },
     { name: "among the beds, walked left", view: at({ journey: 1, pan: -3.3 }) },
   ];
-  for (const bed of [0, 1]) {
-    const framed = plotPose({ position: bedAt(bed).center, height: 0, bedCenter: bedAt(bed).center }, aspect, fovY);
-    list.push({ name: `navigator framing bed ${bed + 1}`, view: at({ journey: 0, pan: 0, browse: framed, browseWeight: 1 }) });
-  }
-  return list;
 }
 
 function onScreen(view: ScreenView, x: number, y: number) {
@@ -129,46 +120,5 @@ describe.each(SIZES)("garden plots at %i×%i", (width, height) => {
       for (const [px, py] of ring(x, y, radius)) expect(pickOnScreen(view, px, py, [], lone)).toMatchObject({ kind: "flower", id: "sprout" });
     }
     for (const [px, py] of ring(x, y, MIN_TARGET_PX / 2 + 12)) expect(pickOnScreen(view, px, py, [], lone)).toBeNull();
-  });
-
-  it("keeps a framed bed's dandelion heads in view, and the framed one within the seeing distance where the camera allows", () => {
-    const aspect = width / height;
-    const fovY = gardenFovY(aspect);
-    const head = flowerModel({ type: "dandelion", seed: 5, growth: 1, puff: true }).height;
-    for (const bed of [0, 1, 3]) {
-      for (let k = 1; k <= 12; k += 1) {
-        const selected = spotPosition(bed * 12 + k).position;
-        const framed = plotPose({ position: selected, height: head, bedCenter: bedAt(bed).center }, aspect, fovY);
-        const view = painted(width, height, { journey: 0, pan: 0, browse: framed, browseWeight: 1 });
-        const eye = withDrift(gardenPose({ journey: 0, pan: 0, browse: framed, browseWeight: 1 }, aspect, fovY), 0, gardenSettle(0, 1)).eye;
-        for (let j = 1; j <= 12; j += 1) {
-          const p = spotPosition(bed * 12 + j).position;
-          // Every head of the framed bed is in view, so a framed bed counts as seen (flower-layer).
-          expect(headOnScreen(view.viewProjection, [p[0], p[1] + head, p[2]])).toBe(true);
-        }
-        const distance = Math.hypot(eye[0] - selected[0], eye[1] - selected[1] - head, eye[2] - selected[2]);
-        expect(distance).toBeLessThanOrEqual(SEE_NEAR + 0.5);
-      }
-    }
-  });
-
-  it("frames a whole bed of plots in the navigator view, clear of the navigator", () => {
-    const aspect = width / height;
-    const fovY = gardenFovY(aspect);
-    for (const bed of [0, 1]) {
-      const framed = plotPose({ position: bedAt(bed).center, height: 0, bedCenter: bedAt(bed).center }, aspect, fovY);
-      const view = painted(width, height, { journey: 0, pan: 0, browse: framed, browseWeight: 1 });
-      for (let k = 0; k < 12; k += 1) {
-        const spot = spotPosition(bed * 12 + k + 1).position;
-        const [footprint] = plotFootprints(view, [{ spot: 0, position: spot }], []);
-        expect(footprint, `spot ${k + 1} of bed ${bed + 1} in front of the camera`).toBeDefined();
-        const [x, y] = footprint!.centre;
-        expect(x).toBeGreaterThan(24);
-        expect(y).toBeGreaterThan(24);
-        // Landscape: the navigator floats at the right; portrait: at the bottom.
-        if (aspect >= 1) expect(x).toBeLessThan(width - 300);
-        else expect(y).toBeLessThan(height - 170);
-      }
-    }
   });
 });

@@ -1427,24 +1427,15 @@
   }
 }
 
-/* Portrait screens: the plot navigator floats at the bottom (#206), so the hint
- * and messages rest above it, and the away note moves up over the sky. */
+/* Portrait screens: the away note moves up over the sky, clear of the beds in
+ * the overview (and under the corner links, the keepsakes menu and the
+ * fireworks replay), so it never blocks plot taps. */
 @media (orientation: portrait) {
-  .hint {
-    bottom: calc(max(0.4rem, env(safe-area-inset-bottom)) + 8.6rem);
-  }
-
-  /* Near the top, over the sky: clear of the beds and the navigator (and under the
-   * corner links, the keepsakes menu and the fireworks replay). */
   .away {
     top: calc(max(0.9rem, env(safe-area-inset-top)) + 6.4rem);
     bottom: auto;
     max-height: calc(52dvh - 7.3rem - env(safe-area-inset-top));
     overflow-y: auto;
-  }
-
-  .toast {
-    bottom: calc(max(0.4rem, env(safe-area-inset-bottom)) + 9rem);
   }
 }
 

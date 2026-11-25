@@ -2,7 +2,7 @@
 // heads painted with brushy tonal streaks, translucent when backlit, with a
 // rim of light and a soft glow. One module, three template entry points.
 import { World, aerial, distanceAlpha, shadowFactor, valueNoise } from "../shaders/common.wgsl";
-import { FlowerParams, TAU, blobSurface, flowerHighlighted, sheetSurface, sheetU, sway, tubeSurface } from "./flower-core.wgsl";
+import { FlowerParams, TAU, blobSurface, sheetSurface, sheetU, sway, tubeSurface } from "./flower-core.wgsl";
 
 @group(0) @binding(0) var<uniform> world: World;
 @group(0) @binding(1) var shadowMap: texture_depth_2d;
@@ -377,7 +377,7 @@ fn coverageMask(cover: f32, pixel: vec2f) -> u32 {
 
   // Botanical-plate luminosity, and moonflowers glowing in the dark.
   lit += albedo * (0.05 * (1.0 - 0.7 * world.night) + input.misc.z * (0.12 + world.night * 1.15));
-  if (flowerHighlighted(input.misc.x, flowers)) {
+  if (abs(input.misc.x - flowers.hovered) < 0.5) {
     lit *= 1.12;
     lit += albedo * 0.06;
   }

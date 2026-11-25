@@ -1,6 +1,5 @@
 import type { Gpu, Target } from "vgpu";
 import { flowerPhase, flowerYaw, packFlowers, type FlowerModel, type FlowerSpec } from "@/lib/world/flowers/generate";
-import { SEE_NEAR, headOnScreen } from "@/lib/world/flowers/seeing";
 import { PLOT_GLOW, plotGlowLevel } from "@/lib/world/glow";
 import type { Vec3 } from "@/lib/world/layout";
 import type { WorldLayer, WorldShadow, WorldUniforms } from "../world-layer";
@@ -16,13 +15,28 @@ const DETAIL_NEAR = 14;
 const SEED_BREEZE = 0.26;
 /** Glow of seeds drifting in the world. */
 const SEED_GLOW = 0.55;
-export { SEE_NEAR, headOnScreen } from "@/lib/world/flowers/seeing";
+/**
+ * A waiting dandelion's seeds blow once the camera is within this distance
+ * (world units): close enough to see the seeds, which are only a few pixels
+ * from the overview. Until then they wait, still a puff.
+ */
+export const SEE_NEAR = 6.4;
 
 /** A bloomed dandelion showing its golden head (its seeds have flown), not its puff. */
 export function showsGoldenHead(spec: FlowerSpec): boolean {
   return spec.type === "dandelion" && quantisedGrowth(spec.growth) >= 1 && spec.puff !== true;
 }
 
+/** True when a flower head projects inside the view (a little inside its edges). Allocation-free. */
+export function headOnScreen(m: Float32Array, head: Vec3, margin = 0.9): boolean {
+  const [x, y, z] = head;
+  const w = m[3]! * x + m[7]! * y + m[11]! * z + m[15]!;
+  if (w <= 1e-6) return false;
+  const nx = (m[0]! * x + m[4]! * y + m[8]! * z + m[12]!) / w;
+  const ny = (m[1]! * x + m[5]! * y + m[9]! * z + m[13]!) / w;
+  const nz = (m[2]! * x + m[6]! * y + m[10]! * z + m[14]!) / w;
+  return Math.abs(nx) <= margin && Math.abs(ny) <= margin && nz < 1;
+}
 
 interface SeedRequest {
   readonly id: string;
@@ -137,13 +151,7 @@ export function createFlowerLayer(initial: readonly WorldFlower[] = []): FlowerL
       { hold },
     );
 
-  /** The bed the navigator frames (settled), as of the last painted frame. */
-  let framed: { readonly center: Vec3; readonly radius: number } | null = null;
-  const near = (head: Vec3) =>
-    viewKnown &&
-    headOnScreen(lastView, head) &&
-    (Math.hypot(head[0] - eye[0], head[1] - eye[1], head[2] - eye[2]) <= SEE_NEAR ||
-      (framed !== null && Math.hypot(head[0] - framed.center[0], head[2] - framed.center[2]) <= framed.radius));
+  const near = (head: Vec3) => viewKnown && headOnScreen(lastView, head) && Math.hypot(head[0] - eye[0], head[1] - eye[1], head[2] - eye[2]) <= SEE_NEAR;
 
   /** Holds, then releases, requested seed blows (before the frame's compute and draws). */
   const advanceSeeds = (reducedMotion: boolean) => {
@@ -281,7 +289,6 @@ export function createFlowerLayer(initial: readonly WorldFlower[] = []): FlowerL
       // Every flower shares the empty seed marks' glow rule (lib/world/glow.ts).
       batch.setParams({
         hovered: frame.hoveredFlowerId === null ? -1 : ids.indexOf(frame.hoveredFlowerId),
-        selected: frame.selectedFlowerId === null ? -1 : ids.indexOf(frame.selectedFlowerId),
         sway: frame.reducedMotion ? 0 : 1,
         detailNear: DETAIL_NEAR,
         aura: plotGlowLevel(frame.lighting),
@@ -297,7 +304,6 @@ export function createFlowerLayer(initial: readonly WorldFlower[] = []): FlowerL
       eye[0] = frame.eye[0];
       eye[1] = frame.eye[1];
       eye[2] = frame.eye[2];
-      framed = frame.framedBed ?? null;
       viewKnown = true;
       if (drift) {
         drift.setWorld(frame.world);
@@ -338,7 +344,6 @@ export function createFlowerLayer(initial: readonly WorldFlower[] = []): FlowerL
       drift = undefined;
       drawnFlowers = [];
       viewKnown = false;
-      framed = null;
       // Requests survive a device-loss restart; their held seeds do not.
       for (const request of seedRequests) request.slot = -1;
       gpu = undefined;

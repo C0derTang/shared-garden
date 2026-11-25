@@ -24,9 +24,7 @@ export interface FlowerParamsValue {
   readonly detailNear: number;
   /** Strength of the coloured aura. */
   readonly aura: number;
-  /** Index of the selected flower (lit like the hovered one), or -1. Defaults to -1. */
-  readonly selected?: number;
-  /** How much the hovered or selected flower's aura brightens (default 1). */
+  /** How much the hovered flower's aura brightens (default 1). */
   readonly boost?: number;
   /** How much its aura widens (default 1). */
   readonly grow?: number;
@@ -38,7 +36,6 @@ function paramsValue(params: FlowerParamsValue) {
     sway: params.sway,
     detailNear: params.detailNear,
     aura: params.aura,
-    selected: params.selected ?? -1,
     boost: params.boost ?? 1,
     grow: params.grow ?? 1,
   };

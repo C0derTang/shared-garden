@@ -13,7 +13,7 @@ function garden() {
 }
 
 describe("gardenPlots", () => {
-  it("lists every spot of the open beds in navigator order, planted and empty", () => {
+  it("lists every spot of the open beds in reading order, planted and empty", () => {
     const state = garden();
     state.garden.spot_capacity = 24;
     const plots = gardenPlots(state, "Sam");
@@ -25,9 +25,9 @@ describe("gardenPlots", () => {
   it("names a flower by type and growth, with a heart when your partner cared and you have not", () => {
     const plots = gardenPlots(garden(), "Sam");
     const rose = plots.find((plot) => plot.spot === 1)!;
-    expect(rose).toMatchObject({ label: "rose · 3 of 5 ♡", detail: "bed 1", due: true });
+    expect(rose).toMatchObject({ label: "rose · 3 of 5 ♡ · bed 1", bed: 1 });
     expect(rose.ariaLabel).toBe("rose, opening, 3 of 5. Your care is open; Sam cared today. Bed 1");
-    expect(plots.find((plot) => plot.spot === 2)).toMatchObject({ plant: null, label: "empty spot", detail: "bed 1", ariaLabel: "Empty spot, bed 1", due: false });
+    expect(plots.find((plot) => plot.spot === 2)).toMatchObject({ plant: null, label: "empty spot · bed 1", ariaLabel: "Empty spot, bed 1" });
   });
 
   it("says a bloomed flower is in bloom and drops the heart once you have cared", () => {
@@ -38,7 +38,6 @@ describe("gardenPlots", () => {
     rose.member1_submitted = true;
     expect(plotGrowth(rose, state)).toBe("in bloom");
     const plot = gardenPlots(state, "Sam").find((candidate) => candidate.spot === 1)!;
-    expect(plot.label).toBe("rose · in bloom");
-    expect(plot.due).toBe(false);
+    expect(plot.label).toBe("rose · in bloom · bed 1");
   });
 });

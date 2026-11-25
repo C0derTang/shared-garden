@@ -1,7 +1,7 @@
 /**
  * One shared rule for how brightly every plot glows in the painted world
  * (#206): empty seed marks and every flower's soft aura, at every stage and
- * type, use the same resting level, the same hover/selected boost and the same
+ * type, use the same resting level, the same hover boost and the same
  * halo profile, scaled by the scene's exposure so night does not over-glow and
  * day does not vanish.
  */
@@ -13,7 +13,7 @@ export type Rgb = readonly [number, number, number];
 export const PLOT_GLOW = {
   /** Displayed peak of a resting glow (linear light, after exposure) in daylight. */
   base: 0.38,
-  /** How much a plot's glow brightens under the pointer or when selected. */
+  /** How much a plot's glow brightens under the pointer. */
   hoverBoost: 2.1,
   /** How much its halo widens then. */
   hoverGrow: 1.35,

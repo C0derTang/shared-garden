@@ -7,7 +7,7 @@ import { SPOTS_PER_BED, type Vec3 } from "@/lib/world/layout";
 import type { FocusTarget } from "@/lib/world/journey";
 import type { FlowerAnchor } from "@/lib/world/picking";
 import { handFont } from "./hand-font";
-import type { SelectedPlot, WorldComposition, WorldRenderer, WorldSceneState, WorldView } from "./renderer";
+import type { WorldComposition, WorldRenderer, WorldSceneState, WorldView } from "./renderer";
 import type { WorldLayer } from "./world-layer";
 import styles from "./garden-world.module.css";
 
@@ -69,10 +69,6 @@ export interface GardenWorldProps {
   readonly label?: string;
   /** Garden: the camera glides to this flower, and back when it becomes null. */
   readonly focus?: FocusTarget | null;
-  /** Garden: the plot navigator's selection; the camera frames its bed and it shares the hover highlight. */
-  readonly selected?: SelectedPlot | null;
-  /** Garden: the visitor scrolled, dragged or walked away while a plot was framed. */
-  readonly onWander?: () => void;
   /** Stop painting once the camera settles (a full-screen view covers the world). */
   readonly paused?: boolean;
   /**
@@ -136,8 +132,6 @@ export function GardenWorld({
   className,
   label = "A painted garden meadow beside a lake, with planting beds",
   focus = null,
-  selected = null,
-  onWander,
   paused = false,
   arrival = null,
 }: GardenWorldProps) {
@@ -167,16 +161,15 @@ export function GardenWorld({
     time: timeValue === null ? null : new Date(timeValue),
     reducedMotion,
     focus,
-    selected,
     paused,
     arrival,
   };
   const stateRef = useRef(sceneState);
   const motionRef = useRef(reducedMotion);
-  const pickRef = useRef({ onPickSpot, onPickFlower, onPickDoor, onEntered, onView, onWander });
+  const pickRef = useRef({ onPickSpot, onPickFlower, onPickDoor, onEntered, onView });
 
   useEffect(() => {
-    pickRef.current = { onPickSpot, onPickFlower, onPickDoor, onEntered, onView, onWander };
+    pickRef.current = { onPickSpot, onPickFlower, onPickDoor, onEntered, onView };
     captionsRef.current = captions;
     motionRef.current = reducedMotion;
   });
@@ -186,7 +179,7 @@ export function GardenWorld({
     rendererRef.current?.update(sceneState);
     // sceneState is rebuilt from these inputs every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [spotCapacity, occupiedSpots, flowers, layers, timeValue, reducedMotion, doorInvite, entering, focus, selected, paused, arrival]);
+  }, [spotCapacity, occupiedSpots, flowers, layers, timeValue, reducedMotion, doorInvite, entering, focus, paused, arrival]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -278,9 +271,6 @@ export function GardenWorld({
             onFrame: placeCaptions,
             onEntered: () => {
               if (!cancelled) pickRef.current.onEntered?.();
-            },
-            onWander: () => {
-              if (!cancelled) pickRef.current.onWander?.();
             },
           });
           rendererRef.current = renderer;

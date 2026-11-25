@@ -154,8 +154,8 @@ describe("arriving from the house (#204)", () => {
     // The very first paint is the warm light; the camera waits at the arrival's start.
     expect(light()).toHaveAttribute("data-arrival-light", "hold");
     expect(world().states[0]).toMatchObject({ arrival: "hold" });
-    // The plot navigator (#206) is not there under the light, so nothing can start a bed framing.
-    expect(screen.queryByRole("listbox", { name: "Plots in the garden" })).toBeNull();
+    // The hidden plot list (#210) is not there under the light, so no view can open from it.
+    expect(document.querySelector("[data-plot-list]")).toBeNull();
     // Words, menus and other controls are hidden (and out of the keyboard order) under the light.
     expect(chromeHidden()).toBe(true);
     // The mark is used up: a refresh opens the garden normally.
@@ -178,9 +178,8 @@ describe("arriving from the house (#204)", () => {
     frame(2.5);
     expect(light()).toHaveAttribute("data-arrival-light", "chrome");
     expect(chromeHidden()).toBe(false);
-    // Still settling: no navigator, and the world frames no plot.
-    expect(screen.queryByRole("listbox", { name: "Plots in the garden" })).toBeNull();
-    expect(world().states.at(-1)?.selected ?? null).toBeNull();
+    // Still settling: no plot list yet.
+    expect(document.querySelector("[data-plot-list]")).toBeNull();
     expect(guide()).toBeNull();
     expect(screen.queryByText(/scroll to wander closer/)).toBeNull();
     frame(4);
@@ -190,10 +189,10 @@ describe("arriving from the house (#204)", () => {
     expect(guide()).not.toBeNull();
     // …and waiting seed blows may go once it has.
     expect(seedHolds.at(-1)).toBe(false);
-    // Settled: the plot navigator appears (inert while the guide's sheet is open).
-    const navigator = document.querySelector("[data-plot-navigator]");
-    expect(navigator).not.toBeNull();
-    expect(navigator).toHaveAttribute("inert");
+    // Settled: the hidden plot list is there (inert while the guide's sheet is open).
+    const plots = document.querySelector("[data-plot-list]");
+    expect(plots).not.toBeNull();
+    expect(plots).toHaveAttribute("inert");
     // Over: a world recreated later (after a device loss) never replays the arrival.
     expect(world().states.at(-1)?.arrival ?? null).toBeNull();
     loseDevice();
