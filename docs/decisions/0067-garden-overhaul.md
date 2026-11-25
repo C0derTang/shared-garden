@@ -785,10 +785,13 @@ discretion; fulfilment rules and data are unchanged.
   velocity and rotation (up to eight blows of 100 seeds held or in the air at
   once; buffers allocated once; no per-frame allocations in the blow path). It
   runs only while seeds fly, plus once to settle newly held seeds; held seeds
-  are only drawn. A waiting blow is never evicted: if all eight slots hold
-  other waiting puffs (more than eight of the partner's recent wishes at
-  once), the extra Dandelion shows its golden head and its seeds blow from it
-  once it is seen and a slot is free. One instanced draw paints every
+  are only drawn. A waiting blow is never evicted. When the slots are busy
+  with seeds still flying, a newly waiting Dandelion keeps its puff and is
+  held as soon as one frees. Only if all eight slots hold other waiting puffs
+  (more than eight of the partner's recent wishes at once) does the extra
+  Dandelion show its golden head; its seeds then blow from it once it is seen
+  and a slot is free. The seeds belong to the world's GPU context, not to a
+  particular flower batch, so a rebuild during the first compile keeps them. One instanced draw paints every
   seed from the flower templates; it is translucent so the seeds fade, and
   near seeds keep their detail through the painterly filter. Attached seeds
   sway with their plant and let go of the sway as they lift. The world's

@@ -55,6 +55,9 @@ vi.mock("./seed-drift", () => ({
     get hasFreeSlot() {
       return drift.slots.filter(Boolean).length < drift.capacity;
     },
+    get allHeld() {
+      return drift.slots.filter((slot) => slot?.held).length === drift.capacity;
+    },
     blow: (blow: { still: boolean; placement: { position: number[] } }, options?: { hold?: boolean }) => {
       let slot = -1;
       for (let i = 0; i < drift.capacity && slot < 0; i += 1) if (!drift.slots[i]) slot = i;
@@ -107,6 +110,7 @@ beforeEach(() => {
   drift.blows = [];
   drift.releases = [];
   drift.slots = [];
+  drift.capacity = 8;
   fake.batches = [];
   fake.plan = [];
   fake.settle = [];
@@ -251,6 +255,39 @@ describe("a dandelion's seeds blowing away (#201)", () => {
     expect(layer.waitingSeeds).toBe(0);
   });
 
+  it("keeps its seeds when the flowers change while the world is still compiling", async () => {
+    const layer = createFlowerLayer([dandelion("d", true)]);
+    const setup = layer.setup!(context);
+    // The page's first flowers arrive before the first batch has compiled: a rebuild supersedes it.
+    layer.setFlowers([dandelion("d", false)]);
+    await flush();
+    fake.settle[0]!.resolve();
+    await setup;
+    fake.settle[1]!.resolve();
+    await flush();
+    expect(fake.batches[0]!.dispose).toHaveBeenCalled();
+    layer.blowSeeds("d");
+    layer.draw!({} as never, frameAt([0, 0.3, 2]));
+    layer.update!({} as never, step);
+    expect(drift.blows).toEqual([{ hold: true, still: false, x: 0 }]);
+    expect(drift.releases).toHaveLength(1);
+  });
+
+  it("waits for a slot while others' seeds are still flying, without giving up its puff", async () => {
+    const layer = await golden([dandelion("a", false), dandelion("b", false, [20, 0, 0])]);
+    drift.capacity = 1;
+    layer.blowSeeds("a");
+    layer.draw!({} as never, frameAt([0, 0.3, 2]));
+    layer.update!({} as never, step); // a is held and released at once; its seeds fly
+    layer.blowSeeds("b");
+    layer.update!({} as never, step);
+    expect(drift.blows).toHaveLength(1);
+    drift.slots[0] = null; // a's seeds have faded
+    layer.update!({} as never, step);
+    // b is held (its puff kept) rather than blowing from a golden head.
+    expect(drift.blows.at(-1)).toEqual({ hold: true, still: false, x: 20 });
+  });
+
   it("never lets a waiting blow steal another's slot when more wait than there are slots", async () => {
     // Ten golden dandelions far apart along x, all waiting to be seen.
     const set = Array.from({ length: 10 }, (_, k) => dandelion(`d${k}`, false, [k * 20, 0, 0]));
@@ -274,6 +311,7 @@ describe("a dandelion's seeds blowing away (#201)", () => {
     expect(started.map((fn) => fn.mock.calls.length)).toEqual([0, 0, 1, 0, 0, 0, 0, 0, 0, 0]);
 
     // A waiting one without a slot blows from its golden head once seen and a slot is free.
+    // (The third's flying seeds keep its slot for now, so the ninth and tenth simply wait.)
     layer.draw!({} as never, frameAt([180, 0.3, 2]));
     layer.update!({} as never, step);
     expect(drift.blows).toHaveLength(8);

@@ -73,6 +73,8 @@ export interface SeedDrift {
   blow(blow: SeedBlow, options?: { readonly hold?: boolean }): number;
   /** True while a slot is free for a new held blow. */
   readonly hasFreeSlot: boolean;
+  /** True when every slot holds a waiting blow (none will free until one is released). */
+  readonly allHeld: boolean;
   /** Lets a held blow's seeds go now, on this breeze. */
   release(slot: number, breeze: Pick<SeedBlow, "wind" | "speed" | "still">): void;
   /** Seconds since the latest blow let go (Infinity before any). */
@@ -176,6 +178,10 @@ export function createSeedDrift(gpu: Gpu, shadow: WorldShadow, options: { detail
   return {
     get sinceRelease() {
       return clock - releasedAt;
+    },
+    get allHeld() {
+      for (let i = 0; i < DRIFT_MAX_BLOWS; i += 1) if (ends[i] !== Infinity) return false;
+      return true;
     },
     get hasFreeSlot() {
       for (let i = 0; i < DRIFT_MAX_BLOWS; i += 1) if (ends[i]! <= clock) return true;

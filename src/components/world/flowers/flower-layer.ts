@@ -154,6 +154,8 @@ export function createFlowerLayer(initial: readonly WorldFlower[] = []): FlowerL
           // Hold its seeds, exactly as the puff painted them, until it is seen.
           request.slot = blowFor(flower, request.puff!, reducedMotion, true);
         }
+        // Slots busy with seeds still flying free up soon: keep waiting for one.
+        if (request.slot < 0 && !request.overflow && !drift.allHeld) continue;
         if (request.slot < 0) {
           // Every slot holds another waiting puff (rare: more than DRIFT_MAX_BLOWS
           // of the partner's recent wishes at once). This one shows its golden
@@ -222,13 +224,23 @@ export function createFlowerLayer(initial: readonly WorldFlower[] = []): FlowerL
       const token = ++generation;
       const set = flowers;
       const first = build(set);
-      const seeds = createSeedDrift(context.gpu, context.shadow, { detail: "world", label: "garden-world.seeds" });
-      await Promise.all([first.compile(context.sceneTarget), seeds.compile(context.sceneTarget, true)]);
-      if (token !== generation || !gpu) {
-        first.dispose();
-        seeds.dispose();
-      } else {
-        drift = seeds;
+      // The seeds belong to this GPU context, not to whichever flower batch
+      // wins: a rebuild that supersedes this first batch must not lose them.
+      const device = context.gpu;
+      const seeds = createSeedDrift(device, context.shadow, { detail: "world", label: "garden-world.seeds" });
+      const seedsReady = seeds.compile(context.sceneTarget, true).then(
+        () => {
+          if (gpu === device && !drift) drift = seeds;
+          else seeds.dispose();
+        },
+        (error: unknown) => {
+          console.error("Dandelion seeds could not be compiled", error);
+          seeds.dispose();
+        },
+      );
+      await Promise.all([first.compile(context.sceneTarget), seedsReady]);
+      if (token !== generation || !gpu) first.dispose();
+      else {
         swap(first, set);
         if (flowers !== set) schedule();
       }
