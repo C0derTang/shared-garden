@@ -179,6 +179,41 @@ describe("GardenV2", () => {
     expect(list).not.toHaveAttribute("aria-activedescendant");
   });
 
+  it("returns focus to the navigator with motion on, after the glide and the close", async () => {
+    vi.stubGlobal("matchMedia", (query: string) => ({ matches: false, media: query, addEventListener: vi.fn(), removeEventListener: vi.fn() }));
+    const user = userEvent.setup();
+    await mount();
+    const list = screen.getByRole("listbox", { name: "Plots in the garden" });
+    list.focus();
+    for (let i = 0; i < 12 && !within(list).queryByRole("option", { selected: true })?.getAttribute("aria-label")?.startsWith("rose"); i += 1) {
+      await user.keyboard("{ArrowDown}");
+    }
+    await user.keyboard("{Enter}");
+    // The camera glides first; the split view opens after it.
+    expect(screen.queryByRole("dialog")).toBeNull();
+    const dialog = await screen.findByRole("dialog", { name: "rose" }, { timeout: 3000 });
+    expect(list.closest("[data-plot-navigator]")).toHaveAttribute("data-hidden");
+    await user.click(within(dialog).getByRole("button", { name: /back to the garden/ }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(list.closest("[data-plot-navigator]")).not.toHaveAttribute("data-hidden");
+    await act(() => new Promise((resolve) => setTimeout(resolve, 60)));
+    expect(document.activeElement).toBe(list);
+  });
+
+  it("keeps the navigator inert until the first-visit greeting is decided, so it is never live under the guide", async () => {
+    window.localStorage.removeItem(guideKey(1));
+    const state = garden();
+    api.refreshGardenV2.mockResolvedValue({ state, error: null });
+    render(<GardenV2 initial={{ state, error: null }} />);
+    await flush();
+    await flush();
+    const navigator = () => document.querySelector("[data-plot-navigator]");
+    expect(navigator()).toHaveAttribute("inert");
+    act(() => worlds[0]!.callbacks.onReady());
+    expect(await screen.findByRole("dialog", { name: /guide/i })).toBeInTheDocument();
+    expect(navigator()).toHaveAttribute("inert");
+  });
+
   it("marks a flower whose care is open for you, and keeps the Peony quiet", async () => {
     const user = userEvent.setup();
     const state = garden();

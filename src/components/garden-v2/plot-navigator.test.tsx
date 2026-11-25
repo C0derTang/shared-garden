@@ -1,10 +1,12 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 import type { GardenPlot } from "@/lib/garden-v2/plots";
 import type { Plant } from "@/lib/garden-v2/model";
-import { PlotNavigator } from "./plot-navigator";
+import { PlotNavigator, focusPlotNavigator } from "./plot-navigator";
 
 const plant = {} as Plant;
 /** Two beds: spots 1–3 in bed 1, 13–14 in bed 2. */
@@ -154,5 +156,57 @@ describe("PlotNavigator", () => {
     expect(navigator).toHaveAttribute("data-due");
     await user.click(screen.getByRole("button", { name: "Next plot" }));
     expect(navigator).not.toHaveAttribute("data-due");
+  });
+
+  it("is inert and hidden from assistive technology while hidden", () => {
+    render(<PlotNavigator plots={PLOTS} selected={null} onSelect={vi.fn()} onVisit={vi.fn()} hidden />);
+    const navigator = document.querySelector("[data-plot-navigator]")!;
+    expect(navigator).toHaveAttribute("inert");
+    expect(navigator).toHaveAttribute("aria-hidden", "true");
+    expect(navigator).toHaveAttribute("data-hidden");
+  });
+
+  it("shows at once and hides only after it fades, so focus can come back the moment a view closes", () => {
+    const css = readFileSync(path.join(process.cwd(), "src/components/garden-v2/plot-navigator.module.css"), "utf8");
+    const rule = (selector: string) => css.slice(css.indexOf(`${selector} {`), css.indexOf("}", css.indexOf(`${selector} {`)));
+    // Shown: visibility switches back with no delay (a delayed visibility would refuse focus while motion is on).
+    expect(rule(".navigator")).toMatch(/visibility 0s;/);
+    expect(rule(".navigator")).not.toMatch(/visibility \d+m?s(?!\s*;)|visibility 300ms/);
+    // Hidden: the fade runs first, then it becomes hidden.
+    expect(rule(".navigator[data-hidden]")).toMatch(/visibility 0s 300ms/);
+  });
+});
+
+describe("focusPlotNavigator", () => {
+  it("retries on the next frames while the list still refuses focus, then lands on it", async () => {
+    render(
+      <div>
+        <div data-garden-world="" tabIndex={0} />
+        <PlotNavigator plots={PLOTS} selected={null} onSelect={vi.fn()} onVisit={vi.fn()} />
+      </div>,
+    );
+    const list = screen.getByRole("listbox");
+    const real = HTMLElement.prototype.focus;
+    let refusals = 2;
+    // As while still `visibility: hidden` or inert: the first attempts do nothing.
+    const spy = vi.spyOn(list, "focus").mockImplementation(function (this: HTMLElement) {
+      if (refusals > 0) {
+        refusals -= 1;
+        return;
+      }
+      real.call(this);
+    });
+    (document.activeElement as HTMLElement | null)?.blur();
+    focusPlotNavigator();
+    expect(document.activeElement).not.toBe(list);
+    await act(() => new Promise((resolve) => setTimeout(resolve, 120)));
+    expect(document.activeElement).toBe(list);
+    expect(spy.mock.calls.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it("falls back to the world when there is no navigator", () => {
+    render(<div data-garden-world="" tabIndex={0} />);
+    focusPlotNavigator();
+    expect(document.activeElement).toHaveAttribute("data-garden-world");
   });
 });

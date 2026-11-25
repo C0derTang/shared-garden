@@ -198,9 +198,27 @@ function Chevron({ up = false }: { up?: boolean }) {
   );
 }
 
-/** Moves keyboard focus to the navigator's list (after a view closes), else to the world. */
+/** Frames to keep trying before focus falls back to the world. */
+const FOCUS_RETRY_FRAMES = 20;
+
+/**
+ * Moves keyboard focus to the navigator's list after a view closes, else to
+ * the world. The list may still be hidden or inert for a moment while the
+ * closing view's render settles, so a refused focus is retried on the next
+ * frames (unless focus has meanwhile gone somewhere else on purpose).
+ */
 export function focusPlotNavigator() {
-  const list = document.querySelector<HTMLElement>("[data-plot-navigator] [role=listbox]");
-  list?.focus();
-  if (!list || document.activeElement !== list) document.querySelector<HTMLElement>("[data-garden-world]")?.focus();
+  const find = () => document.querySelector<HTMLElement>("[data-plot-navigator] [role=listbox]");
+  const settled = () => document.activeElement && document.activeElement !== document.body;
+  const attempt = (left: number) => {
+    const list = find();
+    list?.focus();
+    if (list && document.activeElement === list) return;
+    if (left > 0 && list && !settled()) {
+      requestAnimationFrame(() => attempt(left - 1));
+      return;
+    }
+    if (!settled()) document.querySelector<HTMLElement>("[data-garden-world]")?.focus();
+  };
+  attempt(FOCUS_RETRY_FRAMES);
 }

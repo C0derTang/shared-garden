@@ -874,6 +874,11 @@ choices made under this decision's discretion:
     framed plot. While a full-screen view (a flower, planting or an overlay)
     or a scoped sheet (such as the private moment) covers the garden, the
     navigator fades out and is `inert` and hidden from assistive technology.
+    It becomes hidden only after its 300 ms fade, but shows again at once when
+    the view closes, so focus returns to it straight away (a refused focus is
+    retried over the next frames before falling back to the world). It also
+    stays inert until the first-visit greeting is decided, so it is never live
+    for the frame before the guide opens.
   - **After the arrival:** the navigator appears only once the arrival from
     the house ([#204](#recorded-choice-the-house-to-garden-arrival-204)) has
     settled, so nothing can start a bed framing under the warm light or during

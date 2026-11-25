@@ -26,16 +26,20 @@
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
+  /* Shown: visible at once, so focus can return the moment a view closes. */
   transition:
     opacity 300ms ease,
-    visibility 300ms;
+    visibility 0s;
   animation: nav-in 900ms ease both;
 }
 
-/* Under a full-screen view (a flower, planting, an overlay): faded and inert. */
+/* Under a full-screen view (a flower, planting, an overlay): faded, then hidden and inert. */
 .navigator[data-hidden] {
   opacity: 0;
   visibility: hidden;
+  transition:
+    opacity 300ms ease,
+    visibility 0s 300ms;
 }
 
 .step {

@@ -80,6 +80,9 @@ export function GardenV2({
   const [wandered, setWandered] = useState(false);
   const [view, setView] = useState<GardenView | null>(initialFlowerId ? null : initialView);
   const [selectedSpot, setSelectedSpot] = useState<number | null>(null);
+  // The first-visit greeting has been decided; the navigator waits for it (#206).
+  const [greeted, setGreeted] = useState(false);
+  const markGreeted = useCallback(() => setGreeted(true), []);
   const timer = useRef<number | undefined>(undefined);
   const visitSpot = useRef<number | null>(null);
   // The flower layer (GPU code and shaders) loads with the world, not in the page's first bundle.
@@ -274,6 +277,7 @@ export function GardenV2({
         flowerOpen={mode.kind !== "idle"}
         onOpen={openView}
         onClose={closeView}
+        onGreeted={markGreeted}
         onVisit={(id) => {
           setView(null);
           visit(id);
@@ -282,7 +286,7 @@ export function GardenV2({
       <FireworksOverlay {...fireworks.overlay} hidden={covered} />
       {/* The plot navigator (#206) appears once the arrival from the house has settled. */}
       {worldStatus !== "unsupported" && worldStatus !== "stopped" && arrival.settled && plots.length > 0 && (
-        <PlotNavigator plots={plots} selected={selectedSpot} onSelect={selectPlot} onVisit={visitPlot} hidden={covered || sheetOpen} />
+        <PlotNavigator plots={plots} selected={selectedSpot} onSelect={selectPlot} onVisit={visitPlot} hidden={covered || sheetOpen || !greeted} />
       )}
       {worldStatus === "ready" && arrival.settled && !wandered && !covered && !sheetOpen && (
         <p className={styles.hint}>scroll to wander closer · tap a flower to visit</p>
