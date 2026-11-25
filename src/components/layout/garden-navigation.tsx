@@ -4,17 +4,18 @@ import { useCallback, useEffect, useState } from "react";
 import { NewBadgeMark, newBadgeHost } from "@/components/garden/new-badge-mark";
 import { PixelIcon } from "@/components/ui/pixel-icon";
 import { usePublishedHeight } from "@/components/ui/published-height";
+import { legacyPanelHref, legacyPath } from "@/lib/legacy/routes";
 
 export type GardenDestination =
   "garden" | "memories" | "achievements" | "settings";
 
 const destinations = [
-  { id: "garden", label: "Garden", href: "/garden", icon: "sprout" },
-  { id: "memories", label: "Memories", href: "/memories", icon: "book" },
+  { id: "garden", label: "Garden", href: legacyPath, icon: "sprout" },
+  { id: "memories", label: "Memories", href: legacyPanelHref("memories"), icon: "book" },
   {
     id: "achievements",
     label: "Achievements",
-    href: "/achievements",
+    href: legacyPanelHref("achievements"),
     icon: "flower",
   },
 ] as const;
@@ -99,7 +100,7 @@ export function GardenNavigation({ current }: { current: GardenDestination }) {
       </nav>
       <nav aria-label="Settings" className="garden-settings-nav">
         <Link
-          href="/settings"
+          href={legacyPanelHref("settings")}
           prefetch={false}
           scroll={false}
           aria-current={current === "settings" ? "page" : undefined}

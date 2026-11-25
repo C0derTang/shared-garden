@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { mediaRequest } from "@/lib/media/browser";
+import { mediaGardenField, type MediaGarden } from "@/lib/media/garden";
 import { stopVoicePlayback, voiceTime } from "@/lib/media/use-voice-recorder";
 import styles from "./voice.module.css";
 
@@ -55,10 +56,23 @@ function VoiceAudio({
 }
 
 /** Reusable member-only viewer for current entries, history and Memories. */
-export function VoiceViewer({ mediaId }: { mediaId: string }) {
-  return <PrivateVoice key={mediaId} mediaId={mediaId} />;
+export function VoiceViewer({
+  mediaId,
+  garden = "legacy",
+}: {
+  mediaId: string;
+  /** Which private registry the memo belongs to (the new garden passes "v2"). */
+  garden?: MediaGarden;
+}) {
+  return <PrivateVoice key={`${garden}:${mediaId}`} mediaId={mediaId} garden={garden} />;
 }
-function PrivateVoice({ mediaId }: { mediaId: string }) {
+function PrivateVoice({
+  mediaId,
+  garden,
+}: {
+  mediaId: string;
+  garden: MediaGarden;
+}) {
   const [source, setSource] = useState<{
     url: string;
     durationMs: number;
@@ -78,7 +92,7 @@ function PrivateVoice({ mediaId }: { mediaId: string }) {
     try {
       const result = await mediaRequest<{ url: string; durationMs: number }>(
         "read",
-        { mediaId },
+        { mediaId, ...mediaGardenField(garden) },
         controller.signal,
       );
       if (!controller.signal.aborted) setSource(result);

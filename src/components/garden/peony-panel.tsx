@@ -1,152 +1,63 @@
 "use client";
 import { usePartnerName } from "@/components/auth/member-names";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { readPeony, mutatePeony, type PeonyResult } from "@/lib/peony/actions";
+import { readPeony, mutatePeony } from "@/lib/peony/actions";
+import { canEditContribution, pacificDate, pacificLocal } from "@/lib/peony/model";
 import {
-  canEditContribution,
-  pacificCandidates,
-  pacificDate,
-  pacificLocal,
-  type PeonyState,
-  type PeonyCommand,
-} from "@/lib/peony/model";
+  peonyActivityValid,
+  PEONY_TITLES as titles,
+  usePeonyMilestones,
+  type PeonyActions,
+} from "@/lib/peony/use-peony-milestones";
 import type { Mutate } from "./seed-picker";
 import styles from "./garden.module.css";
 import peony from "./peony.module.css";
-const titles = [
-  "Propose ideas",
-  "Agree on a plan",
-  "Confirm your date happened",
-  "Share favorite moments",
-];
-type TextDraft = { milestone: number; id?: number; text: string };
-type PlanDraft = {
-  version: number;
-  activity: string;
-  local: string;
-  instant: string;
-};
+const legacyPeony: PeonyActions = { read: readPeony, mutate: mutatePeony };
 export function PeonyPanel({
   flowerId,
   refreshKey,
   now,
   busy,
   mutate,
+  readOnly = false,
 }: {
   flowerId: string;
   refreshKey: string;
   now: number;
   busy: boolean;
   mutate: Mutate;
+  /** The archive shows every milestone, contribution and plan, without actions. */
+  readOnly?: boolean;
 }) {
   const partnerName = usePartnerName();
-  const [state, setState] = useState<PeonyState | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [readError, setReadError] = useState<string | null>(null);
-  const [stale, setStale] = useState(true);
-  const [pending, setPending] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [text, setText] = useState<TextDraft | null>(null);
-  const [plan, setPlan] = useState<PlanDraft | null>(null);
-  const mounted = useRef(false),
-    lock = useRef(false),
-    generation = useRef(0);
-  const apply = useCallback((r: PeonyResult) => {
-    if (!mounted.current) return;
-    if (r.state)
-      setState((old) =>
-        !old || Date.parse(r.state!.server_now) >= Date.parse(old.server_now)
-          ? r.state
-          : old,
-      );
-    setStale(!r.state);
-    setReadError(r.error);
-  }, []);
-  const refresh = useCallback(async () => {
-    const token = ++generation.current;
-    try {
-      const r = await readPeony(flowerId);
-      if (token === generation.current) apply(r);
-    } catch {
-      if (token === generation.current)
-        apply({
-          state: null,
-          error: "Peony could not refresh. Your draft is here; try again.",
-        });
-    }
-  }, [flowerId, apply]);
-  useEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
-    };
-  }, []);
-  useEffect(() => {
-    const timer = setTimeout(() => void refresh(), 0);
-    return () => clearTimeout(timer);
-  }, [refresh, refreshKey]);
-  async function save(command: PeonyCommand) {
-    if (lock.current || busy || stale) return;
-    lock.current = true;
-    setPending(true);
-    setSaved(false);
-    setError(null);
-    generation.current++;
-    let detail: string | null = null;
-    try {
-      const result = await mutate({
-        kind: "external",
-        run: async (checkCurrent) => {
-          checkCurrent();
-          const r = await mutatePeony(flowerId, command);
-          apply(r);
-          detail = r.error;
-          if (!r.saved) throw Error("Peony save unconfirmed");
-        },
-      });
-      if (result.saved) {
-        setText(null);
-        setPlan(null);
-        setSaved(true);
-      } else setError(detail ?? result.error);
-    } finally {
-      lock.current = false;
-      if (mounted.current) setPending(false);
-    }
-  }
-  const blocked =
-    busy ||
-    pending ||
-    stale ||
-    !!(state && now >= Date.parse(state.next_rollover_at));
-  const candidates = plan ? pacificCandidates(plan.local) : [];
-  const chosen =
-    plan?.instant && pacificLocal(plan.instant) === plan.local
-      ? plan.instant
-      : candidates.length === 1
-        ? candidates[0]
-        : "";
-  const validInstant =
-    !!chosen &&
-    candidates.some(
-      (candidate) =>
-        Math.floor(Date.parse(candidate) / 60000) ===
-        Math.floor(Date.parse(chosen) / 60000),
-    );
-  const validText =
-    text &&
-    text.text.trim().length > 0 &&
-    Array.from(text.text.trim()).length <= 4000 &&
-    new TextEncoder().encode(JSON.stringify({ text: text.text.trim() }))
-      .length <= 20000;
-  const currentEdit = text?.id
-    ? state?.contributions.find((c) => c.id === text.id)
-    : null;
-  const editableText =
-    text &&
-    state?.next_milestone === text.milestone &&
-    (!text.id || (currentEdit && canEditContribution(currentEdit, now)));
-  const planChanged = !!plan && plan.version !== (state?.plan?.version ?? 0);
+  const {
+    state,
+    error,
+    readError,
+    stale,
+    pending,
+    saved,
+    setSaved,
+    text,
+    setText,
+    plan,
+    setPlan,
+    refresh,
+    save,
+    blocked,
+    candidates,
+    chosen,
+    validInstant,
+    validText,
+    editableText,
+    planChanged,
+  } = usePeonyMilestones({
+    flowerId,
+    refreshKey,
+    now,
+    busy,
+    mutate,
+    actions: legacyPeony,
+  });
   return (
     <section
       className={styles.stack}
@@ -154,8 +65,9 @@ export function PeonyPanel({
       aria-busy={pending}
     >
       <p>
-        Four steps, together. Each completed pair grows this Peony immediately.
-        Take your time—Peony never loses progress.
+        {readOnly
+          ? "Four steps, together. The garden is archived, so these shared steps stay here to read."
+          : "Four steps, together. Each completed pair grows this Peony immediately. Take your time—Peony never loses progress."}
       </p>
       {(error || readError) && (
         <p role="alert" className={styles.error}>
@@ -181,7 +93,9 @@ export function PeonyPanel({
         <>
           <p role="status">
             {state.next_milestone
-              ? `Next: ${titles[state.next_milestone - 1]}`
+              ? readOnly
+                ? `Archived before: ${titles[state.next_milestone - 1]}`
+                : `Next: ${titles[state.next_milestone - 1]}`
               : "All four milestones complete. A permanent bloom, with your memories below."}
           </p>
           {titles.map((title, index) => {
@@ -208,9 +122,11 @@ export function PeonyPanel({
                 <p>
                   {complete
                     ? "Complete · Read-only"
-                    : current
-                      ? "Your next shared step"
-                      : "After the previous step"}
+                    : readOnly
+                      ? "Not completed"
+                      : current
+                        ? "Your next shared step"
+                        : "After the previous step"}
                 </p>
                 {completion && (
                   <p className={styles.quiet}>
@@ -241,7 +157,7 @@ export function PeonyPanel({
                                   <small>
                                     Shared {pacificDate(c.original_posted_at)}
                                   </small>
-                                  {canEditContribution(c, now) && (
+                                  {!readOnly && canEditContribution(c, now) && (
                                     <>
                                       <p className={styles.quiet}>
                                         Edit{" "}
@@ -280,6 +196,7 @@ export function PeonyPanel({
                         },
                       )}
                       {current &&
+                        !readOnly &&
                         !own &&
                         !text &&
                         (milestone === 3 ? (
@@ -337,7 +254,7 @@ export function PeonyPanel({
                               cleared; both people must accept this version.
                             </p>
                           )}
-                          {current && state.plan.can_accept && !plan && (
+                          {current && !readOnly && state.plan.can_accept && !plan && (
                             <button
                               className="button button-primary"
                               disabled={blocked}
@@ -352,13 +269,15 @@ export function PeonyPanel({
                             </button>
                           )}
                         </>
+                      ) : readOnly ? (
+                        <p>No shared plan was made.</p>
                       ) : (
                         <p>
                           Choose a shared activity and an exact Pacific date and
                           time. Remote and in-person dates both count.
                         </p>
                       )}
-                      {current && !plan && (state.plan?.can_edit ?? true) && (
+                      {current && !readOnly && !plan && (state.plan?.can_edit ?? true) && (
                         <button
                           className="button button-secondary"
                           disabled={blocked}
@@ -541,9 +460,7 @@ export function PeonyPanel({
                   planChanged ||
                   !chosen ||
                   !validInstant ||
-                  !plan.activity.trim() ||
-                  Array.from(plan.activity.trim()).length > 2000 ||
-                  new TextEncoder().encode(plan.activity.trim()).length > 8000
+                  !peonyActivityValid(plan.activity)
                 }
               >
                 {pending ? "Saving…" : "Save shared plan"}

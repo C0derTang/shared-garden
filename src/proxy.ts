@@ -96,10 +96,8 @@ export const config = {
   matcher: [
     "/",
     "/garden/:path*",
+    "/legacy/:path*",
     "/api/media/:path*",
     "/api/music/:path*",
-    "/memories/:path*",
-    "/achievements/:path*",
-    "/settings/:path*",
   ],
 };

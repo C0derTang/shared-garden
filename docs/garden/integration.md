@@ -40,12 +40,18 @@ are recorded in [decision 0011](../decisions/0011-working-garden.md).
   on the authoritative flower; see [its contract](../database/dandelion.md).
   Only that fact drives the fulfilled sprite; planting and daily details stay unchanged.
 - Tulip drafts/current/history compose the safe `SongPlayer`. The private
-  `/garden/songs` route and bounded `loadSongs` action retain both members’
+  `/legacy?panel=songs` panel and bounded `loadSongs` action retain both members’
   contributions across all instances and blooms. See
   [decision 0014](../decisions/0014-tulip-music-collection.md) for paging and refresh
   behavior; future Memories may link to this collection.
-- Each future Memories/Achievements/Settings page must retain its own membership
-  guard. Replace the honest upcoming screen within the existing navigation.
+- The legacy garden lives at `/legacy`
+  ([issue #172](https://github.com/C0derTang/shared-garden/issues/172), approved
+  in [issue #171](https://github.com/C0derTang/shared-garden/issues/171)).
+  Memories, Achievements, Settings and Songs are in-page panels selected by
+  `/legacy?panel=…`; the guarded `/legacy` page verifies membership itself before
+  reading any panel's data. `/memories`, `/achievements`, `/settings` and
+  `/garden/songs` no longer exist, and `/garden` is the new members-only garden
+  ([decision 0067](../decisions/0067-garden-overhaul.md)).
 
 ## Disposable local verification
 

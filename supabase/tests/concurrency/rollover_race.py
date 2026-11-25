@@ -124,6 +124,8 @@ def prepare(roses=1, cactus_pair=False):
 
 
 try:
+    # Legacy rules fixture: lift the #176 archive freeze for this run; restored in finally.
+    sql("delete from private.legacy_garden_freeze;")
     sql("""
     begin;
     select private.bootstrap_members('owner@example.test','member@example.test');
@@ -173,6 +175,7 @@ try:
     sql("update private.garden_members set revoked_at=null where member_id=2;")
     print("PASS: garden refresh rechecks live membership after waiting behind a revocation")
 finally:
+    sql("insert into private.legacy_garden_freeze default values on conflict do nothing;")
     clear_garden()
     sql("""
     begin;

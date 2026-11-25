@@ -77,6 +77,8 @@ def overlap(first, second, error=None, second_member=2):
 empty = "select (select count(*) from public.flower_day_facts) + (select count(*) from public.before_noon_snapshots) + (select count(*) from public.peony_activity) + (select count(*) from public.garden_days) + (select count(*) from private.garden_members) + (select count(*) from auth.users) + (select count(*) from public.garden) + (select count(*) from public.flower_entries) + (select count(*) from public.daisy_assignments);"
 assert sql(empty) == "0", "Refusing a configured database; reset the dedicated local project"
 try:
+    # Legacy rules fixture: lift the #176 archive freeze for this run; restored in finally.
+    sql("delete from private.legacy_garden_freeze;")
     sql("""
     begin;
     select private.bootstrap_members('owner@example.test','member@example.test');
@@ -115,6 +117,7 @@ try:
     assert sql(f"select payload->>'text' from public.flower_entries where id={entry};") == "Corrected note"
     print("PASS: queued edit uses post-lock clock and rejects a deadline expired while waiting")
 finally:
+    sql("insert into private.legacy_garden_freeze default values on conflict do nothing;")
     sql("""
     begin;
     delete from public.flower_entries;

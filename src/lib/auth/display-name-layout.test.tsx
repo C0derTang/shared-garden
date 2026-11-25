@@ -4,7 +4,7 @@ vi.mock("server-only", () => ({}));
 const { guard } = vi.hoisted(() => ({ guard: vi.fn() }));
 vi.mock("@/lib/auth/server", () => ({ requireMember: guard }));
 vi.mock("@/components/layout/garden-layout", () => ({ GardenLayout: ({ children }: { children: React.ReactNode }) => children }));
-import MemberLayout from "@/app/(member)/layout";
+import MemberLayout from "@/app/legacy/layout";
 import * as names from "./display-names";
 import { usePartnerName } from "@/components/auth/member-names";
 function Consumer() { return <p>{usePartnerName().subject}</p>; }

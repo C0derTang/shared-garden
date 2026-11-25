@@ -113,6 +113,8 @@ async function subscribe(client, list) {
   });
 }
 try {
+  // Legacy rules fixture: lift the #176 archive freeze for this run; restored in finally.
+  sql("delete from private.legacy_garden_freeze;");
   sql(
     `begin; set local role postgres; select private.bootstrap_members('owner@example.test','member@example.test'); reset role; set local role supabase_auth_admin; ${ids.map((id, i) => `insert into auth.users(instance_id,id,aud,role,email,raw_app_meta_data,raw_user_meta_data) values('00000000-0000-0000-0000-000000000000','${id}','authenticated','authenticated','${["owner", "member", "outsider"][i]}@example.test','{"provider":"google","providers":["google"]}','{}'); insert into auth.identities(user_id,provider_id,provider,identity_data,created_at,updated_at,last_sign_in_at) values('${id}','local-garden-${i}','google','{"sub":"local-garden-${i}","email":"${["owner", "member", "outsider"][i]}@example.test","email_verified":true}',now(),now(),now()); update auth.users set created_at=now(),updated_at=now(),encrypted_password='',confirmation_token='',recovery_token='',email_change_token_new='',email_change='',email_confirmed_at=now() where id='${id}';`).join("")} commit;`,
   );
@@ -261,6 +263,7 @@ try {
     "PASS: partner idea/acceptance/plan revision delivery, stale version rejection, cleared acceptance, same-day remote completion, private RLS/revocation and no read loop.",
   );
 } finally {
+  sql("insert into private.legacy_garden_freeze default values on conflict do nothing;");
   await Promise.all(
     channels.map(([client, channel]) => client.removeChannel(channel)),
   );

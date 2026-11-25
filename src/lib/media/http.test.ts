@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
-import { readMediaRequest } from "./http";
+import { checkRpc, mediaFailure, mediaGarden, readMediaRequest } from "./http";
 it("rejects cross-origin, missing origin, non-JSON and large control bodies", async () => {
   vi.stubEnv("APP_ORIGIN", "https://app.example.test");
   vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://backend.example.test");
@@ -63,4 +63,25 @@ it("uses the same canonical configured origin as the authentication flow", async
     mediaId: "11111111-1111-4111-8111-111111111111",
   });
   vi.unstubAllEnvs();
+});
+
+it("accepts only an absent, legacy or v2 garden discriminator", () => {
+  expect(mediaGarden(undefined)).toBe("legacy");
+  expect(mediaGarden("legacy")).toBe("legacy");
+  expect(mediaGarden("v2")).toBe("v2");
+  for (const value of [null, "", "V2", "new", "garden-v2-media", 2, ["v2"], {}])
+    expect(() => mediaGarden(value)).toThrow("invalid_request");
+});
+
+it("maps the archived legacy garden refusal to a 409 garden_archived response", async () => {
+  const refusal = { code: "55000", message: "The legacy garden is archived and read-only" };
+  expect(() => checkRpc(refusal)).toThrow("garden_archived");
+  let caught: unknown;
+  try { checkRpc(refusal); } catch (error) { caught = error; }
+  expect(caught).toMatchObject({ code: "garden_archived", status: 409 });
+  const response = mediaFailure(caught);
+  expect(response.status).toBe(409);
+  await expect(response.json()).resolves.toEqual({ error: "garden_archived" });
+  expect(() => checkRpc({ code: "42501", message: "media_not_available" })).toThrow("media_not_available");
+  expect(() => checkRpc(null)).not.toThrow();
 });

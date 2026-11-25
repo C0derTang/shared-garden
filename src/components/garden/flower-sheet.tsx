@@ -32,6 +32,8 @@ import { flowerCards, nextDueFlower, type FlowerCard } from "./flower-cards";
 import { careStatus } from "./due-today";
 import { SheetCue } from "./today-card";
 import type { Mutate } from "./seed-picker";
+import { legacyPanelHref } from "@/lib/legacy/routes";
+import { useArchived } from "./archive";
 import styles from "./garden.module.css";
 import sheetStyles from "./flower-sheet.module.css";
 
@@ -89,10 +91,13 @@ function EntryContent({ entry, type }: { entry: Entry; type: string }) {
 function GrowthSummary({
   plant,
   item,
+  archived = false,
   children,
 }: {
   plant: Plant;
   item: CatalogItem;
+  /** The read-only archive shows progress without care instructions. */
+  archived?: boolean;
   /** The one-line flower cue (decision 0051). */
   children?: ReactNode;
 }) {
@@ -134,10 +139,14 @@ function GrowthSummary({
               <strong>
                 {units} of {target}
               </strong>
-              <span>
-                {" · "}+1 at 4 a.m. when you both{" "}
-                {type === "cactus" ? "check in" : "care"}
-              </span>
+              {archived ? (
+                <span>{" · "}archived</span>
+              ) : (
+                <span>
+                  {" · "}+1 at 4 a.m. when you both{" "}
+                  {type === "cactus" ? "check in" : "care"}
+                </span>
+              )}
             </>
           )}
         </p>
@@ -234,6 +243,7 @@ export function FlowerSheet({
   onClose?: () => void;
 }) {
   const partnerName = usePartnerName();
+  const archived = useArchived();
   const [editing, setEditing] = useState<Entry | null>(null);
   // "share" after a new entry (offers the next flower), "edit" after an edit.
   const [saved, setSaved] = useState<"share" | "edit" | null>(null);
@@ -418,10 +428,10 @@ export function FlowerSheet({
   }
   return (
     <div className={`${styles.stack} ${sheetStyles.sheet}`}>
-      <GrowthSummary plant={plant} item={item}>
-        <SheetCue status={careStatus(plant, item, state)} />
+      <GrowthSummary plant={plant} item={item} archived={archived}>
+        {!archived && <SheetCue status={careStatus(plant, item, state)} />}
       </GrowthSummary>
-      {optionalMood && <p className={styles.quiet}>Choose a daily mood whenever you like. Colors stay until you change them. These optional picks save to History and Memories, without growth, streak or achievement credit.</p>}
+      {optionalMood && !archived && <p className={styles.quiet}>Choose a daily mood whenever you like. Colors stay until you change them. These optional picks save to History and Memories, without growth, streak or achievement credit.</p>}
       <details className={sheetStyles.details}>
         <summary>Details</summary>
         <div>
@@ -429,7 +439,12 @@ export function FlowerSheet({
             <strong>{bloomed ? "Permanent bloom" : "Growing"}</strong>
             {" · "}Spot {flower.spot} · Planted {flower.planted_day}
           </p>
-          {item.type_key !== "peony" && (
+          {archived ? (
+            <p className={styles.quiet}>
+              The garden is archived: this flower no longer grows or changes.
+              Its entries and replies stay here to read.
+            </p>
+          ) : item.type_key !== "peony" && (
             <p className={styles.quiet}>
               {ordinaryDone
                 ? "No daily care is needed."
@@ -447,19 +462,21 @@ export function FlowerSheet({
           now={now}
           busy={busy}
           mutate={mutate}
+          readOnly={archived}
         />
       ) : (
         <>
           {item.type_key === "tulip" && (
-            <Link href="/garden/songs">Our song collection</Link>
+            <Link href={legacyPanelHref("songs")}>Our song collection</Link>
           )}
           <DandelionWish
             flower={flower}
             memberId={state.member_id}
             busy={busy}
             mutate={mutate}
+            readOnly={archived}
           />
-          {plant.daisy_question && (
+          {plant.daisy_question && !archived && (
             <div className={styles.question}>
               <span className="eyebrow">
                 TODAY’S{" "}
@@ -469,7 +486,7 @@ export function FlowerSheet({
               <p>{plant.daisy_question.prompt}</p>
             </div>
           )}
-          {item.type_key === "hydrangea" && pair[0] && pair[1] && (
+          {item.type_key === "hydrangea" && !archived && pair[0] && pair[1] && (
             <div
               className={styles.blend}
               role="img"
@@ -482,7 +499,7 @@ export function FlowerSheet({
               </p>
             </div>
           )}
-          {cards.length > 0 && (
+          {cards.length > 0 && !archived && (
             <section className={sheetStyles.today} aria-label="Today's entries">
               <h3 className={sheetStyles.sectionTitle}>Today</h3>
               <div
@@ -593,6 +610,7 @@ export function FlowerSheet({
                   authorId={entry.author_id}
                   memberId={state.member_id}
                   refreshKey={state.server_now}
+                  readOnly={archived}
                 />
               </article>
             ))}

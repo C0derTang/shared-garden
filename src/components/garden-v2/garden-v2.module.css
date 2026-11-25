@@ -1,0 +1,1546 @@
+/*
+ * The new garden's UI: handwritten words floating in the painted world, and
+ * soft translucent painted washes for the split view. Text on every wash
+ * meets WCAG AA (cream #fbf3e4 on the dark umber wash is above 12:1).
+ *
+ * `.theme` also re-tones the shared design tokens, so components reused from
+ * the legacy garden (Spotify search, the song player, reply threads) paint in
+ * the same washes instead of the pixel parchment.
+ */
+.theme {
+  --v2-ink: #fbf3e4;
+  --v2-soft: #e8dcc5;
+  --v2-dim: #cdbd9f;
+  --v2-gold: #f4c983;
+  --v2-you: #c9e2a6;
+  --v2-partner: #f6b9bd;
+  --v2-line: rgb(255 236 200 / 0.2);
+  --v2-wash: rgb(255 240 214 / 0.07);
+  --v2-wash-strong: rgb(255 240 214 / 0.12);
+  --v2-brush: 22px 30px 26px 34px / 30px 24px 32px 22px;
+
+  /* Shared tokens, re-toned for the dark painted washes. */
+  --paper: #241d15;
+  --paper-light: #2c241a;
+  --paper-deep: #3b3125;
+  --ink: var(--v2-ink);
+  --muted: var(--v2-dim);
+  --forest: var(--v2-you);
+  --forest-dark: #b9d78f;
+  --sage-light: rgb(201 226 166 / 0.14);
+  --rust: var(--v2-partner);
+  --ochre: var(--v2-gold);
+  --line: var(--v2-line);
+  --line-strong: rgb(255 236 200 / 0.3);
+  --control-border: rgb(255 236 200 / 0.5);
+  --frame-border: rgb(255 236 200 / 0.4);
+  --frame-slot: none;
+  --frame-wood: none;
+  --radius-pixel: 16px;
+  --border-pixel: 1px;
+  --bevel: 0 0 0 transparent;
+  --bevel-pressed: 0 0 0 transparent;
+  --shadow-pixel: 0 0 0 transparent;
+  --shadow-pixel-pressed: 0 0 0 transparent;
+  --press-depth: 0px;
+  --danger: #ffb7a8;
+  --danger-wash: rgb(255 140 120 / 0.12);
+  --font-pixel: var(--hand), cursive;
+  --focus-ring-color: #fff6e4;
+  --focus-ring-halo: #1b140d;
+
+  color: var(--v2-ink);
+}
+
+/* ---------------------------------------------------------------------------
+ * The page */
+
+.page {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #1d1912;
+}
+
+.world {
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+}
+
+/* The big floating title steps aside while the night fireworks play, and returns after. */
+.page :global([data-caption="title"]) {
+  transition:
+    opacity 1.2s ease,
+    text-shadow 300ms ease,
+    color 300ms ease;
+}
+
+.page[data-fireworks] :global([data-caption="title"]) {
+  opacity: 0;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.corner {
+  position: absolute;
+  top: max(0.9rem, env(safe-area-inset-top));
+  right: max(1.1rem, env(safe-area-inset-right));
+  display: flex;
+  gap: 1.1rem;
+  font-size: 1.15rem;
+}
+
+.corner a {
+  color: rgb(255 250 240 / 0.88);
+  text-decoration: none;
+  text-shadow:
+    0 0 0.5em rgb(255 236 200 / 0.45),
+    0 1px 2px rgb(30 20 10 / 0.5);
+  transition: color 250ms ease, text-shadow 250ms ease;
+}
+
+.corner a:hover,
+.corner a:focus-visible {
+  color: #fff;
+  text-shadow:
+    0 0 0.4em rgb(255 244 214 / 0.95),
+    0 0 1.1em rgb(255 214 150 / 0.7);
+}
+
+.hint {
+  position: absolute;
+  left: 50%;
+  bottom: max(1.2rem, env(safe-area-inset-bottom));
+  translate: -50% 0;
+  margin: 0;
+  color: rgb(255 250 240 / 0.9);
+  font-size: clamp(1.05rem, 2.4vw, 1.35rem);
+  white-space: nowrap;
+  text-shadow:
+    0 0 0.6em rgb(255 236 200 / 0.4),
+    0 1px 3px rgb(30 20 10 / 0.6);
+  pointer-events: none;
+  animation: drift 5s ease-in-out infinite, fade-in 1.2s ease both;
+}
+
+.toast {
+  position: absolute;
+  left: 50%;
+  bottom: max(3.6rem, env(safe-area-inset-bottom));
+  translate: -50% 0;
+  max-width: min(32rem, calc(100vw - 2rem));
+  margin: 0;
+  padding: 0.6rem 1.1rem;
+  border-radius: var(--v2-brush);
+  background: rgb(28 22 15 / 0.82);
+  color: var(--v2-ink);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  line-height: 1.4;
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
+.unavailable {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 0.9rem;
+  padding: 1.5rem;
+  text-align: center;
+  font-size: 1.2rem;
+}
+
+/* While you were away: a handwritten note floating over the scene. */
+.away {
+  position: absolute;
+  top: max(3.4rem, env(safe-area-inset-top));
+  left: max(1.1rem, env(safe-area-inset-left));
+  max-width: min(21rem, calc(100vw - 2.2rem));
+  padding: 1rem 1.3rem 0.9rem;
+  border-radius: var(--v2-brush);
+  background:
+    radial-gradient(120% 90% at 20% 10%, rgb(255 214 160 / 0.12), transparent 60%),
+    rgb(28 22 15 / 0.74);
+  box-shadow:
+    0 0 2.5rem rgb(255 210 150 / 0.18),
+    inset 0 0 0 1px rgb(255 236 200 / 0.12);
+  backdrop-filter: blur(12px) saturate(1.1);
+  animation: float-in 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.awayTitle {
+  margin: 0 0 0.35rem;
+  color: var(--v2-gold);
+  font-size: 1.5rem;
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.awayLines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 1.2rem;
+  line-height: 1.35;
+}
+
+.awayLines li::before {
+  content: "✿ ";
+  color: var(--v2-partner);
+}
+
+.awayDismiss {
+  margin-top: 0.55rem;
+  padding: 0.15rem 0;
+  border: 0;
+  background: none;
+  color: var(--v2-soft);
+  font: inherit;
+  font-size: 1.1rem;
+  text-decoration: underline wavy rgb(255 236 200 / 0.45);
+  text-underline-offset: 0.3em;
+}
+
+.awayDismiss:hover,
+.awayDismiss:focus-visible {
+  color: #fff;
+}
+
+/* ---------------------------------------------------------------------------
+ * The split view */
+
+.split {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  outline: none;
+}
+
+.split[data-state="open"] .hero {
+  animation: hero-in 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.split[data-state="open"] .panel {
+  animation: panel-in 650ms 80ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.split[data-state="closed"] .hero,
+.split[data-state="closed"] .panel {
+  animation: fade-out 260ms ease both;
+}
+
+.hero {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(70% 60% at 45% 45%, rgb(255 214 160 / 0.14), transparent 70%),
+    #0b0907;
+}
+
+.hero .heroCanvas {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+}
+
+.hero .heroCanvas[data-status="loading"] canvas {
+  opacity: 0;
+}
+
+.hero .heroCanvas canvas {
+  transition: opacity 700ms ease;
+}
+
+.heroWords {
+  position: absolute;
+  left: clamp(1.2rem, 4vw, 3rem);
+  bottom: clamp(1rem, 4vh, 2.6rem);
+  display: grid;
+  margin: 0;
+  pointer-events: none;
+  text-shadow:
+    0 0 0.5em rgb(255 236 200 / 0.45),
+    0 2px 6px rgb(0 0 0 / 0.45);
+}
+
+.heroName {
+  font-size: clamp(2.6rem, 6vw, 4.6rem);
+  line-height: 0.95;
+  color: #fffaf0;
+}
+
+.heroStage {
+  font-size: clamp(1.1rem, 2vw, 1.45rem);
+  color: var(--v2-soft);
+}
+
+.panel {
+  position: relative;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: clamp(1.4rem, 4vw, 3.4rem) clamp(1.2rem, 4vw, 3.6rem) 3rem;
+  /* Canvas grain over warm washes; the background stays put while the content scrolls. */
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9 0.35' numOctaves='3' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 0.93 0 0 0 0 0.82 0 0 0 0.09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(90% 55% at 100% 0%, rgb(255 196 140 / 0.13), transparent 70%),
+    radial-gradient(70% 50% at 0% 100%, rgb(150 190 140 / 0.1), transparent 70%),
+    linear-gradient(170deg, rgb(40 31 21 / 0.9), rgb(24 19 13 / 0.94));
+  backdrop-filter: blur(22px) saturate(1.15);
+  box-shadow: inset 1.5rem 0 3rem -2rem rgb(0 0 0 / 0.6);
+  font-family: var(--font-body);
+  line-height: 1.55;
+}
+
+.panelHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--hand), cursive;
+  font-size: clamp(2.4rem, 4.6vw, 3.6rem);
+  font-weight: 400;
+  line-height: 1;
+  color: #fffaf0;
+  text-shadow: 0 0 0.6em rgb(255 220 170 / 0.35);
+  outline: none;
+}
+
+/* The heading takes focus only so screen readers announce the flower; it is not a control. */
+.title:focus,
+.title:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.subtitle {
+  margin: 0.35rem 0 0;
+  font-family: var(--hand), cursive;
+  font-size: 1.2rem;
+  color: var(--v2-soft);
+}
+
+.close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.9rem;
+  height: 2.9rem;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(255 240 214 / 0.08);
+  color: var(--v2-ink);
+  font: 400 2rem/1 var(--hand), cursive;
+  transition: background 200ms ease, box-shadow 200ms ease;
+}
+
+.close:hover,
+.close:focus-visible {
+  background: rgb(255 240 214 / 0.16);
+  box-shadow: 0 0 1.4rem rgb(255 214 160 / 0.45);
+}
+
+.back {
+  margin-top: 2rem;
+  padding: 0.3rem 0;
+  border: 0;
+  background: none;
+  color: var(--v2-soft);
+  font: 400 1.3rem/1.2 var(--hand), cursive;
+}
+
+.back:hover,
+.back:focus-visible {
+  color: #fff;
+  text-shadow: 0 0 0.6em rgb(255 220 170 / 0.6);
+}
+
+.panelBody {
+  display: grid;
+  gap: 1.4rem;
+  min-width: 0;
+}
+
+.sectionTitle {
+  margin: 0 0 0.6rem;
+  padding: 0;
+  font-family: var(--hand), cursive;
+  font-size: 1.55rem;
+  font-weight: 400;
+  line-height: 1.1;
+  color: var(--v2-gold);
+}
+
+.quiet {
+  margin: 0;
+  color: var(--v2-dim);
+  font-size: 0.92rem;
+}
+
+/* Growth: painted dots, glowing when filled. */
+.growth {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.growthLine {
+  margin: 0;
+  font-family: var(--hand), cursive;
+  font-size: 1.7rem;
+  line-height: 1;
+}
+
+.dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.dots i {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 46% 54% 50% 50% / 55% 45% 55% 45%;
+  border: 1.5px solid rgb(255 236 200 / 0.45);
+  background: transparent;
+}
+
+.dots i[data-filled] {
+  border-color: transparent;
+  background: radial-gradient(circle at 35% 35%, #fff4d6, var(--v2-gold) 60%, #d99a4e);
+  box-shadow: 0 0 0.6rem rgb(255 200 120 / 0.6);
+}
+
+/* Who cared today. */
+.today {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.cared {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--hand), cursive;
+  font-size: 1.3rem;
+  color: var(--v2-dim);
+}
+
+.cared li[data-cared][data-who="you"] {
+  color: var(--v2-you);
+}
+
+.cared li[data-cared][data-who="partner"] {
+  color: var(--v2-partner);
+}
+
+.cue {
+  margin: 0;
+  color: var(--v2-soft);
+}
+
+/* Callouts: the question of the day, the wish, the colors, coming soon. */
+.callout {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 1rem 1.2rem;
+  border-radius: var(--v2-brush);
+  background:
+    radial-gradient(120% 120% at 0% 0%, rgb(255 214 160 / 0.1), transparent 60%),
+    var(--v2-wash);
+  box-shadow: inset 0 0 0 1px rgb(255 236 200 / 0.1);
+}
+
+.callout > button {
+  justify-self: start;
+}
+
+.calloutLabel {
+  margin: 0;
+  font-family: var(--hand), cursive;
+  font-size: 1.2rem;
+  color: var(--v2-gold);
+}
+
+.question {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.colorPair {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.who {
+  display: inline-block;
+  min-width: 4.5rem;
+  font-family: var(--hand), cursive;
+  font-size: 1.15rem;
+  color: var(--v2-soft);
+}
+
+.blend {
+  height: 0.9rem;
+  border-radius: 999px;
+  box-shadow: 0 0 1rem rgb(255 220 180 / 0.25);
+}
+
+.confirm {
+  display: grid;
+  gap: 0.6rem;
+}
+
+/* Today's cards for you and your partner. */
+.cards {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.card {
+  display: grid;
+  gap: 0.6rem;
+  min-width: 0;
+  padding: 1rem 1.2rem 1.1rem;
+  border-radius: var(--v2-brush);
+  background: var(--v2-wash);
+  box-shadow: inset 0 0 0 1px rgb(255 236 200 / 0.09);
+}
+
+.card[data-who="you"] {
+  background:
+    radial-gradient(120% 100% at 0% 0%, rgb(201 226 166 / 0.1), transparent 60%),
+    var(--v2-wash);
+}
+
+.card[data-who="partner"] {
+  background:
+    radial-gradient(120% 100% at 100% 0%, rgb(246 185 189 / 0.1), transparent 60%),
+    var(--v2-wash);
+}
+
+.cardTitle {
+  margin: 0;
+  font-family: var(--hand), cursive;
+  font-size: 1.45rem;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.card[data-who="you"] .cardTitle {
+  color: var(--v2-you);
+}
+
+.card[data-who="partner"] .cardTitle {
+  color: var(--v2-partner);
+}
+
+.entry {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.meta {
+  margin: 0;
+  color: var(--v2-dim);
+  font-size: 0.85rem;
+}
+
+.entryText {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.entryMood {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.editRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.8rem;
+  margin: 0;
+  color: var(--v2-dim);
+}
+
+.replies {
+  min-width: 0;
+}
+
+/* The reused reply thread, re-toned. */
+.replies section {
+  border-top: 1px dashed rgb(255 236 200 / 0.22);
+}
+
+.replies h5 {
+  font-weight: 400;
+  font-size: 1.15rem;
+  color: var(--v2-soft);
+}
+
+.replies textarea {
+  min-height: 3rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--control-border);
+  border-radius: 14px;
+  background: rgb(255 244 222 / 0.06);
+  color: var(--v2-ink);
+}
+
+.replies li {
+  border-left-color: rgb(255 236 200 / 0.3);
+}
+
+.saved {
+  display: grid;
+  justify-items: start;
+  gap: 0.5rem;
+  color: var(--v2-you);
+}
+
+.saved p {
+  margin: 0;
+}
+
+/* History. */
+.history {
+  display: grid;
+  gap: 0.6rem;
+  justify-items: start;
+}
+
+.historyList {
+  display: grid;
+  gap: 1rem;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.historyEntry {
+  display: grid;
+  gap: 0.4rem;
+  padding-left: 0.9rem;
+  border-left: 2px solid rgb(255 236 200 / 0.18);
+}
+
+/* ---------------------------------------------------------------------------
+ * Forms and buttons */
+
+.form {
+  display: grid;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+.field {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.fieldLabel {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.field > span,
+.fieldLabel > span {
+  font-family: var(--hand), cursive;
+  font-size: 1.25rem;
+  color: var(--v2-soft);
+}
+
+.field small,
+.formHint {
+  color: var(--v2-dim);
+  font-size: 0.85rem;
+}
+
+.formHint {
+  margin: 0;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 2.9rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--control-border);
+  border-radius: 16px 20px 18px 22px / 20px 16px 22px 18px;
+  background: rgb(255 244 222 / 0.06);
+  color: var(--v2-ink);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: rgb(232 220 197 / 0.7);
+  font-style: italic;
+}
+
+.field input:focus-visible,
+.field textarea:focus-visible {
+  border-color: #fff3dc;
+  box-shadow: 0 0 0 3px rgb(255 214 160 / 0.35);
+  outline: none;
+}
+
+.moods {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.moods legend {
+  padding: 0;
+  font-family: var(--hand), cursive;
+  font-size: 1.3rem;
+  color: var(--v2-soft);
+}
+
+.moodOptions {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: 0.45rem;
+}
+
+.moodOption {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2.75rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: rgb(255 240 214 / 0.06);
+  box-shadow: inset 0 0 0 1px rgb(255 236 200 / 0.16);
+  cursor: pointer;
+  transition: background 200ms ease, box-shadow 200ms ease;
+}
+
+.moodOption input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.moodOption[data-chosen] {
+  background: rgb(255 240 214 / 0.16);
+  box-shadow:
+    inset 0 0 0 2px #fff3dc,
+    0 0 1rem rgb(255 214 160 / 0.3);
+}
+
+.moodOption:has(input:focus-visible) {
+  outline: 3px solid var(--focus-ring-color);
+  outline-offset: 2px;
+}
+
+.moodOption:has(input:disabled) {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.swatch {
+  display: inline-block;
+  flex: none;
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 47% 53% 44% 56% / 52% 46% 54% 48%;
+  box-shadow: 0 0 0.5rem rgb(255 255 255 / 0.18);
+}
+
+.otherSwatch {
+  background: repeating-linear-gradient(45deg, #d9d2c2 0 3px, #8f877a 3px 6px);
+}
+
+.moodChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--hand), cursive;
+  font-size: 1.15rem;
+}
+
+.note {
+  margin: 0;
+  padding: 0.6rem 0.9rem;
+  border-radius: 14px;
+  background: rgb(255 214 160 / 0.1);
+  color: var(--v2-soft);
+  font-size: 0.92rem;
+}
+
+.note p {
+  margin: 0 0 0.3rem;
+}
+
+.error {
+  margin: 0;
+  padding: 0.6rem 0.9rem;
+  border-radius: 14px;
+  background: var(--danger-wash);
+  color: var(--danger);
+  font-size: 0.92rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 1rem;
+}
+
+.primary,
+.secondary,
+.theme :global(.button) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.9rem;
+  padding: 0.45rem 1.35rem 0.55rem;
+  border: 0;
+  border-radius: 999px 900px 999px 950px;
+  font: 400 1.35rem/1 var(--hand), cursive;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background 200ms ease,
+    box-shadow 250ms ease,
+    transform 200ms ease;
+}
+
+.primary,
+.theme :global(.button-primary) {
+  background: radial-gradient(120% 140% at 30% 20%, #fff6dc, #f4d49a 55%, #e7b56c);
+  color: #2a1d0f;
+  box-shadow: 0 0 1.2rem rgb(255 205 130 / 0.35);
+}
+
+.primary:hover:not(:disabled),
+.primary:focus-visible,
+.theme :global(.button-primary):hover:not(:disabled) {
+  box-shadow: 0 0 1.8rem rgb(255 205 130 / 0.65);
+  transform: translateY(-1px);
+}
+
+.secondary,
+.theme :global(.button-secondary) {
+  background: rgb(255 240 214 / 0.1);
+  color: var(--v2-ink);
+  box-shadow: inset 0 0 0 1px rgb(255 236 200 / 0.3);
+}
+
+.secondary:hover:not(:disabled),
+.secondary:focus-visible,
+.theme :global(.button-secondary):hover:not(:disabled) {
+  background: rgb(255 240 214 / 0.18);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 236 200 / 0.5),
+    0 0 1.2rem rgb(255 214 160 / 0.3);
+}
+
+.primary:disabled,
+.secondary:disabled,
+.theme :global(.button):disabled {
+  opacity: 0.5;
+  cursor: default;
+  transform: none;
+}
+
+.textButton {
+  padding: 0.2rem 0;
+  border: 0;
+  background: none;
+  color: var(--v2-soft);
+  font: 400 1.2rem/1.2 var(--hand), cursive;
+  text-decoration: underline wavy rgb(255 236 200 / 0.4);
+  text-underline-offset: 0.3em;
+  cursor: pointer;
+}
+
+.textButton:hover,
+.textButton:focus-visible {
+  color: #fff;
+}
+
+/* The planting list: every flower, any number. */
+.seeds {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.seedList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  gap: 0.5rem;
+}
+
+.seed {
+  position: relative;
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.55rem 0.9rem 0.65rem;
+  border-radius: var(--v2-brush);
+  background: rgb(255 240 214 / 0.05);
+  box-shadow: inset 0 0 0 1px rgb(255 236 200 / 0.1);
+  cursor: pointer;
+  transition: background 200ms ease, box-shadow 250ms ease;
+}
+
+.seed input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.seed:hover {
+  background: rgb(255 240 214 / 0.1);
+}
+
+.seed[data-chosen] {
+  background:
+    radial-gradient(120% 120% at 0% 0%, rgb(255 214 160 / 0.2), transparent 60%),
+    rgb(255 240 214 / 0.1);
+  box-shadow:
+    inset 0 0 0 2px #fff3dc,
+    0 0 1.4rem rgb(255 205 130 / 0.3);
+}
+
+.seed:has(input:focus-visible) {
+  outline: 3px solid var(--focus-ring-color);
+  outline-offset: 2px;
+}
+
+.seedName {
+  font-family: var(--hand), cursive;
+  font-size: 1.45rem;
+  line-height: 1.05;
+}
+
+.seedAbout {
+  color: var(--v2-dim);
+  font-size: 0.85rem;
+  line-height: 1.35;
+}
+
+/* ---------------------------------------------------------------------------
+ * Sunflower photos and Bluebell voice memos (#182) */
+
+.field select {
+  width: 100%;
+  min-height: 2.9rem;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--control-border);
+  border-radius: 16px 20px 18px 22px / 20px 16px 22px 18px;
+  background: rgb(40 31 21);
+  color: var(--v2-ink);
+  font-family: var(--font-display);
+  font-size: 1rem;
+}
+
+.field input[type="datetime-local"] {
+  color-scheme: dark;
+}
+
+.pickers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+/* A label styled as a button wraps each visually hidden file input, so the
+   input keeps the label as its name and stays in the tab order. */
+.picker {
+  position: relative;
+  flex: 1 1 10rem;
+}
+
+.picker[data-disabled] {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.fileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.picker:has(.fileInput:focus-visible) {
+  outline: 3px solid var(--focus-ring-color);
+  outline-offset: 3px;
+}
+
+.mediaReview {
+  display: grid;
+  gap: 0.55rem;
+  justify-items: start;
+  min-width: 0;
+  margin: 0;
+}
+
+/* A soft painted mount: the whole photo, never cropped (decision 0025). */
+.photoFrame,
+.theme .photoFrame {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  padding: 0.5rem;
+  border: 0;
+  border-image: none;
+  border-radius: var(--v2-brush);
+  background:
+    radial-gradient(120% 120% at 20% 0%, rgb(255 214 160 / 0.14), transparent 60%),
+    rgb(18 14 9 / 0.55);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 236 200 / 0.16),
+    0 0 2rem rgb(255 196 120 / 0.12);
+}
+
+.photoFrame img {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: contain;
+  border-radius: 12px;
+  image-orientation: from-image;
+}
+
+.photoFrame [role="status"] {
+  color: var(--v2-dim);
+  font-family: var(--hand), cursive;
+  font-size: 1.2rem;
+}
+
+/* Native audio controls on the dark wash. */
+.audio {
+  width: 100%;
+  min-width: 0;
+}
+
+.audio audio {
+  width: 100%;
+  color-scheme: dark;
+  border-radius: 999px;
+}
+
+.audio p {
+  margin: 0;
+  color: var(--v2-dim);
+  font-size: 0.85rem;
+}
+
+.progress {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.progressBar {
+  position: relative;
+  height: 0.7rem;
+  overflow: hidden;
+  border-radius: 999px 900px 999px 950px;
+  background: rgb(255 240 214 / 0.1);
+  box-shadow: inset 0 0 0 1px rgb(255 236 200 / 0.18);
+}
+
+.progressBar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background: radial-gradient(120% 140% at 30% 20%, #fff6dc, #f4d49a 55%, #e7b56c);
+  box-shadow: 0 0 1rem rgb(255 205 130 / 0.55);
+  transition: width 600ms ease;
+}
+
+/* While the bytes travel (no byte count is reported), the paint breathes. */
+.progressBar[data-stage="uploading"] i {
+  animation: breathe 1.6s ease-in-out infinite;
+}
+
+.progressWords {
+  margin: 0;
+  font-family: var(--hand), cursive;
+  font-size: 1.2rem;
+  color: var(--v2-soft);
+}
+
+.recStatus {
+  margin: 0;
+  font-family: var(--hand), cursive;
+  font-size: 1.3rem;
+  color: var(--v2-dim);
+}
+
+.recStatus[data-phase="recording"] {
+  color: var(--v2-partner);
+}
+
+.recorder {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 1.2rem;
+}
+
+.meter {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 2.6rem;
+  flex: 1 1 10rem;
+  max-width: 18rem;
+}
+
+.meter i {
+  flex: 1;
+  height: calc(10% + 90% * var(--level, 0));
+  min-height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fff3dc, var(--v2-partner));
+  opacity: calc(0.35 + 0.65 * var(--level, 0));
+  box-shadow: 0 0 0.5rem rgb(246 185 189 / calc(0.5 * var(--level, 0)));
+  transition: height 90ms linear;
+}
+
+.meter:not([data-live]) i {
+  height: 3px;
+  opacity: 0.35;
+}
+
+.clock {
+  margin: 0;
+  font-family: var(--hand), cursive;
+  font-size: 1.8rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.clock span {
+  font-size: 1.1rem;
+  color: var(--v2-dim);
+}
+
+.recDot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: #c8553d;
+  box-shadow: 0 0 0.5rem rgb(200 85 61 / 0.7);
+}
+
+.reviewTitle {
+  margin: 0;
+  font-family: var(--hand), cursive;
+  font-size: 1.35rem;
+  font-weight: 400;
+  color: var(--v2-gold);
+  outline: none;
+}
+
+.reviewTitle:focus-visible {
+  text-shadow: 0 0 0.6em rgb(255 220 170 / 0.7);
+}
+
+/* ---------------------------------------------------------------------------
+ * Peony milestones (#182): four steps in order, painted down a stem. */
+
+.peony {
+  display: grid;
+  gap: 1rem;
+  justify-items: stretch;
+}
+
+.peony > button {
+  justify-self: start;
+}
+
+.steps {
+  position: relative;
+  display: grid;
+  gap: 0.9rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The stem joining the steps. */
+.steps::before {
+  content: "";
+  position: absolute;
+  top: 1.2rem;
+  bottom: 1.2rem;
+  left: 1.15rem;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, rgb(201 226 166 / 0.5), rgb(201 226 166 / 0.12));
+}
+
+.step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.3rem minmax(0, 1fr);
+  gap: 0.8rem;
+  align-items: start;
+}
+
+.stepMark {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 2.3rem;
+  height: 2.3rem;
+  border-radius: 46% 54% 50% 50% / 55% 45% 55% 45%;
+  background: rgb(36 29 21);
+  box-shadow: inset 0 0 0 1.5px rgb(255 236 200 / 0.35);
+  color: var(--v2-dim);
+  font: 400 1.35rem/1 var(--hand), cursive;
+}
+
+.step[data-state="current"] .stepMark {
+  background: radial-gradient(circle at 35% 35%, #fff4d6, #f6c3c6 60%, #d98a95);
+  box-shadow: 0 0 1.1rem rgb(246 185 189 / 0.6);
+  color: #2a1d0f;
+}
+
+.step[data-state="complete"] .stepMark {
+  background: radial-gradient(circle at 35% 35%, #fff4d6, var(--v2-gold) 60%, #d99a4e);
+  box-shadow: 0 0 0.8rem rgb(255 200 120 / 0.5);
+  color: #2a1d0f;
+}
+
+.stepBody {
+  display: grid;
+  gap: 0.55rem;
+  min-width: 0;
+  padding: 0.75rem 1.1rem 0.95rem;
+  border-radius: var(--v2-brush);
+  background: var(--v2-wash);
+  box-shadow: inset 0 0 0 1px rgb(255 236 200 / 0.09);
+}
+
+.step[data-state="current"] .stepBody {
+  background:
+    radial-gradient(120% 100% at 0% 0%, rgb(246 185 189 / 0.12), transparent 60%),
+    var(--v2-wash-strong);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 236 200 / 0.2),
+    0 0 2rem rgb(246 185 189 / 0.08);
+}
+
+.step[data-state="later"] .stepBody {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px rgb(255 236 200 / 0.07);
+}
+
+.stepTitle {
+  margin: 0;
+  font-family: var(--hand), cursive;
+  font-size: 1.45rem;
+  font-weight: 400;
+  line-height: 1.1;
+  color: var(--v2-ink);
+}
+
+.step[data-state="later"] .stepTitle {
+  color: var(--v2-dim);
+}
+
+.stepStatus {
+  font-size: 1.1rem;
+  color: var(--v2-dim);
+}
+
+.step[data-state="current"] .stepStatus {
+  color: var(--v2-partner);
+}
+
+.contributions {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contribution {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+  padding-left: 0.8rem;
+  border-left: 2px solid rgb(201 226 166 / 0.4);
+}
+
+.contribution[data-who="partner"] {
+  border-left-color: rgb(246 185 189 / 0.45);
+}
+
+.contributionWho {
+  margin: 0;
+  font-family: var(--hand), cursive;
+  font-size: 1.2rem;
+  line-height: 1;
+  color: var(--v2-you);
+}
+
+.contribution[data-who="partner"] .contributionWho {
+  color: var(--v2-partner);
+}
+
+.planCard {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.planWhen {
+  margin: 0;
+  font-family: var(--hand), cursive;
+  font-size: 1.35rem;
+  color: var(--v2-gold);
+}
+
+.planAccepts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1.2rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--hand), cursive;
+  font-size: 1.2rem;
+  color: var(--v2-dim);
+}
+
+.planAccepts li[data-accepted][data-who="you"] {
+  color: var(--v2-you);
+}
+
+.planAccepts li[data-accepted][data-who="partner"] {
+  color: var(--v2-partner);
+}
+
+/* ---------------------------------------------------------------------------
+ * Phones and portrait screens: the painting on top, the panel below. */
+
+@media (max-width: 760px), (orientation: portrait) and (max-width: 1100px) {
+  .split {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 45dvh minmax(0, 1fr);
+  }
+
+  .split[data-state="open"] .panel {
+    animation-name: panel-up;
+  }
+
+  .panel {
+    box-shadow: inset 0 1.5rem 3rem -2rem rgb(0 0 0 / 0.6);
+  }
+
+  /* The panel's title names the flower right below; the painting keeps its stage. */
+  .heroName {
+    display: none;
+  }
+
+  .title {
+    font-size: clamp(2rem, 9vw, 2.8rem);
+  }
+
+  .corner {
+    gap: 0.9rem;
+    font-size: 1.05rem;
+  }
+
+  .away {
+    top: auto;
+    bottom: max(3.2rem, env(safe-area-inset-bottom));
+  }
+
+  .hint {
+    white-space: normal;
+    width: max-content;
+    max-width: calc(100vw - 2rem);
+    text-align: center;
+  }
+}
+
+/* Portrait screens: the away note moves up over the sky, clear of the beds in
+ * the overview (and under the corner links, the keepsakes menu and the
+ * fireworks replay), so it never blocks plot taps. */
+@media (orientation: portrait) {
+  .away {
+    top: calc(max(0.9rem, env(safe-area-inset-top)) + 6.4rem);
+    bottom: auto;
+    max-height: calc(52dvh - 7.3rem - env(safe-area-inset-top));
+    overflow-y: auto;
+  }
+}
+
+@keyframes hero-in {
+  from {
+    opacity: 0;
+    transform: scale(1.04);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateX(3.5%);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes panel-up {
+  from {
+    opacity: 0;
+    transform: translateY(4%);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes float-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.6rem) rotate(-1deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0.75;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes drift {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .split[data-state] .hero,
+  .split[data-state] .panel,
+  .away,
+  .hint,
+  .progressBar i {
+    animation: none;
+  }
+
+  .progressBar i,
+  .meter i {
+    transition: none;
+  }
+
+  .primary,
+  .secondary,
+  .close {
+    transition: none;
+  }
+}
+
+/* The private moment's notices while a flower's view holds the sheet scope (#183). */
+.slotNotices:not(:empty) {
+  display: grid;
+  gap: 0.6rem;
+  margin-bottom: 1.2rem;
+}

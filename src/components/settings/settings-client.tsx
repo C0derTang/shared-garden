@@ -1,27 +1,37 @@
 "use client";
 import { useRouter } from "next/navigation";
+import { archiveNote, useArchived } from "@/components/garden/archive";
+import { legacyPath } from "@/lib/legacy/routes";
 import { useMemberPreferences } from "./member-preferences";
 import styles from "./settings.module.css";
 // The route panel title is the h2, so settings groups start at h3 (decision 0055).
 export function SettingsClient() {
   const preferences = useMemberPreferences();
   const router = useRouter();
+  const archived = useArchived();
   if (!preferences) return null;
   return <div className={styles.page}>
     <section className={styles.settings} aria-label="Personal settings">
       <div className={styles.group} role="group" aria-labelledby="settings-garden">
         <h3 id="settings-garden" className={styles.groupTitle}>Garden</h3>
+        {archived ? <div className={styles.row}>
+          <div className={styles.copy}>
+            <h4>{archiveNote}</h4>
+            <p>This garden is a keepsake now. Nothing grows, decays or rolls over, and everything stays here to browse.</p>
+          </div>
+        </div> : <>
         <div className={`${styles.row} ${styles.actionRow}`}>
           <div className={styles.copy}>
             <h4>Garden guide</h4>
             <p>Replay the short garden tour.</p>
           </div>
-          <button className="button button-primary" type="button" disabled={preferences.busy || !preferences.state} onClick={async () => { if (await preferences.save({ guide: "open" })) router.push("/garden"); }}>Reopen garden guide</button>
+          <button className="button button-primary" type="button" disabled={preferences.busy || !preferences.state} onClick={async () => { if (await preferences.save({ guide: "open" })) router.push(legacyPath); }}>Reopen garden guide</button>
         </div>
         <details className={styles.details}>
           <summary>Garden day · 4 a.m. Pacific</summary>
           <p>This rollover applies wherever you are. The Garden clock shows how much time is left to share today’s care.</p>
         </details>
+        </>}
       </div>
       <div className={styles.group} role="group" aria-labelledby="settings-comfort">
         <h3 id="settings-comfort" className={styles.groupTitle}>Comfort</h3>

@@ -6,6 +6,7 @@ import { getServerConfig } from "@/lib/config/server";
 import { checkRpc } from "./http";
 import { MediaError, PHOTO_INPUT_LIMIT, sanitizePhoto } from "./image";
 import { sanitizeAudio } from "./audio";
+import { mediaBuckets, mediaRpc, type MediaGarden } from "./garden";
 
 type Upload = {
   id: string;
@@ -44,8 +45,16 @@ function trustedMediaClient() {
     },
   });
 }
-export async function finalizeMedia(client: SupabaseClient, id: string) {
-  const claim = await client.rpc("claim_media_upload", { p_id: id });
+// The garden is the server-validated request discriminator. It alone selects
+// the registry RPCs and private buckets; paths always come from the registry.
+export async function finalizeMedia(
+  client: SupabaseClient,
+  id: string,
+  garden: MediaGarden = "legacy",
+) {
+  const rpc = (name: string) => mediaRpc(garden, name);
+  const buckets = mediaBuckets[garden];
+  const claim = await client.rpc(rpc("claim_media_upload"), { p_id: id });
   checkRpc(claim.error);
   const upload = claim.data as Upload;
   if (upload.status === "submitted")
@@ -53,7 +62,7 @@ export async function finalizeMedia(client: SupabaseClient, id: string) {
   if (upload.status !== "ready") {
     const trusted = trustedMediaClient();
     const staged = await trusted.storage
-      .from("garden-staging")
+      .from(buckets.staging)
       .download(upload.staging_path);
     if (staged.error || !staged.data)
       throw new MediaError("upload_missing", 409);
@@ -70,7 +79,7 @@ export async function finalizeMedia(client: SupabaseClient, id: string) {
     // Server uses INSERT only too. Crash recovery may encounter its own final
     // object: accept it only if it is byte-for-byte the validated canonical file.
     const stored = await trusted.storage
-      .from("garden-media")
+      .from(buckets.media)
       .upload(upload.final_path, photo.bytes, {
         contentType: photo.mimeType,
         cacheControl: "0",
@@ -78,7 +87,7 @@ export async function finalizeMedia(client: SupabaseClient, id: string) {
       });
     if (stored.error) {
       const existing = await trusted.storage
-        .from("garden-media")
+        .from(buckets.media)
         .download(upload.final_path);
       if (
         existing.error ||
@@ -91,7 +100,7 @@ export async function finalizeMedia(client: SupabaseClient, id: string) {
         throw new MediaError("media_unavailable", 503);
     }
     const attested = await trusted.rpc(
-      isAudio ? "attest_audio_upload" : "attest_media_upload",
+      rpc(isAudio ? "attest_audio_upload" : "attest_media_upload"),
       {
         p_id: id,
         p_lease_id: upload.lease_id,
@@ -107,18 +116,20 @@ export async function finalizeMedia(client: SupabaseClient, id: string) {
   const payload = { media_id: id };
   const saved =
     upload.replacement_entry_id === null
-      ? await client.rpc("submit_flower_entry", {
+      ? await client.rpc(rpc("submit_flower_entry"), {
           p_flower_id: upload.flower_id,
           p_payload: payload,
         })
-      : await client.rpc("edit_flower_entry", {
+      : await client.rpc(rpc("edit_flower_entry"), {
           p_entry_id: upload.replacement_entry_id,
           p_payload: payload,
         });
   if (saved.error) {
     // A concurrent retry can have committed this same immutable intent. Confirm
     // that fact with the member's session before reporting idempotent success.
-    const current = await client.rpc("media_upload_state", { p_id: id });
+    const current = await client.rpc(rpc("media_upload_state"), {
+      p_id: id,
+    });
     if (!current.error && current.data?.status === "submitted")
       return {
         mediaId: id,
@@ -129,12 +140,18 @@ export async function finalizeMedia(client: SupabaseClient, id: string) {
   }
   return { mediaId: id, entryId: saved.data.id, status: "submitted" };
 }
-export async function readPhoto(client: SupabaseClient, id: string) {
-  const allowed = await client.rpc("media_read_path", { p_id: id });
+export async function readPhoto(
+  client: SupabaseClient,
+  id: string,
+  garden: MediaGarden = "legacy",
+) {
+  const allowed = await client.rpc(mediaRpc(garden, "media_read_path"), {
+    p_id: id,
+  });
   checkRpc(allowed.error);
   const trusted = trustedMediaClient();
   const signed = await trusted.storage
-    .from("garden-media")
+    .from(mediaBuckets[garden].media)
     .createSignedUrl(allowed.data.path, 60);
   if (signed.error || !signed.data)
     throw new MediaError("media_unavailable", 503);
@@ -155,9 +172,12 @@ export async function readPhoto(client: SupabaseClient, id: string) {
       : {}),
   };
 }
-export async function cleanupMedia() {
+export async function cleanupMedia(garden: MediaGarden = "legacy") {
   const trusted = trustedMediaClient();
-  const candidates = await trusted.rpc("media_cleanup_candidates");
+  const buckets = mediaBuckets[garden];
+  const candidates = await trusted.rpc(
+    mediaRpc(garden, "media_cleanup_candidates"),
+  );
   checkRpc(candidates.error);
   let cleaned = 0;
   for (const item of candidates.data as {
@@ -169,13 +189,13 @@ export async function cleanupMedia() {
     let final = false;
     if (item.staging_path)
       staging = !(
-        await trusted.storage.from("garden-staging").remove([item.staging_path])
+        await trusted.storage.from(buckets.staging).remove([item.staging_path])
       ).error;
     if (item.final_path)
       final = !(
-        await trusted.storage.from("garden-media").remove([item.final_path])
+        await trusted.storage.from(buckets.media).remove([item.final_path])
       ).error;
-    const ack = await trusted.rpc("media_cleanup_done", {
+    const ack = await trusted.rpc(mediaRpc(garden, "media_cleanup_done"), {
       p_id: item.id,
       p_staging: staging,
       p_final: final,

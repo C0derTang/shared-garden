@@ -1,50 +1,51 @@
 "use client";
 import * as Dialog from "@radix-ui/react-dialog";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { ArchiveProvider } from "@/components/garden/archive";
 import { GardenClient } from "@/components/garden/garden-client";
 import { PrivateInteraction } from "@/components/private-interaction/private-interaction";
 import { useSheetScope } from "@/components/ui/sheet-scope";
 import type { GardenResult } from "@/lib/garden/model";
+import { legacyPanel, legacyPanelFromHref, legacyPanelHref, legacyPanels, legacyPath, type LegacyPanel } from "@/lib/legacy/routes";
 import { GardenNavigation, type GardenDestination } from "./garden-navigation";
 
-const panels: Record<string, string> = { "/memories": "Memories", "/achievements": "Achievements", "/settings": "Settings", "/garden/songs": "Our songs" };
-/** Persistent authorized garden, with destination contents layered over it. */
+/** Persistent authorized legacy garden, a read-only archive, with the `?panel=` contents layered over it. */
 export function GardenStage({ initial, children }: { initial: GardenResult; children: ReactNode }) {
-  const pathname = usePathname();
+  const panel = legacyPanel(useSearchParams().get("panel"));
   const router = useRouter();
-  const title = panels[pathname];
+  const title = panel ? legacyPanels[panel] : undefined;
   const scope = useSheetScope();
-  const [admittedPath, setAdmittedPath] = useState<string | null>(null);
+  const [admittedPanel, setAdmittedPanel] = useState<LegacyPanel | null>(null);
   // A history navigation must not mount a new trap over an existing flower draft.
   // Once admitted, the parent stays mounted while its child sheets take focus.
-  if (title && admittedPath !== pathname && !scope?.active) setAdmittedPath(pathname);
-  if (!title && admittedPath !== null) setAdmittedPath(null);
-  const panelOpen = !!title && admittedPath === pathname;
+  if (panel && admittedPanel !== panel && !scope?.active) setAdmittedPanel(panel);
+  if (!panel && admittedPanel !== null) setAdmittedPanel(null);
+  const panelOpen = !!panel && admittedPanel === panel;
   const [ownerContainer, setOwnerContainer] = useState<HTMLDivElement | null>(null);
   const [noticeContainer, setNoticeContainer] = useState<HTMLDivElement | null>(null);
   const backdrop = useRef<HTMLDivElement>(null);
-  const panel = useRef<HTMLDivElement>(null);
+  const panelElement = useRef<HTMLDivElement>(null);
   const openedFromGarden = useRef(false);
   const previousPanel = useRef<string | null>(null);
-  const current = (pathname.slice(1) in { memories: 1, achievements: 1, settings: 1 } ? pathname.slice(1) : "garden") as GardenDestination;
+  const current: GardenDestination = panel === "memories" || panel === "achievements" || panel === "settings" ? panel : "garden";
   useEffect(() => {
-    if (title) previousPanel.current = pathname;
+    if (panel) previousPanel.current = legacyPanelHref(panel);
     else if (previousPanel.current && !scope?.active) {
       const href = previousPanel.current;
       previousPanel.current = null;
       openedFromGarden.current = false;
       backdrop.current?.querySelector<HTMLAnchorElement>(`a[href="${href}"]`)?.focus({ preventScroll: true });
     }
-  }, [pathname, title, scope?.active]);
+  }, [panel, scope?.active]);
   function close() {
     if (openedFromGarden.current) router.back();
-    else router.replace("/garden", { scroll: false });
+    else router.replace(legacyPath, { scroll: false });
   }
-  return <div className="garden-layout">
+  return <ArchiveProvider value={true}><div className="garden-layout">
     <div ref={backdrop} inert={!!title || !!scope?.active} onClickCapture={(event) => {
       const link = (event.target as HTMLElement).closest("a");
-      if (pathname === "/garden" && link && panels[link.getAttribute("href") ?? ""]) openedFromGarden.current = true;
+      if (!panel && link && legacyPanelFromHref(link.getAttribute("href") ?? "")) openedFromGarden.current = true;
     }}>
       <main id="main-content" className="garden-main"><GardenClient initial={initial} guideEnabled={!title} /></main>
       <GardenNavigation current={current} />
@@ -52,23 +53,23 @@ export function GardenStage({ initial, children }: { initial: GardenResult; chil
     <Dialog.Root open={panelOpen} onOpenChange={(open) => { if (!open) close(); }}>
       <Dialog.Portal>
         <Dialog.Overlay className="route-panel-overlay" />
-        <Dialog.Content ref={panel} className="route-panel" aria-describedby={undefined} onCloseAutoFocus={(event) => event.preventDefault()} onInteractOutside={(event) => event.preventDefault()}>
+        <Dialog.Content ref={panelElement} className="route-panel" aria-describedby={undefined} onCloseAutoFocus={(event) => event.preventDefault()} onInteractOutside={(event) => event.preventDefault()}>
           <header className="route-panel-header">
             <Dialog.Title>{title}</Dialog.Title>
             <Dialog.Close className="pixel-button" aria-label="Close panel">Close</Dialog.Close>
           </header>
           <div ref={setNoticeContainer} className="route-panel-notices" data-private-notice-host="panel" />
-          <div className="route-panel-body" key={pathname}>
+          <div className="route-panel-body" key={panel}>
             {children}
-            {pathname === "/settings" && <div ref={setOwnerContainer} />}
+            {panel === "settings" && <div ref={setOwnerContainer} />}
           </div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
-    <PrivateInteraction ownerControls={pathname === "/settings"} ownerContainer={ownerContainer} noticeContainer={title ? noticeContainer : undefined} onMomentCloseAutoFocus={(event) => {
+    <PrivateInteraction ownerControls={panel === "settings"} ownerContainer={ownerContainer} noticeContainer={title ? noticeContainer : undefined} onMomentCloseAutoFocus={(event) => {
       // The pending trigger lives outside this parent modal. Resume focus inside
       // the route panel instead of restoring its inaccessible background trigger.
-      if (panel.current?.isConnected) { event.preventDefault(); panel.current.querySelector<HTMLButtonElement>("button")?.focus(); }
+      if (panelElement.current?.isConnected) { event.preventDefault(); panelElement.current.querySelector<HTMLButtonElement>("button")?.focus(); }
     }} />
-  </div>;
+  </div></ArchiveProvider>;
 }

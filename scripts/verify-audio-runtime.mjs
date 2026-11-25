@@ -41,6 +41,20 @@ for (const file of paths)
     !file.startsWith(templates),
     `Production runtime must exclude the template file ${file}`,
   );
+// One traced finalize runtime serves legacy and new-garden (v2) media alike
+// (issue #178): prove the audited route bundle carries the v2 bucket mapping.
+const routeFiles = [
+  path.join(root, ".next/server/app/api/media/finalize/route.js"),
+  ...JSON.parse(fs.readFileSync(trace)).files.map((file) =>
+    path.resolve(path.dirname(trace), file),
+  ),
+].filter((file) => file.endsWith(".js") && fs.existsSync(file));
+assert(
+  routeFiles.some((file) =>
+    fs.readFileSync(file, "utf8").includes("garden-v2-staging"),
+  ),
+  "Finalize runtime must include the new-garden media mapping",
+);
 let bytes = 0;
 for (const file of paths) bytes += fs.statSync(file).size;
 assert(
@@ -54,5 +68,5 @@ const version = execFileSync(
 );
 assert(version.startsWith("ffprobe version 9.0.1"));
 console.log(
-  `PASS: traced executable Linux decoder/limiter, no tools/ template file traced; entire server + runtime upper bound ${bytes} bytes across ${paths.size} files`,
+  `PASS: traced executable Linux decoder/limiter, v2 media mapping in the finalize runtime, no tools/ template file traced; entire server + runtime upper bound ${bytes} bytes across ${paths.size} files`,
 );

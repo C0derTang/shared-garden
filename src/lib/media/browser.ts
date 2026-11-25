@@ -1,5 +1,8 @@
 "use client";
 import { gardenBrowserClient } from "@/lib/auth/browser";
+import { mediaBuckets, mediaGardenField, type MediaGarden } from "./garden";
+
+export { mediaGardenField };
 
 export const photoTypes = ["image/jpeg", "image/png", "image/webp"];
 export const photoAccept = photoTypes.join(",");
@@ -67,12 +70,22 @@ export type MediaAttempt = {
   };
 };
 export type PhotoAttempt = MediaAttempt;
+/**
+ * Where a save is: reserving its private intent, sending the bytes to private
+ * staging, then the server's check and entry. The Storage client reports no
+ * byte progress, so these steps are the progress a form can show.
+ */
+export type MediaStage = "reserving" | "uploading" | "checking";
+// New-garden callers pass garden "v2"; the legacy default sends no
+// discriminator, so legacy requests are byte-for-byte unchanged.
 export async function savePhoto(
   file: File,
   flowerId: string,
   replacementEntryId: number | undefined,
   attempt: PhotoAttempt,
   checkCurrent: () => void,
+  garden: MediaGarden = "legacy",
+  onStage?: (stage: MediaStage) => void,
 ) {
   return saveMedia(
     file,
@@ -81,6 +94,8 @@ export async function savePhoto(
     replacementEntryId,
     attempt,
     checkCurrent,
+    garden,
+    onStage,
   );
 }
 export async function saveVoice(
@@ -89,6 +104,8 @@ export async function saveVoice(
   replacementEntryId: number | undefined,
   attempt: MediaAttempt,
   checkCurrent: () => void,
+  garden: MediaGarden = "legacy",
+  onStage?: (stage: MediaStage) => void,
 ) {
   return saveMedia(
     file,
@@ -97,6 +114,8 @@ export async function saveVoice(
     replacementEntryId,
     attempt,
     checkCurrent,
+    garden,
+    onStage,
   );
 }
 async function saveMedia(
@@ -106,24 +125,29 @@ async function saveMedia(
   replacementEntryId: number | undefined,
   attempt: MediaAttempt,
   checkCurrent: () => void,
+  garden: MediaGarden,
+  onStage?: (stage: MediaStage) => void,
 ) {
   checkCurrent();
+  onStage?.("reserving");
   attempt.intent ??= await mediaRequest("intents", {
     requestId: attempt.requestId,
     flowerId,
     mimeType,
     byteLength: file.size,
     ...(replacementEntryId ? { replacementEntryId } : {}),
+    ...mediaGardenField(garden),
   });
   const intent = attempt.intent!;
   if (intent.status === "pending") {
     const client = gardenBrowserClient();
     if (!client) throw new MediaError("media_unavailable");
+    onStage?.("uploading");
     // A network failure can follow a completed immutable upload. Finalization
     // discovers whether the object arrived; retries never overwrite its bytes.
     try {
       await client.storage
-        .from("garden-staging")
+        .from(mediaBuckets[garden].staging)
         .upload(intent.staging_path, file, {
           contentType: intent.mime_type,
           upsert: false,
@@ -133,12 +157,47 @@ async function saveMedia(
     }
   }
   checkCurrent();
+  onStage?.("checking");
   const result = await mediaRequest<{ status: string }>("finalize", {
     mediaId: intent.id,
+    ...mediaGardenField(garden),
   });
   if (result.status !== "submitted") throw new MediaError("media_unavailable");
 }
 
+/** Photo errors that reject these exact bytes or this window: choose a photo again. */
+export function photoRejected(code: string) {
+  return (
+    [
+      "unsupported_photo",
+      "invalid_photo",
+      "type_mismatch",
+      "photo_too_large",
+      "photo_size_mismatch",
+      "entry_rejected",
+    ].includes(code) || code.startsWith("media_expired")
+  );
+}
+/**
+ * Why a voice save cannot be retried as is: the server refused these bytes
+ * (record again), or the care or edit window changed; null for anything a
+ * retry of the same memo may fix.
+ */
+export function voiceRejection(code: string): "bytes" | "window" | null {
+  if (
+    [
+      "unsupported_audio",
+      "invalid_audio",
+      "audio_too_large",
+      "type_mismatch",
+      "photo_size_mismatch",
+    ].includes(code)
+  )
+    return "bytes";
+  if (code === "entry_rejected" || code.startsWith("media_expired"))
+    return "window";
+  return null;
+}
 export function voiceSaveMessage(error: unknown) {
   if (!(error instanceof MediaError))
     return "We could not confirm the save. Check today's entries, then retry this same memo when connected.";

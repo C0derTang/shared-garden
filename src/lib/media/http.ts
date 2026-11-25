@@ -1,6 +1,7 @@
 import "server-only";
 import { getAuthConfig } from "@/lib/auth/config";
 import { MediaError } from "./image";
+import type { MediaGarden } from "./garden";
 
 export async function readMediaRequest(
   request: Request,
@@ -41,6 +42,13 @@ export function exactFields(body: Record<string, unknown>, fields: string[]) {
   if (Object.keys(body).some((key) => !fields.includes(key)))
     throw new MediaError("invalid_request", 400);
 }
+// Absent means the legacy garden, so existing legacy clients are unchanged.
+// Anything else must name a known garden exactly.
+export function mediaGarden(value: unknown): MediaGarden {
+  if (value === undefined) return "legacy";
+  if (value === "legacy" || value === "v2") return value;
+  throw new MediaError("invalid_request", 400);
+}
 export function uuid(value: unknown): string {
   if (
     typeof value !== "string" ||
@@ -75,6 +83,7 @@ export function checkRpc(error: { code?: string; message: string } | null) {
   if (!error) return;
   if (error.message === "media_processing")
     throw new MediaError("media_processing", 409);
+  if (error.code === "55000") throw new MediaError("garden_archived", 409);
   if (error.code === "42501") throw new MediaError("media_not_available", 403);
   if (error.code === "22023") {
     const code = /^media_[a-z_]+$/.test(error.message)

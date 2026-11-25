@@ -76,6 +76,8 @@ def overlap(first, second, expected_error=None):
 # The harness must never bootstrap, truncate, or disturb an existing garden.
 assert sql("select (select count(*) from public.flower_day_facts) + (select count(*) from public.before_noon_snapshots) + (select count(*) from public.peony_activity) + (select count(*) from public.garden_days) + (select count(*) from private.garden_members) + (select count(*) from auth.users) + (select count(*) from public.garden) + (select count(*) from public.flowers) + (select count(*) from public.flower_unlocks);") == "0", "Refusing a configured database; use a fresh dedicated local project"
 try:
+    # Legacy rules fixture: lift the #176 archive freeze for this run; restored in finally.
+    sql("delete from private.legacy_garden_freeze;")
     sql("""
     begin;
     select private.bootstrap_members('owner@example.test','member@example.test');
@@ -133,6 +135,7 @@ try:
     assert sql("select (select count(*) from public.flowers)||'|'||next_spot||'|'||spot_capacity from public.garden;") == "9|7|12"
     print("PASS: initialization and selected allocation share the lock and recheck queued membership")
 finally:
+    sql("insert into private.legacy_garden_freeze default values on conflict do nothing;")
     sql("""
     begin;
     delete from public.flower_day_facts;

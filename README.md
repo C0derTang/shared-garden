@@ -173,6 +173,46 @@ file uses a transaction and rollback with synthetic data. Alongside them,
 HTTP and websockets. Each of those refuses anything but its dedicated disposable
 local project.
 
+### Development-only local sign-in
+
+To demo signed-in screens without Google OAuth, sign in as either local garden
+slot against the local stack (decision 0067 from issue #171; issue #175). Point
+`.env.local` (or `.env.development.local`) at the local stack:
+`NEXT_PUBLIC_SUPABASE_URL` set to the local Data API URL (`http://127.0.0.1:56321`),
+`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` set to the local publishable key, and
+`APP_ORIGIN` set to the dev server's loopback origin such as
+`http://localhost:3000`. Then, with `npm run db:start` and `npm run dev` running:
+
+```sh
+npm run dev:signin -- --member 1   # or --member 2
+```
+
+The command prints a short-lived link; open it in the browser. It lands on `/`
+signed in as that slot, and the private routes load as that member. Run the
+command again for a new link or the other slot (use a separate browser profile
+to be both at once).
+
+On an empty local membership, the command bootstraps the two slots with the fake
+identities `member1@example.test` and `member2@example.test` through
+`private.bootstrap_members`, and binds a verified fake Google identity to each
+unbound slot through the same `garden_bind_google_identity` trigger a real first
+sign-in uses. It reuses an existing local configuration only if both slots are
+unrevoked `example.test` identities, and otherwise refuses. It then stores a
+local Auth session with an `oauth` sign-in method for the chosen slot; the link's
+`/auth/dev-sign-in` route exchanges its refresh token with local Auth, keeps the
+session only if the account is a bound member, and sets the normal session
+cookie. Real accounts, production Auth and the membership rules are untouched.
+
+Both halves are hard-gated. The command refuses unless `NODE_ENV` is unset or
+`development`, `APP_ORIGIN` is an `http` loopback origin and
+`NEXT_PUBLIC_SUPABASE_URL` is the `http` loopback URL of this checkout's running
+stack; it only writes through this checkout's local database container. The
+route answers 404 unless `NODE_ENV` is `development` and both `APP_ORIGIN` and
+the Supabase URL are `http` loopback origins. A production build (`npm run build`
+then `npm run start`) compiles the route to a bare 404, even when `NODE_ENV` or
+loopback values are supplied at start. Remove the seeded rows with `npm run
+db:reset` when you no longer need them.
+
 ## Internal garden clock
 
 The first migration defines `private.garden_clock_at(p_instant timestamptz)`:

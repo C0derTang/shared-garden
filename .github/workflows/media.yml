@@ -47,7 +47,9 @@ jobs:
           LOCAL_MEDIA_STATUS_FILE: /tmp/shared-garden-issue48/status.json
         run: npx vitest run src/lib/media/image.test.ts src/test/media-local.test.ts
       - name: Verify observed overlapping media transactions
-        run: python3 supabase/tests/concurrency/media_race.py supabase_db_shared-garden-media48
+        run: |
+          python3 supabase/tests/concurrency/media_race.py supabase_db_shared-garden-media48
+          python3 supabase/tests/concurrency/media_race.py supabase_db_shared-garden-media48 --v2
       - name: Reset fixture state
         if: always()
         run: node_modules/.bin/supabase db reset --local --workdir /tmp/shared-garden-issue48

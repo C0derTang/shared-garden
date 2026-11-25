@@ -1,0 +1,128 @@
+/**
+ * How the new garden's state becomes painted flowers and words: growth
+ * fractions, Hydrangea mood colours, the Dandelion puff, stage wording and
+ * which flowers have their own activity yet. Pure, so it is unit tested.
+ */
+import { careStatus, NO_DECAY, todayPlan } from "@/lib/garden/care";
+import { moodColorOf, OTHER_MOOD, type MoodPick } from "@/lib/garden/moods";
+import type { CatalogItem, FlowerType, GardenState, Plant } from "./model";
+
+/**
+ * Flowers whose activity exists in this garden: the shared daily entry form,
+ * the Sunflower's photo, the Bluebell's voice memo and the Peony's milestones
+ * (#182). That is every type now.
+ */
+export const CARE_TYPES: readonly FlowerType[] = [
+  "rose",
+  "cactus",
+  "tulip",
+  "marigold",
+  "daisy",
+  "hydrangea",
+  "sunflower",
+  "snapdragon",
+  "moonflower",
+  "bluebell",
+  "dandelion",
+  "forget-me-not",
+  "peony",
+];
+
+/**
+ * The one switch for whether a flower's activity exists in this garden.
+ * Flowers without one are never "due": no bright name, no "your care is
+ * open", no "next" suggestion. The Peony takes no daily care (its milestones
+ * have their own order), so it is never "due" either way.
+ */
+export const hasCareActivity = (type: FlowerType) => CARE_TYPES.includes(type);
+
+/** Today's care for a new-garden flower (no decay), or null when it takes none here. */
+export function gardenCareStatus(plant: Plant, item: CatalogItem | undefined, state: Pick<GardenState, "member_id" | "moonflower_open">) {
+  return item && hasCareActivity(plant.flower.type_key) ? careStatus(plant, item, state, NO_DECAY) : null;
+}
+
+/** Flowers still waiting for care today, in the order to visit them (no decay). */
+export function gardenTodayPlan(state: GardenState) {
+  return todayPlan(state, { canPlant: false, rules: NO_DECAY, takesPart: (plant) => hasCareActivity(plant.flower.type_key) });
+}
+
+/** The procedural flower's description (see `FlowerSpec`). */
+export interface PlantSpec {
+  readonly type: FlowerType;
+  readonly seed: number;
+  readonly growth: number;
+  readonly moodColors?: readonly string[];
+  readonly puff?: boolean;
+}
+
+export function catalogItem(state: Pick<GardenState, "catalog">, type: FlowerType): CatalogItem | undefined {
+  return state.catalog.find((item) => item.type_key === type);
+}
+
+/** Growth as a fraction of the target: 1 once bloomed, never above it. */
+export function growthFraction(plant: Plant, item: CatalogItem | undefined) {
+  if (plant.flower.first_bloom_at) return 1;
+  const target = item?.growth_target ?? 1;
+  return Math.min(1, Math.max(0, plant.flower.growth_units / Math.max(1, target)));
+}
+
+/** Palette colours of one saved pick, main tone first; Other has none. */
+export function pickColors(pick: MoodPick | null): string[] {
+  if (!pick || pick.mood === OTHER_MOOD) return [];
+  return [moodColorOf(pick.mood), ...(pick.mood2 ? [moodColorOf(pick.mood2)] : [])];
+}
+
+/** A Hydrangea takes both members' latest mood colours; none keeps its seeded colour. */
+export function hydrangeaColors(plant: Plant): string[] | undefined {
+  if (plant.flower.type_key !== "hydrangea") return undefined;
+  const colors = [...pickColors(plant.hydrangea_picks[0]), ...pickColors(plant.hydrangea_picks[1])];
+  return colors.length ? colors : undefined;
+}
+
+/**
+ * A bloomed Dandelion waiting on its wish is a seed puff, ready to blow. Once
+ * the wish is fulfilled its seeds have flown, and it shows its golden head as
+ * a keepsake.
+ */
+export function showsPuff(plant: Plant) {
+  return plant.flower.type_key === "dandelion" && plant.flower.first_bloom_at !== null && plant.flower.fulfilled_at === null;
+}
+
+export function plantSpec(plant: Plant, item: CatalogItem | undefined): PlantSpec {
+  const colors = hydrangeaColors(plant);
+  return {
+    type: plant.flower.type_key,
+    seed: plant.flower.seed,
+    growth: growthFraction(plant, item),
+    ...(colors ? { moodColors: colors } : {}),
+    ...(showsPuff(plant) ? { puff: true } : {}),
+  };
+}
+
+/** A few handwritten words for where the flower is in its life. */
+export function stageWords(plant: Plant, item: CatalogItem | undefined) {
+  const flower = plant.flower;
+  if (flower.fulfilled_at) return "wish fulfilled";
+  if (flower.first_bloom_at) return flower.type_key === "dandelion" ? "gone to seed" : "in bloom";
+  const fraction = growthFraction(plant, item);
+  if (fraction >= 0.5) return "opening";
+  if (fraction >= 0.25) return "in bud";
+  return flower.growth_units === 0 ? "just planted" : "a seedling";
+}
+
+/** Lower-case flower name for floating captions. */
+export const captionName = (item: CatalogItem | undefined, type: FlowerType) => (item?.display_name ?? type).toLowerCase();
+
+const dateFormat = new Intl.DateTimeFormat("en-US", { timeZone: "UTC", month: "short", day: "numeric" });
+/** A garden day (YYYY-MM-DD) as "Nov 24". */
+export function gardenDayLabel(day: string) {
+  const parsed = Date.parse(`${day}T12:00:00Z`);
+  return Number.isFinite(parsed) ? dateFormat.format(new Date(parsed)) : day;
+}
+
+/** A stable preview seed per type, for the planting preview (real seeds come from the server). */
+export function previewSeed(type: FlowerType) {
+  let hash = 2166136261;
+  for (const char of type) hash = Math.imul(hash ^ char.charCodeAt(0), 16777619) >>> 0;
+  return hash;
+}

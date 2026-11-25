@@ -74,7 +74,57 @@ insert into expected_function_grants values
   ('public.save_member_setting(jsonb)', 'authenticated'),
   ('public.set_peony_plan(uuid,bigint,text,text)', 'authenticated'),
   ('public.submit_flower_entry(uuid,jsonb)', 'authenticated'),
-  ('public.submit_peony_contribution(uuid,integer,jsonb)', 'authenticated');
+  ('public.submit_peony_contribution(uuid,integer,jsonb)', 'authenticated'),
+  -- New-garden Peony, achievements and Memories (#177).
+  ('private.v2_complete_peony_milestone(uuid,integer,timestamptz)', null),
+  ('private.v2_peony_state_at(uuid,smallint,timestamptz)', null),
+  ('private.v2_record_peony_activity(uuid,smallint,timestamptz,timestamptz,timestamptz)', null),
+  ('private.v2_require_peony_milestone(uuid,integer)', null),
+  ('private.v2_validate_peony_payload(integer,jsonb)', null),
+  ('public.v2_accept_peony_plan(uuid,bigint)', 'authenticated'),
+  ('public.v2_awards_for_day(date)', 'authenticated'),
+  ('public.v2_current_achievements()', 'authenticated'),
+  ('public.v2_current_peony_state(uuid)', 'authenticated'),
+  ('public.v2_edit_peony_contribution(bigint,jsonb)', 'authenticated'),
+  ('public.v2_memories_page(text,jsonb,text[],text,integer,date,date,integer)', 'authenticated'),
+  ('public.v2_set_peony_plan(uuid,bigint,text,text)', 'authenticated'),
+  ('public.v2_submit_peony_contribution(uuid,integer,jsonb)', 'authenticated'),
+  ('private.v2_assign_daisy_question(date,timestamptz)', null),
+  ('private.v2_begin_garden_operation()', null),
+  ('private.v2_capture_noon_snapshot(date)', null),
+  ('private.v2_entry_state_at(uuid,smallint,timestamptz)', null),
+  ('private.v2_evaluate_achievements(timestamptz)', null),
+  ('private.v2_plant_flower(text,text,numeric)', null),
+  ('private.v2_record_first_bloom_at(uuid,date,timestamptz)', null),
+  ('private.v2_settle_garden_at(timestamptz)', null),
+  ('private.v2_validate_entry_payload(text,jsonb,date)', null),
+  ('public.v2_current_garden_state()', 'authenticated'),
+  ('public.v2_edit_flower_entry(bigint,jsonb)', 'authenticated'),
+  ('public.v2_entry_history(uuid,integer,bigint)', 'authenticated'),
+  ('public.v2_entry_reply_history(bigint,integer,bigint)', 'authenticated'),
+  ('public.v2_fulfill_dandelion(uuid)', 'authenticated'),
+  ('public.v2_plant_flower_at(text,numeric,text)', 'authenticated'),
+  ('public.v2_reply_to_entry(bigint,text,uuid)', 'authenticated'),
+  ('public.v2_submit_flower_entry(uuid,jsonb)', 'authenticated');
+-- Legacy archive freeze (#176): private helpers with no API caller.
+insert into expected_function_grants values
+  ('private.legacy_garden_frozen()', null),
+  ('private.require_legacy_writable()', null);
+
+-- New-garden private media (issue #178).
+insert into expected_function_grants values
+  ('private.v2_guard_media_entry()', null),
+  ('private.v2_media_upload_json(private.v2_media_uploads)', null),
+  ('private.v2_validate_nonmedia_entry_payload(text,jsonb,date)', null),
+  ('public.v2_attest_audio_upload(uuid,uuid,integer,integer,integer,text)', 'service_role'),
+  ('public.v2_attest_media_upload(uuid,uuid,integer,integer,integer,text)', 'service_role'),
+  ('public.v2_claim_media_upload(uuid)', 'authenticated'),
+  ('public.v2_create_media_upload(uuid,uuid,text,integer,bigint)', 'authenticated'),
+  ('public.v2_media_cleanup_candidates()', 'service_role'),
+  ('public.v2_media_cleanup_done(uuid,boolean,boolean)', 'service_role'),
+  ('public.v2_media_read_path(uuid)', 'authenticated'),
+  ('public.v2_media_upload_allowed(text)', 'authenticated'),
+  ('public.v2_media_upload_state(uuid)', 'authenticated');
 
 create temporary view application_functions as
 select p.oid, p.proowner, p.proacl

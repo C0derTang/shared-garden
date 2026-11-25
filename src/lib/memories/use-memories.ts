@@ -1,4 +1,5 @@
 "use client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { gardenBrowserClient } from "@/lib/auth/browser";
 import { subscribeGarden } from "@/lib/garden/realtime";
@@ -24,9 +25,16 @@ type State = {
   error: string | null;
 };
 const empty: MemoryPage = { items: [], more: false, error: null };
+/** Where a feed reads its pages and hears about changes; the new garden passes its own. */
+export type MemorySource = {
+  load: (query: MemoryQuery) => Promise<MemoryPage>;
+  subscribe: (client: SupabaseClient, refresh: () => void, connected: (value: boolean) => void) => () => void;
+};
+const legacySource: MemorySource = { load: loadMemories, subscribe: subscribeGarden };
 export function useMemories(
   initial: MemoryPage | undefined,
   filters: MemoryFilters,
+  source: MemorySource = legacySource,
 ) {
   const first = initial ?? empty;
   const [state, setState] = useState<State>({
@@ -65,7 +73,7 @@ export function useMemories(
       const token = generation.current;
       const active = () => mounted.current && generation.current === token;
       const read = async (query: MemoryQuery) => {
-        const result = await loadMemories(query);
+        const result = await source.load(query);
         if (!active()) return null;
         if (result.error) throw new Error(result.error);
         return result;
@@ -168,7 +176,7 @@ export function useMemories(
         }
       }
     },
-    [apply, filters],
+    [apply, filters, source],
   );
   useEffect(() => {
     mounted.current = true;
@@ -179,7 +187,7 @@ export function useMemories(
     };
     const client = gardenBrowserClient();
     const stop = client
-      ? subscribeGarden(client, resume, setConnected)
+      ? source.subscribe(client, resume, setConnected)
       : () => {};
     const initialRead = !initial
       ? window.setTimeout(() => void run("refresh"), 0)
@@ -198,7 +206,7 @@ export function useMemories(
       window.removeEventListener("online", resume);
       document.removeEventListener("visibilitychange", resume);
     };
-  }, [initial, run]);
+  }, [initial, run, source]);
   const showNewer = () => {
     apply((s) => ({
       ...s,

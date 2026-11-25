@@ -1,9 +1,8 @@
-import {
-  blendMoodColors,
-  type FlowerType,
-  type HydrangeaMood,
-  type MoodTone,
-} from "@/components/garden/flower-sprite";
+import type { FlowerType, HydrangeaMood, MoodTone } from "@/components/garden/flower-sprite";
+import { moodPick, moods, OTHER_MOOD, type MoodPick } from "./moods";
+
+// The mood palette and pick rules are shared with the new garden.
+export { moodBlend, moodLabel, moodPick, moods, moodSwatches, MOOD_NOTE_LIMIT, OTHER_MOOD, type MoodPick } from "./moods";
 
 export type ClockState = {
   server_now: string;
@@ -287,52 +286,8 @@ export function canEditAt(
     (entry.edit_deadline_inclusive ? now <= deadline : now < deadline)
   );
 }
-export const moods: { key: HydrangeaMood; label: string; color: string }[] = [
-  { key: "calm", label: "Calm · Blue", color: "#6f9eab" },
-  { key: "joyful", label: "Joyful · Yellow", color: "#e2b84f" },
-  { key: "tender", label: "Tender · Pink", color: "#d88798" },
-  { key: "energized", label: "Energized · Orange", color: "#d9854f" },
-  { key: "low", label: "Low · Lavender", color: "#8b87ab" },
-  { key: "tense", label: "Tense · Red", color: "#b86b61" },
-];
-export const OTHER_MOOD = "other";
-export const MOOD_NOTE_LIMIT = 140;
-export type MoodPick = {
-  mood: HydrangeaMood | typeof OTHER_MOOD;
-  mood2?: HydrangeaMood;
-  note?: string;
-};
-const moodKey = (v: unknown): v is HydrangeaMood =>
-  typeof v === "string" && moods.some((m) => m.key === v);
-/** A saved Hydrangea payload as a validated pick, or null when it is not one. */
-export function moodPick(payload: Record<string, unknown>): MoodPick | null {
-  const { mood, mood2, note } = payload;
-  if (mood !== OTHER_MOOD && !moodKey(mood)) return null;
-  if (note !== undefined && (typeof note !== "string" || !note.trim() || Array.from(note).length > MOOD_NOTE_LIMIT)) return null;
-  if (mood === OTHER_MOOD) {
-    if (mood2 !== undefined || typeof note !== "string") return null;
-    return { mood, note };
-  }
-  if (mood2 !== undefined && (!moodKey(mood2) || mood2 === mood)) return null;
-  return { mood, ...(mood2 ? { mood2 } : {}), ...(note ? { note } : {}) };
-}
 export function moodTone(pick: MoodPick): MoodTone {
   return pick.mood !== OTHER_MOOD && pick.mood2 ? [pick.mood, pick.mood2] : pick.mood;
-}
-/** Palette entries behind a pick, in the member's chosen order. Other has none. */
-export function moodSwatches(pick: MoodPick) {
-  return [pick.mood, pick.mood2]
-    .map((key) => moods.find((m) => m.key === key))
-    .filter((m): m is (typeof moods)[number] => !!m);
-}
-export function moodLabel(pick: MoodPick) {
-  const named = moodSwatches(pick).map((m) => m.label);
-  return named.length ? named.join(" + ") : "Other";
-}
-/** One color for a pick: the color, the blend, or null for Other. */
-export function moodBlend(pick: MoodPick) {
-  if (pick.mood === OTHER_MOOD) return null;
-  return pick.mood2 ? blendMoodColors(pick.mood, pick.mood2) : moods.find((m) => m.key === pick.mood)!.color;
 }
 export const pacificTime = (date: string | number) =>
   new Intl.DateTimeFormat("en-US", {
