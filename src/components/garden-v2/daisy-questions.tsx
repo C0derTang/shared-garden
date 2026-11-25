@@ -27,6 +27,8 @@ export function DaisyQuestions({ plant, state, now, busy, mutate }: { plant: Pla
   );
 }
 
+const DAY_ENDED = "A new garden day has begun. Check today’s questions above before asking again.";
+
 function AskPartner({ plant, state, now, busy, mutate }: { plant: Plant; state: GardenState; now: number; busy: boolean; mutate: MutateV2 }) {
   const partner = usePartnerName();
   const id = useId();
@@ -38,18 +40,25 @@ function AskPartner({ plant, state, now, busy, mutate }: { plant: Plant; state: 
   const asked = daisyAskedBy(plant, state.member_id);
   const partnerAnswered = state.member_id === 1 ? plant.member2_submitted : plant.member1_submitted;
   const locked = !!asked && (asked.locked || partnerAnswered);
+  // Past 4 a.m. but not yet refreshed: the displayed day has ended and its question is final.
   const rollover = now >= Date.parse(state.next_rollover_at);
 
   // Once your partner has answered the daily question, there is nothing left to ask today.
   if (!asked && partnerAnswered) return null;
 
   async function run(command: Parameters<MutateV2>[0]) {
-    if (lock.current || busy) return false;
+    if (lock.current || busy || rollover) return false;
+    // The server acts on its own current day; a call that landed on another day is never reported as done here.
+    const day = state.garden_day;
     lock.current = true;
     setPending(true);
     setError(null);
     try {
       const result = await mutate(command);
+      if (result.state && result.state.garden_day !== day) {
+        setError(DAY_ENDED);
+        return false;
+      }
       setError(result.error);
       return result.saved === true;
     } finally {
@@ -87,6 +96,11 @@ function AskPartner({ plant, state, now, busy, mutate }: { plant: Plant; state: 
               {characters(draft)} / {DAISY_QUESTION_LIMIT} · {partner.subject} answers it instead of today’s question.
             </small>
           </div>
+          {rollover && (
+            <p className={styles.note} role="status">
+              A new garden day is starting. Your draft stays here; ask again after the garden refreshes.
+            </p>
+          )}
           <div className={styles.actions}>
             <button type="submit" className={styles.primary} disabled={!textValid(draft, DAISY_QUESTION_LIMIT) || busy || pending || rollover}>
               {pending ? "saving…" : asked ? "save question" : "ask"}
@@ -110,6 +124,10 @@ function AskPartner({ plant, state, now, busy, mutate }: { plant: Plant; state: 
           {locked ? (
             <p className={styles.quiet} role="status">
               {partner.short} answered · it stays as asked
+            </p>
+          ) : rollover ? (
+            <p className={styles.quiet} role="status">
+              This garden day has ended · it stays as asked
             </p>
           ) : (
             <>
@@ -143,7 +161,7 @@ function AskPartner({ plant, state, now, busy, mutate }: { plant: Plant; state: 
         <button
           type="button"
           className={styles.textButton}
-          disabled={busy}
+          disabled={busy || rollover}
           onClick={() => {
             setDraft("");
             setError(null);

@@ -306,6 +306,52 @@ describe("Daisy questions (#212)", () => {
     expect(history).toHaveTextContent("you asked");
   });
 
+  it("freezes your question once the displayed day has rolled over", async () => {
+    const user = userEvent.setup();
+    const state = v2GardenFixture();
+    const plant = state.plants[0]!;
+    Object.assign(plant, { entries: [], member1_submitted: false, daisy_question: DAILY });
+    plant.flower.type_key = "daisy";
+    plant.daisy_custom_questions = [question({ asker_id: 1, addressee_id: 2, prompt: "My synthetic question?" })];
+    const item = state.catalog.find((c) => c.type_key === "daisy")!;
+    const mutate = vi.fn().mockResolvedValue({ state, saved: true, error: null });
+    const view = (now: number) => <FlowerPanel plant={plant} state={state} item={item} now={now} busy={false} mutate={mutate} />;
+    const { rerender } = render(view(NOW));
+    const ask = screen.getByRole("region", { name: "Your question for partner" });
+    await user.click(within(ask).getByRole("button", { name: "edit" }));
+    // 4 a.m. passes before the garden refreshes.
+    rerender(view(Date.parse(state.next_rollover_at)));
+    expect(within(ask).getByRole("button", { name: "save question" })).toBeDisabled();
+    expect(within(ask).getByText(/new garden day is starting/)).toBeInTheDocument();
+    await user.click(within(ask).getByRole("button", { name: "cancel" }));
+    expect(ask).toHaveTextContent("This garden day has ended · it stays as asked");
+    expect(within(ask).queryByRole("button", { name: "edit" })).toBeNull();
+    expect(within(ask).queryByRole("button", { name: "remove" })).toBeNull();
+    expect(mutate).not.toHaveBeenCalled();
+  });
+
+  it("never reports a question change that landed on another day", async () => {
+    const user = userEvent.setup();
+    const { mutate } = daisy((p) => (p.daisy_custom_questions = [question({ asker_id: 1, addressee_id: 2, prompt: "My synthetic question?" })]));
+    const next = v2GardenFixture();
+    next.garden_day = "2026-11-03";
+    mutate.mockResolvedValueOnce({ state: next, saved: true, error: null });
+    const ask = screen.getByRole("region", { name: "Your question for partner" });
+    await user.click(within(ask).getByRole("button", { name: "remove" }));
+    expect(mutate).toHaveBeenCalledWith(expect.objectContaining({ kind: "removeDaisyQuestion" }));
+    expect(await within(ask).findByRole("alert")).toHaveTextContent(/new garden day has begun/);
+  });
+
+  it("does not offer a new question after the displayed day has ended", () => {
+    const state = v2GardenFixture();
+    const plant = state.plants[0]!;
+    Object.assign(plant, { entries: [], member1_submitted: false, daisy_question: DAILY });
+    plant.flower.type_key = "daisy";
+    const item = state.catalog.find((c) => c.type_key === "daisy")!;
+    render(<FlowerPanel plant={plant} state={state} item={item} now={Date.parse(state.next_rollover_at)} busy={false} mutate={vi.fn()} />);
+    expect(screen.getByRole("button", { name: "ask partner your own question" })).toBeDisabled();
+  });
+
   it("hides the questions on a bloomed Daisy", () => {
     setup("daisy", (p) => {
       p.flower.growth_units = 7;
