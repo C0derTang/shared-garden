@@ -126,6 +126,17 @@ insert into expected_function_grants values
   ('public.v2_media_upload_allowed(text)', 'authenticated'),
   ('public.v2_media_upload_state(uuid)', 'authenticated');
 
+-- New-garden Daisy custom questions (issue #212).
+insert into expected_function_grants values
+  ('private.v2_bind_daisy_answer(uuid,smallint,date,text)', null),
+  ('private.v2_daisy_custom_questions_at(uuid,date)', null),
+  ('private.v2_daisy_entry_question(bigint,date)', null),
+  ('private.v2_guard_daisy_custom_question()', null),
+  ('private.v2_require_open_daisy(uuid)', null),
+  ('public.v2_ask_daisy_question(uuid,jsonb)', 'authenticated'),
+  ('public.v2_daisy_entry_questions(bigint[])', 'authenticated'),
+  ('public.v2_remove_daisy_question(uuid)', 'authenticated');
+
 create temporary view application_functions as
 select p.oid, p.proowner, p.proacl
 from pg_proc p

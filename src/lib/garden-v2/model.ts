@@ -38,6 +38,10 @@ export type CatalogItem = {
   action_label: string;
   growth_target: number;
 };
+/** The question a Daisy answer responded to: the shared daily one or a partner's own (#212). */
+export type EntryQuestion =
+  | { kind: "daily"; prompt: string; category: "light" | "deeper"; question_id: string }
+  | { kind: "custom"; prompt: string; asked_by: 1 | 2 };
 export type Entry = {
   id: number;
   flower_id: string;
@@ -47,6 +51,10 @@ export type Entry = {
   updated_at: string;
   payload: Record<string, string>;
   daisy_assignment_day: string | null;
+  /** The custom question this Daisy answer is bound to, if any (#212). */
+  daisy_custom_question_id?: number | null;
+  /** Resolved question for a Daisy answer; absent when not loaded. */
+  question?: EntryQuestion | null;
   edit_deadline?: string;
   edit_deadline_inclusive?: boolean;
   can_edit?: boolean;
@@ -76,12 +84,29 @@ export type DaisyQuestion = {
   prompt: string;
   assigned_at: string;
 };
+/** A member's own question for the other on a Daisy today (#212, decision 0068). */
+export type CustomQuestion = {
+  id: number;
+  asker_id: 1 | 2;
+  addressee_id: 1 | 2;
+  prompt: string;
+  revision: number;
+  /** What an answer to this exact revision carries as its `question_id`. */
+  question_key: string;
+  created_at: string;
+  updated_at: string;
+  /** The addressee has answered: the question stays as asked. */
+  locked: boolean;
+};
+export const DAISY_QUESTION_LIMIT = 300;
 export type Plant = ClockState & {
   flower: Flower;
   entries: Entry[];
   /** Latest saved Hydrangea pick per fixed member slot. */
   hydrangea_picks: [MoodPick | null, MoodPick | null];
   daisy_question: DaisyQuestion | null;
+  /** Today's live custom questions on a Daisy (empty for other flowers). */
+  daisy_custom_questions: CustomQuestion[];
   member1_submitted: boolean;
   member2_submitted: boolean;
 };
@@ -105,7 +130,9 @@ export type GardenCommand =
   | { kind: "plant"; type: FlowerType; spot: number; wish?: string }
   | { kind: "submit"; flowerId: string; payload: Record<string, string> }
   | { kind: "fulfillDandelion"; flowerId: string }
-  | { kind: "edit"; entryId: number; payload: Record<string, string> };
+  | { kind: "edit"; entryId: number; payload: Record<string, string> }
+  | { kind: "askDaisy"; flowerId: string; prompt: string }
+  | { kind: "removeDaisyQuestion"; flowerId: string };
 
 function object(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Invalid garden response");
@@ -134,6 +161,36 @@ function clock(value: Record<string, unknown>) {
   );
 }
 
+const QUESTION_KEY = /^custom-[1-9]\d{0,17}-r[1-9]\d{0,8}$/;
+
+export function parseEntryQuestion(value: unknown): EntryQuestion | null {
+  if (value === null || value === undefined) return null;
+  const q = object(value);
+  assert(typeof q.prompt === "string");
+  if (q.kind === "daily") assert(["light", "deeper"].includes(q.category as string) && typeof q.question_id === "string");
+  else assert(q.kind === "custom" && member(q.asked_by));
+  return q as EntryQuestion;
+}
+
+function parseCustomQuestions(value: unknown) {
+  for (const item of array(value)) {
+    const q = object(item);
+    assert(
+      positive(q.id) &&
+        member(q.asker_id) &&
+        member(q.addressee_id) &&
+        q.asker_id !== q.addressee_id &&
+        typeof q.prompt === "string" &&
+        positive(q.revision) &&
+        typeof q.question_key === "string" &&
+        QUESTION_KEY.test(q.question_key) &&
+        timestamp(q.created_at) &&
+        timestamp(q.updated_at) &&
+        typeof q.locked === "boolean",
+    );
+  }
+}
+
 export function parseEntries(value: unknown): Entry[] {
   for (const item of array(value)) {
     const e = object(item);
@@ -144,8 +201,10 @@ export function parseEntries(value: unknown): Entry[] {
         typeof e.garden_day === "string" &&
         timestamp(e.original_posted_at) &&
         timestamp(e.updated_at) &&
-        (e.daisy_assignment_day === null || typeof e.daisy_assignment_day === "string"),
+        (e.daisy_assignment_day === null || typeof e.daisy_assignment_day === "string") &&
+        (e.daisy_custom_question_id === undefined || e.daisy_custom_question_id === null || positive(e.daisy_custom_question_id)),
     );
+    parseEntryQuestion(e.question);
     assert(Object.values(object(e.payload)).every((v) => typeof v === "string"));
     if (e.edit_deadline !== undefined)
       assert(timestamp(e.edit_deadline) && typeof e.can_edit === "boolean" && typeof e.edit_deadline_inclusive === "boolean");
@@ -219,6 +278,7 @@ export function parseGardenState(value: unknown): GardenState {
     const picks = array(p.hydrangea_picks);
     assert(picks.length === 2 && picks.every((pick) => pick === null || moodPick(object(pick)) !== null));
     assert(typeof p.member1_submitted === "boolean" && typeof p.member2_submitted === "boolean");
+    parseCustomQuestions(p.daisy_custom_questions);
     if (p.daisy_question !== null) {
       const q = object(p.daisy_question);
       assert(typeof q.question_id === "string" && typeof q.prompt === "string" && ["light", "deeper"].includes(q.category as string));
@@ -226,6 +286,27 @@ export function parseGardenState(value: unknown): GardenState {
   }
   assert(!spots.has(garden.next_spot));
   return value as GardenState;
+}
+
+export type DaisyPrompt =
+  | { kind: "daily"; key: string; prompt: string; category: "light" | "deeper" }
+  | { kind: "custom"; key: string; prompt: string; askedBy: 1 | 2 };
+
+/**
+ * The question a member answers on a Daisy today: the partner's custom
+ * question if one is live, otherwise the shared daily question. Its `key` is
+ * the `question_id` an answer must carry; the server rejects a stale one.
+ */
+export function daisyQuestionFor(plant: Pick<Plant, "daisy_question" | "daisy_custom_questions">, member: 1 | 2): DaisyPrompt | null {
+  const custom = plant.daisy_custom_questions.find((q) => q.addressee_id === member);
+  if (custom) return { kind: "custom", key: custom.question_key, prompt: custom.prompt, askedBy: custom.asker_id };
+  const daily = plant.daisy_question;
+  return daily ? { kind: "daily", key: daily.question_id, prompt: daily.prompt, category: daily.category } : null;
+}
+
+/** The question a member has asked the other on a Daisy today, if any. */
+export function daisyAskedBy(plant: Pick<Plant, "daisy_custom_questions">, member: 1 | 2): CustomQuestion | null {
+  return plant.daisy_custom_questions.find((q) => q.asker_id === member) ?? null;
 }
 
 /** Client-side mirror of the server edit rule: author, same day, 30 minutes. */

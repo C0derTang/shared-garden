@@ -18,6 +18,8 @@ export const V2_REALTIME_TABLES = [
   "v2_flowers",
   "v2_flower_entries",
   "v2_entry_replies",
+  // Daisy custom questions (#212): asked, revised or withdrawn.
+  "v2_daisy_custom_questions",
   ...V2_PROGRESS_TABLES,
 ] as const;
 

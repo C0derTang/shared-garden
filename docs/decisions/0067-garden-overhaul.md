@@ -473,7 +473,8 @@ discretion and the look in "World look":
 - **Per flower:** Rose, Marigold, Snapdragon, Moonflower, Dandelion and
   Forget-me-not take a note with a type-specific placeholder; the Cactus is a
   one-tap "I'm here"; the Tulip has Spotify search, manual song fields and the
-  song player; the Daisy shows today's light or deeper question; the Hydrangea
+  song player; the Daisy shows today's light or deeper question, or a question the partner
+  asked instead ([decision 0068](0068-daisy-custom-questions.md)); the Hydrangea
   shows each member's latest colour and today's blend ("color of the day"), and
   its florets in the world and the painting take both members' colours; the
   Moonflower shows "opens at 10 p.m." and keeps a draft outside its window; the
