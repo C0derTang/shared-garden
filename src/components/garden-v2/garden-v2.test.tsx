@@ -274,7 +274,14 @@ describe("GardenV2", () => {
     const note = screen.getByRole("region", { name: "while you were away…" });
     expect(note).toHaveTextContent("partner cared for the rose");
     expect(note).toHaveTextContent("the rose grew");
-    await userEvent.setup().click(within(note).getByRole("button", { name: "lovely, thanks" }));
+    // It steps aside while the navigator frames a bed, and comes back with the whole garden.
+    const list = screen.getByRole("listbox", { name: "Plots in the garden" });
+    list.focus();
+    await userEvent.setup().keyboard("{ArrowDown}");
+    expect(screen.queryByRole("region", { name: "while you were away…" })).toBeNull();
+    await userEvent.setup().keyboard("{Escape}");
+    expect(screen.getByRole("region", { name: "while you were away…" })).toBeInTheDocument();
+    await userEvent.setup().click(within(screen.getByRole("region", { name: "while you were away…" })).getByRole("button", { name: "lovely, thanks" }));
     expect(screen.queryByRole("region", { name: "while you were away…" })).toBeNull();
   });
 

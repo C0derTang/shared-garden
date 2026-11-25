@@ -378,7 +378,8 @@ device-loss handling.
     spills out. The camera then climbs onto the porch and pushes through the
     doorway into the lit room.
   - The walk-through dissolves into a warm light overlay, then navigates to
-    `/garden`, which is prefetched.
+    `/garden`, which is prefetched. The garden opens under the same light
+    (see "the house-to-garden arrival" below).
   - If the walk-through never reports its end, the landing navigates after 7
     seconds.
   - With reduced motion, the landing crossfades into the warm light for 450 ms
@@ -642,9 +643,9 @@ Settings and guide, made under this decision's discretion and the look in
     the old garden is unchanged. They sit above the overlays.
 - **The guide:**
   - On a member's first visit in this browser, once the world is painted, a
-    small guide card opens low over the scene (`?view=guide`). It has four pages:
-    welcome, wander, plant and care, and keepsakes. On the keepsakes page the
-    menu glows.
+    small guide card opens low over the scene (`?view=guide`). It has three
+    pages, worded by the user: welcome, wander and keepsakes. On the keepsakes
+    page the menu glows.
   - Closing it at any point (skip, ×, Escape or "let's wander") marks it seen
     in local storage per member. Storage that cannot be read shows nothing.
   - The shared `guide` member setting is not used: it records the old garden's
@@ -744,6 +745,81 @@ interaction", made under this decision's discretion:
 - **Development showcase:** `/dev/world` has "fireworks" and "still fireworks"
   buttons and shows a sample caption (development only, 404 in production).
 
+### Recorded choice: the house-to-garden arrival ([#204](https://github.com/C0derTang/shared-garden/issues/204))
+
+The user found the walk from the house into the garden "too abrupt"
+(2026-11-24). Conservative choices that make it one continuous moment, made
+under this decision's discretion:
+
+- **The handoff:** just before the landing navigates (after the walk-through,
+  the reduced-motion crossfade or the 7-second safety fallback, still one
+  navigation), it writes a timestamp to this tab's session storage
+  (`garden-v2:arrival`). It is never part of the URL. `/garden` reads it on
+  its first client render and clears it on mount, so a refresh, a deep link,
+  another tab or a later visit never replays the arrival. A mark older than
+  20 seconds is ignored. A server-rendered (hydrated) `/garden`, a
+  `?flower=` or `?view=` link and the "come in" link without scripts all open
+  the garden exactly as before.
+- **The warm light:** both pages paint the same light from one shared style
+  (`warm-light.module.css`), so the cut between them is invisible. The garden
+  opens with the light fully opaque above everything and holds it, blocking
+  input, until the painted world is ready and the flower layer's code has
+  loaded. The renderer then waits until every layer has painted three frames
+  (at most 4 seconds), so no blank, black, loading or half-built frame is ever
+  revealed. While the light is up, the canvas appears at once underneath it
+  instead of its usual 0.9-second fade.
+- **The reveal:** the light thins over 2.1 seconds (smoothstep, starting 0.15
+  seconds in). Meanwhile the camera arrives over 3.6 seconds (smootherstep,
+  at rest at both ends): it starts 1.5 m higher and 2.4 m closer, looking up
+  toward the bright sky over the far shore, and drifts back and down while
+  tilting into the overview. It settles into whatever pose the garden would
+  show, so scrolling during the arrival is kept. Both run from the renderer's
+  own frame clock, so they stay in step through slow frames; the light only
+  ever thins.
+- **Words and menu:** the floating words, the menus, the corner links and the
+  page's other controls stay hidden and out of the keyboard order (so no view
+  can open under the light) until 2.4 seconds in. They then fade in: the "our
+  garden" title first (1.1 s), then the other words (0.15 s later), then the
+  menus (0.4 s later). The painted world and the page heading stay available.
+- **Afterwards:** the arrival settles at 4 seconds. While it plays, it holds
+  the head of the page's sheet scope, so a pending private moment (or any
+  other scoped sheet) waits and never opens over the light. On settling the
+  scope is released first, so a waiting moment opens. Then, 150 ms later, the
+  first-visit guide may greet (it does not greet over an open moment, as
+  before), the night fireworks may start by themselves, the "scroll to wander
+  closer" hint may appear (on any visit, it now also waits while a scoped
+  sheet such as the private moment is open) and the "while you were away"
+  note may show.
+- **Plays once:** the page asks the renderer for the arrival only while it is
+  under way. A renderer created later (after a GPU device loss once the garden
+  has settled, or a world that only paints after the fallback) starts at the
+  overview and never replays it. A device loss in the middle of the arrival
+  restarts the camera move; the light never comes back.
+- **Reduced motion:** no camera move. After the same hold, the light
+  crossfades away linearly over 0.6 seconds while the words fade in over
+  0.4 seconds, and the arrival settles at 0.8 seconds.
+- **Fallbacks:** the arrival gives up and settles, fading whatever light is
+  left over 0.7 seconds, whenever the world is unsupported or stops (a
+  failure, or a second GPU device loss) at any point before it settles, and
+  whenever it makes no progress for 9 seconds: from the page opening while it
+  waits for the world, or since its last arrival frame (for example frames
+  that stop coming). The controls, any "stopped" notice and a waiting sheet
+  then come back, and the camera is not left at the arrival's start.
+- **The walk's pacing:** the 4.8-second walk-through keeps its door, light
+  spill and fade timings, but the camera now moves along two eased cubic
+  segments that share their speed at the porch steps (2.8 s). It starts from
+  rest, slows at the door without stopping (about 3.3 m/s, where it used to
+  pause), carries on through the doorway and comes to rest inside, under the
+  light. The door now starts to open at 1.5 seconds and is fully open as the
+  camera reaches the steps.
+- **Warming up:** besides the route prefetch, once the house is painted (or
+  when "come in" is tapped) the landing fetches the garden's flower and
+  fireworks layer code, so it is cached when the garden opens. The GPU work
+  itself (device, pipelines) belongs to each page's own canvas and starts when
+  the garden opens; it cannot be carried across the navigation. `/garden` is a
+  dynamic page without a loading boundary, so its data is fetched when the
+  walk ends, under the light.
+
 ### Recorded choice: even glows, easy picking and the plot navigator ([#206](https://github.com/C0derTang/shared-garden/issues/206))
 
 The user's feedback (2026-11-24) asked for even glows, easy plot picking
@@ -792,10 +868,16 @@ choices made under this decision's discretion:
     vertically centred; on portrait screens it floats low in the middle, with
     the hint and messages resting above it. On portrait screens the "while you
     were away" note moves up over the sky (under the corner links, the menu and
-    the fireworks replay), clear of the beds and the navigator, so it never
-    blocks a tap on a plot. While a full-screen view (a flower, planting or an
-    overlay) covers the garden, the navigator fades out and is `inert` and
-    hidden from assistive technology.
+    the fireworks replay), clear of the beds in the overview and of the
+    navigator. While the navigator frames a bed, the note steps aside (on
+    every screen) and returns with the whole garden, so it never covers a
+    framed plot. While a full-screen view (a flower, planting or an overlay)
+    or a scoped sheet (such as the private moment) covers the garden, the
+    navigator fades out and is `inert` and hidden from assistive technology.
+  - **After the arrival:** the navigator appears only once the arrival from
+    the house ([#204](#recorded-choice-the-house-to-garden-arrival-204)) has
+    settled, so nothing can start a bed framing under the warm light or during
+    the arrival's camera move. Without an arrival it is there from the start.
   - **Words:** "rose · 3 of 5" (growth as in the panel), "rose · in bloom"
     once bloomed (the Dandelion's own stage words), "♡" after them when your
     partner cared and you have not, brighter when your care is open, and
@@ -832,5 +914,5 @@ choices made under this decision's discretion:
     plot is framed let the framing go; the walk picks up near the framed bed
     rather than jumping back to the overview.
   - The navigator is shown while the painted world loads and runs (not with the
-    WebGPU notices), and it carries no data or storage of its own.
-
+    WebGPU notices, and not before the arrival settles), and it carries no data
+    or storage of its own.

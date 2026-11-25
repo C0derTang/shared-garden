@@ -75,6 +75,11 @@ export interface GardenWorldProps {
   readonly onWander?: () => void;
   /** Stop painting once the camera settles (a full-screen view covers the world). */
   readonly paused?: boolean;
+  /**
+   * Garden: the arrival from the landing's walk-through (#204). Its value on
+   * the first render decides whether there is one; "play" starts the move.
+   */
+  readonly arrival?: "hold" | "play" | null;
 }
 
 export type WorldStatus = "loading" | "ready" | "unsupported" | "stopped";
@@ -134,6 +139,7 @@ export function GardenWorld({
   selected = null,
   onWander,
   paused = false,
+  arrival = null,
 }: GardenWorldProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<WorldRenderer | null>(null);
@@ -163,6 +169,7 @@ export function GardenWorld({
     focus,
     selected,
     paused,
+    arrival,
   };
   const stateRef = useRef(sceneState);
   const motionRef = useRef(reducedMotion);
@@ -179,7 +186,7 @@ export function GardenWorld({
     rendererRef.current?.update(sceneState);
     // sceneState is rebuilt from these inputs every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [spotCapacity, occupiedSpots, flowers, layers, timeValue, reducedMotion, doorInvite, entering, focus, selected, paused]);
+  }, [spotCapacity, occupiedSpots, flowers, layers, timeValue, reducedMotion, doorInvite, entering, focus, selected, paused, arrival]);
 
   useEffect(() => {
     const canvas = canvasRef.current;

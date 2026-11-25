@@ -16,6 +16,7 @@ import {
   type Target,
 } from "vgpu";
 import { invert, lookAt, multiply, orthographic, perspective, rayFromNdc } from "@/lib/world/camera";
+import { ARRIVAL_LAYER_WAIT_SECONDS, ARRIVAL_STILL_SETTLE_SECONDS, ARRIVAL_SETTLE_SECONDS, ARRIVAL_WARM_FRAMES, arrivalPose } from "@/lib/world/arrival";
 import { gardenFovY, gardenPose, gardenSettle, withDrift } from "@/lib/world/garden-camera";
 import { PLOT_GLOW, plotGlowLevel, sceneExposure } from "@/lib/world/glow";
 import { blendPoses, plotPose, type FocusTarget, type JourneyPose } from "@/lib/world/journey";
@@ -124,6 +125,13 @@ export interface WorldSceneState {
    * full-screen view covers the world). The last frame stays on the canvas.
    */
   readonly paused?: boolean;
+  /**
+   * Garden: the arrival from the landing's walk-through (#204). "hold" keeps
+   * the camera at the arrival's raised start; "play" starts the move once
+   * every layer has painted a few frames, and it then runs to the end. The
+   * value at creation decides whether there is an arrival at all.
+   */
+  readonly arrival?: "hold" | "play" | null;
 }
 
 /** Per-frame camera handed to DOM overlays (e.g. floating captions). */
@@ -134,6 +142,11 @@ export interface WorldView {
   readonly height: number;
   /** Landing walk-through: 0 until the final fade into warm light, then up to 1. */
   readonly entryFade: number;
+  /**
+   * Garden arrival: seconds since the arrival move began (negative while it
+   * holds or waits for layers), or null when there is none or it has settled.
+   */
+  readonly arrival: number | null;
 }
 
 export interface WorldRendererCallbacks {
@@ -227,6 +240,8 @@ export function createWorldRenderer(
     released: 0,
   };
   const entry = { seconds: 0, active: false, finished: false };
+  // The garden's arrival from the walk-through: held, then warmed (layers painted), then played to the end.
+  const arrival = { active: !landing && Boolean(initial.arrival), playing: false, warmFrames: 0, waited: 0, seconds: -1 };
   let doorHover = 0;
   let hovered: PickResult | null = null;
   const inverseViewProjection = new Float32Array(16);
@@ -720,6 +735,24 @@ export function createWorldRenderer(
             aspect,
             fovY,
           );
+          // The arrival from the walk-through (#204) glides into this pose.
+          if (arrival.active) {
+            if (state.arrival === "play") arrival.playing = true;
+            if (!arrival.playing && !state.arrival) {
+              // Called off while still holding (e.g. the page gave up waiting): no move.
+              arrival.active = false;
+            } else {
+              if (arrival.playing && arrival.seconds < 0) {
+                // Reveal nothing half-built: wait until every layer has painted a few frames.
+                arrival.waited += dt;
+                if (state.layers.every((layer) => readyLayers.has(layer))) arrival.warmFrames += 1;
+                if (arrival.warmFrames > ARRIVAL_WARM_FRAMES || arrival.waited >= ARRIVAL_LAYER_WAIT_SECONDS) arrival.seconds = 0;
+              } else if (arrival.seconds >= 0) {
+                arrival.seconds += dt;
+              }
+              pose = arrivalPose(Math.max(0, arrival.seconds), pose, still);
+            }
+          }
         }
         const t = motionTime;
         // Idle drift and pointer parallax settle while the walk-through takes over, and
@@ -905,7 +938,8 @@ export function createWorldRenderer(
         currentFrame.pass({ target: painted, clear: [0, 0, 0, 1] }, (pass) => pass.draw(kuwahara));
         currentFrame.pass({ target: output, clear: [0, 0, 0, 1] }, (pass) => pass.draw(composite));
 
-        callbacks.onFrame?.({ viewProjection, width: canvas.clientWidth, height: canvas.clientHeight, entryFade: walk?.fade ?? 0 });
+        callbacks.onFrame?.({ viewProjection, width: canvas.clientWidth, height: canvas.clientHeight, entryFade: walk?.fade ?? 0, arrival: arrival.active ? arrival.seconds : null });
+        if (arrival.active && arrival.seconds >= (still ? ARRIVAL_STILL_SETTLE_SECONDS : ARRIVAL_SETTLE_SECONDS)) arrival.active = false;
       } catch (error) {
         // A throwing tick ends vgpu's loop; dispose and report the error so the
         // component can show its "stopped" notice instead of a frozen canvas.
