@@ -1,0 +1,243 @@
+{
+  "browser": "156.0.8078.4",
+  "motion": "reduce",
+  "unit": "milliseconds unless named otherwise",
+  "cases": [
+    {
+      "view": "desktop",
+      "composition": "landing",
+      "variants": {
+        "baseline": {
+          "samples": 160,
+          "gpuEnvelopeMs": {
+            "median": 8.210291,
+            "p95": 8.84349
+          },
+          "kuwaharaSpanMs": {
+            "median": 3.7914,
+            "p95": 4.18177
+          },
+          "encodeMs": {
+            "median": 1.100000023841858,
+            "p95": 1.600000023841858
+          },
+          "submitIntervalMs": {
+            "median": 16.600000023841858,
+            "p95": 17.600000023841858
+          },
+          "runEnvelopeMedians": [
+            8.543953,
+            8.105917
+          ],
+          "errors": []
+        },
+        "candidate": {
+          "samples": 160,
+          "gpuEnvelopeMs": {
+            "median": 7.884088,
+            "p95": 10.634588
+          },
+          "kuwaharaSpanMs": {
+            "median": 3.480821,
+            "p95": 4.822801
+          },
+          "encodeMs": {
+            "median": 1.2999999523162842,
+            "p95": 1.7000000476837158
+          },
+          "submitIntervalMs": {
+            "median": 16.699999928474426,
+            "p95": 17.299999952316284
+          },
+          "runEnvelopeMedians": [
+            7.969837,
+            7.822547
+          ],
+          "errors": []
+        }
+      },
+      "pixels": {
+        "maximumByteDifference": 1,
+        "meanByteDifference": 0.000047526041666666664,
+        "changedChannelFraction": 0.000047526041666666664
+      }
+    },
+    {
+      "view": "desktop",
+      "composition": "world",
+      "variants": {
+        "baseline": {
+          "samples": 160,
+          "gpuEnvelopeMs": {
+            "median": 7.929046,
+            "p95": 9.59577
+          },
+          "kuwaharaSpanMs": {
+            "median": 5.484916,
+            "p95": 6.567399
+          },
+          "encodeMs": {
+            "median": 1.399999976158142,
+            "p95": 1.7000000476837158
+          },
+          "submitIntervalMs": {
+            "median": 16.699999928474426,
+            "p95": 17.5
+          },
+          "runEnvelopeMedians": [
+            7.499011,
+            8.6877
+          ],
+          "errors": []
+        },
+        "candidate": {
+          "samples": 160,
+          "gpuEnvelopeMs": {
+            "median": 7.300973,
+            "p95": 10.622962
+          },
+          "kuwaharaSpanMs": {
+            "median": 4.683344,
+            "p95": 7.266722
+          },
+          "encodeMs": {
+            "median": 1.0999999046325684,
+            "p95": 1.8000000715255737
+          },
+          "submitIntervalMs": {
+            "median": 16.699999928474426,
+            "p95": 17.399999976158142
+          },
+          "runEnvelopeMedians": [
+            6.623731,
+            9.160611
+          ],
+          "errors": []
+        }
+      },
+      "pixels": {
+        "maximumByteDifference": 1,
+        "meanByteDifference": 0.00009049479166666666,
+        "changedChannelFraction": 0.00009049479166666666
+      }
+    },
+    {
+      "view": "phone",
+      "composition": "landing",
+      "variants": {
+        "baseline": {
+          "samples": 160,
+          "gpuEnvelopeMs": {
+            "median": 11.66353,
+            "p95": 11.972401
+          },
+          "kuwaharaSpanMs": {
+            "median": 7.25839,
+            "p95": 7.684299
+          },
+          "encodeMs": {
+            "median": 1,
+            "p95": 1.3000000715255737
+          },
+          "submitIntervalMs": {
+            "median": 16.700000047683716,
+            "p95": 17.799999952316284
+          },
+          "runEnvelopeMedians": [
+            11.588948,
+            11.712029
+          ],
+          "errors": []
+        },
+        "candidate": {
+          "samples": 160,
+          "gpuEnvelopeMs": {
+            "median": 11.014873,
+            "p95": 11.355285
+          },
+          "kuwaharaSpanMs": {
+            "median": 6.738272,
+            "p95": 7.069017
+          },
+          "encodeMs": {
+            "median": 1.2999999523162842,
+            "p95": 1.600000023841858
+          },
+          "submitIntervalMs": {
+            "median": 16.699999928474426,
+            "p95": 17.600000023841858
+          },
+          "runEnvelopeMedians": [
+            11.050789,
+            10.913499
+          ],
+          "errors": []
+        }
+      },
+      "pixels": {
+        "maximumByteDifference": 1,
+        "meanByteDifference": 0.00003367156803175761,
+        "changedChannelFraction": 0.00003367156803175761
+      }
+    },
+    {
+      "view": "phone",
+      "composition": "world",
+      "variants": {
+        "baseline": {
+          "samples": 160,
+          "gpuEnvelopeMs": {
+            "median": 8.161875,
+            "p95": 10.290051
+          },
+          "kuwaharaSpanMs": {
+            "median": 6.428652,
+            "p95": 8.012503
+          },
+          "encodeMs": {
+            "median": 1.399999976158142,
+            "p95": 1.899999976158142
+          },
+          "submitIntervalMs": {
+            "median": 16.700000047683716,
+            "p95": 17.600000023841858
+          },
+          "runEnvelopeMedians": [
+            7.950044,
+            9.428148
+          ],
+          "errors": []
+        },
+        "candidate": {
+          "samples": 160,
+          "gpuEnvelopeMs": {
+            "median": 8.151834,
+            "p95": 10.95625
+          },
+          "kuwaharaSpanMs": {
+            "median": 6.310279,
+            "p95": 8.616451
+          },
+          "encodeMs": {
+            "median": 1.399999976158142,
+            "p95": 1.7000000476837158
+          },
+          "submitIntervalMs": {
+            "median": 16.699999928474426,
+            "p95": 17.299999952316284
+          },
+          "runEnvelopeMedians": [
+            10.465715,
+            7.637134
+          ],
+          "errors": []
+        }
+      },
+      "pixels": {
+        "maximumByteDifference": 1,
+        "meanByteDifference": 0.0000620265726900798,
+        "changedChannelFraction": 0.0000620265726900798
+      }
+    }
+  ]
+}
