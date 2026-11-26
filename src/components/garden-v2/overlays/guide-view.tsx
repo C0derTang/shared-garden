@@ -11,7 +11,7 @@ export const guideSteps = [
   },
   {
     title: "wander",
-    body: "bc its 3d, you can scroll left and right and in and out to view each plot!",
+    body: "hold WASD or the arrow keys to walk, or use the little arrow pad. tap the ground to wander there, and tap a flower to visit!",
   },
   {
     title: "keepsakes",

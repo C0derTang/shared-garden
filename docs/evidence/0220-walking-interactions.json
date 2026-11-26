@@ -1,0 +1,156 @@
+{
+  "method": "Actual GardenV2, synthetic validated state and fail-closed loopback action interception; trusted desktop mouse/keyboard and phone-sized CDP touch input on Mac GPU.",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "dpr": 1
+    },
+    "phone": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2
+    }
+  },
+  "notes": [
+    "Null means unexercised in that scenario, not a failed check.",
+    "Seed pointer priority/out-and-back drag rejection: empty scenes. Original UUID history: populated scenes. Ground tap, all13type choices, repeated planting and lifecycle: all scenarios.",
+    "Latest empty-scene recheck additionally asserts worldroot blur and explicit overlay camera freeze; all4pad target centers unobscured and hint/pad rectangles separate.",
+    "Window blur/visibility and cancellation/lost-capture events are injected lifecycle events; normal phone touch uses trusted CDP browser input.",
+    "Normal-motion arrival checks use actual GardenV2 arrival, mounted after client hydration to emulate landing handoff.",
+    "Only the local Next.js development badge is hidden; production UI is not masked.",
+    "All phone scenarios use browser emulation on Mac, not actual phone hardware."
+  ],
+  "cases": [
+    {
+      "view": "desktop",
+      "empty": true,
+      "namedAreas": 13,
+      "keyboardAreasOpened": 13,
+      "repeatedRosePlantings": 2,
+      "preservedPlants": 0,
+      "historyReadWithOriginalId": null,
+      "pointerSeedPicked": true,
+      "lifecycle": "arrival, key release, blur, visibility, overlay, scoped-sheet draft typing, actual held pad touch/mouse, pointercancel, lost capture, accessible pad activation, flower draft typing",
+      "groundWalk": true,
+      "dragDoesNotVisit": true,
+      "camera": "held WASD/arrows through left/right terrain bounds and expanded depth",
+      "errors": []
+    },
+    {
+      "view": "desktop",
+      "empty": false,
+      "namedAreas": 13,
+      "keyboardAreasOpened": 13,
+      "repeatedRosePlantings": 2,
+      "preservedPlants": 26,
+      "historyReadWithOriginalId": true,
+      "pointerSeedPicked": null,
+      "lifecycle": "arrival, key release, blur, visibility, overlay, scoped-sheet draft typing, actual held pad touch/mouse, pointercancel, lost capture, accessible pad activation, flower draft typing",
+      "groundWalk": true,
+      "dragDoesNotVisit": null,
+      "camera": "held WASD/arrows through left/right terrain bounds and expanded depth",
+      "errors": []
+    },
+    {
+      "view": "phone",
+      "empty": true,
+      "namedAreas": 13,
+      "keyboardAreasOpened": 13,
+      "repeatedRosePlantings": 2,
+      "preservedPlants": 0,
+      "historyReadWithOriginalId": null,
+      "pointerSeedPicked": true,
+      "lifecycle": "arrival, key release, blur, visibility, overlay, scoped-sheet draft typing, actual held pad touch/mouse, pointercancel, lost capture, accessible pad activation, flower draft typing",
+      "groundWalk": true,
+      "dragDoesNotVisit": true,
+      "camera": "held WASD/arrows through left/right terrain bounds and expanded depth",
+      "errors": []
+    },
+    {
+      "view": "phone",
+      "empty": false,
+      "namedAreas": 13,
+      "keyboardAreasOpened": 13,
+      "repeatedRosePlantings": 2,
+      "preservedPlants": 26,
+      "historyReadWithOriginalId": true,
+      "pointerSeedPicked": null,
+      "lifecycle": "arrival, key release, blur, visibility, overlay, scoped-sheet draft typing, actual held pad touch/mouse, pointercancel, lost capture, accessible pad activation, flower draft typing",
+      "groundWalk": true,
+      "dragDoesNotVisit": null,
+      "camera": "held WASD/arrows through left/right terrain bounds and expanded depth",
+      "errors": []
+    }
+  ],
+  "normalMotionArrival": [
+    {
+      "view": "desktop",
+      "motion": "normal",
+      "arrivalBlocksWalking": true,
+      "arrivalSettles": true,
+      "titleBounds": {
+        "x": 394.2015380859375,
+        "y": 70.30624389648438,
+        "width": 495.796875,
+        "height": 123.1875
+      },
+      "keyboardWalk": true,
+      "errors": []
+    },
+    {
+      "view": "phone",
+      "motion": "normal",
+      "arrivalBlocksWalking": true,
+      "arrivalSettles": true,
+      "titleBounds": {
+        "x": 79.92031860351562,
+        "y": 44.09062194824219,
+        "width": 234.359375,
+        "height": 58.21875
+      },
+      "keyboardWalk": true,
+      "errors": []
+    }
+  ],
+  "originalRendererAndLanding": "Original unchanged check-world.mjs passes desktop/phone: picking, seed planting, journey/drag/touch, four stages, night/fireworks, one device recovery then stopped notice, landing walkthrough.",
+  "artifacts": {
+    "main": "/tmp/ccapp-220-interactions",
+    "finalEmpty": "/tmp/ccapp-220-final-empty",
+    "normalArrival": "/tmp/ccapp-220-arrival",
+    "original": "/tmp/ccapp-220-original-interactions"
+  },
+  "productionGuards": [
+    {
+      "path": "/dev/garden-areas",
+      "status": 404,
+      "syntheticAbsent": true
+    },
+    {
+      "path": "/dev/garden-areas?empty=1",
+      "status": 404,
+      "syntheticAbsent": true
+    },
+    {
+      "path": "/dev/garden-areas?arrival=1&scope=1",
+      "status": 404,
+      "syntheticAbsent": true
+    },
+    {
+      "path": "/dev/world?areas=1",
+      "status": 404,
+      "syntheticAbsent": true
+    },
+    {
+      "path": "/dev/world?areas=1&walking=1",
+      "status": 404,
+      "syntheticAbsent": true
+    },
+    {
+      "path": "/dev/landing?member=1",
+      "status": 404,
+      "syntheticAbsent": true
+    }
+  ],
+  "responsiveCorrectionEvidence": "0220-walking-responsive.json:1280x800,390x844,844x390,800x600 geometry and all4control holds/releases"
+}

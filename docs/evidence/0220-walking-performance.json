@@ -1,0 +1,280 @@
+{
+  "browser": "156.0.8078.4",
+  "comparison": "ABBA shader comparison against immutable pre218 shader in the walking scene; ABBA camera comparison against219 type-area journey, same26flowers and quality settings; camera framing differs",
+  "motion": "reduce",
+  "unit": "milliseconds unless named otherwise",
+  "cases": [
+    {
+      "view": "desktop",
+      "pair": "shader",
+      "layout": "baseline",
+      "samples": 160,
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3"
+      },
+      "gpuEnvelopeMs": {
+        "median": 8.292457,
+        "p95": 9.778518
+      },
+      "kuwaharaSpanMs": {
+        "median": 5.518333,
+        "p95": 6.813313
+      },
+      "encodeMs": {
+        "median": 1.2999999523162842,
+        "p95": 1.899999976158142
+      },
+      "submitIntervalMs": {
+        "median": 16.699999928474426,
+        "p95": 17.600000023841858
+      },
+      "runEnvelopeMedians": [
+        8.846865,
+        6.756687
+      ],
+      "errors": []
+    },
+    {
+      "view": "desktop",
+      "pair": "shader",
+      "layout": "walking",
+      "samples": 160,
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3"
+      },
+      "gpuEnvelopeMs": {
+        "median": 8.807906,
+        "p95": 10.465841
+      },
+      "kuwaharaSpanMs": {
+        "median": 5.844869,
+        "p95": 6.994268
+      },
+      "encodeMs": {
+        "median": 1.5,
+        "p95": 2
+      },
+      "submitIntervalMs": {
+        "median": 16.699999928474426,
+        "p95": 17.300000071525574
+      },
+      "runEnvelopeMedians": [
+        8.807906,
+        8.797156
+      ],
+      "errors": []
+    },
+    {
+      "view": "desktop",
+      "pair": "camera",
+      "layout": "areas",
+      "samples": 160,
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3"
+      },
+      "gpuEnvelopeMs": {
+        "median": 6.175906,
+        "p95": 6.805188
+      },
+      "kuwaharaSpanMs": {
+        "median": 4.097605,
+        "p95": 4.546722
+      },
+      "encodeMs": {
+        "median": 1.7000000476837158,
+        "p95": 2.100000023841858
+      },
+      "submitIntervalMs": {
+        "median": 16.699999928474426,
+        "p95": 17.799999952316284
+      },
+      "runEnvelopeMedians": [
+        6.13824,
+        6.187489
+      ],
+      "errors": []
+    },
+    {
+      "view": "desktop",
+      "pair": "camera",
+      "layout": "walking",
+      "samples": 160,
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3"
+      },
+      "gpuEnvelopeMs": {
+        "median": 6.322278,
+        "p95": 8.304415
+      },
+      "kuwaharaSpanMs": {
+        "median": 4.104522,
+        "p95": 5.507833
+      },
+      "encodeMs": {
+        "median": 1.600000023841858,
+        "p95": 2
+      },
+      "submitIntervalMs": {
+        "median": 16.600000023841858,
+        "p95": 17.899999976158142
+      },
+      "runEnvelopeMedians": [
+        8.058377,
+        6.101991
+      ],
+      "errors": []
+    },
+    {
+      "view": "phone",
+      "pair": "shader",
+      "layout": "baseline",
+      "samples": 160,
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3"
+      },
+      "gpuEnvelopeMs": {
+        "median": 8.472621,
+        "p95": 9.391147
+      },
+      "kuwaharaSpanMs": {
+        "median": 6.69669,
+        "p95": 7.391554
+      },
+      "encodeMs": {
+        "median": 1.7999999523162842,
+        "p95": 2.100000023841858
+      },
+      "submitIntervalMs": {
+        "median": 16.699999928474426,
+        "p95": 17.5
+      },
+      "runEnvelopeMedians": [
+        8.866656,
+        8.36054
+      ],
+      "errors": []
+    },
+    {
+      "view": "phone",
+      "pair": "shader",
+      "layout": "walking",
+      "samples": 160,
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3"
+      },
+      "gpuEnvelopeMs": {
+        "median": 8.522286,
+        "p95": 10.753377
+      },
+      "kuwaharaSpanMs": {
+        "median": 6.587733,
+        "p95": 8.167667
+      },
+      "encodeMs": {
+        "median": 1.6999999284744263,
+        "p95": 2.100000023841858
+      },
+      "submitIntervalMs": {
+        "median": 16.699999928474426,
+        "p95": 17.5
+      },
+      "runEnvelopeMedians": [
+        8.466413,
+        9.916765
+      ],
+      "errors": []
+    },
+    {
+      "view": "phone",
+      "pair": "camera",
+      "layout": "areas",
+      "samples": 160,
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3"
+      },
+      "gpuEnvelopeMs": {
+        "median": 9.348273,
+        "p95": 10.439841
+      },
+      "kuwaharaSpanMs": {
+        "median": 7.014351,
+        "p95": 7.801381
+      },
+      "encodeMs": {
+        "median": 1.5,
+        "p95": 2.0999999046325684
+      },
+      "submitIntervalMs": {
+        "median": 16.699999928474426,
+        "p95": 17.600000023841858
+      },
+      "runEnvelopeMedians": [
+        9.679185,
+        9.165902
+      ],
+      "errors": []
+    },
+    {
+      "view": "phone",
+      "pair": "camera",
+      "layout": "walking",
+      "samples": 160,
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3"
+      },
+      "gpuEnvelopeMs": {
+        "median": 7.585801,
+        "p95": 10.321218
+      },
+      "kuwaharaSpanMs": {
+        "median": 5.737495,
+        "p95": 7.897212
+      },
+      "encodeMs": {
+        "median": 1.1999999284744263,
+        "p95": 2.0999999046325684
+      },
+      "submitIntervalMs": {
+        "median": 16.699999928474426,
+        "p95": 17.200000047683716
+      },
+      "runEnvelopeMedians": [
+        7.551342,
+        7.652883
+      ],
+      "errors": []
+    }
+  ],
+  "method": {
+    "scene": "stationary dev/world?sky=dusk&planted=26&areas=1, walking=1 except retained219camera",
+    "order": "baseline/walking/walking/baseline, areas/walking/walking/areas per viewport",
+    "warmupSeconds": 4,
+    "readbacksPerRun": 90,
+    "discardedPerRun": 10,
+    "retainedSamplesPerVariantPerPair": 160,
+    "hardware": "Apple M5 Pro, Apple Metal3, macOS27.2.1; all viewport cases on same Mac",
+    "shaderPair": "same walking camera, geometry and viewport; immutable pre218 shader versus shipped optimized shader",
+    "cameraPair": "same shipped optimized shader, geometry and viewport; retained219journey versus walking view; framing and eye height differ",
+    "limitations": [
+      "Stationary GPU envelope/readback timings, not end-to-end FPS or active-walking latency.",
+      "Submission overhead and optional timestamp/readback hook apply to both variants.",
+      "Substantial per-run variation, including adverse optimized-shader median/p95 results; earlier218speedup not reproduced here.",
+      "Phone size/DPR is browser emulation on Mac GPU, not actual phone hardware.",
+      "Historical218/219published timings are separate sessions/compositions; do not infer a universal speedup."
+    ],
+    "rawArtifacts": "profile-walking.mjs saves measurements.json and16screenshots under PROFILE_OUTPUT; default /tmp/ccapp-220-profile",
+    "nativePaint": {
+      "maximumAbsoluteLinearError": 1.1146068572998047e-05,
+      "fixedTolerance": 2e-05,
+      "shaderAndReferenceUnchanged": true
+    }
+  }
+}

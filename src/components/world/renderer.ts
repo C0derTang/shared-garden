@@ -1,3 +1,5 @@
+import { createWalk, gardenWalkObstacles, groundTarget, walkingBounds, walkingPose } from "@/lib/world/walking";
+import { bindWalkingInput } from "@/lib/world/walking-input";
 import {
   clock,
   draw,
@@ -106,6 +108,8 @@ export interface WorldSceneState {
   readonly reducedMotion: boolean;
   /** Garden: the camera glides to this flower (and back when it becomes null). */
   readonly focus?: FocusTarget | null;
+  readonly walking?: boolean;
+  readonly walkingBlocked?: boolean;
   /**
    * Stop painting new frames once the camera has settled (e.g. while a
    * full-screen view covers the world). The last frame stays on the canvas.
@@ -222,6 +226,18 @@ export function createWorldRenderer(
   const entry = { seconds: 0, active: false, finished: false };
   // The garden's arrival from the walk-through: held, then warmed (layers painted), then played to the end.
   const arrival = { active: !landing && Boolean(initial.arrival), playing: false, warmFrames: 0, waited: 0, seconds: -1 };
+  const walkBeds = () => state.plantingLayout?.beds ?? Array.from({ length: bedCountFor(state.spotCapacity) }, (_, index) => bedAt(index));
+  const bounds = walkingBounds(walkBeds(), state.plantingLayout?.maxZ ?? 7.4);
+  const obstacles = gardenWalkObstacles();
+  const walking = !landing && Boolean(initial.walking);
+  const walker = createWalk([0, 16 + Math.max(0, (initial.plantingLayout?.maxZ ?? 7.4) - 7.4)], bounds, obstacles);
+  const blocked = () => Boolean(state.walkingBlocked || state.paused || state.focus || focus.value > 0 || arrival.active);
+  if (walking && canvas.parentElement) cleanups.push(bindWalkingInput(canvas.parentElement, walker, blocked));
+  const walkGround = (clientX: number, clientY: number) => {
+    if (!cameraReady) return null;
+    const rect = canvas.getBoundingClientRect();
+    return groundTarget(rayFromNdc(inverseViewProjection, (clientX - rect.left) / rect.width * 2 - 1, 1 - (clientY - rect.top) / rect.height * 2), bounds, obstacles);
+  };
   let doorHover = 0;
   let hovered: PickResult | null = null;
   const inverseViewProjection = new Float32Array(16);
@@ -271,6 +287,7 @@ export function createWorldRenderer(
   };
 
   const onPointerMove = (event: PointerEvent) => {
+    if (walking && blocked()) return;
     const rect = canvas.getBoundingClientRect();
     pointer.x = ((event.clientX - rect.left) / Math.max(rect.width, 1)) * 2 - 1;
     pointer.y = 1 - ((event.clientY - rect.top) / Math.max(rect.height, 1)) * 2;
@@ -278,19 +295,21 @@ export function createWorldRenderer(
     if (pointer.down && !pointer.dragged && Math.hypot(event.clientX - pointer.downX, event.clientY - pointer.downY) > CLICK_SLOP_PX) {
       pointer.dragged = true;
     }
-    if (pointer.dragged && event.pointerType === "touch") {
+    if (!walking && pointer.dragged && event.pointerType === "touch") {
       travel((pointer.touchY - event.clientY) / Math.max(rect.height, 1));
       pointer.touchY = event.clientY;
     }
-    if (pointer.dragged) {
+    if (!walking && pointer.dragged) {
       // Dragging sideways walks along the beds (the scene follows the finger).
       pan(((pointer.dragX - event.clientX) / Math.max(rect.width, 1)) * PAN_PER_WIDTH);
       pointer.dragX = event.clientX;
     }
     hovered = pickAt(event.clientX, event.clientY);
-    canvas.style.cursor = hovered ? "pointer" : "";
+    canvas.style.cursor = hovered ? "pointer" : walking && walkGround(event.clientX, event.clientY) ? "crosshair" : "";
   };
   const onPointerDown = (event: PointerEvent) => {
+    if (walking && (event.button !== 0 || !event.isPrimary || blocked())) return;
+    if (walking) { walker.stop(); canvas.parentElement?.focus({ preventScroll: true }); }
     pointer.down = true;
     pointer.dragged = false;
     pointer.downX = event.clientX;
@@ -300,11 +319,17 @@ export function createWorldRenderer(
   };
   const onPointerUp = (event: PointerEvent) => {
     if (!pointer.down) return;
+    const dragged = pointer.dragged;
     pointer.down = false;
     pointer.dragged = false;
+    if ((walking && blocked()) || dragged) return;
     if (Math.hypot(event.clientX - pointer.downX, event.clientY - pointer.downY) > CLICK_SLOP_PX) return;
     const result = pickAt(event.clientX, event.clientY);
-    if (result) callbacks.onPick(result);
+    if (result) { walker.stop(); callbacks.onPick(result); }
+    else if (walking) {
+      const target = walkGround(event.clientX, event.clientY);
+      if (target) walker.walkTo(target);
+    }
   };
   const onPointerLeave = () => {
     pointer.x = 0;
@@ -315,7 +340,7 @@ export function createWorldRenderer(
     canvas.style.cursor = "";
   };
   const onWheel = (event: WheelEvent) => {
-    if (landing) return;
+    if (landing || walking) return;
     event.preventDefault();
     const scale = event.deltaMode === 1 ? 16 : 1;
     travel((event.deltaY * scale) / 1400);
@@ -324,13 +349,24 @@ export function createWorldRenderer(
   canvas.addEventListener("pointermove", onPointerMove);
   canvas.addEventListener("pointerdown", onPointerDown);
   canvas.addEventListener("pointerup", onPointerUp);
-  canvas.addEventListener("pointerleave", onPointerLeave);
+  const cancelPointer = (event: PointerEvent) => {
+    // A touch tap normally releases its implicit capture and leaves *after*
+    // pointerup. That completes a destination, rather than cancelling it.
+    const interrupted = pointer.down || event.type === "pointercancel" || (event.type === "pointerleave" && event.pointerType !== "touch");
+    onPointerLeave();
+    if (walking && interrupted) walker.stop();
+  };
+  canvas.addEventListener("pointerleave", cancelPointer);
+  canvas.addEventListener("pointercancel", cancelPointer);
+  canvas.addEventListener("lostpointercapture", cancelPointer);
   canvas.addEventListener("wheel", onWheel, { passive: false });
   cleanups.push(() => {
     canvas.removeEventListener("pointermove", onPointerMove);
     canvas.removeEventListener("pointerdown", onPointerDown);
     canvas.removeEventListener("pointerup", onPointerUp);
-    canvas.removeEventListener("pointerleave", onPointerLeave);
+    canvas.removeEventListener("pointerleave", cancelPointer);
+    canvas.removeEventListener("pointercancel", cancelPointer);
+    canvas.removeEventListener("lostpointercapture", cancelPointer);
     canvas.removeEventListener("wheel", onWheel);
     canvas.style.cursor = "";
   });
@@ -647,6 +683,10 @@ export function createWorldRenderer(
 
         const dt = Math.min(time.deltaTime, 0.1);
         const still = state.reducedMotion;
+        if (walking) {
+          if (blocked()) walker.stop();
+          else walker.tick(time.deltaTime);
+        }
         if (!still) motionTime += dt;
         const follow = still ? 1 : Math.min(1, dt * 2.5);
         pointer.smoothX += ((still ? 0 : pointer.x) - pointer.smoothX) * follow;
@@ -682,7 +722,7 @@ export function createWorldRenderer(
           pose = walk ?? home;
         } else {
           // Journey, sideways walk and the glide to a flower (portrait tilt included).
-          pose = gardenPose({ journey: journey.value, pan: journey.pan, depth: Math.max(0, (state.plantingLayout?.maxZ ?? 7.4) - 7.4), focus: focus.target, focusWeight: focus.value }, aspect, fovY);
+          pose = walking ? walkingPose(walker.position, aspect, fovY, focus.target, focus.value) : gardenPose({ journey: journey.value, pan: journey.pan, depth: Math.max(0, (state.plantingLayout?.maxZ ?? 7.4) - 7.4), focus: focus.target, focusWeight: focus.value }, aspect, fovY);
           // The arrival from the walk-through (#204) glides into this pose.
           if (arrival.active) {
             if (state.arrival === "play") arrival.playing = true;
@@ -704,7 +744,7 @@ export function createWorldRenderer(
         }
         const t = motionTime;
         // Idle drift and pointer parallax settle while the walk-through takes over.
-        const settle = (walk ? Math.max(0, 1 - entry.seconds / 1.2) : 1) * (1 - focus.value);
+        const settle = (walking ? 0 : 1) * (walk ? Math.max(0, 1 - entry.seconds / 1.2) : 1) * (1 - focus.value);
         const sway = landing ? 0.45 : 0.6;
         const drifted = withDrift(pose, t, settle);
         const eye: Vec3 = [drifted.eye[0] + pointer.smoothX * sway * settle, drifted.eye[1] + pointer.smoothY * 0.2 * settle, drifted.eye[2]];
@@ -926,6 +966,10 @@ export function createWorldRenderer(
   return {
     update(next) {
       state = next;
+      if (walking) {
+        Object.assign(bounds, walkingBounds(walkBeds(), state.plantingLayout?.maxZ ?? 7.4));
+        if (blocked()) { walker.stop(); onPointerLeave(); }
+      }
       emptySpots = emptySpotTargets();
     },
     travel,

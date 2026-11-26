@@ -202,3 +202,26 @@ form.caption:focus-within:has(:focus-visible) {
     transition: none;
   }
 }
+
+.walkControls {
+  position: absolute;
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  left: max(1rem, env(safe-area-inset-left));
+  z-index: 2;
+  color: #fffaf0;
+  text-align: center;
+  font-size: 1rem;
+  text-shadow: 0 1px 3px #29291d;
+}
+.walkControls > div { display: grid; grid-template-columns: repeat(3, 44px); gap: 3px; }
+.walkControls button {
+  width: 44px; height: 44px;
+  border: 1px solid rgb(255 250 240 / 0.5);
+  border-radius: 50%; background: rgb(40 46 27 / 0.65); color: inherit;
+  font: inherit; font-size: 1.35rem; cursor: pointer;
+  touch-action: none; user-select: none;
+}
+.walkControls button:first-child { grid-column: 2; }
+.walkControls button:nth-child(2) { grid-column: 1; }
+.walkControls button:active { background: #647047; }
+.walkControls button:focus-visible { outline: 2px solid #fffaf0; outline-offset: 2px; }

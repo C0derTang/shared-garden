@@ -78,6 +78,9 @@ export interface GardenWorldProps {
   readonly focus?: FocusTarget | null;
   /** Stop painting once the camera settles (a full-screen view covers the world). */
   readonly paused?: boolean;
+  /** Opt into local free walking; landing and renderer showcases keep their journey. */
+  readonly walking?: boolean;
+  readonly walkingBlocked?: boolean;
   /**
    * Garden: the arrival from the landing's walk-through (#204). Its value on
    * the first render decides whether there is one; "play" starts the move.
@@ -141,6 +144,8 @@ export function GardenWorld({
   label = "A painted garden meadow beside a lake, with planting beds",
   focus = null,
   paused = false,
+  walking = false,
+  walkingBlocked = false,
   arrival = null,
 }: GardenWorldProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -172,6 +177,8 @@ export function GardenWorld({
     reducedMotion,
     focus,
     paused,
+    walking,
+    walkingBlocked,
     arrival,
   };
   const stateRef = useRef(sceneState);
@@ -189,7 +196,7 @@ export function GardenWorld({
     rendererRef.current?.update(sceneState);
     // sceneState is rebuilt from these inputs every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [spotCapacity, plantingLayout, occupiedSpots, flowers, layers, timeValue, reducedMotion, doorInvite, entering, focus, paused, arrival]);
+  }, [spotCapacity, plantingLayout, occupiedSpots, flowers, layers, timeValue, reducedMotion, doorInvite, entering, focus, paused, walking, walkingBlocked, arrival]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -306,7 +313,7 @@ export function GardenWorld({
   }, []);
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.target !== event.currentTarget) return;
+    if (walking || event.target !== event.currentTarget) return;
     const step = event.key === "ArrowUp" || event.key === "PageDown" ? KEY_STEP : event.key === "ArrowDown" || event.key === "PageUp" ? -KEY_STEP : 0;
     const side = event.key === "ArrowRight" ? PAN_STEP : event.key === "ArrowLeft" ? -PAN_STEP : 0;
     if (step === 0 && side === 0) return;
@@ -363,10 +370,21 @@ export function GardenWorld({
       tabIndex={composition === "garden" ? 0 : undefined}
       onKeyDown={composition === "garden" ? onKeyDown : undefined}
       aria-label={
-        composition === "garden" ? `${label}. Use the up and down arrow keys to walk closer or step back, and left and right to walk along the beds.` : undefined
+        composition === "garden" ? walking ? `${label}. Hold WASD or arrow keys to walk. Click ground to walk there; tap a flower to visit.` : `${label}. Use the up and down arrow keys to walk closer or step back, and left and right to walk along the beds.` : undefined
       }
     >
       <canvas ref={canvasRef} className={styles.canvas} role="img" aria-label={label} />
+      {walking && status === "ready" && !walkingBlocked && !paused && !focus && (
+        <div className={styles.walkControls} role="group" aria-label="Walk around the garden">
+          <span>walk</span>
+          <div>
+            <button type="button" data-walk="forward" aria-label="Walk forward">↑</button>
+            <button type="button" data-walk="left" aria-label="Walk left">←</button>
+            <button type="button" data-walk="back" aria-label="Walk backward">↓</button>
+            <button type="button" data-walk="right" aria-label="Walk right">→</button>
+          </div>
+        </div>
+      )}
       <div ref={captionLayerRef} className={styles.captions}>
         {captions.map((caption) => {
           const className = [
