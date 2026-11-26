@@ -4,7 +4,7 @@ import type { GardenPlot } from "@/lib/garden-v2/plots";
 import styles from "./plot-list.module.css";
 
 export interface PlotListProps {
-  /** Every plot of the open beds, in reading order. */
+  /** Flowers and planting targets in type-area order. */
   readonly plots: readonly GardenPlot[];
   /** Open a plot: a flower's split view, or the planting view for an empty spot. */
   onOpen(plot: GardenPlot): void;
@@ -16,7 +16,7 @@ export interface PlotListProps {
  * The garden's hidden keyboard plot list (#210). The painted world has no
  * visible names or controls over its plots, so keyboard and screen-reader
  * users reach every plot here instead: a visually hidden list of buttons, one
- * per plot ("rose · 3 of 5 · bed 1", "empty spot · bed 2"). Only the focused
+ * per flower or type-area planting target. Only the focused
  * button shows, as a small chip naming its plot, like a skip link. Activating
  * one opens the flower's split view, or the planting view for an empty spot.
  */

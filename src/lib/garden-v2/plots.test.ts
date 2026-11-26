@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { v2GardenFixture } from "@/test/garden-v2-fixture";
-import { plotOrder } from "@/lib/world/plots";
+
 import type { FlowerType, GardenState, Plant } from "./model";
 import { gardenPlots, plotGrowth, waitingOnYou, waitsOnYou } from "./plots";
 
@@ -14,21 +14,21 @@ function garden() {
 }
 
 describe("gardenPlots", () => {
-  it("lists every spot of the open beds in reading order, planted and empty", () => {
+  it("lists each type area with its flowers and a planting target, even when empty", () => {
     const state = garden();
     state.garden.spot_capacity = 24;
     const plots = gardenPlots(state, "Sam");
-    expect(plots.map((plot) => plot.spot)).toEqual(plotOrder(24));
+    expect(plots.map((plot) => plot.spot)).toEqual([1, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13]);
     expect(plots.filter((plot) => plot.plant)).toHaveLength(1);
-    expect(plots.filter((plot) => plot.bed === 2)).toHaveLength(12);
+    expect(plots.filter((plot) => !plot.plant)).toHaveLength(13);
   });
 
   it("names a flower by type and growth, with a heart while it waits on your care", () => {
     const plots = gardenPlots(garden(), "Sam");
     const rose = plots.find((plot) => plot.spot === 1)!;
-    expect(rose).toMatchObject({ label: "rose · 3 of 5 ♡ · bed 1", bed: 1 });
-    expect(rose.ariaLabel).toBe("rose, opening, 3 of 5. Your care is open; Sam cared today. Bed 1");
-    expect(plots.find((plot) => plot.spot === 2)).toMatchObject({ plant: null, label: "empty spot · bed 1", ariaLabel: "Empty spot, bed 1" });
+    expect(rose).toMatchObject({ label: "rose · 3 of 5 ♡ · rose area", bed: 1 });
+    expect(rose.ariaLabel).toBe("rose, opening, 3 of 5. Your care is open; Sam cared today. rose area");
+    expect(plots.find((plot) => plot.spot === -2)).toMatchObject({ plant: null, label: "plant cactus · cactus area", ariaLabel: "Plant a cactus in the cactus area" });
   });
 
   it("says a bloomed flower is in bloom and drops the heart once you have cared", () => {
@@ -39,17 +39,17 @@ describe("gardenPlots", () => {
     rose.member1_submitted = true;
     expect(plotGrowth(rose, state)).toBe("in bloom");
     const plot = gardenPlots(state, "Sam").find((candidate) => candidate.spot === 1)!;
-    expect(plot.label).toBe("rose · in bloom · bed 1");
+    expect(plot.label).toBe("rose · in bloom · rose area");
   });
 
   it("shows the heart whenever your care is open, whether or not your partner has cared (#214)", () => {
     const state = garden();
     const rose = state.plants[0]!;
     rose.member2_submitted = false;
-    expect(gardenPlots(state, "Sam").find((plot) => plot.spot === 1)!.label).toBe("rose · 3 of 5 ♡ · bed 1");
+    expect(gardenPlots(state, "Sam").find((plot) => plot.spot === 1)!.label).toBe("rose · 3 of 5 ♡ · rose area");
     // Once you have cared it goes, even if your partner has not.
     rose.member1_submitted = true;
-    expect(gardenPlots(state, "Sam").find((plot) => plot.spot === 1)!.label).toBe("rose · 3 of 5 · bed 1");
+    expect(gardenPlots(state, "Sam").find((plot) => plot.spot === 1)!.label).toBe("rose · 3 of 5 · rose area");
   });
 });
 

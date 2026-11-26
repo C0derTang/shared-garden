@@ -1,0 +1,128 @@
+{
+  "browser": "156.0.8078.4",
+  "comparison": "mixed and type-area layouts, identical optimized shader and 26 flower specs",
+  "motion": "reduce",
+  "unit": "milliseconds unless named otherwise",
+  "cases": [
+    {
+      "view": "desktop",
+      "layout": "mixed",
+      "samples": 160,
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3"
+      },
+      "gpuEnvelopeMs": {
+        "median": 6.261237,
+        "p95": 7.343597
+      },
+      "kuwaharaSpanMs": {
+        "median": 4.208436,
+        "p95": 5.018674
+      },
+      "encodeMs": {
+        "median": 1.1999999284744263,
+        "p95": 1.8000000715255737
+      },
+      "submitIntervalMs": {
+        "median": 16.699999928474426,
+        "p95": 17.399999976158142
+      },
+      "runEnvelopeMedians": [
+        6.832645,
+        6.23053
+      ],
+      "errors": []
+    },
+    {
+      "view": "desktop",
+      "layout": "areas",
+      "samples": 160,
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3"
+      },
+      "gpuEnvelopeMs": {
+        "median": 6.539233,
+        "p95": 9.234734
+      },
+      "kuwaharaSpanMs": {
+        "median": 4.358224,
+        "p95": 6.263404
+      },
+      "encodeMs": {
+        "median": 1.600000023841858,
+        "p95": 2.0999999046325684
+      },
+      "submitIntervalMs": {
+        "median": 16.600000023841858,
+        "p95": 17.699999928474426
+      },
+      "runEnvelopeMedians": [
+        8.263916,
+        6.422068
+      ],
+      "errors": []
+    },
+    {
+      "view": "phone",
+      "layout": "mixed",
+      "samples": 160,
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3"
+      },
+      "gpuEnvelopeMs": {
+        "median": 7.251555,
+        "p95": 9.105277
+      },
+      "kuwaharaSpanMs": {
+        "median": 5.593872,
+        "p95": 7.098767
+      },
+      "encodeMs": {
+        "median": 1.6999999284744263,
+        "p95": 1.9000000953674316
+      },
+      "submitIntervalMs": {
+        "median": 16.699999928474426,
+        "p95": 17.299999952316284
+      },
+      "runEnvelopeMedians": [
+        7.219181,
+        8.368164
+      ],
+      "errors": []
+    },
+    {
+      "view": "phone",
+      "layout": "areas",
+      "samples": 160,
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3"
+      },
+      "gpuEnvelopeMs": {
+        "median": 7.37443,
+        "p95": 8.970988
+      },
+      "kuwaharaSpanMs": {
+        "median": 5.620414,
+        "p95": 6.958019
+      },
+      "encodeMs": {
+        "median": 1.7000000476837158,
+        "p95": 2
+      },
+      "submitIntervalMs": {
+        "median": 16.699999928474426,
+        "p95": 17.300000071525574
+      },
+      "runEnvelopeMedians": [
+        8.480079,
+        7.340013
+      ],
+      "errors": []
+    }
+  ]
+}

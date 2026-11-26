@@ -15,6 +15,7 @@ import {
   distanceToBeds,
   shorelineZ,
   terrainHeight,
+  type Bed,
   type Vec3,
 } from "./layout";
 import { shoreRocks } from "./landforms";
@@ -323,9 +324,9 @@ export function buildNearShoreStrokes(): Stroke[] {
 }
 
 /** Grass blades, wildflowers and raked soil for `bedCount` open beds. */
-export function buildMeadowStrokes(bedCount: number): Stroke[] {
+export function buildMeadowStrokes(bedCount: number | readonly Bed[]): Stroke[] {
   const random = createRandom(WORLD_SEED ^ 0x3a);
-  const beds = Array.from({ length: bedCount }, (_, i) => bedAt(i));
+  const beds = typeof bedCount === "number" ? Array.from({ length: bedCount }, (_, i) => bedAt(i)) : bedCount;
   const strokes: Stroke[] = [];
   // 0 = mown lawn around the beds, 1 = long meadow grass.
   const wildness = (x: number, z: number) => {
@@ -475,20 +476,21 @@ export function buildHeightfieldMesh(height: (x: number, z: number) => number, g
 }
 
 /** Terrain: meadow, shore bank, lakebed and the far shore. */
-export function buildGroundMesh(): MeshData {
-  return buildHeightfieldMesh(terrainHeight, { minX: -160, maxX: 160, minZ: -140, maxZ: 18, columns: 160, rows: 140 });
+export function buildGroundMesh(maxZ = 18): MeshData {
+  return buildHeightfieldMesh(terrainHeight, { minX: -160, maxX: 160, minZ: -140, maxZ: Math.max(18, maxZ), columns: 160, rows: 140 });
 }
 
 /** Floats per bed vertex: position(3) normal(3) local(3). */
 export const BED_STRIDE = 9;
 
 /** Dark soil underpainting discs for each open bed. */
-export function buildBedMesh(bedCount: number): MeshData {
+export function buildBedMesh(bedCount: number | readonly Bed[]): MeshData {
   const segments = 40;
   const vertices: number[] = [];
   const indices: number[] = [];
-  for (let b = 0; b < bedCount; b += 1) {
-    const bed = bedAt(b);
+  const beds = typeof bedCount === "number" ? Array.from({ length: bedCount }, (_, i) => bedAt(i)) : bedCount;
+  for (const bed of beds) {
+    const b = bed.index;
     const first = vertices.length / BED_STRIDE;
     vertices.push(bed.center[0], bed.center[1] + 0.005, bed.center[2], 0, 1, 0, 0, 0, b);
     for (let s = 0; s < segments; s += 1) {

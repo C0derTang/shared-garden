@@ -11,12 +11,12 @@ import { handFont } from "@/components/world/hand-font";
 import { legacyPath } from "@/lib/legacy/routes";
 import { diffAway, hasAwayNews, noAwayNews, readAwaySnapshot, takeAwaySnapshot, writeAwaySnapshot, type AwayNews } from "@/lib/garden-v2/away";
 import { captionName, catalogItem, gardenDayLabel, plantSpec, stageWords } from "@/lib/garden-v2/flowers";
-import type { GardenResult, GardenState, Plant } from "@/lib/garden-v2/model";
+import type { FlowerType, GardenResult, GardenState, Plant } from "@/lib/garden-v2/model";
 import { gardenPlots, waitingOnYou, type GardenPlot } from "@/lib/garden-v2/plots";
 import { useGardenV2 } from "@/lib/garden-v2/use-garden-v2";
 import { gardenViewHref, type GardenView } from "@/lib/garden-v2/views";
 import type { FocusTarget } from "@/lib/world/journey";
-import { spotPosition } from "@/lib/world/layout";
+import { areaLabelPosition, typeAreaLayout, type TypeAreaLayout } from "@/lib/garden-v2/type-areas";
 import { DEFAULT_FLOWER_HEIGHT, type FlowerAnchor } from "@/lib/world/picking";
 import { ArrivalLight, useGardenArrival } from "./arrival";
 import { AwayNote } from "./away-note";
@@ -41,17 +41,19 @@ export const GARDEN_PATH = "/garden";
 const flowerHref = (id: string) => `${GARDEN_PATH}?flower=${encodeURIComponent(id)}`;
 const themeStyle = { "--hand": handFont.style.fontFamily } as CSSProperties;
 
-type Mode = { kind: "idle" } | { kind: "flower"; id: string } | { kind: "plant"; spot: number };
+type Mode = { kind: "idle" } | { kind: "flower"; id: string } | { kind: "plant"; spot: number; type: FlowerType };
 
-function useWorldFlowers(state: GardenState | null) {
+function useWorldFlowers(state: GardenState | null, layout: TypeAreaLayout | null) {
   const flowers = useMemo<WorldFlower[]>(
-    () =>
-      state?.plants.map((plant) => ({
+    () => {
+      const positions = new Map(layout?.spots.map((spot) => [spot.spot, spot.position]));
+      return state?.plants.map((plant) => ({
         id: plant.flower.id,
         spec: plantSpec(plant, catalogItem(state, plant.flower.type_key)),
-        position: spotPosition(plant.flower.spot).position,
-      })) ?? [],
-    [state],
+        position: positions.get(plant.flower.spot)!,
+      })) ?? [];
+    },
+    [state, layout],
   );
   const anchors = useMemo(() => worldFlowerAnchors(flowers), [flowers]);
   return { flowers, anchors };
@@ -76,9 +78,9 @@ export function careHearts(waiting: readonly Plant[], anchors: readonly FlowerAn
 
 /**
  * The new garden: a full-screen painted world fed by the v2 state and its
- * Realtime channel. Empty seed marks plant any flower; tapping a flower glides
+ * Realtime channel. Named type areas and seed marks start planting; tapping a flower glides
  * the camera to it and opens the split view. No names float over the plants
- * (#206); only a small "♡" floats over each flower still waiting on your care
+ * (#206); a small "♡" floats over each flower still waiting on your care
  * today (#214). Keyboard and screen-reader users reach every plot through a
  * hidden plot list that shows only the focused plot's name (#210).
  */
@@ -123,7 +125,8 @@ export function GardenV2({
   const arrival = useGardenArrival({ allowed: !initialFlowerId && !initialView, worldStatus, layersLoaded: flowerLayer !== null, reducedMotion });
   // A scoped sheet (such as a private moment) is open: the hint waits.
   const sheetOpen = Boolean(useSheetScope()?.active);
-  const { flowers, anchors } = useWorldFlowers(state);
+  const layout = useMemo(() => state ? typeAreaLayout(state) : null, [state]);
+  const { flowers, anchors } = useWorldFlowers(state, layout);
   useEffect(() => flowerLayer?.setFlowers(flowers), [flowerLayer, flowers]);
   // Any full-screen view (a flower, planting, or an overlay such as Memories) covers the world.
   const covered = mode.kind !== "idle" || view !== null;
@@ -169,12 +172,14 @@ export function GardenV2({
 
   const startPlant = useCallback(
     (spot: number) => {
+      const area = layout?.areas.find((candidate) => candidate.target.spot === spot);
+      if (!area) return;
       setMode({ kind: "idle" });
       setVisiting(null);
       setWandered(true);
-      glide({ position: spotPosition(spot).position, height: 0.7 }, () => setMode({ kind: "plant", spot }));
+      glide({ position: area.target.position, height: 0.7 }, () => setMode({ kind: "plant", spot: area.target.persistedSpot, type: area.type }));
     },
-    [glide],
+    [glide, layout],
   );
 
   const openView = useCallback((next: GardenView) => {
@@ -243,7 +248,7 @@ export function GardenV2({
     writeAwaySnapshot(state.member_id, takeAwaySnapshot(state));
   }, [state]);
 
-  // The hidden keyboard plot list (#210): every plot of the open beds, in reading order.
+  // The hidden keyboard list groups flowers by type, with one planting target per area.
   const plots = useMemo(() => (state ? gardenPlots(state, partner.short) : []), [state, partner.short]);
   const openPlot = useCallback(
     (plot: GardenPlot) => {
@@ -285,8 +290,9 @@ export function GardenV2({
   const captions = useMemo<readonly WorldCaption[]>(() => {
     if (covered || focus !== null) return TITLE;
     const hearts = careHearts(waiting, anchors);
-    return hearts.length ? [...TITLE, ...hearts] : TITLE;
-  }, [waiting, anchors, covered, focus]);
+    const areas = layout?.areas.map((area): WorldCaption => ({ id: `area-${area.type}`, text: area.name, position: areaLabelPosition(area), onSelect: () => pickSpot(area.target.spot) })) ?? [];
+    return [...TITLE, ...areas, ...hearts];
+  }, [waiting, anchors, covered, focus, layout, pickSpot]);
 
   if (!state)
     return (
@@ -320,6 +326,7 @@ export function GardenV2({
       <GardenWorld
         className={styles.world}
         spotCapacity={state.garden.spot_capacity}
+        plantingLayout={layout!}
         occupiedSpots={occupied}
         flowers={anchors}
         layers={layers}
@@ -396,6 +403,8 @@ export function GardenV2({
         </SplitView>
       )}
       <PlantView
+        key={mode.kind === "plant" ? `${mode.spot}-${mode.type}` : "closed"}
+        initialType={mode.kind === "plant" ? mode.type : "rose"}
         spot={mode.kind === "plant" ? mode.spot : null}
         state={state}
         busy={busy}

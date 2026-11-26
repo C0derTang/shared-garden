@@ -1,0 +1,50 @@
+[
+  {
+    "view": "desktop",
+    "empty": true,
+    "namedAreas": 13,
+    "keyboardAreasOpened": 13,
+    "repeatedRosePlantings": 2,
+    "preservedPlants": 0,
+    "historyReadWithOriginalId": false,
+    "pointerSeedPicked": true,
+    "camera": "left/right limits and full retained scroll journey",
+    "errors": []
+  },
+  {
+    "view": "desktop",
+    "empty": false,
+    "namedAreas": 13,
+    "keyboardAreasOpened": 13,
+    "repeatedRosePlantings": 2,
+    "preservedPlants": 26,
+    "historyReadWithOriginalId": true,
+    "pointerSeedPicked": false,
+    "camera": "left/right limits and full retained scroll journey",
+    "errors": []
+  },
+  {
+    "view": "phone",
+    "empty": true,
+    "namedAreas": 13,
+    "keyboardAreasOpened": 13,
+    "repeatedRosePlantings": 2,
+    "preservedPlants": 0,
+    "historyReadWithOriginalId": false,
+    "pointerSeedPicked": true,
+    "camera": "left/right limits and full retained scroll journey",
+    "errors": []
+  },
+  {
+    "view": "phone",
+    "empty": false,
+    "namedAreas": 13,
+    "keyboardAreasOpened": 13,
+    "repeatedRosePlantings": 2,
+    "preservedPlants": 26,
+    "historyReadWithOriginalId": true,
+    "pointerSeedPicked": false,
+    "camera": "left/right limits and full retained scroll journey",
+    "errors": []
+  }
+]

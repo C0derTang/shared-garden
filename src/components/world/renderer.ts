@@ -36,7 +36,7 @@ import {
   walkThroughAt,
 } from "@/lib/world/landing";
 import { bedEdgingRocks, buildMountainMesh, buildRockMesh, shoreRocks } from "@/lib/world/landforms";
-import { BED_RADIUS, WATER_LEVEL, bedAt, bedCountFor, layoutPlantingSpots, type Vec3 } from "@/lib/world/layout";
+import { BED_RADIUS, WATER_LEVEL, bedAt, bedCountFor, layoutPlantingSpots, type Bed, type PlantingSpot, type Vec3 } from "@/lib/world/layout";
 import { pickOnScreen, type FlowerAnchor, type PickResult } from "@/lib/world/picking";
 import {
   buildBedMesh,
@@ -97,6 +97,7 @@ export interface WorldSceneState {
   /** Landing: play the walk-through into the house (once set, it runs to the end). */
   readonly entering?: boolean;
   readonly spotCapacity: number;
+  readonly plantingLayout?: { readonly beds: readonly Bed[]; readonly spots: readonly PlantingSpot[]; readonly maxZ: number };
   readonly occupiedSpots: readonly number[];
   readonly flowers: readonly FlowerAnchor[];
   readonly layers: readonly WorldLayer[];
@@ -230,7 +231,7 @@ export function createWorldRenderer(
 
   const emptySpotTargets = () => {
     const occupied = new Set(state.occupiedSpots);
-    return layoutPlantingSpots(state.spotCapacity)
+    return (state.plantingLayout?.spots ?? layoutPlantingSpots(state.spotCapacity))
       .filter((spot) => !occupied.has(spot.spot))
       .map((spot) => ({ spot: spot.spot, position: spot.position }));
   };
@@ -260,7 +261,7 @@ export function createWorldRenderer(
   // Sideways reach: as far as the outermost open bed, so every spot can be brought into view.
   const panLimit = () => {
     let reach = 0;
-    for (let bed = 0; bed < bedCountFor(state.spotCapacity); bed += 1) reach = Math.max(reach, Math.abs(bedAt(bed).center[0]));
+    for (const bed of state.plantingLayout?.beds ?? Array.from({ length: bedCountFor(state.spotCapacity) }, (_, index) => bedAt(index))) reach = Math.max(reach, Math.abs(bed.center[0]));
     return reach === 0 ? 0 : reach + BED_RADIUS;
   };
   const pan = (delta: number) => {
@@ -392,9 +393,11 @@ export function createWorldRenderer(
     const shadowBindings = { shadowMap, shadowSampler };
 
     const sky = draw(gpu, { shader: skyShader, vertices: 3, depth: false, label: "garden-world.sky" });
-    const ground = draw(gpu, {
+    let groundExtent = state.plantingLayout ? Math.max(18, state.plantingLayout.maxZ + 12) : 18;
+    let groundGeometry = meshGeometry(gpu, landing ? buildLandingGroundMesh() : buildGroundMesh(groundExtent), GROUND_ATTRIBUTES, "garden-world.ground");
+    let ground = draw(gpu, {
       shader: groundShader,
-      geometry: meshGeometry(gpu, landing ? buildLandingGroundMesh() : buildGroundMesh(), GROUND_ATTRIBUTES, "garden-world.ground"),
+      geometry: groundGeometry,
       label: "garden-world.ground",
       set: shadowBindings,
     });
@@ -445,7 +448,7 @@ export function createWorldRenderer(
       : undefined;
 
     // Bed-dependent pieces are rebuilt when beds open.
-    let bedCount = -1;
+    let bedKey = "";
     let meadow: StrokeBatch | undefined;
     let beds: Draw | undefined;
     let bedGeometry: Geometry | undefined;
@@ -461,18 +464,27 @@ export function createWorldRenderer(
         if (!meadow) meadow = createStrokeBatch(gpu!, buildLandingFieldStrokes(), { label: "garden-world.clearing", shadow });
         return;
       }
-      const nextCount = bedCountFor(state.spotCapacity);
-      if (nextCount === bedCount) return;
-      bedCount = nextCount;
+      const bedLayout = state.plantingLayout?.beds ?? Array.from({ length: bedCountFor(state.spotCapacity) }, (_, index) => bedAt(index));
+      const nextKey = bedLayout.map((bed) => `${bed.index}:${bed.center.join(",")}`).join(";");
+      if (nextKey === bedKey) return;
+      bedKey = nextKey;
+      const nextExtent = state.plantingLayout ? Math.max(18, state.plantingLayout.maxZ + 12) : 18;
+      if (nextExtent > groundExtent) {
+        groundExtent = nextExtent;
+        ground.dispose();
+        groundGeometry.destroy();
+        groundGeometry = meshGeometry(gpu!, buildGroundMesh(groundExtent), GROUND_ATTRIBUTES, "garden-world.ground");
+        ground = draw(gpu!, { shader: groundShader, geometry: groundGeometry, label: "garden-world.ground", set: shadowBindings });
+      }
       meadow?.dispose();
       beds?.dispose();
       bedGeometry?.destroy();
       edging?.dispose();
       edgingGeometry?.destroy();
-      meadow = createStrokeBatch(gpu!, buildMeadowStrokes(bedCount), { label: "garden-world.meadow", shadow });
-      edgingGeometry = meshGeometry(gpu!, buildRockMesh(bedEdgingRocks(bedCount)), ROCK_ATTRIBUTES, "garden-world.edging");
+      meadow = createStrokeBatch(gpu!, buildMeadowStrokes(bedLayout), { label: "garden-world.meadow", shadow });
+      edgingGeometry = meshGeometry(gpu!, buildRockMesh(bedEdgingRocks(bedLayout)), ROCK_ATTRIBUTES, "garden-world.edging");
       edging = draw(gpu!, { shader: rockShader, geometry: edgingGeometry, label: "garden-world.edging", set: shadowBindings });
-      bedGeometry = meshGeometry(gpu!, buildBedMesh(bedCount), BED_ATTRIBUTES, "garden-world.beds");
+      bedGeometry = meshGeometry(gpu!, buildBedMesh(bedLayout), BED_ATTRIBUTES, "garden-world.beds");
       beds = draw(gpu!, {
         shader: bedShader,
         geometry: bedGeometry,
@@ -484,7 +496,7 @@ export function createWorldRenderer(
 
     const rebuildMarkers = () => {
       if (landing) return;
-      const key = emptySpots.map((spot) => spot.spot).join(",");
+      const key = emptySpots.map((spot) => `${spot.spot}:${spot.position.join(",")}`).join(";");
       if (key === markerKey) return;
       markerKey = key;
       markers?.dispose();
@@ -670,7 +682,7 @@ export function createWorldRenderer(
           pose = walk ?? home;
         } else {
           // Journey, sideways walk and the glide to a flower (portrait tilt included).
-          pose = gardenPose({ journey: journey.value, pan: journey.pan, focus: focus.target, focusWeight: focus.value }, aspect, fovY);
+          pose = gardenPose({ journey: journey.value, pan: journey.pan, depth: Math.max(0, (state.plantingLayout?.maxZ ?? 7.4) - 7.4), focus: focus.target, focusWeight: focus.value }, aspect, fovY);
           // The arrival from the walk-through (#204) glides into this pose.
           if (arrival.active) {
             if (state.arrival === "play") arrival.playing = true;
@@ -755,7 +767,7 @@ export function createWorldRenderer(
           zenith: lighting.zenith,
           glow: lighting.glow,
           horizon: lighting.horizon,
-          hoveredSpot: hovered?.kind === "spot" ? hovered.spot : -1,
+          hoveredSpot: hovered?.kind === "spot" ? hovered.spot : 0,
           fog: lighting.fog,
           fogDensity: FOG_DENSITY,
           sunDir: lighting.sunDirection,

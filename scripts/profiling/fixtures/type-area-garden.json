@@ -1,0 +1,932 @@
+{
+  "server_now": "2026-11-26T20:00:00Z",
+  "garden_day": "2026-11-26",
+  "day_starts_at": "2026-11-26T12:00:00Z",
+  "next_rollover_at": "2026-11-27T12:00:00Z",
+  "moonflower_open": false,
+  "member_id": 1,
+  "garden": {
+    "id": 1,
+    "initialized_at": "2026-11-26T20:00:00Z",
+    "next_spot": 27,
+    "spot_capacity": 36,
+    "last_settled_day": "2026-11-25",
+    "current_streak": 0,
+    "longest_streak": 0,
+    "qualifying_days": 0
+  },
+  "catalog": [
+    {
+      "type_key": "rose",
+      "display_name": "rose",
+      "action_label": "Care",
+      "growth_target": 5
+    },
+    {
+      "type_key": "cactus",
+      "display_name": "cactus",
+      "action_label": "Care",
+      "growth_target": 10
+    },
+    {
+      "type_key": "tulip",
+      "display_name": "tulip",
+      "action_label": "Care",
+      "growth_target": 7
+    },
+    {
+      "type_key": "marigold",
+      "display_name": "marigold",
+      "action_label": "Care",
+      "growth_target": 5
+    },
+    {
+      "type_key": "daisy",
+      "display_name": "daisy",
+      "action_label": "Care",
+      "growth_target": 7
+    },
+    {
+      "type_key": "hydrangea",
+      "display_name": "hydrangea",
+      "action_label": "Care",
+      "growth_target": 7
+    },
+    {
+      "type_key": "sunflower",
+      "display_name": "sunflower",
+      "action_label": "Care",
+      "growth_target": 7
+    },
+    {
+      "type_key": "snapdragon",
+      "display_name": "snapdragon",
+      "action_label": "Care",
+      "growth_target": 5
+    },
+    {
+      "type_key": "moonflower",
+      "display_name": "moonflower",
+      "action_label": "Care",
+      "growth_target": 5
+    },
+    {
+      "type_key": "bluebell",
+      "display_name": "bluebell",
+      "action_label": "Care",
+      "growth_target": 7
+    },
+    {
+      "type_key": "dandelion",
+      "display_name": "dandelion",
+      "action_label": "Care",
+      "growth_target": 5
+    },
+    {
+      "type_key": "forget-me-not",
+      "display_name": "forget-me-not",
+      "action_label": "Care",
+      "growth_target": 10
+    },
+    {
+      "type_key": "peony",
+      "display_name": "peony",
+      "action_label": "Care",
+      "growth_target": 4
+    }
+  ],
+  "plants": [
+    {
+      "server_now": "2026-11-26T20:00:00Z",
+      "garden_day": "2026-11-26",
+      "day_starts_at": "2026-11-26T12:00:00Z",
+      "next_rollover_at": "2026-11-27T12:00:00Z",
+      "moonflower_open": false,
+      "flower": {
+        "id": "00000000-0000-4000-8000-000000000001",
+        "garden_id": 1,
+        "type_key": "rose",
+        "spot": 1,
+        "seed": 104736,
+        "planted_at": "2026-11-20T20:00:00Z",
+        "planted_day": "2026-11-20",
+        "planted_by": 1,
+        "shared_wish": null,
+        "growth_units": 3,
+        "first_bloom_at": null,
+        "first_bloom_day": null,
+        "fulfilled_at": null,
+        "fulfilled_by": null
+      },
+      "entries": [],
+      "hydrangea_picks": [
+        null,
+        null
+      ],
+      "daisy_question": null,
+      "daisy_custom_questions": [],
+      "member1_submitted": false,
+      "member2_submitted": true
+    },
+    {
+      "server_now": "2026-11-26T20:00:00Z",
+      "garden_day": "2026-11-26",
+      "day_starts_at": "2026-11-26T12:00:00Z",
+      "next_rollover_at": "2026-11-27T12:00:00Z",
+      "moonflower_open": false,
+      "flower": {
+        "id": "00000000-0000-4000-8000-000000000002",
+        "garden_id": 1,
+        "type_key": "cactus",
+        "spot": 2,
+        "seed": 209465,
+        "planted_at": "2026-11-20T20:00:00Z",
+        "planted_day": "2026-11-20",
+        "planted_by": 1,
+        "shared_wish": null,
+        "growth_units": 10,
+        "first_bloom_at": "2026-11-26T20:00:00Z",
+        "first_bloom_day": "2026-11-26",
+        "fulfilled_at": null,
+        "fulfilled_by": null
+      },
+      "entries": [],
+      "hydrangea_picks": [
+        null,
+        null
+      ],
+      "daisy_question": null,
+      "daisy_custom_questions": [],
+      "member1_submitted": false,
+      "member2_submitted": true
+    },
+    {
+      "server_now": "2026-11-26T20:00:00Z",
+      "garden_day": "2026-11-26",
+      "day_starts_at": "2026-11-26T12:00:00Z",
+      "next_rollover_at": "2026-11-27T12:00:00Z",
+      "moonflower_open": false,
+      "flower": {
+        "id": "00000000-0000-4000-8000-000000000003",
+        "garden_id": 1,
+        "type_key": "tulip",
+        "spot": 3,
+        "seed": 314194,
+        "planted_at": "2026-11-20T20:00:00Z",
+        "planted_day": "2026-11-20",
+        "planted_by": 1,
+        "shared_wish": null,
+        "growth_units": 7,
+        "first_bloom_at": "2026-11-26T20:00:00Z",
+        "first_bloom_day": "2026-11-26",
+        "fulfilled_at": null,
+        "fulfilled_by": null
+      },
+      "entries": [],
+      "hydrangea_picks": [
+        null,
+        null
+      ],
+      "daisy_question": null,
+      "daisy_custom_questions": [],
+      "member1_submitted": false,
+      "member2_submitted": true
+    },
+    {
+      "server_now": "2026-11-26T20:00:00Z",
+      "garden_day": "2026-11-26",
+      "day_starts_at": "2026-11-26T12:00:00Z",
+      "next_rollover_at": "2026-11-27T12:00:00Z",
+      "moonflower_open": false,
+      "flower": {
+        "id": "00000000-0000-4000-8000-000000000004",
+        "garden_id": 1,
+        "type_key": "marigold",
+        "spot": 4,
+        "seed": 418923,
+        "planted_at": "2026-11-20T20:00:00Z",
+        "planted_day": "2026-11-20",
+        "planted_by": 1,
+        "shared_wish": null,
+        "growth_units": 5,
+        "first_bloom_at": "2026-11-26T20:00:00Z",
+        "first_bloom_day": "2026-11-26",
+        "fulfilled_at": null,
+        "fulfilled_by": null
+      },
+      "entries": [],
+      "hydrangea_picks": [
+        null,
+        null
+      ],
+      "daisy_question": null,
+      "daisy_custom_questions": [],
+      "member1_submitted": false,
+      "member2_submitted": true
+    },
+    {
+      "server_now": "2026-11-26T20:00:00Z",
+      "garden_day": "2026-11-26",
+      "day_starts_at": "2026-11-26T12:00:00Z",
+      "next_rollover_at": "2026-11-27T12:00:00Z",
+      "moonflower_open": false,
+      "flower": {
+        "id": "00000000-0000-4000-8000-000000000005",
+        "garden_id": 1,
+        "type_key": "daisy",
+        "spot": 5,
+        "seed": 523652,
+        "planted_at": "2026-11-20T20:00:00Z",
+        "planted_day": "2026-11-20",
+        "planted_by": 1,
+        "shared_wish": null,
+        "growth_units": 7,
+        "first_bloom_at": "2026-11-26T20:00:00Z",
+        "first_bloom_day": "2026-11-26",
+        "fulfilled_at": null,
+        "fulfilled_by": null
+      },
+      "entries": [],
+      "hydrangea_picks": [
+        null,
+        null
+      ],
+      "daisy_question": null,
+      "daisy_custom_questions": [],
+      "member1_submitted": false,
+      "member2_submitted": true
+    },
+    {
+      "server_now": "2026-11-26T20:00:00Z",
+      "garden_day": "2026-11-26",
+      "day_starts_at": "2026-11-26T12:00:00Z",
+      "next_rollover_at": "2026-11-27T12:00:00Z",
+      "moonflower_open": false,
+      "flower": {
+        "id": "00000000-0000-4000-8000-000000000006",
+        "garden_id": 1,
+        "type_key": "hydrangea",
+        "spot": 6,
+        "seed": 628381,
+        "planted_at": "2026-11-20T20:00:00Z",
+        "planted_day": "2026-11-20",
+        "planted_by": 1,
+        "shared_wish": null,
+        "growth_units": 7,
+        "first_bloom_at": "2026-11-26T20:00:00Z",
+        "first_bloom_day": "2026-11-26",
+        "fulfilled_at": null,
+        "fulfilled_by": null
+      },
+      "entries": [],
+      "hydrangea_picks": [
+        null,
+        null
+      ],
+      "daisy_question": null,
+      "daisy_custom_questions": [],
+      "member1_submitted": false,
+      "member2_submitted": true
+    },
+    {
+      "server_now": "2026-11-26T20:00:00Z",
+      "garden_day": "2026-11-26",
+      "day_starts_at": "2026-11-26T12:00:00Z",
+      "next_rollover_at": "2026-11-27T12:00:00Z",
+      "moonflower_open": false,
+      "flower": {
+        "id": "00000000-0000-4000-8000-000000000007",
+        "garden_id": 1,
+        "type_key": "sunflower",
+        "spot": 7,
+        "seed": 733110,
+        "planted_at": "2026-11-20T20:00:00Z",
+        "planted_day": "2026-11-20",
+        "planted_by": 1,
+        "shared_wish": null,
+        "growth_units": 7,
+        "first_bloom_at": "2026-11-26T20:00:00Z",
+        "first_bloom_day": "2026-11-26",
+        "fulfilled_at": null,
+        "fulfilled_by": null
+      },
+      "entries": [],
+      "hydrangea_picks": [
+        null,
+        null
+      ],
+      "daisy_question": null,
+      "daisy_custom_questions": [],
+      "member1_submitted": false,
+      "member2_submitted": true
+    },
+    {
+      "server_now": "2026-11-26T20:00:00Z",
+      "garden_day": "2026-11-26",
+      "day_starts_at": "2026-11-26T12:00:00Z",
+      "next_rollover_at": "2026-11-27T12:00:00Z",
+      "moonflower_open": false,
+      "flower": {
+        "id": "00000000-0000-4000-8000-000000000008",
+        "garden_id": 1,
+        "type_key": "snapdragon",
+        "spot": 8,
+        "seed": 837839,
+        "planted_at": "2026-11-20T20:00:00Z",
+        "planted_day": "2026-11-20",
+        "planted_by": 1,
+        "shared_wish": null,
+        "growth_units": 5,
+        "first_bloom_at": "2026-11-26T20:00:00Z",
+        "first_bloom_day": "2026-11-26",
+        "fulfilled_at": null,
+        "fulfilled_by": null
+      },
+      "entries": [],
+      "hydrangea_picks": [
+        null,
+        null
+      ],
+      "daisy_question": null,
+      "daisy_custom_questions": [],
+      "member1_submitted": false,
+      "member2_submitted": true
+    },
+    {
+      "server_now": "2026-11-26T20:00:00Z",
+      "garden_day": "2026-11-26",
+      "day_starts_at": "2026-11-26T12:00:00Z",
+      "next_rollover_at": "2026-11-27T12:00:00Z",
+      "moonflower_open": false,
+      "flower": {
+        "id": "00000000-0000-4000-8000-000000000009",
+        "garden_id": 1,
+        "type_key": "moonflower",
+        "spot": 9,
+        "seed": 942568,
+        "planted_at": "2026-11-20T20:00:00Z",
+        "planted_day": "2026-11-20",
+        "planted_by": 1,
+        "shared_wish": null,
+        "growth_units": 5,
+        "first_bloom_at": "2026-11-26T20:00:00Z",
+        "first_bloom_day": "2026-11-26",
+        "fulfilled_at": null,
+        "fulfilled_by": null
+      },
+      "entries": [],
+      "hydrangea_picks": [
+        null,
+        null
+      ],
+      "daisy_question": null,
+      "daisy_custom_questions": [],
+      "member1_submitted": false,
+      "member2_submitted": true
+    },
+    {
+      "server_now": "2026-11-26T20:00:00Z",
+      "garden_day": "2026-11-26",
+      "day_starts_at": "2026-11-26T12:00:00Z",
+      "next_rollover_at": "2026-11-27T12:00:00Z",
+      "moonflower_open": false,
+      "flower": {
+        "id": "00000000-0000-4000-8000-000000000010",
+        "garden_id": 1,
+        "type_key": "bluebell",
+        "spot": 10,
+        "seed": 1047297,
+        "planted_at": "2026-11-20T20:00:00Z",
+        "planted_day": "2026-11-20",
+        "planted_by": 1,
+        "shared_wish": null,
+        "growth_units": 7,
+        "first_bloom_at": "2026-11-26T20:00:00Z",
+        "first_bloom_day": "2026-11-26",
+        "fulfilled_at": null,
+        "fulfilled_by": null
+      },
+      "entries": [],
+      "hydrangea_picks": [
+        null,
+        null
+      ],
+      "daisy_question": null,
+      "daisy_custom_questions": [],
+      "member1_submitted": false,
+      "member2_submitted": true
+    },
+    {
+      "server_now": "2026-11-26T20:00:00Z",
+      "garden_day": "2026-11-26",
+      "day_starts_at": "2026-11-26T12:00:00Z",
+      "next_rollover_at": "2026-11-27T12:00:00Z",
+      "moonflower_open": false,
+      "flower": {
+        "id": "00000000-0000-4000-8000-000000000011",
+        "garden_id": 1,
+        "type_key": "dandelion",
+        "spot": 11,
+        "seed": 1152026,
+        "planted_at": "2026-11-20T20:00:00Z",
+        "planted_day": "2026-11-20",
+        "planted_by": 1,
+        "shared_wish": "A synthetic shared wish.",
+        "growth_units": 5,
+        "first_bloom_at": "2026-11-26T20:00:00Z",
+        "first_bloom_day": "2026-11-26",
+        "fulfilled_at": null,
+        "fulfilled_by": null
+      },
+      "entries": [],
+      "hydrangea_picks": [
+        null,
+        null
+      ],
+      "daisy_question": null,
+      "daisy_custom_questions": [],
+      "member1_submitted": false,
+      "member2_submitted": true
+    },
+    {
+      "server_now": "2026-11-26T20:00:00Z",
+      "garden_day": "2026-11-26",
+      "day_starts_at": "2026-11-26T12:00:00Z",
+      "next_rollover_at": "2026-11-27T12:00:00Z",
+      "moonflower_open": false,
+      "flower": {
+        "id": "00000000-0000-4000-8000-000000000012",
+        "garden_id": 1,
+        "type_key": "forget-me-not",
+        "spot": 12,
+        "seed": 1256755,
+        "planted_at": "2026-11-20T20:00:00Z",
+        "planted_day": "2026-11-20",
+        "planted_by": 1,
+        "shared_wish": null,
+        "growth_units": 10,
+        "first_bloom_at": "2026-11-26T20:00:00Z",
+        "first_bloom_day": "2026-11-26",
+        "fulfilled_at": null,
+        "fulfilled_by": null
+      },
+      "entries": [],
+      "hydrangea_picks": [
+        null,
+        null
+      ],
+      "daisy_question": null,
+      "daisy_custom_questions": [],
+      "member1_submitted": false,
+      "member2_submitted": true
+    },
+    {
+      "server_now": "2026-11-26T20:00:00Z",
+      "garden_day": "2026-11-26",
+      "day_starts_at": "2026-11-26T12:00:00Z",
+      "next_rollover_at": "2026-11-27T12:00:00Z",
+      "moonflower_open": false,
+      "flower": {
+        "id": "00000000-0000-4000-8000-000000000013",
+        "garden_id": 1,
+        "type_key": "peony",
+        "spot": 13,
+        "seed": 1361484,
+        "planted_at": "2026-11-20T20:00:00Z",
+        "planted_day": "2026-11-20",
+        "planted_by": 1,
+        "shared_wish": null,
+        "growth_units": 4,
+        "first_bloom_at": "2026-11-26T20:00:00Z",
+        "first_bloom_day": "2026-11-26",
+        "fulfilled_at": null,
+        "fulfilled_by": null
+      },
+      "entries": [],
+      "hydrangea_picks": [
+        null,
+        null
+      ],
+      "daisy_question": null,
+      "daisy_custom_questions": [],
+      "member1_submitted": false,
+      "member2_submitted": true
+    },
+    {
+      "server_now": "2026-11-26T20:00:00Z",
+      "garden_day": "2026-11-26",
+      "day_starts_at": "2026-11-26T12:00:00Z",
+      "next_rollover_at": "2026-11-27T12:00:00Z",
+      "moonflower_open": false,
+      "flower": {
+        "id": "00000000-0000-4000-8000-000000000014",
+        "garden_id": 1,
+        "type_key": "rose",
+        "spot": 14,
+        "seed": 1466213,
+        "planted_at": "2026-11-20T20:00:00Z",
+        "planted_day": "2026-11-20",
+        "planted_by": 1,
+        "shared_wish": null,
+        "growth_units": 5,
+        "first_bloom_at": "2026-11-26T20:00:00Z",
+        "first_bloom_day": "2026-11-26",
+        "fulfilled_at": null,
+        "fulfilled_by": null
+      },
+      "entries": [],
+      "hydrangea_picks": [
+        null,
+        null
+      ],
+      "daisy_question": null,
+      "daisy_custom_questions": [],
+      "member1_submitted": false,
+      "member2_submitted": true
+    },
+    {
+      "server_now": "2026-11-26T20:00:00Z",
+      "garden_day": "2026-11-26",
+      "day_starts_at": "2026-11-26T12:00:00Z",
+      "next_rollover_at": "2026-11-27T12:00:00Z",
+      "moonflower_open": false,
+      "flower": {
+        "id": "00000000-0000-4000-8000-000000000015",
+        "garden_id": 1,
+        "type_key": "cactus",
+        "spot": 15,
+        "seed": 1570942,
+        "planted_at": "2026-11-20T20:00:00Z",
+        "planted_day": "2026-11-20",
+        "planted_by": 1,
+        "shared_wish": null,
+        "growth_units": 10,
+        "first_bloom_at": "2026-11-26T20:00:00Z",
+        "first_bloom_day": "2026-11-26",
+        "fulfilled_at": null,
+        "fulfilled_by": null
+      },
+      "entries": [],
+      "hydrangea_picks": [
+        null,
+        null
+      ],
+      "daisy_question": null,
+      "daisy_custom_questions": [],
+      "member1_submitted": false,
+      "member2_submitted": true
+    },
+    {
+      "server_now": "2026-11-26T20:00:00Z",
+      "garden_day": "2026-11-26",
+      "day_starts_at": "2026-11-26T12:00:00Z",
+      "next_rollover_at": "2026-11-27T12:00:00Z",
+      "moonflower_open": false,
+      "flower": {
+        "id": "00000000-0000-4000-8000-000000000016",
+        "garden_id": 1,
+        "type_key": "tulip",
+        "spot": 16,
+        "seed": 1675671,
+        "planted_at": "2026-11-20T20:00:00Z",
+        "planted_day": "2026-11-20",
+        "planted_by": 1,
+        "shared_wish": null,
+        "growth_units": 7,
+        "first_bloom_at": "2026-11-26T20:00:00Z",
+        "first_bloom_day": "2026-11-26",
+        "fulfilled_at": null,
+        "fulfilled_by": null
+      },
+      "entries": [],
+      "hydrangea_picks": [
+        null,
+        null
+      ],
+      "daisy_question": null,
+      "daisy_custom_questions": [],
+      "member1_submitted": false,
+      "member2_submitted": true
+    },
+    {
+      "server_now": "2026-11-26T20:00:00Z",
+      "garden_day": "2026-11-26",
+      "day_starts_at": "2026-11-26T12:00:00Z",
+      "next_rollover_at": "2026-11-27T12:00:00Z",
+      "moonflower_open": false,
+      "flower": {
+        "id": "00000000-0000-4000-8000-000000000017",
+        "garden_id": 1,
+        "type_key": "marigold",
+        "spot": 17,
+        "seed": 1780400,
+        "planted_at": "2026-11-20T20:00:00Z",
+        "planted_day": "2026-11-20",
+        "planted_by": 1,
+        "shared_wish": null,
+        "growth_units": 5,
+        "first_bloom_at": "2026-11-26T20:00:00Z",
+        "first_bloom_day": "2026-11-26",
+        "fulfilled_at": null,
+        "fulfilled_by": null
+      },
+      "entries": [],
+      "hydrangea_picks": [
+        null,
+        null
+      ],
+      "daisy_question": null,
+      "daisy_custom_questions": [],
+      "member1_submitted": false,
+      "member2_submitted": true
+    },
+    {
+      "server_now": "2026-11-26T20:00:00Z",
+      "garden_day": "2026-11-26",
+      "day_starts_at": "2026-11-26T12:00:00Z",
+      "next_rollover_at": "2026-11-27T12:00:00Z",
+      "moonflower_open": false,
+      "flower": {
+        "id": "00000000-0000-4000-8000-000000000018",
+        "garden_id": 1,
+        "type_key": "daisy",
+        "spot": 18,
+        "seed": 1885129,
+        "planted_at": "2026-11-20T20:00:00Z",
+        "planted_day": "2026-11-20",
+        "planted_by": 1,
+        "shared_wish": null,
+        "growth_units": 7,
+        "first_bloom_at": "2026-11-26T20:00:00Z",
+        "first_bloom_day": "2026-11-26",
+        "fulfilled_at": null,
+        "fulfilled_by": null
+      },
+      "entries": [],
+      "hydrangea_picks": [
+        null,
+        null
+      ],
+      "daisy_question": null,
+      "daisy_custom_questions": [],
+      "member1_submitted": false,
+      "member2_submitted": true
+    },
+    {
+      "server_now": "2026-11-26T20:00:00Z",
+      "garden_day": "2026-11-26",
+      "day_starts_at": "2026-11-26T12:00:00Z",
+      "next_rollover_at": "2026-11-27T12:00:00Z",
+      "moonflower_open": false,
+      "flower": {
+        "id": "00000000-0000-4000-8000-000000000019",
+        "garden_id": 1,
+        "type_key": "hydrangea",
+        "spot": 19,
+        "seed": 1989858,
+        "planted_at": "2026-11-20T20:00:00Z",
+        "planted_day": "2026-11-20",
+        "planted_by": 1,
+        "shared_wish": null,
+        "growth_units": 7,
+        "first_bloom_at": "2026-11-26T20:00:00Z",
+        "first_bloom_day": "2026-11-26",
+        "fulfilled_at": null,
+        "fulfilled_by": null
+      },
+      "entries": [],
+      "hydrangea_picks": [
+        null,
+        null
+      ],
+      "daisy_question": null,
+      "daisy_custom_questions": [],
+      "member1_submitted": false,
+      "member2_submitted": true
+    },
+    {
+      "server_now": "2026-11-26T20:00:00Z",
+      "garden_day": "2026-11-26",
+      "day_starts_at": "2026-11-26T12:00:00Z",
+      "next_rollover_at": "2026-11-27T12:00:00Z",
+      "moonflower_open": false,
+      "flower": {
+        "id": "00000000-0000-4000-8000-000000000020",
+        "garden_id": 1,
+        "type_key": "sunflower",
+        "spot": 20,
+        "seed": 2094587,
+        "planted_at": "2026-11-20T20:00:00Z",
+        "planted_day": "2026-11-20",
+        "planted_by": 1,
+        "shared_wish": null,
+        "growth_units": 7,
+        "first_bloom_at": "2026-11-26T20:00:00Z",
+        "first_bloom_day": "2026-11-26",
+        "fulfilled_at": null,
+        "fulfilled_by": null
+      },
+      "entries": [],
+      "hydrangea_picks": [
+        null,
+        null
+      ],
+      "daisy_question": null,
+      "daisy_custom_questions": [],
+      "member1_submitted": false,
+      "member2_submitted": true
+    },
+    {
+      "server_now": "2026-11-26T20:00:00Z",
+      "garden_day": "2026-11-26",
+      "day_starts_at": "2026-11-26T12:00:00Z",
+      "next_rollover_at": "2026-11-27T12:00:00Z",
+      "moonflower_open": false,
+      "flower": {
+        "id": "00000000-0000-4000-8000-000000000021",
+        "garden_id": 1,
+        "type_key": "snapdragon",
+        "spot": 21,
+        "seed": 2199316,
+        "planted_at": "2026-11-20T20:00:00Z",
+        "planted_day": "2026-11-20",
+        "planted_by": 1,
+        "shared_wish": null,
+        "growth_units": 5,
+        "first_bloom_at": "2026-11-26T20:00:00Z",
+        "first_bloom_day": "2026-11-26",
+        "fulfilled_at": null,
+        "fulfilled_by": null
+      },
+      "entries": [],
+      "hydrangea_picks": [
+        null,
+        null
+      ],
+      "daisy_question": null,
+      "daisy_custom_questions": [],
+      "member1_submitted": false,
+      "member2_submitted": true
+    },
+    {
+      "server_now": "2026-11-26T20:00:00Z",
+      "garden_day": "2026-11-26",
+      "day_starts_at": "2026-11-26T12:00:00Z",
+      "next_rollover_at": "2026-11-27T12:00:00Z",
+      "moonflower_open": false,
+      "flower": {
+        "id": "00000000-0000-4000-8000-000000000022",
+        "garden_id": 1,
+        "type_key": "moonflower",
+        "spot": 22,
+        "seed": 2304045,
+        "planted_at": "2026-11-20T20:00:00Z",
+        "planted_day": "2026-11-20",
+        "planted_by": 1,
+        "shared_wish": null,
+        "growth_units": 5,
+        "first_bloom_at": "2026-11-26T20:00:00Z",
+        "first_bloom_day": "2026-11-26",
+        "fulfilled_at": null,
+        "fulfilled_by": null
+      },
+      "entries": [],
+      "hydrangea_picks": [
+        null,
+        null
+      ],
+      "daisy_question": null,
+      "daisy_custom_questions": [],
+      "member1_submitted": false,
+      "member2_submitted": true
+    },
+    {
+      "server_now": "2026-11-26T20:00:00Z",
+      "garden_day": "2026-11-26",
+      "day_starts_at": "2026-11-26T12:00:00Z",
+      "next_rollover_at": "2026-11-27T12:00:00Z",
+      "moonflower_open": false,
+      "flower": {
+        "id": "00000000-0000-4000-8000-000000000023",
+        "garden_id": 1,
+        "type_key": "bluebell",
+        "spot": 23,
+        "seed": 2408774,
+        "planted_at": "2026-11-20T20:00:00Z",
+        "planted_day": "2026-11-20",
+        "planted_by": 1,
+        "shared_wish": null,
+        "growth_units": 7,
+        "first_bloom_at": "2026-11-26T20:00:00Z",
+        "first_bloom_day": "2026-11-26",
+        "fulfilled_at": null,
+        "fulfilled_by": null
+      },
+      "entries": [],
+      "hydrangea_picks": [
+        null,
+        null
+      ],
+      "daisy_question": null,
+      "daisy_custom_questions": [],
+      "member1_submitted": false,
+      "member2_submitted": true
+    },
+    {
+      "server_now": "2026-11-26T20:00:00Z",
+      "garden_day": "2026-11-26",
+      "day_starts_at": "2026-11-26T12:00:00Z",
+      "next_rollover_at": "2026-11-27T12:00:00Z",
+      "moonflower_open": false,
+      "flower": {
+        "id": "00000000-0000-4000-8000-000000000024",
+        "garden_id": 1,
+        "type_key": "dandelion",
+        "spot": 24,
+        "seed": 2513503,
+        "planted_at": "2026-11-20T20:00:00Z",
+        "planted_day": "2026-11-20",
+        "planted_by": 1,
+        "shared_wish": "A synthetic shared wish.",
+        "growth_units": 5,
+        "first_bloom_at": "2026-11-26T20:00:00Z",
+        "first_bloom_day": "2026-11-26",
+        "fulfilled_at": null,
+        "fulfilled_by": null
+      },
+      "entries": [],
+      "hydrangea_picks": [
+        null,
+        null
+      ],
+      "daisy_question": null,
+      "daisy_custom_questions": [],
+      "member1_submitted": false,
+      "member2_submitted": true
+    },
+    {
+      "server_now": "2026-11-26T20:00:00Z",
+      "garden_day": "2026-11-26",
+      "day_starts_at": "2026-11-26T12:00:00Z",
+      "next_rollover_at": "2026-11-27T12:00:00Z",
+      "moonflower_open": false,
+      "flower": {
+        "id": "00000000-0000-4000-8000-000000000025",
+        "garden_id": 1,
+        "type_key": "forget-me-not",
+        "spot": 25,
+        "seed": 2618232,
+        "planted_at": "2026-11-20T20:00:00Z",
+        "planted_day": "2026-11-20",
+        "planted_by": 1,
+        "shared_wish": null,
+        "growth_units": 10,
+        "first_bloom_at": "2026-11-26T20:00:00Z",
+        "first_bloom_day": "2026-11-26",
+        "fulfilled_at": null,
+        "fulfilled_by": null
+      },
+      "entries": [],
+      "hydrangea_picks": [
+        null,
+        null
+      ],
+      "daisy_question": null,
+      "daisy_custom_questions": [],
+      "member1_submitted": false,
+      "member2_submitted": true
+    },
+    {
+      "server_now": "2026-11-26T20:00:00Z",
+      "garden_day": "2026-11-26",
+      "day_starts_at": "2026-11-26T12:00:00Z",
+      "next_rollover_at": "2026-11-27T12:00:00Z",
+      "moonflower_open": false,
+      "flower": {
+        "id": "00000000-0000-4000-8000-000000000026",
+        "garden_id": 1,
+        "type_key": "peony",
+        "spot": 26,
+        "seed": 2722961,
+        "planted_at": "2026-11-20T20:00:00Z",
+        "planted_day": "2026-11-20",
+        "planted_by": 1,
+        "shared_wish": null,
+        "growth_units": 4,
+        "first_bloom_at": "2026-11-26T20:00:00Z",
+        "first_bloom_day": "2026-11-26",
+        "fulfilled_at": null,
+        "fulfilled_by": null
+      },
+      "entries": [],
+      "hydrangea_picks": [
+        null,
+        null
+      ],
+      "daisy_question": null,
+      "daisy_custom_questions": [],
+      "member1_submitted": false,
+      "member2_submitted": true
+    }
+  ]
+}

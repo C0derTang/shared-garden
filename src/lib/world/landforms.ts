@@ -4,7 +4,7 @@
  * mesh data, no GPU calls.
  */
 
-import { BED_RADIUS, bedAt, shorelineZ, terrainHeight, type Vec3 } from "./layout";
+import { BED_RADIUS, bedAt, shorelineZ, terrainHeight, type Bed, type Vec3 } from "./layout";
 import type { MeshData } from "./scenery";
 import { createRandom } from "./strokes";
 
@@ -69,11 +69,11 @@ export function shoreRocks(): Rock[] {
 }
 
 /** A ring of edging stones around each open bed. */
-export function bedEdgingRocks(bedCount: number): Rock[] {
+export function bedEdgingRocks(bedCount: number | readonly Bed[]): Rock[] {
   const random = createRandom(0xbed5);
   const rocks: Rock[] = [];
-  for (let b = 0; b < bedCount; b += 1) {
-    const bed = bedAt(b);
+  const beds = typeof bedCount === "number" ? Array.from({ length: bedCount }, (_, i) => bedAt(i)) : bedCount;
+  for (const bed of beds) {
     const ring = BED_RADIUS + 0.04;
     const count = Math.round((Math.PI * 2 * ring) / 0.3);
     for (let i = 0; i < count; i += 1) {
