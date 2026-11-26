@@ -18,7 +18,7 @@ The following exact choices use the discretion in
   for this camera so its visible position obeys the terrain boundaries.
 - A small labeled arrow pad in the lower left has four 44-pixel targets. Pointer
   holds walk continuously; keyboard/screen-reader button activation takes a short
-  step. On phones the first-use hint sits above the pad, leaving its targets
+  step. At every viewport width the first-use hint sits above the pad, leaving its targets
   unobscured. The persistent pad and first-use hint explain walking; the guide now
   describes the same controls. Full-screen views and scoped sheets hide the pad.
   The retained accessible plot list provides direct access to every flower and
@@ -141,3 +141,35 @@ and the member landing showcase. Neither the synthetic UUID nor scoped-draft
 fixture text appeared in those response bodies. The temporary production server
 was stopped after guard validation. No database checks were run locally because
 this issue changes no backend/schema/data; the required CI database gate remains.
+
+
+## Responsive review correction
+
+Independent review of PR223 at `4509be35a28a4f591a18c75d4d0f78336e9dabb2`
+found the first-use hint overlapping the right arrow at844×390 landscape-phone
+and800×600 narrow-desktop sizes. The original spacing was confined to the
+portrait/narrow media query. Its safe-area-aware bottom offset now applies in the
+base hint rule at every width; the portrait text-wrapping rule remains.
+
+`check-walking-layout.mjs` runs the actual synthetic GardenV2 at1280×800,
+390×844,844×390 and800×600. It records hint/pad rectangles, requires at least eight
+CSS pixels of separation, checks the hint fits the viewport, and verifies all
+four44px controls are inside the viewport and unobscured. Trusted CDP touch holds
+at phone sizes and mouse holds at desktop sizes must move the real camera and
+stop on release. The same test was observed red against the reviewed CSS at
+exactly the two reported sizes before the correction. It hides only the Next.js
+development badge and uses the same fail-closed loopback synthetic actions.
+Run `node scripts/profiling/check-walking-layout.mjs`; optional browser/origin
+variables are as above and `PROFILE_OUTPUT` defaults to
+`/tmp/ccapp-220-responsive`. See
+[responsive evidence](../evidence/0220-walking-responsive.json) for geometry and
+input outcomes. This changes hint placement only; camera, movement, activities,
+shader/reference and quality settings are unchanged. Independent review and all
+required CI must apply to the corrected exact head before merge.
+
+All four corrected viewport cases pass with10.609375CSSpx vertical separation;
+each hint and all four44px targets fit the viewport, all target centers remain
+unobscured, and every directional hold moves the camera and stops on release.
+There are no browser page/console errors. The prior wide/portrait layouts also
+pass the same geometry/input assertions. Raw before/after geometry and eight
+screenshots remain in the respective responsive artifact directories.

@@ -1,0 +1,558 @@
+{
+  "finding": "PR223 independent review REQUEST_CHANGES at4509be35a28a4f591a18c75d4d0f78336e9dabb2: hint/pad overlap at844x390 and800x600.",
+  "correction": "Safe-area-aware above-pad hint offset moved from portrait/narrow media query to base hint rule at every width; no movement or renderer change.",
+  "method": "Actual GardenV2 validated synthetic state with fail-closed loopback action interception, reduced motion. Only Next.js development badge hidden. At least8CSSpx rectangle separation, viewport fit, unobscured44px controls, actual directional holds and release stops.",
+  "hardwareLimit": "Chromium156 on Mac Apple GPU; phone sizes use trusted CDP emulated touch, not actual phone hardware.",
+  "before": [
+    {
+      "view": "desktop",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "dpr": 1,
+      "input": "mouse on Mac",
+      "hint": {
+        "x": 329.8203125,
+        "y": 745.1875,
+        "width": 620.359375,
+        "height": 35.625
+      },
+      "pad": {
+        "x": 16,
+        "y": 666.609375,
+        "width": 138,
+        "height": 117.390625
+      },
+      "gaps": {
+        "above": -114.203125,
+        "below": -38.8125,
+        "left": -934.1796875,
+        "right": 175.8203125
+      },
+      "separated": true,
+      "buttons": [
+        {
+          "direction": "forward",
+          "bounds": {
+            "x": 63,
+            "y": 693,
+            "width": 44,
+            "height": 44
+          }
+        },
+        {
+          "direction": "backward",
+          "bounds": {
+            "x": 63,
+            "y": 740,
+            "width": 44,
+            "height": 44
+          }
+        },
+        {
+          "direction": "left",
+          "bounds": {
+            "x": 16,
+            "y": 740,
+            "width": 44,
+            "height": 44
+          }
+        },
+        {
+          "direction": "right",
+          "bounds": {
+            "x": 110,
+            "y": 740,
+            "width": 44,
+            "height": 44
+          }
+        }
+      ],
+      "allControlsMoveAndStop": true,
+      "errors": []
+    },
+    {
+      "view": "phone-portrait",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "dpr": 2,
+      "input": "trusted CDP touch on Mac",
+      "hint": {
+        "x": 16,
+        "y": 644.59375,
+        "width": 358,
+        "height": 55.40625
+      },
+      "pad": {
+        "x": 16,
+        "y": 710.609375,
+        "width": 138,
+        "height": 117.390625
+      },
+      "gaps": {
+        "above": 10.609375,
+        "below": -183.40625,
+        "left": -358,
+        "right": -138
+      },
+      "separated": true,
+      "buttons": [
+        {
+          "direction": "forward",
+          "bounds": {
+            "x": 63,
+            "y": 737,
+            "width": 44,
+            "height": 44
+          }
+        },
+        {
+          "direction": "backward",
+          "bounds": {
+            "x": 63,
+            "y": 784,
+            "width": 44,
+            "height": 44
+          }
+        },
+        {
+          "direction": "left",
+          "bounds": {
+            "x": 16,
+            "y": 784,
+            "width": 44,
+            "height": 44
+          }
+        },
+        {
+          "direction": "right",
+          "bounds": {
+            "x": 110,
+            "y": 784,
+            "width": 44,
+            "height": 44
+          }
+        }
+      ],
+      "allControlsMoveAndStop": true,
+      "errors": []
+    },
+    {
+      "view": "phone-landscape",
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "dpr": 2,
+      "input": "trusted CDP touch on Mac",
+      "hint": {
+        "x": 131.2109375,
+        "y": 337.40625,
+        "width": 581.578125,
+        "height": 33.40625
+      },
+      "pad": {
+        "x": 16,
+        "y": 256.609375,
+        "width": 138,
+        "height": 117.390625
+      },
+      "gaps": {
+        "above": -114.203125,
+        "below": -36.59375,
+        "left": -696.7890625,
+        "right": -22.7890625
+      },
+      "separated": false,
+      "buttons": [
+        {
+          "direction": "forward",
+          "bounds": {
+            "x": 63,
+            "y": 283,
+            "width": 44,
+            "height": 44
+          }
+        },
+        {
+          "direction": "backward",
+          "bounds": {
+            "x": 63,
+            "y": 330,
+            "width": 44,
+            "height": 44
+          }
+        },
+        {
+          "direction": "left",
+          "bounds": {
+            "x": 16,
+            "y": 330,
+            "width": 44,
+            "height": 44
+          }
+        },
+        {
+          "direction": "right",
+          "bounds": {
+            "x": 110,
+            "y": 330,
+            "width": 44,
+            "height": 44
+          }
+        }
+      ],
+      "allControlsMoveAndStop": true,
+      "errors": []
+    },
+    {
+      "view": "narrow-desktop",
+      "viewport": {
+        "width": 800,
+        "height": 600
+      },
+      "dpr": 1,
+      "input": "mouse on Mac",
+      "hint": {
+        "x": 124.2890625,
+        "y": 549.140625,
+        "width": 551.421875,
+        "height": 31.671875
+      },
+      "pad": {
+        "x": 16,
+        "y": 466.609375,
+        "width": 138,
+        "height": 117.390625
+      },
+      "gaps": {
+        "above": -114.203125,
+        "below": -34.859375,
+        "left": -659.7109375,
+        "right": -29.7109375
+      },
+      "separated": false,
+      "buttons": [
+        {
+          "direction": "forward",
+          "bounds": {
+            "x": 63,
+            "y": 493,
+            "width": 44,
+            "height": 44
+          }
+        },
+        {
+          "direction": "backward",
+          "bounds": {
+            "x": 63,
+            "y": 540,
+            "width": 44,
+            "height": 44
+          }
+        },
+        {
+          "direction": "left",
+          "bounds": {
+            "x": 16,
+            "y": 540,
+            "width": 44,
+            "height": 44
+          }
+        },
+        {
+          "direction": "right",
+          "bounds": {
+            "x": 110,
+            "y": 540,
+            "width": 44,
+            "height": 44
+          }
+        }
+      ],
+      "allControlsMoveAndStop": true,
+      "errors": []
+    }
+  ],
+  "after": [
+    {
+      "view": "desktop",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "dpr": 1,
+      "input": "mouse on Mac",
+      "hint": {
+        "x": 329.8203125,
+        "y": 620.375,
+        "width": 620.359375,
+        "height": 35.625
+      },
+      "pad": {
+        "x": 16,
+        "y": 666.609375,
+        "width": 138,
+        "height": 117.390625
+      },
+      "gaps": {
+        "above": 10.609375,
+        "below": -163.625,
+        "left": -934.1796875,
+        "right": 175.8203125
+      },
+      "separated": true,
+      "buttons": [
+        {
+          "direction": "forward",
+          "bounds": {
+            "x": 63,
+            "y": 693,
+            "width": 44,
+            "height": 44
+          }
+        },
+        {
+          "direction": "backward",
+          "bounds": {
+            "x": 63,
+            "y": 740,
+            "width": 44,
+            "height": 44
+          }
+        },
+        {
+          "direction": "left",
+          "bounds": {
+            "x": 16,
+            "y": 740,
+            "width": 44,
+            "height": 44
+          }
+        },
+        {
+          "direction": "right",
+          "bounds": {
+            "x": 110,
+            "y": 740,
+            "width": 44,
+            "height": 44
+          }
+        }
+      ],
+      "allControlsMoveAndStop": true,
+      "errors": []
+    },
+    {
+      "view": "phone-portrait",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "dpr": 2,
+      "input": "trusted CDP touch on Mac",
+      "hint": {
+        "x": 16,
+        "y": 644.59375,
+        "width": 358,
+        "height": 55.40625
+      },
+      "pad": {
+        "x": 16,
+        "y": 710.609375,
+        "width": 138,
+        "height": 117.390625
+      },
+      "gaps": {
+        "above": 10.609375,
+        "below": -183.40625,
+        "left": -358,
+        "right": -138
+      },
+      "separated": true,
+      "buttons": [
+        {
+          "direction": "forward",
+          "bounds": {
+            "x": 63,
+            "y": 737,
+            "width": 44,
+            "height": 44
+          }
+        },
+        {
+          "direction": "backward",
+          "bounds": {
+            "x": 63,
+            "y": 784,
+            "width": 44,
+            "height": 44
+          }
+        },
+        {
+          "direction": "left",
+          "bounds": {
+            "x": 16,
+            "y": 784,
+            "width": 44,
+            "height": 44
+          }
+        },
+        {
+          "direction": "right",
+          "bounds": {
+            "x": 110,
+            "y": 784,
+            "width": 44,
+            "height": 44
+          }
+        }
+      ],
+      "allControlsMoveAndStop": true,
+      "errors": []
+    },
+    {
+      "view": "phone-landscape",
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "dpr": 2,
+      "input": "trusted CDP touch on Mac",
+      "hint": {
+        "x": 131.2109375,
+        "y": 212.59375,
+        "width": 581.578125,
+        "height": 33.40625
+      },
+      "pad": {
+        "x": 16,
+        "y": 256.609375,
+        "width": 138,
+        "height": 117.390625
+      },
+      "gaps": {
+        "above": 10.609375,
+        "below": -161.40625,
+        "left": -696.7890625,
+        "right": -22.7890625
+      },
+      "separated": true,
+      "buttons": [
+        {
+          "direction": "forward",
+          "bounds": {
+            "x": 63,
+            "y": 283,
+            "width": 44,
+            "height": 44
+          }
+        },
+        {
+          "direction": "backward",
+          "bounds": {
+            "x": 63,
+            "y": 330,
+            "width": 44,
+            "height": 44
+          }
+        },
+        {
+          "direction": "left",
+          "bounds": {
+            "x": 16,
+            "y": 330,
+            "width": 44,
+            "height": 44
+          }
+        },
+        {
+          "direction": "right",
+          "bounds": {
+            "x": 110,
+            "y": 330,
+            "width": 44,
+            "height": 44
+          }
+        }
+      ],
+      "allControlsMoveAndStop": true,
+      "errors": []
+    },
+    {
+      "view": "narrow-desktop",
+      "viewport": {
+        "width": 800,
+        "height": 600
+      },
+      "dpr": 1,
+      "input": "mouse on Mac",
+      "hint": {
+        "x": 124.2890625,
+        "y": 424.328125,
+        "width": 551.421875,
+        "height": 31.671875
+      },
+      "pad": {
+        "x": 16,
+        "y": 466.609375,
+        "width": 138,
+        "height": 117.390625
+      },
+      "gaps": {
+        "above": 10.609375,
+        "below": -159.671875,
+        "left": -659.7109375,
+        "right": -29.7109375
+      },
+      "separated": true,
+      "buttons": [
+        {
+          "direction": "forward",
+          "bounds": {
+            "x": 63,
+            "y": 493,
+            "width": 44,
+            "height": 44
+          }
+        },
+        {
+          "direction": "backward",
+          "bounds": {
+            "x": 63,
+            "y": 540,
+            "width": 44,
+            "height": 44
+          }
+        },
+        {
+          "direction": "left",
+          "bounds": {
+            "x": 16,
+            "y": 540,
+            "width": 44,
+            "height": 44
+          }
+        },
+        {
+          "direction": "right",
+          "bounds": {
+            "x": 110,
+            "y": 540,
+            "width": 44,
+            "height": 44
+          }
+        }
+      ],
+      "allControlsMoveAndStop": true,
+      "errors": []
+    }
+  ],
+  "artifacts": {
+    "before": "/tmp/ccapp-220-responsive-red",
+    "after": "/tmp/ccapp-220-responsive"
+  }
+}

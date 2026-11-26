@@ -151,5 +151,6 @@
       "status": 404,
       "syntheticAbsent": true
     }
-  ]
+  ],
+  "responsiveCorrectionEvidence": "0220-walking-responsive.json:1280x800,390x844,844x390,800x600 geometry and all4control holds/releases"
 }

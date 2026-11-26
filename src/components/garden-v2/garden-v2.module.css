@@ -121,7 +121,8 @@
 .hint {
   position: absolute;
   left: 50%;
-  bottom: max(1.2rem, env(safe-area-inset-bottom));
+  /* Keep instructions above the walking pad in portrait, landscape and narrow desktop views. */
+  bottom: max(9rem, calc(env(safe-area-inset-bottom) + 8rem));
   translate: -50% 0;
   margin: 0;
   color: rgb(255 250 240 / 0.9);
@@ -1464,8 +1465,6 @@
   }
 
   .hint {
-    /* Keep the first-use instructions above the persistent walking pad. */
-    bottom: max(9rem, calc(env(safe-area-inset-bottom) + 8rem));
     white-space: normal;
     width: max-content;
     max-width: calc(100vw - 2rem);
