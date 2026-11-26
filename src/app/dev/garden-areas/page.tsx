@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { GardenV2 } from "@/components/garden-v2/garden-v2";
+import { GardenFixture } from "./fixture";
 import { parseGardenState } from "@/lib/garden-v2/model";
 import fixture from "../../../../scripts/profiling/fixtures/type-area-garden.json";
 
@@ -13,5 +13,5 @@ export default async function TypeAreaFixture({ searchParams }: { searchParams: 
     state.garden.next_spot = 1;
     state.garden.spot_capacity = 12;
   }
-  return <GardenV2 initial={{ state, error: null }} />;
+  return <GardenFixture state={state} arrival={params.arrival === "1"} scope={params.scope === "1"} />;
 }

@@ -1464,6 +1464,8 @@
   }
 
   .hint {
+    /* Keep the first-use instructions above the persistent walking pad. */
+    bottom: max(9rem, calc(env(safe-area-inset-bottom) + 8rem));
     white-space: normal;
     width: max-content;
     max-width: calc(100vw - 2rem);

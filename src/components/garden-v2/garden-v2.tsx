@@ -59,7 +59,7 @@ function useWorldFlowers(state: GardenState | null, layout: TypeAreaLayout | nul
   return { flowers, anchors };
 }
 
-const TITLE: readonly WorldCaption[] = [{ id: "title", text: "our garden", position: [0, 10, -62], size: "title" }];
+const TITLE: readonly WorldCaption[] = [{ id: "title", text: "our garden", position: [0, 7, -62], size: "title" }];
 /** How far above the top of a flower (or a sprout's shoot) its "♡" floats, in world units (#214). */
 export const HEART_LIFT = 0.02;
 
@@ -333,6 +333,8 @@ export function GardenV2({
         captions={captions}
         focus={focus}
         paused={covered}
+        walking
+        walkingBlocked={covered || sheetOpen || !arrival.settled}
         arrival={arrival.world}
         onView={arrival.onView}
         onStatusChange={setWorldStatus}
@@ -359,7 +361,7 @@ export function GardenV2({
       />
       <FireworksOverlay {...fireworks.overlay} hidden={covered} />
       {worldStatus === "ready" && arrival.settled && !wandered && !covered && !sheetOpen && (
-        <p className={styles.hint}>scroll to wander closer · tap a flower to visit</p>
+        <p className={styles.hint}>WASD / arrows to walk · tap ground to wander · tap a flower to visit</p>
       )}
       {/* The away note waits for the fireworks to finish, so their words never overlap. */}
       {!covered && arrival.settled && !fireworks.overlay.playing && hasAwayNews(news) && <AwayNote news={news} state={state} onDismiss={() => setNews(noAwayNews)} />}

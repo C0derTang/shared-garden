@@ -31,7 +31,7 @@ function demoFlower(spot: number, stage: StageChoice): WorldFlower {
 }
 
 /** Dev-only story page for the painted world. */
-export function WorldShowcase({ preset: initialPreset, planted: initialPlanted, typeAreas = false }: { preset: SkyPreset; planted?: number; typeAreas?: boolean }) {
+export function WorldShowcase({ preset: initialPreset, planted: initialPlanted, typeAreas = false, walking = false }: { preset: SkyPreset; planted?: number; typeAreas?: boolean; walking?: boolean }) {
   const [preset, setPreset] = useState<SkyPreset>(initialPreset);
   const [occupied, setOccupied] = useState<number[]>(() =>
     initialPlanted === undefined ? INITIAL_PLANTED : Array.from({ length: initialPlanted }, (_, i) => i + 1),
@@ -97,6 +97,7 @@ export function WorldShowcase({ preset: initialPreset, planted: initialPlanted, 
         time={time}
         spotCapacity={capacity}
         plantingLayout={areaLayout}
+        walking={walking}
         focus={focus}
         occupiedSpots={occupied}
         flowers={flowers}

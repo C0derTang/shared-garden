@@ -251,18 +251,19 @@ export function buildFarShoreStrokes(): Stroke[] {
 }
 
 /** Our shore: framing trees at the sides and reeds along the waterline. */
+export const NEAR_SHORE_TREES: readonly (readonly [number, number, number])[] = [
+  [-8.6, 0.2, 1.5],
+  [-14, -3.2, 1.3],
+  [10.5, -2.8, 1.55],
+  [16, 1.5, 1.3],
+  [-21, -4.2, 1.2],
+  [23, -0.5, 1.35],
+];
+
 export function buildNearShoreStrokes(): Stroke[] {
   const random = createRandom(WORLD_SEED ^ 0x7e);
   const strokes: Stroke[] = [];
-  const framing: [number, number, number][] = [
-    [-8.6, 0.2, 1.5],
-    [-14, -3.2, 1.3],
-    [10.5, -2.8, 1.55],
-    [16, 1.5, 1.3],
-    [-21, -4.2, 1.2],
-    [23, -0.5, 1.35],
-  ];
-  for (const [x, z, size] of framing) deciduousTree(strokes, random, { x, z, size, brush: 0.5, density: 3.6 });
+  for (const [x, z, size] of NEAR_SHORE_TREES) deciduousTree(strokes, random, { x, z, size, brush: 0.5, density: 3.6 });
 
   // Grass tufts hugging the shore and foreground stones.
   for (const rock of shoreRocks()) {
