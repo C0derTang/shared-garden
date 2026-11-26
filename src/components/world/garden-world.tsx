@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { projectToNdc } from "@/lib/world/camera";
-import { SPOTS_PER_BED, type Vec3 } from "@/lib/world/layout";
+import { SPOTS_PER_BED, type Bed, type PlantingSpot, type Vec3 } from "@/lib/world/layout";
 import type { FocusTarget } from "@/lib/world/journey";
 import type { FlowerAnchor } from "@/lib/world/picking";
 import { handFont } from "./hand-font";
@@ -57,6 +57,8 @@ export interface GardenWorldProps {
   readonly notice?: (status: "unsupported" | "stopped") => ReactNode;
   /** Number of planting spots to show (rounded up to whole beds of twelve). */
   readonly spotCapacity?: number;
+  /** New garden: authoritative type-area geometry and pick positions. */
+  readonly plantingLayout?: { readonly beds: readonly Bed[]; readonly spots: readonly PlantingSpot[]; readonly maxZ: number };
   /** One-based spots that already hold a flower; they get no empty marker. */
   readonly occupiedSpots?: readonly number[];
   /** Pickable flowers drawn by layers. */
@@ -127,6 +129,7 @@ export function GardenWorld({
   onStatusChange,
   notice,
   spotCapacity = SPOTS_PER_BED,
+  plantingLayout,
   occupiedSpots = EMPTY,
   flowers = EMPTY,
   layers = EMPTY,
@@ -161,6 +164,7 @@ export function GardenWorld({
     doorInvite,
     entering,
     spotCapacity,
+    plantingLayout,
     occupiedSpots,
     flowers,
     layers,
@@ -185,7 +189,7 @@ export function GardenWorld({
     rendererRef.current?.update(sceneState);
     // sceneState is rebuilt from these inputs every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [spotCapacity, occupiedSpots, flowers, layers, timeValue, reducedMotion, doorInvite, entering, focus, paused, arrival]);
+  }, [spotCapacity, plantingLayout, occupiedSpots, flowers, layers, timeValue, reducedMotion, doorInvite, entering, focus, paused, arrival]);
 
   useEffect(() => {
     const canvas = canvasRef.current;

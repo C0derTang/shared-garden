@@ -1,24 +1,21 @@
 /**
- * The garden's hidden keyboard plot list (#210): every spot of the open beds,
- * planted or empty, in the world's reading order, with the words its chip
- * shows and what a screen reader hears for each.
+ * The hidden keyboard list groups flowers and their planting targets by type
+ * area. Flower spots keep their persisted IDs; negative spots are view-only
+ * area targets, never database planting addresses.
  */
 
-import { bedOfSpot, plotOrder } from "@/lib/world/plots";
+import { typeAreaLayout } from "./type-areas";
 import { captionName, catalogItem, gardenCareStatus, stageWords } from "./flowers";
 import type { GardenState, Plant } from "./model";
 
 export interface GardenPlot {
-  /** One-based spot. */
+  /** Persisted flower spot, or a negative view-only planting-area ID. */
   readonly spot: number;
-  /** One-based bed number ("bed 2"). */
+  /** One-based address module, retained for plot consumers. */
   readonly bed: number;
   /** The flower growing there, if any. */
   readonly plant: Plant | null;
-  /**
-   * The chip's short words: "rose · 3 of 5 · bed 1", "rose · in bloom · bed 1", "empty spot · bed 2",
-   * with "♡" after the growth when the flower waits on your care ({@link waitsOnYou}, #214).
-   */
+  /** Short growth/care words followed by the named area. */
   readonly label: string;
   /** What a screen reader hears for the plot. */
   readonly ariaLabel: string;
@@ -46,26 +43,22 @@ export function flowerLabel(plant: Plant, state: GardenState, partner: string) {
   return `${name}, ${growth}${care}`;
 }
 
-/** Every plot of the open beds in reading order. */
+/** Type order, then persisted flower address, then that area's planting target. */
 export function gardenPlots(state: GardenState, partner: string): GardenPlot[] {
-  const bySpot = new Map(state.plants.map((plant) => [plant.flower.spot, plant]));
-  return plotOrder(state.garden.spot_capacity).map((spot) => {
-    const bed = bedOfSpot(spot) + 1;
-    const plant = bySpot.get(spot) ?? null;
-    if (!plant) {
-      return { spot, bed, plant, label: `empty spot · bed ${bed}`, ariaLabel: `Empty spot, bed ${bed}` };
-    }
-    const item = catalogItem(state, plant.flower.type_key);
-    const name = captionName(item, plant.flower.type_key);
-    // The same "♡" as floats over the flower in the world (#214).
-    const waiting = waitsOnYou(plant, state);
-    return {
-      spot,
-      bed,
-      plant,
-      label: `${name} · ${plotGrowth(plant, state)}${waiting ? " ♡" : ""} · bed ${bed}`,
-      ariaLabel: `${flowerLabel(plant, state, partner)}. Bed ${bed}`,
-    };
+  return typeAreaLayout(state).areas.flatMap((area): GardenPlot[] => {
+    const plants = area.plants.map((plant): GardenPlot => {
+      const bed = Math.floor((plant.flower.spot - 1) / 12) + 1;
+      const name = captionName(catalogItem(state, plant.flower.type_key), plant.flower.type_key);
+      return {
+        spot: plant.flower.spot, bed, plant,
+        label: `${name} · ${plotGrowth(plant, state)}${waitsOnYou(plant, state) ? " ♡" : ""} · ${area.name} area`,
+        ariaLabel: `${flowerLabel(plant, state, partner)}. ${area.name} area`,
+      };
+    });
+    return [...plants, {
+      spot: area.target.spot, bed: Math.floor((area.target.persistedSpot - 1) / 12) + 1, plant: null,
+      label: `plant ${area.name} · ${area.name} area`, ariaLabel: `Plant a ${area.name} in the ${area.name} area`,
+    }];
   });
 }
 

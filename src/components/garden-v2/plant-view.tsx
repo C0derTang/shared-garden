@@ -33,6 +33,7 @@ const ABOUT: Record<FlowerType, string> = {
  */
 export function PlantView({
   spot,
+  initialType = "rose",
   state,
   busy,
   mutate,
@@ -41,6 +42,7 @@ export function PlantView({
   onReturnFocus,
 }: {
   spot: number | null;
+  initialType?: FlowerType;
   state: GardenState;
   busy: boolean;
   mutate: MutateV2;
@@ -50,7 +52,7 @@ export function PlantView({
   onReturnFocus?: () => void;
 }) {
   const id = useId();
-  const [type, setType] = useState<FlowerType>("rose");
+  const [type, setType] = useState<FlowerType>(initialType);
   const [wish, setWish] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -86,7 +88,7 @@ export function PlantView({
       heroName={name}
       heroStage="in bloom, someday"
       title="plant a seed"
-      subtitle={`in spot ${spot ?? ""} · every seed grows its own way`}
+      subtitle={`in the ${name} area · every seed grows its own way`}
       onReturnFocus={onReturnFocus}
       closeLabel="Close without planting"
     >

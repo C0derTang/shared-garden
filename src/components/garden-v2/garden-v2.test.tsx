@@ -4,10 +4,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { StudioState } from "@/components/world/flowers/studio-renderer";
 import type { WorldRendererCallbacks, WorldSceneState } from "@/components/world/renderer";
 import { awayKey, takeAwaySnapshot } from "@/lib/garden-v2/away";
-import type { GardenState } from "@/lib/garden-v2/model";
+import { flowerTypes, type GardenState } from "@/lib/garden-v2/model";
+import { typeAreaLayout } from "@/lib/garden-v2/type-areas";
 import type { GardenView } from "@/lib/garden-v2/views";
 import { guideKey } from "@/lib/garden-v2/views";
-import { v2GardenFixture } from "@/test/garden-v2-fixture";
+import { v2EntryFixture, v2GardenFixture } from "@/test/garden-v2-fixture";
 
 // The painted world, the flower studio and the flower layer need WebGPU and .wgsl; record what they are given.
 const worlds: { callbacks: WorldRendererCallbacks; states: WorldSceneState[] }[] = [];
@@ -142,7 +143,7 @@ const captionIds = () => [...document.querySelectorAll("[data-caption]")].map((e
 const hearts = () => [...document.querySelectorAll<HTMLElement>('[data-caption^="care-"]')];
 
 describe("GardenV2", () => {
-  it("paints the garden with no floating names and lists every plot in a hidden keyboard list", async () => {
+  it("paints thirteen named areas and lists their flowers and planting targets accessibly", async () => {
     const { state } = await mount();
     const scene = worlds[0]!.states.at(-1)!;
     expect(scene).toMatchObject({ spotCapacity: 12, occupiedSpots: [1], paused: false, focus: null });
@@ -150,7 +151,9 @@ describe("GardenV2", () => {
     expect(scene.flowers.map((f) => f.id)).toEqual([state.plants[0]!.flower.id]);
     // Only the world's title and a "♡" over the flower waiting on your care float in the scene;
     // no names over the plants or seed marks (#206, #214).
-    expect(captionIds()).toEqual(["title", `care-${state.plants[0]!.flower.id}`]);
+    expect(captionIds()).toEqual(["title", ...flowerTypes.map((type) => `area-${type}`), `care-${state.plants[0]!.flower.id}`]);
+    expect(scene.plantingLayout?.spots).toEqual(typeAreaLayout(state).spots);
+    expect(scene.flowers[0]!.position).toEqual(scene.plantingLayout!.spots.find((spot) => spot.spot === 1)!.position);
     expect(screen.queryByRole("link", { name: /^rose/i })).toBeNull();
     // No plot navigator (#210): no listbox, chevrons or visit/plant controls.
     expect(screen.queryByRole("listbox")).toBeNull();
@@ -158,10 +161,10 @@ describe("GardenV2", () => {
     // Every plot is in the hidden list, in reading order, with its full name.
     const list = screen.getByRole("navigation", { name: "Plots in the garden" });
     const plots = within(list).getAllByRole("button");
-    expect(plots).toHaveLength(12);
-    expect(within(list).getByRole("button", { name: /^rose, in bud, 2 of 5\. Your care is open; partner cared today\. Bed 1$/ })).toHaveTextContent("rose · 2 of 5 ♡ · bed 1");
-    expect(within(list).getAllByRole("button", { name: "Empty spot, bed 1" })).toHaveLength(11);
-    expect(within(list).getAllByRole("button", { name: "Empty spot, bed 1" })[0]).toHaveTextContent("empty spot · bed 1");
+    expect(plots).toHaveLength(14);
+    expect(within(list).getByRole("button", { name: /^rose, in bud, 2 of 5\. Your care is open; partner cared today\. rose area$/ })).toHaveTextContent("rose · 2 of 5 ♡ · rose area");
+    expect(within(list).getAllByRole("button", { name: /^Plant a / })).toHaveLength(13);
+    expect(within(list).getByRole("button", { name: "Plant a cactus in the cactus area" })).toHaveTextContent("plant cactus · cactus area");
     expect(screen.getByRole("link", { name: "old garden" })).toHaveAttribute("href", "/legacy");
     expect(screen.queryByText(/dev showcase/i)).toBeNull();
   });
@@ -245,10 +248,11 @@ describe("GardenV2", () => {
   it("plants on an empty plot from the hidden list, and returns focus to that plot", async () => {
     const user = userEvent.setup();
     await mount();
-    const empty = within(screen.getByRole("navigation", { name: "Plots in the garden" })).getAllByRole("button", { name: "Empty spot, bed 1" })[0]!;
+    const empty = within(screen.getByRole("navigation", { name: "Plots in the garden" })).getByRole("button", { name: "Plant a cactus in the cactus area" });
     empty.focus();
     await user.keyboard("{Enter}");
-    expect(await screen.findByRole("dialog", { name: "plant a seed" })).toBeInTheDocument();
+    const dialog = await screen.findByRole("dialog", { name: "plant a seed" });
+    expect(within(dialog).getByRole("radio", { name: /^cactus/ })).toBeChecked();
     await user.keyboard("{Escape}");
     expect(screen.queryByRole("dialog")).toBeNull();
     await act(() => new Promise((resolve) => setTimeout(resolve, 30)));
@@ -276,7 +280,7 @@ describe("GardenV2", () => {
     const user = userEvent.setup();
     const { state } = await mount();
     // Tapping the glowing seed mark of spot 2 in the world.
-    act(() => worlds[0]!.callbacks.onPick({ kind: "spot", spot: 2, distance: 1 }));
+    act(() => worlds[0]!.callbacks.onPick({ kind: "spot", spot: -1, distance: 1 }));
     const dialog = await screen.findByRole("dialog", { name: "plant a seed" });
     expect(within(dialog).getAllByRole("radio")).toHaveLength(13);
     await user.click(within(dialog).getByRole("radio", { name: /^dandelion/ }));
@@ -291,6 +295,26 @@ describe("GardenV2", () => {
     // It then opens the new flower so today's care is one tap away.
     expect(await screen.findByRole("dialog", { name: "dandelion" })).toBeInTheDocument();
     expect(screen.getByText("The dandelion is planted.")).toBeInTheDocument();
+  });
+
+  it("opens sparse grouped flowers by their original identity and reads their existing history", async () => {
+    const user = userEvent.setup();
+    const state = garden();
+    const rose = state.plants[0]!;
+    rose.flower.spot = 24;
+    rose.flower.growth_units = 3;
+    state.garden.spot_capacity = 24;
+    state.garden.next_spot = 1;
+    state.plants.push({ ...structuredClone(rose), flower: { ...rose.flower, id: "00000000-0000-4000-8000-000000000002", type_key: "cactus", spot: 12 } });
+    const entry = { ...v2EntryFixture(), garden_day: "2026-11-01", payload: { text: "An earlier synthetic memory." } };
+    api.loadFlowerHistoryV2.mockResolvedValue({ entries: [entry], error: null });
+    await mount(state);
+    await user.click(within(screen.getByRole("navigation", { name: "Plots in the garden" })).getByRole("button", { name: /^rose,/ }));
+    const dialog = await screen.findByRole("dialog", { name: "rose" });
+    await user.click(within(dialog).getByRole("button", { name: "read earlier days" }));
+    expect(await within(dialog).findByText("An earlier synthetic memory.")).toBeInTheDocument();
+    expect(api.loadFlowerHistoryV2).toHaveBeenCalledWith(rose.flower.id, null);
+    expect(within(dialog).getByRole("progressbar")).toHaveAttribute("aria-valuenow", "3");
   });
 
   it("tells you what happened while you were away", async () => {
@@ -573,7 +597,7 @@ describe("GardenV2", () => {
       await user.keyboard("{Escape}");
       expect(hearts()).toHaveLength(2);
       // Planting an empty spot.
-      act(() => worlds[0]!.callbacks.onPick({ kind: "spot", spot: 9, distance: 1 }));
+      act(() => worlds[0]!.callbacks.onPick({ kind: "spot", spot: -9, distance: 1 }));
       await screen.findByRole("dialog", { name: "plant a seed" }, { timeout: 3000 });
       expect(captionIds()).toEqual(["title"]);
       await user.keyboard("{Escape}");
@@ -584,11 +608,11 @@ describe("GardenV2", () => {
       expect(captionIds()).toEqual(["title"]);
     });
 
-    it("shows nothing when nothing waits on you", async () => {
+    it("shows no care hearts when nothing waits on you", async () => {
       const state = mixed();
       for (const plant of state.plants) plant.member1_submitted = true;
       await mount(state);
-      expect(captionIds()).toEqual(["title"]);
+      expect(captionIds()).toEqual(["title", ...flowerTypes.map((type) => `area-${type}`)]);
     });
   });
 

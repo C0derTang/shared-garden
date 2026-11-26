@@ -425,8 +425,8 @@ describe("the garden's overlays", () => {
       await mount();
       useGlideTimers();
       const user = userEvent.setup({ delay: null });
-      // Tapping the glowing seed mark of spot 2 in the painted world.
-      act(() => worlds[0]!.callbacks.onPick({ kind: "spot", spot: 2, distance: 1 }));
+      // Tapping the rose area seed mark (persisted next spot 2).
+      act(() => worlds[0]!.callbacks.onPick({ kind: "spot", spot: -1, distance: 1 }));
       await tick(GLIDE_MS + 50);
       const plant = screen.getByRole("dialog", { name: "plant a seed" });
       await user.click(within(plant).getByRole("radio", { name: /^marigold/ }));

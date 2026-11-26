@@ -26,6 +26,8 @@ export interface GardenCameraState {
   readonly journey: number;
   /** Sideways walk along the beds (world units). */
   readonly pan: number;
+  /** Additional meadow depth opened by type-area modules. */
+  readonly depth?: number;
   /** A flower the camera glides close to before its view opens, and how far it has glided. */
   readonly focus?: FocusTarget | null;
   readonly focusWeight?: number;
@@ -34,9 +36,10 @@ export interface GardenCameraState {
 /** Camera pose for a state, before drift and parallax. */
 export function gardenPose(state: GardenCameraState, aspect: number, fovY: number): JourneyPose {
   const walked = journeyPose(state.journey);
+  const depth = Math.max(0, state.depth ?? 0) * (1 - Math.min(1, Math.max(0, state.journey)));
   let pose: JourneyPose = {
-    eye: [walked.eye[0] + state.pan, walked.eye[1], walked.eye[2]],
-    look: [walked.look[0] + state.pan, walked.look[1], walked.look[2]],
+    eye: [walked.eye[0] + state.pan, walked.eye[1], walked.eye[2] + depth],
+    look: [walked.look[0] + state.pan, walked.look[1], walked.look[2] + depth],
   };
   const focus = state.focus && state.focusWeight ? Math.min(1, Math.max(0, state.focusWeight)) : 0;
   if (state.focus && focus > 0) pose = blendPoses(pose, focusPose(state.focus, aspect, fovY), focus);
