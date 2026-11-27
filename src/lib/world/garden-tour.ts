@@ -52,7 +52,21 @@ export function gardenTour(beds:readonly Bed[]):GardenTour {
 export function tourCoordinate(tour:GardenTour,distance:number):{id:string;fraction:number}{const d=Math.max(0,Math.min(tour.length,Number.isFinite(distance)?distance:0));const leg=tour.legs.find(l=>d<=l.start+l.length)??tour.legs.at(-1)!;return{id:leg.edge.id,fraction:(d-leg.start)/(leg.length||1)};}
 export function pixelsToTourDistance(tour:GardenTour,pixels:number):number {const p=Math.max(0,Math.min(tour.scrollLength,Number.isFinite(pixels)?pixels:0)),leg=tour.legs.find(l=>p<=l.scrollStart+l.scrollLength)??tour.legs.at(-1)!;return leg.start+(p-leg.scrollStart)/leg.scrollLength*leg.length;}
 export function tourDistanceToPixels(tour:GardenTour,distance:number):number {const at=tourCoordinate(tour,distance),leg=tour.legs.find(l=>l.edge.id===at.id)!;return leg.scrollStart+leg.scrollLength*at.fraction;}
-export function retainTourDistance(before:GardenTour,after:GardenTour,distance:number):number {const at=tourCoordinate(before,distance),leg=after.legs.find(l=>l.edge.id===at.id);if(leg)return leg.start+leg.length*at.fraction;const previous=before.legs.find(l=>l.edge.id===at.id)!;const anchor=previous.edge.from.startsWith('expansion-turn:')?after.legs.find(l=>l.edge.to===previous.edge.to):after.legs.find(l=>l.edge.to===previous.edge.from)??after.legs.find(l=>l.edge.to===previous.edge.to);return anchor?anchor.start+anchor.length:after.startDistance;}
+export function retainTourDistance(before:GardenTour,after:GardenTour,distance:number):number {
+ const d=Math.max(0,Math.min(before.length,Number.isFinite(distance)?distance:0));
+ const boundaries=(tour:GardenTour)=>[...tour.legs.map(leg=>({id:leg.edge.from,distance:leg.start})),{id:tour.legs.at(-1)!.edge.to,distance:tour.length}];
+ const next=new Map(boundaries(after).map(stop=>[stop.id,stop.distance]));
+ const stable=boundaries(before).filter(stop=>next.has(stop.id));
+ // A shared stop is its own identity, even if division classifies the incoming
+ // curve fraction a ULP above one. Never alias it to another stop of its type.
+ const exact=stable.find(stop=>stop.distance===d);if(exact)return next.get(exact.id)!;
+ const at=tourCoordinate(before,d),leg=after.legs.find(leg=>leg.edge.id===at.id);
+ if(leg)return leg.start+leg.length*at.fraction;
+ // Only genuinely removed geometry may fall back. Use old-route proximity,
+ // including both sides of a removed turn; an exact tie keeps the earlier stop.
+ let nearest=stable[0];for(const stop of stable)if(!nearest||Math.abs(stop.distance-d)<Math.abs(nearest.distance-d))nearest=stop;
+ return nearest?next.get(nearest.id)!:after.startDistance;
+}
 export function tourPose(tour:GardenTour,distance:number):ScenicCameraPose {
  const at=tourCoordinate(tour,distance),leg=tour.legs.find(l=>l.edge.id===at.id)!,target=at.fraction*leg.length,ds=leg.distances;
  let i=1;while(i<ds.length-1&&ds[i]!<target)i++;const t=((i-1)+(target-ds[i-1]!)/(ds[i]!-ds[i-1]!||1))/(ds.length-1),eye=curvePoint(leg.edge,t);

@@ -32,7 +32,7 @@ it('preserves every surviving edge and interior rendered pose/lens across first 
   before=after;
  }
 });
-it('replaces only the shortcut or extent-specific turn legs, with explicit adjacent-stop fallback',()=>{
+it('replaces only explicitly named shortcut or extent-specific turn legs',()=>{
  const state=fullTourFixture();let before=gardenTour(compactAreaLayout(state).beds);
  for(const [count,removedIds] of [
   [1,['tour:terrace:4:terrace:1']],
@@ -41,7 +41,46 @@ it('replaces only the shortcut or extent-specific turn legs, with explicit adjac
  ] as const){
   appendRoses(state,count);const after=gardenTour(compactAreaLayout(state).beds),removed=before.legs.filter(leg=>!after.legs.some(next=>next.edge.id===leg.edge.id));
   expect(removed.map(leg=>leg.edge.id)).toEqual(removedIds);
-  for(const leg of removed){const target=leg.edge.from.startsWith('expansion-turn:')?leg.edge.to:leg.edge.from,stop=after.stops.find(s=>s.id===target)!;for(const fraction of [.25,.5,.75]){const retained=tourPose(after,retainTourDistance(before,after,leg.start+leg.length*fraction));expect(new Float32Array(retained.eye)).toEqual(new Float32Array(stop.pose.eye));}}
+
+  before=after;
+ }
+});
+function stopCoordinates(tour:ReturnType<typeof gardenTour>){return [...tour.legs.map(leg=>({id:leg.edge.from,distance:leg.start})),{id:tour.legs.at(-1)!.edge.to,distance:tour.length}];}
+it('preserves every surviving exact stop identity before removed-incoming-edge fallback',()=>{
+ const state=fullTourFixture();let before=gardenTour(compactAreaLayout(state).beds);
+ for(const count of [1,6,6]){
+  appendRoses(state,count);const after=gardenTour(compactAreaLayout(state).beds),next=new Map(stopCoordinates(after).map(stop=>[stop.id,stop.distance]));
+  for(const stop of stopCoordinates(before)){
+   if(!next.has(stop.id))continue;
+   const retained=retainTourDistance(before,after,stop.distance);
+   expect(retained,`${stop.id} stable exact boundary`).toBe(next.get(stop.id));
+   const a=tourPose(before,stop.distance),b=tourPose(after,retained);
+   expect(new Float32Array(b.eye),`${stop.id} eye`).toEqual(new Float32Array(a.eye));
+   for(const aspect of [1280/800,390/844,844/390,800/600]){
+    const matrix=(pose:typeof a)=>multiply(perspective(tourFovY(pose,aspect),aspect,.1,420),lookAt(pose.eye,pose.look,[0,1,0]));
+    expect(matrix(b),`${stop.id} orientation/lens`).toEqual(matrix(a));
+   }
+  }
+  before=after;
+ }
+});
+it('retains surviving curves on either boundary side and chooses the closest stable boundary only on removed geometry',()=>{
+ const state=fullTourFixture();let before=gardenTour(compactAreaLayout(state).beds);
+ for(const count of [1,6,6]){
+  appendRoses(state,count);const after=gardenTour(compactAreaLayout(state).beds),next=new Map(stopCoordinates(after).map(stop=>[stop.id,stop.distance])),stable=stopCoordinates(before).filter(stop=>next.has(stop.id));
+  for(const stop of stable)for(const distance of [stop.distance-1e-6,stop.distance+1e-6,...[-1,0,.5,1,2].map(offset=>pixelsToTourDistance(before,Math.floor(tourDistanceToPixels(before,stop.distance))+offset))]){
+   const d=Math.max(0,Math.min(before.length,distance)),retained=retainTourDistance(before,after,d),leg=before.legs.find(leg=>d<=leg.start+leg.length)??before.legs.at(-1)!;
+   if(after.legs.some(next=>next.edge.id===leg.edge.id)){
+    const a=tourPose(before,d),b=tourPose(after,retained);expect(new Float32Array(b.eye),`${stop.id} surviving side`).toEqual(new Float32Array(a.eye));
+   }else{
+    const closest=[...stable].sort((a,b)=>Math.abs(a.distance-d)-Math.abs(b.distance-d)||a.distance-b.distance)[0]!;
+    expect(retained,`${stop.id} removed side at${d}`).toBe(next.get(closest.id));
+   }
+  }
+  for(const leg of before.legs.filter(leg=>!after.legs.some(next=>next.edge.id===leg.edge.id)))for(const fraction of [.1,.25,.5,.75,.9]){
+   const d=leg.start+leg.length*fraction,closest=[...stable].sort((a,b)=>Math.abs(a.distance-d)-Math.abs(b.distance-d)||a.distance-b.distance)[0]!;
+   expect(retainTourDistance(before,after,d),`${leg.edge.id} removed interior`).toBe(next.get(closest.id));
+  }
   before=after;
  }
 });
