@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { usePartnerName } from "@/components/auth/member-names";
 import { useSheetScope } from "@/components/ui/sheet-scope";
 import type { FlowerLayer } from "@/components/world/flowers/flower-layer";
@@ -16,6 +16,7 @@ import { gardenPlots, waitingOnYou, type GardenPlot } from "@/lib/garden-v2/plot
 import { useGardenV2 } from "@/lib/garden-v2/use-garden-v2";
 import { gardenViewHref, type GardenView } from "@/lib/garden-v2/views";
 import { gardenTour, retainTourDistance, pixelsToTourDistance, tourDistanceToPixels } from "@/lib/world/garden-tour";
+import { nativeToTourPixels, tourToNativePixels } from "@/lib/world/tour-scroll";
 import { compactAreaLayout } from "@/lib/garden-v2/compact-areas";
 import { FlowerPicker } from "./flower-picker";
 import type {WorldView} from "@/components/world/renderer";
@@ -111,6 +112,7 @@ export function GardenV2({
   const [tourDistance, setTourDistance] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const acceptedScroll = useRef(0);
+  const scrollPhase = useRef(0);
   const scrollGlideFrame=useRef<number|null>(null);
   const scrollGlideEpoch=useRef(0);
   const interruptScrollGlide=useCallback(()=>{
@@ -150,13 +152,19 @@ export function GardenV2({
   const route = useMemo(() => layout ? gardenTour(layout.beds) : undefined, [layout]);
   const previousRoute = useRef(route);
   const scrollInitialized=useRef(false);
-  useEffect(() => {
+  // Publish the retained route coordinate before any frame can use the new
+  // itinerary with the old cumulative distance (including child effects).
+  useLayoutEffect(() => {
     if(route && (!scrollInitialized.current || (previousRoute.current && (route.length!==previousRoute.current.length || route.legs.some((leg,i)=>leg.edge.id!==previousRoute.current!.legs[i]?.edge.id))))){
       interruptScrollGlide();
-      const retained=scrollInitialized.current&&previousRoute.current?retainTourDistance(previousRoute.current,route,pixelsToTourDistance(previousRoute.current,acceptedScroll.current)):route.startDistance;
+      const remapping=scrollInitialized.current;
+      const retained=remapping&&previousRoute.current?retainTourDistance(previousRoute.current,route,pixelsToTourDistance(previousRoute.current,acceptedScroll.current)):route.startDistance;
       scrollInitialized.current=true;
       acceptedScroll.current=tourDistanceToPixels(route,retained);
       scrollRef.current?.scrollTo?.({top:acceptedScroll.current,behavior:"instant"});
+      // Preserve the subpixel conversion phase only on layout remap. Initial
+      // native travel keeps its original mapping and browser-owned rounding.
+      scrollPhase.current=remapping&&scrollRef.current?acceptedScroll.current-scrollRef.current.scrollTop:0;
       setTourDistance(retained);
     }
     previousRoute.current=route;
@@ -170,11 +178,11 @@ export function GardenV2({
   useEffect(()=>{navigationBlockedRef.current=navigationBlocked;},[navigationBlocked]);
   const [pickerOpen,setPickerOpen]=useState(false);
   useEffect(()=>{
-    const freeze=()=>{interruptScrollGlide();scrollRef.current?.scrollTo?.({top:acceptedScroll.current,behavior:"instant"});};
+    const freeze=()=>{interruptScrollGlide();const element=scrollRef.current;if(element&&route)element.scrollTo?.({top:tourToNativePixels(acceptedScroll.current,scrollPhase.current,element.scrollHeight-element.clientHeight,route.scrollLength),behavior:"instant"});};
     if(navigationBlocked || reducedMotion)freeze();
     window.addEventListener("blur",freeze);document.addEventListener("visibilitychange",freeze);
     return()=>{window.removeEventListener("blur",freeze);document.removeEventListener("visibilitychange",freeze);};
-  },[navigationBlocked,reducedMotion,interruptScrollGlide]);
+  },[navigationBlocked,reducedMotion,interruptScrollGlide,route]);
   useEffect(()=>()=>interruptScrollGlide(),[interruptScrollGlide]);
   // Night fireworks after a day with an achievement (#184); they pause with the world behind the split view.
   const fireworks = useNightFireworks({ state, now, covered, worldReady: worldStatus === "ready" && arrival.settled, reducedMotion });
@@ -383,8 +391,10 @@ export function GardenV2({
         onPointerDownCapture={interruptScrollGlide}
         onKeyDownCapture={event=>{if(["ArrowUp","ArrowDown","PageUp","PageDown","Home","End"," "].includes(event.key))interruptScrollGlide();}}
         onScroll={event=>{
-          if(navigationBlockedRef.current || pickerOpen){event.currentTarget.scrollTop=acceptedScroll.current;return;}
-          acceptedScroll.current=event.currentTarget.scrollTop;
+          if(!route)return;
+          const element=event.currentTarget,max=element.scrollHeight-element.clientHeight;
+          if(navigationBlockedRef.current || pickerOpen){element.scrollTop=tourToNativePixels(acceptedScroll.current,scrollPhase.current,max,route.scrollLength);return;}
+          acceptedScroll.current=nativeToTourPixels(element.scrollTop,scrollPhase.current,max,route.scrollLength);
           if(route)setTourDistance(pixelsToTourDistance(route,acceptedScroll.current));
         }}>
         <div style={{height:`calc(100% + ${route?.scrollLength??0}px)`}}>
@@ -418,7 +428,7 @@ export function GardenV2({
         setPickerOpen(false);setWandered(true);
         interruptScrollGlide();
         const element=scrollRef.current;if(!element)return;
-        const top=tourDistanceToPixels(route,distance),from=element.scrollTop;
+        const top=tourToNativePixels(tourDistanceToPixels(route,distance),scrollPhase.current,element.scrollHeight-element.clientHeight,route.scrollLength),from=element.scrollTop;
         if(reducedMotion){element.scrollTo?.({top,behavior:"instant"});return;}
         // Only the native scroll position is animated; camera/picking consume its events.
         // Canceling this writer leaves the very first native input delta untouched.

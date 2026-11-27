@@ -14,7 +14,7 @@ export function gardenTour(beds:readonly Bed[]):GardenTour {
  const base=terraces.filter(s=>s.section===0),expansion=terraces.filter(s=>s.section!==0),room=[...base];
  if(expansion.length){
   const last=expansion.at(-1)!;
-  const turn:ScenicStop={id:'expansion-turn',label:'meadow bend',transit:true,pose:{eye:point(23,last.pose.eye[2]+3,2.35),look:last.pose.look}};
+  const turn:ScenicStop={id:`expansion-turn:${last.id}`,label:'meadow bend',transit:true,pose:{eye:point(23,last.pose.eye[2]+3,2.35),look:last.pose.look}};
   const returning:ScenicStop[]=[...expansion].reverse().map(stop=>({id:`return:${stop.id}`,label:'meadow return',transit:true,pose:{eye:point(24,stop.pose.eye[2],2.35),look:stop.pose.look}}));
   room.splice(room.findIndex(s=>s.typeIndex===4)+1,0,...expansion,turn,...returning);
  }
@@ -24,11 +24,23 @@ export function gardenTour(beds:readonly Bed[]):GardenTour {
  const surveyed=scenicRoute([]),ids=['house-rear',...Array.from({length:7},(_,i)=>`woodland:${i}`),'overview:0'];
  const access=ids.map(id=>surveyed.stops.find(s=>s.id===id)!);
  const stops=[...access,...room];
+ // A stop's tangent belongs to its immutable spatial slot, not its current
+ // itinerary neighbors. Inserting a spur must not bend surviving room edges.
+ const tangents=new Map<string,readonly [number,number]>();
+ const delta=(previous:Vec3,next:Vec3):readonly [number,number]=>[(next[0]-previous[0])*.16,(next[2]-previous[2])*.16];
+ const canonical=[...access,room[0]!,...base,room.at(-1)!];
+ canonical.forEach((stop,i)=>tangents.set(stop.id,delta(canonical[Math.max(0,i-1)]!.pose.eye,canonical[Math.min(canonical.length-1,i+1)]!.pose.eye)));
+ const virtual=(ordinal:number):Vec3=>{const frame=terraceFrame(13+ordinal);return point(frame.walk[0],frame.walk[1],2.35);};
+ expansion.forEach((stop,i)=>{
+  tangents.set(stop.id,delta(i?virtual(i-1):base.find(s=>s.typeIndex===4)!.pose.eye,virtual(i+1)));
+  tangents.set(`return:${stop.id}`,delta(point(24,virtual(i+1)[2],2.35),i?point(24,virtual(i-1)[2],2.35):base.find(s=>s.typeIndex===1)!.pose.eye));
+ });
+ const turn=room.find(s=>s.id.startsWith('expansion-turn:'));if(turn)tangents.set(turn.id,[.32,0]);
  const edges:ScenicEdge[]=stops.slice(1).map((to,i)=>{
   const from=stops[i]!,original=surveyed.edges.find(e=>(e.from===from.id&&e.to===to.id)||(e.from===to.id&&e.to===from.id));
   if(i<access.length-1&&original)return original.from===from.id?original:{...original,from:from.id,to:to.id,points:[...original.points].reverse() as [Vec3,Vec3,Vec3,Vec3]};
-  const p=from.pose.eye,q=to.pose.eye,previous=stops[Math.max(0,i-1)]!.pose.eye,next=stops[Math.min(stops.length-1,i+2)]!.pose.eye;
-  return{id:`tour:${from.id}:${to.id}`,from:from.id,to:to.id,primary:true,points:[p,point(p[0]+(q[0]-previous[0])*.16,p[2]+(q[2]-previous[2])*.16,p[1]-landingTerrainHeight(p[0],p[2])),point(q[0]-(next[0]-p[0])*.16,q[2]-(next[2]-p[2])*.16,q[1]-landingTerrainHeight(q[0],q[2])),q]};
+  const p=from.pose.eye,q=to.pose.eye,outgoing=tangents.get(from.id)!,incoming=tangents.get(to.id)!;
+  return{id:`tour:${from.id}:${to.id}`,from:from.id,to:to.id,primary:true,points:[p,point(p[0]+outgoing[0],p[2]+outgoing[1],p[1]-landingTerrainHeight(p[0],p[2])),point(q[0]-incoming[0],q[2]-incoming[1],q[1]-landingTerrainHeight(q[0],q[2])),q]};
  });
  let length=0,scrollLength=0,startDistance=0;const anchors=new Map<number,number>();
  const legs=edges.map((edge,i)=>{const samples=edgeSamples(edge),distances=[0];samples.slice(1).forEach((p,j)=>distances.push(distances[j]!+Math.hypot(p[0]-samples[j]![0],p[2]-samples[j]![2])));const geometric=distances.at(-1)!,woodland=i<access.length;
@@ -40,7 +52,7 @@ export function gardenTour(beds:readonly Bed[]):GardenTour {
 export function tourCoordinate(tour:GardenTour,distance:number):{id:string;fraction:number}{const d=Math.max(0,Math.min(tour.length,Number.isFinite(distance)?distance:0));const leg=tour.legs.find(l=>d<=l.start+l.length)??tour.legs.at(-1)!;return{id:leg.edge.id,fraction:(d-leg.start)/(leg.length||1)};}
 export function pixelsToTourDistance(tour:GardenTour,pixels:number):number {const p=Math.max(0,Math.min(tour.scrollLength,Number.isFinite(pixels)?pixels:0)),leg=tour.legs.find(l=>p<=l.scrollStart+l.scrollLength)??tour.legs.at(-1)!;return leg.start+(p-leg.scrollStart)/leg.scrollLength*leg.length;}
 export function tourDistanceToPixels(tour:GardenTour,distance:number):number {const at=tourCoordinate(tour,distance),leg=tour.legs.find(l=>l.edge.id===at.id)!;return leg.scrollStart+leg.scrollLength*at.fraction;}
-export function retainTourDistance(before:GardenTour,after:GardenTour,distance:number):number {const at=tourCoordinate(before,distance),leg=after.legs.find(l=>l.edge.id===at.id);if(leg)return leg.start+leg.length*at.fraction;const previous=before.legs.find(l=>l.edge.id===at.id)!;const anchor=previous.edge.from==='expansion-turn'?after.legs.find(l=>l.edge.to===previous.edge.to):after.legs.find(l=>l.edge.to===previous.edge.from)??after.legs.find(l=>l.edge.to===previous.edge.to);return anchor?anchor.start+anchor.length:after.startDistance;}
+export function retainTourDistance(before:GardenTour,after:GardenTour,distance:number):number {const at=tourCoordinate(before,distance),leg=after.legs.find(l=>l.edge.id===at.id);if(leg)return leg.start+leg.length*at.fraction;const previous=before.legs.find(l=>l.edge.id===at.id)!;const anchor=previous.edge.from.startsWith('expansion-turn:')?after.legs.find(l=>l.edge.to===previous.edge.to):after.legs.find(l=>l.edge.to===previous.edge.from)??after.legs.find(l=>l.edge.to===previous.edge.to);return anchor?anchor.start+anchor.length:after.startDistance;}
 export function tourPose(tour:GardenTour,distance:number):ScenicCameraPose {
  const at=tourCoordinate(tour,distance),leg=tour.legs.find(l=>l.edge.id===at.id)!,target=at.fraction*leg.length,ds=leg.distances;
  let i=1;while(i<ds.length-1&&ds[i]!<target)i++;const t=((i-1)+(target-ds[i-1]!)/(ds[i]!-ds[i-1]!||1))/(ds.length-1),eye=curvePoint(leg.edge,t);
