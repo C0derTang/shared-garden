@@ -315,7 +315,7 @@ describe("the garden's overlays", () => {
     await user.click(within(guide).getByRole("button", { name: "next" }));
     expect(within(guide).getByRole("heading", { name: "wander, page 2 of 3" })).toBeInTheDocument();
     expect(
-      within(guide).getByText("hold WASD or the arrow keys to walk, or use the little arrow pad. tap the ground to wander there, and tap a flower to visit!"),
+      within(guide).getByText("choose a scenic stop along the winding path with back, onward, or the stop menu. tap a flower to visit, then return to your view!"),
     ).toBeInTheDocument();
     await user.click(within(guide).getByRole("button", { name: "back" }));
     await user.click(within(guide).getByRole("button", { name: "skip" }));

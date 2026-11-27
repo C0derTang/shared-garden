@@ -6,7 +6,7 @@
  *
  * World axes match the garden: +y up, -z is west (toward the sunset), +x is
  * north. The house stands at the origin with its front turned toward the
- * east-southeast, so the viewer looks at it from the clearing with the lake
+ * south-southwest in the shared cardinal frame, so the viewer looks at it from the clearing with the lake
  * on the left.
  */
 
@@ -39,49 +39,8 @@ const BIRCH = palette(["#e8e2d4", "#d9d2c2", "#f0ebe0"]);
 // ---------------------------------------------------------------------------
 // Terrain and lake
 
-/** Height of the lake surface (same as the garden). */
-export const LANDING_WATER_LEVEL = -0.35;
-
-// The landing is laid out in a "design" space (see ./landing-frame).
-
-/** Design x of the lakeshore at design depth z; the lake lies at smaller x (west). */
-export function landingShoreX(z: number): number {
-  return -7.6 + 0.9 * Math.sin(0.23 * z + 0.5) + 0.4 * Math.sin(0.61 * z - 1.2) - 0.3 * Math.max(0, z - 6) + 0.18 * Math.min(0, z + 12);
-}
-
-function designLakeDepth(x: number, z: number): number {
-  return landingShoreX(z) - x;
-}
-
-/**
- * Distance-like depth into the lake at a world position (positive in the
- * water, negative on land). Must match `landingLakeDepth` in `shaders/water.wgsl`.
- */
-export function landingLakeDepth(x: number, z: number): number {
-  return designLakeDepth(z, -x);
-}
-
-function designTerrain(x: number, z: number): number {
-  const floor = 0.06 * Math.sin(x * 0.27 + 0.4) * Math.cos(z * 0.21 - 0.3) + 0.03 * Math.sin(x * 0.71 - z * 0.55 + 1.1);
-  // The forest floor climbs gently away from the clearing on the right and far ahead.
-  const rise = 0.7 * smoothstep(9, 30, x) + 1.2 * smoothstep(-30, -70, z);
-  const into = designLakeDepth(x, z);
-  const bank = into <= -1.5 ? 0 : into <= 0 ? -0.25 * ((into + 1.5) / 1.5) ** 2 : -0.25 - Math.min(2.5, into * 0.35);
-  return floor + rise * smoothstep(-1.5, -4, into) + bank;
-}
-
-/** Ground height at a world position: forest floor, lake bank and lakebed, and the garden's far western shore. */
-export function landingTerrainHeight(x: number, z: number): number {
-  const farShore = z < -78 ? Math.min(2.8, (-78 - z) * 0.35) : 0;
-  return designTerrain(z, -x) + farShore;
-}
-
-/** Ground height at a design-space position. */
-function designGround(x: number, z: number): number {
-  const [wx, , wz] = designToWorld([x, 0, z]);
-  return landingTerrainHeight(wx, wz);
-}
-
+import { LANDING_WATER_LEVEL, landingShoreX, designGround, designLakeDepth } from "./site-geography";
+export { LANDING_WATER_LEVEL, LANDING_WATER_EXTENT, landingShoreX, landingLakeDepth, landingTerrainHeight } from "./site-geography";
 /** Ground heightfield of the landing (world space), dense around the clearing. */
 export function buildLandingGroundMesh(): MeshData {
   const mesh = buildHeightfieldMesh(designGround, { minX: -160, maxX: 160, minZ: -150, maxZ: 32, columns: 220, rows: 170, xPower: 1.7 });
@@ -99,8 +58,6 @@ export function buildLandingGroundMesh(): MeshData {
   return mesh;
 }
 
-/** Corners of the lake's water plane in world xz (it reaches around the viewer's left). */
-export const LANDING_WATER_EXTENT = { minX: -34, maxX: 200, minZ: -260, maxZ: 260 } as const;
 
 function smoothstep(edge0: number, edge1: number, x: number): number {
   const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)));
@@ -144,6 +101,7 @@ export const HOUSE_MATERIAL = {
   interior: 7,
   lantern: 8,
   frame: 9,
+  backDoor: 10,
 } as const;
 
 /** Floats per house vertex: position(3) normal(3) uv(2) material(1). */
@@ -296,7 +254,7 @@ export const FRONT_WINDOWS = [
  * lanterns, the plank door (hinged in the shader) and a glowing interior that
  * shows when the door opens.
  */
-export function buildHouseMesh(): MeshData {
+export function buildHouseMesh(options: { readonly rearPorch?: boolean } = {}): MeshData {
   const b = new MeshBuilder();
   const { halfWidth: W, depth: D, floor: F, eaves: E, ridge: R, door } = HOUSE;
   const M = HOUSE_MATERIAL;
@@ -312,7 +270,11 @@ export function buildHouseMesh(): MeshData {
   b.aabox([door.minX, door.maxY, -wall], [door.maxX, E, 0], M.siding);
   b.aabox([-W, F, -D], [-W + wall, E, -wall], M.siding);
   b.aabox([W - wall, F, -D], [W, E, -wall], M.siding);
-  b.aabox([-W, F, -D], [W, E, -D + wall], M.siding);
+  if(options.rearPorch){
+    b.aabox([-W,F,-D],[-.62,E,-D+wall],M.siding);
+    b.aabox([.62,F,-D],[W,E,-D+wall],M.siding);
+    b.aabox([-.62,2.82,-D],[.62,E,-D+wall],M.siding);
+  }else b.aabox([-W, F, -D], [W, E, -D + wall], M.siding);
   // Gable ends.
   const gable = (z: number, normal: number) => {
     const corners: Vec3[] = [
@@ -429,6 +391,36 @@ export function buildHouseMesh(): MeshData {
 
   // The lit room behind the door (no front face, so it shows through the doorway).
   b.aabox([-W + wall + 0.01, F + 0.001, -D + wall + 0.01], [W - wall - 0.01, E - 0.05, -wall - 0.005], M.interior, ["+w"]);
+  if(options.rearPorch){
+    // Shared rear entrance: a closed static door, covered timber porch
+    // and steps. The factory default front geometry stays byte-identical.
+    const rear=-D;
+    b.aabox([-.58,F,rear-.055],[.58,2.78,rear-.015],M.backDoor);
+    b.quad([[-.58,F,rear-.065],[-.58,2.78,rear-.065],[.58,2.78,rear-.065],[.58,F,rear-.065]],[0,0,-1],[[0,0],[0,1],[1,1],[1,0]],M.backDoor);
+    b.aabox([-.73,F,rear-.14],[-.58,2.94,rear+.02],M.trim);
+    b.aabox([.58,F,rear-.14],[.73,2.94,rear+.02],M.trim);
+    b.aabox([-.73,2.78,rear-.14],[.73,2.96,rear+.02],M.trim);
+    b.aabox([.39,1.55,rear-.09],[.45,1.66,rear-.06],M.frame);
+    b.quad([[-.37,1.75,rear-.071],[-.37,2.5,rear-.071],[.37,2.5,rear-.071],[.37,1.75,rear-.071]],[0,0,-1],[[0,0],[0,1],[1,1],[1,0]],M.glass);
+    b.aabox([-2.5,F-.17,rear-2.25],[2.5,F,rear-.02],M.plank);
+    for(const [height,reach]of [[.15,3.15],[.3,2.85],[.45,2.55]])b.aabox([-1.25,-.2,rear-reach!],[1.25,height!,rear-2.22],M.plank);
+    for(const x of [-2.3,2.3]){
+      b.aabox([x-.075,F,rear-2.15],[x+.075,3.04,rear-2],M.trim);
+      b.aabox([x-.075,1.25,rear-2.1],[x+.075,1.38,rear-.1],M.trim);
+      b.aabox([x-.065,.83,rear-2.1],[x+.065,.93,rear-.1],M.trim);
+      for(const z of [rear-.5,rear-1,rear-1.5])b.aabox([x-.025,F,z-.025],[x+.025,1.25,z+.025],M.trim);
+      const a=x<0?-2.3:1.45,c=x<0?-1.45:2.3;
+      b.aabox([a,1.25,rear-2.15],[c,1.38,rear-2],M.trim);
+      b.aabox([a,.83,rear-2.15],[c,.93,rear-2],M.trim);
+    }
+    b.aabox([-2.55,2.96,rear-2.22],[2.55,3.12,rear-2],M.trim);
+    const n=normalize([0,2.55,-.35]);
+    b.box([0,3.2+n[1]*.06,rear-1.2+n[2]*.06],[2.75,0,0],[0,-.175,-1.35],[0,n[1]*.065,n[2]*.065],{"+w":M.roof,rest:M.trim},[],"axes");
+    for(const x of [-1.05,1.05]){
+      b.aabox([x-.11,1.9,rear-.3],[x+.11,2.3,rear-.14],M.lantern);
+      b.aabox([x-.14,2.3,rear-.33],[x+.14,2.37,rear-.12],M.frame);
+    }
+  }
   return b.mesh();
 }
 

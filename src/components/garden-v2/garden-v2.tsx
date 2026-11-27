@@ -15,6 +15,8 @@ import type { FlowerType, GardenResult, GardenState, Plant } from "@/lib/garden-
 import { gardenPlots, waitingOnYou, type GardenPlot } from "@/lib/garden-v2/plots";
 import { useGardenV2 } from "@/lib/garden-v2/use-garden-v2";
 import { gardenViewHref, type GardenView } from "@/lib/garden-v2/views";
+import { scenicRoute, resolveScenicStop } from "@/lib/world/scenic-route";
+import type {WorldView} from "@/components/world/renderer";
 import type { FocusTarget } from "@/lib/world/journey";
 import { areaLabelPosition, typeAreaLayout, type TypeAreaLayout } from "@/lib/garden-v2/type-areas";
 import { DEFAULT_FLOWER_HEIGHT, type FlowerAnchor } from "@/lib/world/picking";
@@ -103,6 +105,7 @@ export function GardenV2({
   const [announcement, setAnnouncement] = useState("");
   const [news, setNews] = useState<AwayNews>(noAwayNews);
   const [wandered, setWandered] = useState(false);
+  const [scenicStop, setScenicStop] = useState("overview:0");
   const [view, setView] = useState<GardenView | null>(initialFlowerId ? null : initialView);
   /** The flower the camera is gliding to or showing in its painting (its seeds wait for the painting). */
   const [visiting, setVisiting] = useState<string | null>(null);
@@ -110,6 +113,7 @@ export function GardenV2({
   const visitSpot = useRef<number | null>(null);
   // Where focus returns when a view closes (#210): the hidden plot that opened it, else the world.
   const returnSpot = useRef<number | null>(null);
+  const returning = useRef(false);
   // The flower layer (GPU code and shaders) loads with the world, not in the page's first bundle.
   const [flowerLayer, setFlowerLayer] = useState<FlowerLayer | null>(null);
   useEffect(() => {
@@ -123,9 +127,21 @@ export function GardenV2({
   }, []);
   // Opened by the walk through the house door: arrive under its warm light (#204).
   const arrival = useGardenArrival({ allowed: !initialFlowerId && !initialView, worldStatus, layersLoaded: flowerLayer !== null, reducedMotion });
+  const recordArrivalView=arrival.onView;
+  const onWorldView=useCallback((frame:WorldView)=>{
+    recordArrivalView(frame);
+    if(frame.scenicReady)returning.current=false;
+  },[recordArrivalView]);
   // A scoped sheet (such as a private moment) is open: the hint waits.
   const sheetOpen = Boolean(useSheetScope()?.active);
   const layout = useMemo(() => state ? typeAreaLayout(state) : null, [state]);
+  const route = useMemo(() => layout ? scenicRoute(layout.beds) : undefined, [layout]);
+  useEffect(() => {
+    if(route){const resolved=resolveScenicStop(route,scenicStop);if(resolved!==scenicStop){
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reconcile a disappearing pending-only presentation stop
+      setScenicStop(resolved);
+    }}
+  }, [route, scenicStop]);
   const { flowers, anchors } = useWorldFlowers(state, layout);
   useEffect(() => flowerLayer?.setFlowers(flowers), [flowerLayer, flowers]);
   // Any full-screen view (a flower, planting, or an overlay such as Memories) covers the world.
@@ -202,6 +218,7 @@ export function GardenV2({
   const close = useCallback(() => {
     window.clearTimeout(timer.current);
     const closing = visiting;
+    returning.current=worldStatus==="ready"&&(!reducedMotion||(closing!==null&&awaitsWorld(closing)));
     setMode({ kind: "idle" });
     setVisiting(null);
     if (closing !== null && awaitsWorld(closing)) {
@@ -211,7 +228,7 @@ export function GardenV2({
       setFocus(null);
     }
     window.history.replaceState(window.history.state, "", GARDEN_PATH);
-  }, [visiting, awaitsWorld, reducedMotion]);
+  }, [visiting, awaitsWorld, reducedMotion, worldStatus]);
 
   // Deep link: /garden?flower=<id> opens that flower once.
   const deepLink = useRef(initialFlowerId);
@@ -252,26 +269,29 @@ export function GardenV2({
   const plots = useMemo(() => (state ? gardenPlots(state, partner.short) : []), [state, partner.short]);
   const openPlot = useCallback(
     (plot: GardenPlot) => {
+      if(returning.current||!arrival.settled||sheetOpen)return;
       returnSpot.current = plot.spot;
       if (plot.plant) visit(plot.plant.flower.id);
       else startPlant(plot.spot);
     },
-    [visit, startPlant],
+    [visit, startPlant, arrival.settled, sheetOpen],
   );
   // A tap in the world (or a flower chosen in an overlay) returns focus to the world.
   const pickFlower = useCallback(
     (id: string) => {
+      if(returning.current||!arrival.settled||sheetOpen)return;
       returnSpot.current = null;
       visit(id);
     },
-    [visit],
+    [visit, arrival.settled, sheetOpen],
   );
   const pickSpot = useCallback(
     (spot: number) => {
+      if(returning.current||!arrival.settled||sheetOpen)return;
       returnSpot.current = null;
       startPlant(spot);
     },
-    [startPlant],
+    [startPlant, arrival.settled, sheetOpen],
   );
   // "next: …" in the panel: a visit begun from the list returns to the next flower's plot.
   const visitNext = useCallback(
@@ -290,7 +310,7 @@ export function GardenV2({
   const captions = useMemo<readonly WorldCaption[]>(() => {
     if (covered || focus !== null) return TITLE;
     const hearts = careHearts(waiting, anchors);
-    const areas = layout?.areas.map((area): WorldCaption => ({ id: `area-${area.type}`, text: area.name, position: areaLabelPosition(area), onSelect: () => pickSpot(area.target.spot) })) ?? [];
+    const areas = layout?.areas.map((area): WorldCaption => ({ id: `area-${area.type}`, text: area.name, size: "label", maxDistance: 14, position: areaLabelPosition(area), onSelect: () => pickSpot(area.target.spot) })) ?? [];
     return [...TITLE, ...areas, ...hearts];
   }, [waiting, anchors, covered, focus, layout, pickSpot]);
 
@@ -333,10 +353,12 @@ export function GardenV2({
         captions={captions}
         focus={focus}
         paused={covered}
-        walking
-        walkingBlocked={covered || sheetOpen || !arrival.settled}
+        scenicRoute={route}
+        scenicStop={scenicStop}
+        scenicBlocked={covered || sheetOpen || !arrival.settled || focus !== null}
+        onSelectScenicStop={id => { if (!covered && !sheetOpen && arrival.settled && !focus) { setScenicStop(id); setWandered(true); } }}
         arrival={arrival.world}
-        onView={arrival.onView}
+        onView={onWorldView}
         onStatusChange={setWorldStatus}
         onPickFlower={pickFlower}
         onPickSpot={pickSpot}
@@ -356,12 +378,13 @@ export function GardenV2({
         onClose={closeView}
         onVisit={(id) => {
           setView(null);
+          returning.current=false;
           pickFlower(id);
         }}
       />
       <FireworksOverlay {...fireworks.overlay} hidden={covered} />
       {worldStatus === "ready" && arrival.settled && !wandered && !covered && !sheetOpen && (
-        <p className={styles.hint}>WASD / arrows to walk · tap ground to wander · tap a flower to visit</p>
+        <p data-world-reserved className={styles.hint}>choose a stop along the path · tap a flower to visit</p>
       )}
       {/* The away note waits for the fireworks to finish, so their words never overlap. */}
       {!covered && arrival.settled && !fireworks.overlay.playing && hasAwayNews(news) && <AwayNote news={news} state={state} onDismiss={() => setNews(noAwayNews)} />}

@@ -12,6 +12,8 @@ import {
   CAMERA_HOME,
   WATER_LEVEL,
   bedAt,
+  bedRimRadius,
+  bedTerrainHeight,
   distanceToBeds,
   shorelineZ,
   terrainHeight,
@@ -398,11 +400,12 @@ export function buildMeadowStrokes(bedCount: number | readonly Bed[]): Stroke[] 
       const offset = random() * Math.PI * 2;
       for (let s = 0; s < steps; s += 1) {
         const a = offset + (s / steps) * Math.PI * 2 + (random() - 0.5) * 0.2;
-        const x = bed.center[0] + Math.cos(a) * r;
-        const z = bed.center[2] + Math.sin(a) * r;
+        const shaped = r * bedRimRadius(bed,a) / bed.radius;
+        const x = bed.center[0] + Math.cos(a) * shaped;
+        const z = bed.center[2] + Math.sin(a) * shaped;
         strokes.push({
           kind: STROKE_KIND.surface,
-          origin: [x, terrainHeight(x, z) + 0.012, z],
+          origin: [x, bedTerrainHeight(bed,x,z) + 0.012, z],
           axis: scale([-Math.sin(a), 0, Math.cos(a)], 0.2 + random() * 0.12),
           width: 0.1 + random() * 0.05,
           bend: (random() - 0.5) * 0.4,
@@ -498,9 +501,10 @@ export function buildBedMesh(bedCount: number | readonly Bed[]): MeshData {
       const angle = (s / segments) * Math.PI * 2;
       const lx = Math.cos(angle);
       const lz = Math.sin(angle);
-      const x = bed.center[0] + lx * BED_RADIUS;
-      const z = bed.center[2] + lz * BED_RADIUS;
-      vertices.push(x, terrainHeight(x, z) + 0.005, z, 0, 1, 0, lx, lz, b);
+      const rim = bedRimRadius(bed, angle);
+      const x = bed.center[0] + lx * rim;
+      const z = bed.center[2] + lz * rim;
+      vertices.push(x, bedTerrainHeight(bed,x,z) + 0.005, z, 0, 1, 0, lx, lz, b);
     }
     for (let s = 0; s < segments; s += 1) {
       indices.push(first, first + 1 + ((s + 1) % segments), first + 1 + s);

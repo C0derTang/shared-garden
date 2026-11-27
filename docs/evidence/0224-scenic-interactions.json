@@ -1,0 +1,2676 @@
+{
+  "runtimeSourceSha256": "f36c137d10a786595f00dd6ffd4de22f52ad7885fb2c6fd4b79c73dc1a5961b8",
+  "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+  "capturedAt": "2026-11-27T03:04:45.652Z",
+  "scope": "Loopback-only synthetic state; no authenticated session or backend mutation. Mac Chromium/Apple GPU; trusted CDP emulated touch, not phone hardware.",
+  "allStops": [
+    {
+      "view": "desktop",
+      "width": 1280,
+      "height": 800,
+      "dpr": 1,
+      "touch": false,
+      "skyTime": "2026-06-22T02:52:00Z",
+      "views": [
+        {
+          "id": "overview:0",
+          "label": "island 1 overlook",
+          "screenshot": "desktop-overview-0.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:0:0",
+          "label": "rose island",
+          "screenshot": "desktop-pocket-0-0.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:1:0",
+          "label": "cactus outskirts",
+          "screenshot": "desktop-pocket-1-0.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:2:0",
+          "label": "tulip island",
+          "screenshot": "desktop-pocket-2-0.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:3:0",
+          "label": "marigold outskirts",
+          "screenshot": "desktop-pocket-3-0.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:4:0",
+          "label": "daisy outskirts",
+          "screenshot": "desktop-pocket-4-0.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:5:0",
+          "label": "hydrangea island",
+          "screenshot": "desktop-pocket-5-0.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:6:0",
+          "label": "sunflower outskirts",
+          "screenshot": "desktop-pocket-6-0.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "overview:1",
+          "label": "island 2 overlook",
+          "screenshot": "desktop-overview-1.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:7:0",
+          "label": "snapdragon island",
+          "screenshot": "desktop-pocket-7-0.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:8:0",
+          "label": "moonflower outskirts",
+          "screenshot": "desktop-pocket-8-0.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:9:0",
+          "label": "bluebell island",
+          "screenshot": "desktop-pocket-9-0.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:10:0",
+          "label": "dandelion outskirts",
+          "screenshot": "desktop-pocket-10-0.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:11:0",
+          "label": "forget-me-not island",
+          "screenshot": "desktop-pocket-11-0.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:12:0",
+          "label": "peony outskirts",
+          "screenshot": "desktop-pocket-12-0.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "house-rear",
+          "label": "back porch",
+          "screenshot": "desktop-house-rear.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "lake",
+          "label": "lakeside",
+          "screenshot": "desktop-lake.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:0:1",
+          "label": "rose meadow 2",
+          "screenshot": "desktop-pocket-0-1.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:1:1",
+          "label": "cactus meadow 2",
+          "screenshot": "desktop-pocket-1-1.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:2:1",
+          "label": "tulip meadow 2",
+          "screenshot": "desktop-pocket-2-1.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:3:1",
+          "label": "marigold meadow 2",
+          "screenshot": "desktop-pocket-3-1.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:4:1",
+          "label": "daisy meadow 2",
+          "screenshot": "desktop-pocket-4-1.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:5:1",
+          "label": "hydrangea meadow 2",
+          "screenshot": "desktop-pocket-5-1.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:6:1",
+          "label": "sunflower meadow 2",
+          "screenshot": "desktop-pocket-6-1.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:7:1",
+          "label": "snapdragon meadow 2",
+          "screenshot": "desktop-pocket-7-1.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:8:1",
+          "label": "moonflower meadow 2",
+          "screenshot": "desktop-pocket-8-1.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:9:1",
+          "label": "bluebell meadow 2",
+          "screenshot": "desktop-pocket-9-1.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:10:1",
+          "label": "dandelion meadow 2",
+          "screenshot": "desktop-pocket-10-1.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:12:1",
+          "label": "peony meadow 2",
+          "screenshot": "desktop-pocket-12-1.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:0:2",
+          "label": "rose meadow 3",
+          "screenshot": "desktop-pocket-0-2.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:1:2",
+          "label": "cactus meadow 3",
+          "screenshot": "desktop-pocket-1-2.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:2:2",
+          "label": "tulip meadow 3",
+          "screenshot": "desktop-pocket-2-2.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:3:2",
+          "label": "marigold meadow 3",
+          "screenshot": "desktop-pocket-3-2.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:4:2",
+          "label": "daisy meadow 3",
+          "screenshot": "desktop-pocket-4-2.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:5:2",
+          "label": "hydrangea meadow 3",
+          "screenshot": "desktop-pocket-5-2.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:6:2",
+          "label": "sunflower meadow 3",
+          "screenshot": "desktop-pocket-6-2.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:7:2",
+          "label": "snapdragon meadow 3",
+          "screenshot": "desktop-pocket-7-2.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:8:2",
+          "label": "moonflower meadow 3",
+          "screenshot": "desktop-pocket-8-2.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:9:2",
+          "label": "bluebell meadow 3",
+          "screenshot": "desktop-pocket-9-2.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:10:2",
+          "label": "dandelion meadow 3",
+          "screenshot": "desktop-pocket-10-2.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:11:2",
+          "label": "forget-me-not meadow 3",
+          "screenshot": "desktop-pocket-11-2.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:12:2",
+          "label": "peony meadow 3",
+          "screenshot": "desktop-pocket-12-2.png",
+          "nav": {
+            "x": 439.1953125,
+            "y": 740,
+            "width": 401.609375,
+            "height": 44
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "view": "portrait",
+      "width": 390,
+      "height": 844,
+      "dpr": 2,
+      "touch": true,
+      "skyTime": "2026-06-22T02:52:00Z",
+      "views": [
+        {
+          "id": "overview:0",
+          "label": "island 1 overlook",
+          "screenshot": "portrait-overview-0.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:0:0",
+          "label": "rose island",
+          "screenshot": "portrait-pocket-0-0.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:1:0",
+          "label": "cactus outskirts",
+          "screenshot": "portrait-pocket-1-0.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:2:0",
+          "label": "tulip island",
+          "screenshot": "portrait-pocket-2-0.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:3:0",
+          "label": "marigold outskirts",
+          "screenshot": "portrait-pocket-3-0.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:4:0",
+          "label": "daisy outskirts",
+          "screenshot": "portrait-pocket-4-0.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:5:0",
+          "label": "hydrangea island",
+          "screenshot": "portrait-pocket-5-0.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:6:0",
+          "label": "sunflower outskirts",
+          "screenshot": "portrait-pocket-6-0.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "overview:1",
+          "label": "island 2 overlook",
+          "screenshot": "portrait-overview-1.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:7:0",
+          "label": "snapdragon island",
+          "screenshot": "portrait-pocket-7-0.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:8:0",
+          "label": "moonflower outskirts",
+          "screenshot": "portrait-pocket-8-0.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:9:0",
+          "label": "bluebell island",
+          "screenshot": "portrait-pocket-9-0.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:10:0",
+          "label": "dandelion outskirts",
+          "screenshot": "portrait-pocket-10-0.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:11:0",
+          "label": "forget-me-not island",
+          "screenshot": "portrait-pocket-11-0.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:12:0",
+          "label": "peony outskirts",
+          "screenshot": "portrait-pocket-12-0.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "house-rear",
+          "label": "back porch",
+          "screenshot": "portrait-house-rear.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "lake",
+          "label": "lakeside",
+          "screenshot": "portrait-lake.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:0:1",
+          "label": "rose meadow 2",
+          "screenshot": "portrait-pocket-0-1.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:1:1",
+          "label": "cactus meadow 2",
+          "screenshot": "portrait-pocket-1-1.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:2:1",
+          "label": "tulip meadow 2",
+          "screenshot": "portrait-pocket-2-1.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:3:1",
+          "label": "marigold meadow 2",
+          "screenshot": "portrait-pocket-3-1.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:4:1",
+          "label": "daisy meadow 2",
+          "screenshot": "portrait-pocket-4-1.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:5:1",
+          "label": "hydrangea meadow 2",
+          "screenshot": "portrait-pocket-5-1.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:6:1",
+          "label": "sunflower meadow 2",
+          "screenshot": "portrait-pocket-6-1.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:7:1",
+          "label": "snapdragon meadow 2",
+          "screenshot": "portrait-pocket-7-1.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:8:1",
+          "label": "moonflower meadow 2",
+          "screenshot": "portrait-pocket-8-1.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:9:1",
+          "label": "bluebell meadow 2",
+          "screenshot": "portrait-pocket-9-1.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:10:1",
+          "label": "dandelion meadow 2",
+          "screenshot": "portrait-pocket-10-1.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:12:1",
+          "label": "peony meadow 2",
+          "screenshot": "portrait-pocket-12-1.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:0:2",
+          "label": "rose meadow 3",
+          "screenshot": "portrait-pocket-0-2.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:1:2",
+          "label": "cactus meadow 3",
+          "screenshot": "portrait-pocket-1-2.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:2:2",
+          "label": "tulip meadow 3",
+          "screenshot": "portrait-pocket-2-2.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:3:2",
+          "label": "marigold meadow 3",
+          "screenshot": "portrait-pocket-3-2.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:4:2",
+          "label": "daisy meadow 3",
+          "screenshot": "portrait-pocket-4-2.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:5:2",
+          "label": "hydrangea meadow 3",
+          "screenshot": "portrait-pocket-5-2.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:6:2",
+          "label": "sunflower meadow 3",
+          "screenshot": "portrait-pocket-6-2.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:7:2",
+          "label": "snapdragon meadow 3",
+          "screenshot": "portrait-pocket-7-2.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:8:2",
+          "label": "moonflower meadow 3",
+          "screenshot": "portrait-pocket-8-2.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:9:2",
+          "label": "bluebell meadow 3",
+          "screenshot": "portrait-pocket-9-2.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:10:2",
+          "label": "dandelion meadow 3",
+          "screenshot": "portrait-pocket-10-2.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:11:2",
+          "label": "forget-me-not meadow 3",
+          "screenshot": "portrait-pocket-11-2.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:12:2",
+          "label": "peony meadow 3",
+          "screenshot": "portrait-pocket-12-2.png",
+          "nav": {
+            "x": 8,
+            "y": 784,
+            "width": 374,
+            "height": 44
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "view": "landscape",
+      "width": 844,
+      "height": 390,
+      "dpr": 2,
+      "touch": true,
+      "skyTime": "2026-06-22T02:52:00Z",
+      "views": [
+        {
+          "id": "overview:0",
+          "label": "island 1 overlook",
+          "screenshot": "landscape-overview-0.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:0:0",
+          "label": "rose island",
+          "screenshot": "landscape-pocket-0-0.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:1:0",
+          "label": "cactus outskirts",
+          "screenshot": "landscape-pocket-1-0.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:2:0",
+          "label": "tulip island",
+          "screenshot": "landscape-pocket-2-0.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:3:0",
+          "label": "marigold outskirts",
+          "screenshot": "landscape-pocket-3-0.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:4:0",
+          "label": "daisy outskirts",
+          "screenshot": "landscape-pocket-4-0.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:5:0",
+          "label": "hydrangea island",
+          "screenshot": "landscape-pocket-5-0.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:6:0",
+          "label": "sunflower outskirts",
+          "screenshot": "landscape-pocket-6-0.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "overview:1",
+          "label": "island 2 overlook",
+          "screenshot": "landscape-overview-1.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:7:0",
+          "label": "snapdragon island",
+          "screenshot": "landscape-pocket-7-0.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:8:0",
+          "label": "moonflower outskirts",
+          "screenshot": "landscape-pocket-8-0.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:9:0",
+          "label": "bluebell island",
+          "screenshot": "landscape-pocket-9-0.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:10:0",
+          "label": "dandelion outskirts",
+          "screenshot": "landscape-pocket-10-0.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:11:0",
+          "label": "forget-me-not island",
+          "screenshot": "landscape-pocket-11-0.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:12:0",
+          "label": "peony outskirts",
+          "screenshot": "landscape-pocket-12-0.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "house-rear",
+          "label": "back porch",
+          "screenshot": "landscape-house-rear.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "lake",
+          "label": "lakeside",
+          "screenshot": "landscape-lake.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:0:1",
+          "label": "rose meadow 2",
+          "screenshot": "landscape-pocket-0-1.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:1:1",
+          "label": "cactus meadow 2",
+          "screenshot": "landscape-pocket-1-1.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:2:1",
+          "label": "tulip meadow 2",
+          "screenshot": "landscape-pocket-2-1.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:3:1",
+          "label": "marigold meadow 2",
+          "screenshot": "landscape-pocket-3-1.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:4:1",
+          "label": "daisy meadow 2",
+          "screenshot": "landscape-pocket-4-1.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:5:1",
+          "label": "hydrangea meadow 2",
+          "screenshot": "landscape-pocket-5-1.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:6:1",
+          "label": "sunflower meadow 2",
+          "screenshot": "landscape-pocket-6-1.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:7:1",
+          "label": "snapdragon meadow 2",
+          "screenshot": "landscape-pocket-7-1.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:8:1",
+          "label": "moonflower meadow 2",
+          "screenshot": "landscape-pocket-8-1.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:9:1",
+          "label": "bluebell meadow 2",
+          "screenshot": "landscape-pocket-9-1.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:10:1",
+          "label": "dandelion meadow 2",
+          "screenshot": "landscape-pocket-10-1.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:12:1",
+          "label": "peony meadow 2",
+          "screenshot": "landscape-pocket-12-1.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:0:2",
+          "label": "rose meadow 3",
+          "screenshot": "landscape-pocket-0-2.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:1:2",
+          "label": "cactus meadow 3",
+          "screenshot": "landscape-pocket-1-2.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:2:2",
+          "label": "tulip meadow 3",
+          "screenshot": "landscape-pocket-2-2.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:3:2",
+          "label": "marigold meadow 3",
+          "screenshot": "landscape-pocket-3-2.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:4:2",
+          "label": "daisy meadow 3",
+          "screenshot": "landscape-pocket-4-2.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:5:2",
+          "label": "hydrangea meadow 3",
+          "screenshot": "landscape-pocket-5-2.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:6:2",
+          "label": "sunflower meadow 3",
+          "screenshot": "landscape-pocket-6-2.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:7:2",
+          "label": "snapdragon meadow 3",
+          "screenshot": "landscape-pocket-7-2.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:8:2",
+          "label": "moonflower meadow 3",
+          "screenshot": "landscape-pocket-8-2.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:9:2",
+          "label": "bluebell meadow 3",
+          "screenshot": "landscape-pocket-9-2.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:10:2",
+          "label": "dandelion meadow 3",
+          "screenshot": "landscape-pocket-10-2.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:11:2",
+          "label": "forget-me-not meadow 3",
+          "screenshot": "landscape-pocket-11-2.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:12:2",
+          "label": "peony meadow 3",
+          "screenshot": "landscape-pocket-12-2.png",
+          "nav": {
+            "x": 221.1953125,
+            "y": 330,
+            "width": 401.609375,
+            "height": 44
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "view": "narrow",
+      "width": 800,
+      "height": 600,
+      "dpr": 1,
+      "touch": false,
+      "skyTime": "2026-06-22T02:52:00Z",
+      "views": [
+        {
+          "id": "overview:0",
+          "label": "island 1 overlook",
+          "screenshot": "narrow-overview-0.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:0:0",
+          "label": "rose island",
+          "screenshot": "narrow-pocket-0-0.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:1:0",
+          "label": "cactus outskirts",
+          "screenshot": "narrow-pocket-1-0.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:2:0",
+          "label": "tulip island",
+          "screenshot": "narrow-pocket-2-0.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:3:0",
+          "label": "marigold outskirts",
+          "screenshot": "narrow-pocket-3-0.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:4:0",
+          "label": "daisy outskirts",
+          "screenshot": "narrow-pocket-4-0.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:5:0",
+          "label": "hydrangea island",
+          "screenshot": "narrow-pocket-5-0.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:6:0",
+          "label": "sunflower outskirts",
+          "screenshot": "narrow-pocket-6-0.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "overview:1",
+          "label": "island 2 overlook",
+          "screenshot": "narrow-overview-1.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:7:0",
+          "label": "snapdragon island",
+          "screenshot": "narrow-pocket-7-0.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:8:0",
+          "label": "moonflower outskirts",
+          "screenshot": "narrow-pocket-8-0.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:9:0",
+          "label": "bluebell island",
+          "screenshot": "narrow-pocket-9-0.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:10:0",
+          "label": "dandelion outskirts",
+          "screenshot": "narrow-pocket-10-0.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:11:0",
+          "label": "forget-me-not island",
+          "screenshot": "narrow-pocket-11-0.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:12:0",
+          "label": "peony outskirts",
+          "screenshot": "narrow-pocket-12-0.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "house-rear",
+          "label": "back porch",
+          "screenshot": "narrow-house-rear.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "lake",
+          "label": "lakeside",
+          "screenshot": "narrow-lake.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:0:1",
+          "label": "rose meadow 2",
+          "screenshot": "narrow-pocket-0-1.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:1:1",
+          "label": "cactus meadow 2",
+          "screenshot": "narrow-pocket-1-1.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:2:1",
+          "label": "tulip meadow 2",
+          "screenshot": "narrow-pocket-2-1.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:3:1",
+          "label": "marigold meadow 2",
+          "screenshot": "narrow-pocket-3-1.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:4:1",
+          "label": "daisy meadow 2",
+          "screenshot": "narrow-pocket-4-1.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:5:1",
+          "label": "hydrangea meadow 2",
+          "screenshot": "narrow-pocket-5-1.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:6:1",
+          "label": "sunflower meadow 2",
+          "screenshot": "narrow-pocket-6-1.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:7:1",
+          "label": "snapdragon meadow 2",
+          "screenshot": "narrow-pocket-7-1.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:8:1",
+          "label": "moonflower meadow 2",
+          "screenshot": "narrow-pocket-8-1.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:9:1",
+          "label": "bluebell meadow 2",
+          "screenshot": "narrow-pocket-9-1.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:10:1",
+          "label": "dandelion meadow 2",
+          "screenshot": "narrow-pocket-10-1.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:12:1",
+          "label": "peony meadow 2",
+          "screenshot": "narrow-pocket-12-1.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:0:2",
+          "label": "rose meadow 3",
+          "screenshot": "narrow-pocket-0-2.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:1:2",
+          "label": "cactus meadow 3",
+          "screenshot": "narrow-pocket-1-2.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:2:2",
+          "label": "tulip meadow 3",
+          "screenshot": "narrow-pocket-2-2.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:3:2",
+          "label": "marigold meadow 3",
+          "screenshot": "narrow-pocket-3-2.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:4:2",
+          "label": "daisy meadow 3",
+          "screenshot": "narrow-pocket-4-2.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:5:2",
+          "label": "hydrangea meadow 3",
+          "screenshot": "narrow-pocket-5-2.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:6:2",
+          "label": "sunflower meadow 3",
+          "screenshot": "narrow-pocket-6-2.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:7:2",
+          "label": "snapdragon meadow 3",
+          "screenshot": "narrow-pocket-7-2.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:8:2",
+          "label": "moonflower meadow 3",
+          "screenshot": "narrow-pocket-8-2.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:9:2",
+          "label": "bluebell meadow 3",
+          "screenshot": "narrow-pocket-9-2.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:10:2",
+          "label": "dandelion meadow 3",
+          "screenshot": "narrow-pocket-10-2.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:11:2",
+          "label": "forget-me-not meadow 3",
+          "screenshot": "narrow-pocket-11-2.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        },
+        {
+          "id": "pocket:12:2",
+          "label": "peony meadow 3",
+          "screenshot": "narrow-pocket-12-2.png",
+          "nav": {
+            "x": 200,
+            "y": 540,
+            "width": 400,
+            "height": 44
+          }
+        }
+      ],
+      "errors": []
+    }
+  ],
+  "interactions": [
+    {
+      "view": "desktop",
+      "width": 1280,
+      "height": 800,
+      "empty": true,
+      "plantingMs": [
+        127.39487500000087,
+        76.64070899999933
+      ],
+      "plantingTimingMethod": "Playwright click start to actual new-flower dialog visible; emulated local action response, observer latency included",
+      "preservedPlants": 0,
+      "all13Areas": true,
+      "repeatedRosePlantings": 2,
+      "originalHistory": null,
+      "lowerHoleBoundary": null,
+      "captionOffsets": [],
+      "captionOffsetBound": {
+        "x": 6.1,
+        "y": 8.1,
+        "reason": "Existing sin(index*1.7)*3 / sin(index*2.3)*4 static bob phase plus0.1px rounding"
+      },
+      "keyboardNoMovement": true,
+      "groundNoMovement": true,
+      "routeKeyboard": true,
+      "trustedTouch": false,
+      "dragRejected": true,
+      "worldMarkerDragRejected": true,
+      "worldMarkerClick": true,
+      "priorityPick": true,
+      "overlaysAndTyping": true,
+      "returnToSelectedStop": true,
+      "resize": true,
+      "actualGpuRecovery": true,
+      "stoppedAfterSecondLoss": true,
+      "errors": []
+    },
+    {
+      "view": "desktop",
+      "width": 1280,
+      "height": 800,
+      "empty": false,
+      "plantingMs": [
+        282.4353339999998,
+        81.39329200000066
+      ],
+      "plantingTimingMethod": "Playwright click start to actual new-flower dialog visible; emulated local action response, observer latency included",
+      "preservedPlants": 25,
+      "all13Areas": true,
+      "repeatedRosePlantings": 2,
+      "originalHistory": true,
+      "lowerHoleBoundary": true,
+      "captionOffsets": [
+        {
+          "id": "care-00000000-0000-4000-8000-000000000001",
+          "dx": 0,
+          "dy": 0
+        }
+      ],
+      "captionOffsetBound": {
+        "x": 6.1,
+        "y": 8.1,
+        "reason": "Existing sin(index*1.7)*3 / sin(index*2.3)*4 static bob phase plus0.1px rounding"
+      },
+      "keyboardNoMovement": true,
+      "groundNoMovement": true,
+      "routeKeyboard": true,
+      "trustedTouch": false,
+      "dragRejected": true,
+      "worldMarkerDragRejected": true,
+      "worldMarkerClick": true,
+      "priorityPick": true,
+      "overlaysAndTyping": true,
+      "returnToSelectedStop": true,
+      "resize": true,
+      "actualGpuRecovery": true,
+      "stoppedAfterSecondLoss": true,
+      "errors": []
+    },
+    {
+      "view": "portrait",
+      "width": 390,
+      "height": 844,
+      "empty": true,
+      "plantingMs": [
+        90.41966700000194,
+        72.90762499999983
+      ],
+      "plantingTimingMethod": "Playwright click start to actual new-flower dialog visible; emulated local action response, observer latency included",
+      "preservedPlants": 0,
+      "all13Areas": true,
+      "repeatedRosePlantings": 2,
+      "originalHistory": null,
+      "lowerHoleBoundary": null,
+      "captionOffsets": [],
+      "captionOffsetBound": {
+        "x": 6.1,
+        "y": 8.1,
+        "reason": "Existing sin(index*1.7)*3 / sin(index*2.3)*4 static bob phase plus0.1px rounding"
+      },
+      "keyboardNoMovement": true,
+      "groundNoMovement": true,
+      "routeKeyboard": true,
+      "trustedTouch": true,
+      "dragRejected": true,
+      "worldMarkerDragRejected": true,
+      "worldMarkerClick": true,
+      "priorityPick": true,
+      "overlaysAndTyping": true,
+      "returnToSelectedStop": true,
+      "resize": true,
+      "actualGpuRecovery": true,
+      "stoppedAfterSecondLoss": true,
+      "errors": []
+    },
+    {
+      "view": "portrait",
+      "width": 390,
+      "height": 844,
+      "empty": false,
+      "plantingMs": [
+        299.4527920000037,
+        61.05158300000039
+      ],
+      "plantingTimingMethod": "Playwright click start to actual new-flower dialog visible; emulated local action response, observer latency included",
+      "preservedPlants": 25,
+      "all13Areas": true,
+      "repeatedRosePlantings": 2,
+      "originalHistory": true,
+      "lowerHoleBoundary": true,
+      "captionOffsets": [
+        {
+          "id": "care-00000000-0000-4000-8000-000000000001",
+          "dx": 0,
+          "dy": 0
+        }
+      ],
+      "captionOffsetBound": {
+        "x": 6.1,
+        "y": 8.1,
+        "reason": "Existing sin(index*1.7)*3 / sin(index*2.3)*4 static bob phase plus0.1px rounding"
+      },
+      "keyboardNoMovement": true,
+      "groundNoMovement": true,
+      "routeKeyboard": true,
+      "trustedTouch": true,
+      "dragRejected": true,
+      "worldMarkerDragRejected": true,
+      "worldMarkerClick": true,
+      "priorityPick": true,
+      "overlaysAndTyping": true,
+      "returnToSelectedStop": true,
+      "resize": true,
+      "actualGpuRecovery": true,
+      "stoppedAfterSecondLoss": true,
+      "errors": []
+    },
+    {
+      "view": "landscape",
+      "width": 844,
+      "height": 390,
+      "empty": true,
+      "plantingMs": [
+        80.06620800000383,
+        74.62287500000093
+      ],
+      "plantingTimingMethod": "Playwright click start to actual new-flower dialog visible; emulated local action response, observer latency included",
+      "preservedPlants": 0,
+      "all13Areas": true,
+      "repeatedRosePlantings": 2,
+      "originalHistory": null,
+      "lowerHoleBoundary": null,
+      "captionOffsets": [],
+      "captionOffsetBound": {
+        "x": 6.1,
+        "y": 8.1,
+        "reason": "Existing sin(index*1.7)*3 / sin(index*2.3)*4 static bob phase plus0.1px rounding"
+      },
+      "keyboardNoMovement": true,
+      "groundNoMovement": true,
+      "routeKeyboard": true,
+      "trustedTouch": true,
+      "dragRejected": true,
+      "worldMarkerDragRejected": true,
+      "worldMarkerClick": true,
+      "priorityPick": true,
+      "overlaysAndTyping": true,
+      "returnToSelectedStop": true,
+      "resize": true,
+      "actualGpuRecovery": true,
+      "stoppedAfterSecondLoss": true,
+      "errors": []
+    },
+    {
+      "view": "landscape",
+      "width": 844,
+      "height": 390,
+      "empty": false,
+      "plantingMs": [
+        323.93204200000037,
+        55.647750000003725
+      ],
+      "plantingTimingMethod": "Playwright click start to actual new-flower dialog visible; emulated local action response, observer latency included",
+      "preservedPlants": 25,
+      "all13Areas": true,
+      "repeatedRosePlantings": 2,
+      "originalHistory": true,
+      "lowerHoleBoundary": true,
+      "captionOffsets": [
+        {
+          "id": "care-00000000-0000-4000-8000-000000000001",
+          "dx": 0,
+          "dy": 0
+        }
+      ],
+      "captionOffsetBound": {
+        "x": 6.1,
+        "y": 8.1,
+        "reason": "Existing sin(index*1.7)*3 / sin(index*2.3)*4 static bob phase plus0.1px rounding"
+      },
+      "keyboardNoMovement": true,
+      "groundNoMovement": true,
+      "routeKeyboard": true,
+      "trustedTouch": true,
+      "dragRejected": true,
+      "worldMarkerDragRejected": true,
+      "worldMarkerClick": true,
+      "priorityPick": true,
+      "overlaysAndTyping": true,
+      "returnToSelectedStop": true,
+      "resize": true,
+      "actualGpuRecovery": true,
+      "stoppedAfterSecondLoss": true,
+      "errors": []
+    },
+    {
+      "view": "narrow",
+      "width": 800,
+      "height": 600,
+      "empty": true,
+      "plantingMs": [
+        90.13545899999735,
+        55.12712499999907
+      ],
+      "plantingTimingMethod": "Playwright click start to actual new-flower dialog visible; emulated local action response, observer latency included",
+      "preservedPlants": 0,
+      "all13Areas": true,
+      "repeatedRosePlantings": 2,
+      "originalHistory": null,
+      "lowerHoleBoundary": null,
+      "captionOffsets": [],
+      "captionOffsetBound": {
+        "x": 6.1,
+        "y": 8.1,
+        "reason": "Existing sin(index*1.7)*3 / sin(index*2.3)*4 static bob phase plus0.1px rounding"
+      },
+      "keyboardNoMovement": true,
+      "groundNoMovement": true,
+      "routeKeyboard": true,
+      "trustedTouch": false,
+      "dragRejected": true,
+      "worldMarkerDragRejected": true,
+      "worldMarkerClick": true,
+      "priorityPick": true,
+      "overlaysAndTyping": true,
+      "returnToSelectedStop": true,
+      "resize": true,
+      "actualGpuRecovery": true,
+      "stoppedAfterSecondLoss": true,
+      "errors": []
+    },
+    {
+      "view": "narrow",
+      "width": 800,
+      "height": 600,
+      "empty": false,
+      "plantingMs": [
+        271.74245900000096,
+        84.54212499999267
+      ],
+      "plantingTimingMethod": "Playwright click start to actual new-flower dialog visible; emulated local action response, observer latency included",
+      "preservedPlants": 25,
+      "all13Areas": true,
+      "repeatedRosePlantings": 2,
+      "originalHistory": true,
+      "lowerHoleBoundary": true,
+      "captionOffsets": [
+        {
+          "id": "care-00000000-0000-4000-8000-000000000001",
+          "dx": 0,
+          "dy": 0
+        }
+      ],
+      "captionOffsetBound": {
+        "x": 6.1,
+        "y": 8.1,
+        "reason": "Existing sin(index*1.7)*3 / sin(index*2.3)*4 static bob phase plus0.1px rounding"
+      },
+      "keyboardNoMovement": true,
+      "groundNoMovement": true,
+      "routeKeyboard": true,
+      "trustedTouch": false,
+      "dragRejected": true,
+      "worldMarkerDragRejected": true,
+      "worldMarkerClick": true,
+      "priorityPick": true,
+      "overlaysAndTyping": true,
+      "returnToSelectedStop": true,
+      "resize": true,
+      "actualGpuRecovery": true,
+      "stoppedAfterSecondLoss": true,
+      "errors": []
+    }
+  ],
+  "normalMotion": [
+    {
+      "finalCamera": {
+        "eye": [
+          11.589797973632812,
+          2.565737009048462,
+          4.682582378387451
+        ],
+        "matrix": [
+          0.196457639336586,
+          -0.07303325831890106,
+          -0.9233094453811646,
+          -0.9230895638465881,
+          0,
+          0.8353943228721619,
+          -0.09389548003673553,
+          -0.09387312084436417,
+          -0.48624974489212036,
+          -0.02950735203921795,
+          -0.3730412423610687,
+          -0.372952401638031,
+          0,
+          -1.1587907075881958,
+          12.588653564453125,
+          12.68565559387207
+        ]
+      },
+      "view": "desktop",
+      "width": 1280,
+      "height": 800,
+      "motion": "normal",
+      "skyTime": "2026-06-22T02:52:00Z",
+      "arrival": true,
+      "activityReturn": true,
+      "rapidRetarget": true,
+      "blur": true,
+      "visibilityChange": true,
+      "overlayInterrupt": true,
+      "resizeDuringTravel": true,
+      "errors": []
+    },
+    {
+      "finalCamera": {
+        "eye": [
+          11.589797973632812,
+          2.565737009048462,
+          4.682582378387451
+        ],
+        "matrix": [
+          0.39539849758148193,
+          -0.04245109483599663,
+          -0.9233094453811646,
+          -0.9230895638465881,
+          0,
+          0.48557886481285095,
+          -0.09389548003673553,
+          -0.09387312084436417,
+          -0.9786456823348999,
+          -0.017151357606053352,
+          -0.3730412423610687,
+          -0.372952401638031,
+          0,
+          -0.673555314540863,
+          12.588653564453125,
+          12.68565559387207
+        ]
+      },
+      "view": "portrait",
+      "width": 390,
+      "height": 844,
+      "motion": "normal",
+      "skyTime": "2026-06-22T02:52:00Z",
+      "arrival": true,
+      "activityReturn": true,
+      "rapidRetarget": true,
+      "blur": true,
+      "visibilityChange": true,
+      "overlayInterrupt": true,
+      "resizeDuringTravel": true,
+      "errors": []
+    },
+    {
+      "finalCamera": {
+        "eye": [
+          11.589797973632812,
+          2.565737009048462,
+          4.682582378387451
+        ],
+        "matrix": [
+          0.1257646530866623,
+          -0.0632365494966507,
+          -0.9233094453811646,
+          -0.9230895638465881,
+          0,
+          0.7233342528343201,
+          -0.09389548003673553,
+          -0.09387312084436417,
+          -0.31127846240997314,
+          -0.025549225509166718,
+          -0.3730412423610687,
+          -0.372952401638031,
+          0,
+          -1.0033501386642456,
+          12.588653564453125,
+          12.68565559387207
+        ]
+      },
+      "view": "landscape",
+      "width": 844,
+      "height": 390,
+      "motion": "normal",
+      "skyTime": "2026-06-22T02:52:00Z",
+      "arrival": true,
+      "activityReturn": true,
+      "rapidRetarget": true,
+      "blur": true,
+      "visibilityChange": true,
+      "overlayInterrupt": true,
+      "resizeDuringTravel": true,
+      "errors": []
+    },
+    {
+      "finalCamera": {
+        "eye": [
+          11.589797973632812,
+          2.565737009048462,
+          4.682582378387451
+        ],
+        "matrix": [
+          0.23574918508529663,
+          -0.07303325831890106,
+          -0.9233094453811646,
+          -0.9230895638465881,
+          0,
+          0.8353943228721619,
+          -0.09389548003673553,
+          -0.09387312084436417,
+          -0.5834997296333313,
+          -0.02950735203921795,
+          -0.3730412423610687,
+          -0.372952401638031,
+          0,
+          -1.1587907075881958,
+          12.588653564453125,
+          12.68565559387207
+        ]
+      },
+      "view": "narrow",
+      "width": 800,
+      "height": 600,
+      "motion": "normal",
+      "skyTime": "2026-06-22T02:52:00Z",
+      "arrival": true,
+      "activityReturn": true,
+      "rapidRetarget": true,
+      "blur": true,
+      "visibilityChange": true,
+      "overlayInterrupt": true,
+      "resizeDuringTravel": true,
+      "errors": []
+    }
+  ],
+  "sparse": [
+    {
+      "view": "desktop",
+      "width": 1280,
+      "height": 800,
+      "originalUuid": "00000000-0000-4000-8000-000000000001",
+      "originalAddress": 12001,
+      "stopCount": 32,
+      "returnToSparse": true,
+      "actualCanvasPick": true,
+      "accessiblePlotVisit": true,
+      "errors": []
+    },
+    {
+      "view": "portrait",
+      "width": 390,
+      "height": 844,
+      "originalUuid": "00000000-0000-4000-8000-000000000001",
+      "originalAddress": 12001,
+      "stopCount": 32,
+      "returnToSparse": true,
+      "actualCanvasPick": true,
+      "accessiblePlotVisit": true,
+      "errors": []
+    },
+    {
+      "view": "landscape",
+      "width": 844,
+      "height": 390,
+      "originalUuid": "00000000-0000-4000-8000-000000000001",
+      "originalAddress": 12001,
+      "stopCount": 32,
+      "returnToSparse": true,
+      "actualCanvasPick": true,
+      "accessiblePlotVisit": true,
+      "errors": []
+    },
+    {
+      "view": "narrow",
+      "width": 800,
+      "height": 600,
+      "originalUuid": "00000000-0000-4000-8000-000000000001",
+      "originalAddress": 12001,
+      "stopCount": 32,
+      "returnToSparse": true,
+      "actualCanvasPick": true,
+      "accessiblePlotVisit": true,
+      "errors": []
+    }
+  ],
+  "frontRear": [
+    {
+      "view": "desktop",
+      "width": 1280,
+      "height": 800,
+      "dpr": 1,
+      "sky": "dusk",
+      "time": "2026-06-22T02:52:00Z",
+      "images": [
+        "desktop-dusk-front.png",
+        "desktop-dusk-rear.png"
+      ],
+      "frontVisitor": true,
+      "sameOriginalHouseFrame": true,
+      "originalLandingMesh": true,
+      "augmentedRearViewMesh": true,
+      "errors": []
+    },
+    {
+      "view": "desktop",
+      "width": 1280,
+      "height": 800,
+      "dpr": 1,
+      "sky": "day",
+      "time": "2026-06-21T19:30:00Z",
+      "images": [
+        "desktop-day-front.png",
+        "desktop-day-rear.png"
+      ],
+      "frontVisitor": true,
+      "sameOriginalHouseFrame": true,
+      "originalLandingMesh": true,
+      "augmentedRearViewMesh": true,
+      "errors": []
+    },
+    {
+      "view": "desktop",
+      "width": 1280,
+      "height": 800,
+      "dpr": 1,
+      "sky": "night",
+      "time": "2026-06-22T06:30:00Z",
+      "images": [
+        "desktop-night-front.png",
+        "desktop-night-rear.png"
+      ],
+      "frontVisitor": true,
+      "sameOriginalHouseFrame": true,
+      "originalLandingMesh": true,
+      "augmentedRearViewMesh": true,
+      "errors": []
+    },
+    {
+      "view": "portrait",
+      "width": 390,
+      "height": 844,
+      "dpr": 2,
+      "sky": "dusk",
+      "time": "2026-06-22T02:52:00Z",
+      "images": [
+        "portrait-dusk-front.png",
+        "portrait-dusk-rear.png"
+      ],
+      "frontVisitor": true,
+      "sameOriginalHouseFrame": true,
+      "originalLandingMesh": true,
+      "augmentedRearViewMesh": true,
+      "errors": []
+    },
+    {
+      "view": "portrait",
+      "width": 390,
+      "height": 844,
+      "dpr": 2,
+      "sky": "day",
+      "time": "2026-06-21T19:30:00Z",
+      "images": [
+        "portrait-day-front.png",
+        "portrait-day-rear.png"
+      ],
+      "frontVisitor": true,
+      "sameOriginalHouseFrame": true,
+      "originalLandingMesh": true,
+      "augmentedRearViewMesh": true,
+      "errors": []
+    },
+    {
+      "view": "portrait",
+      "width": 390,
+      "height": 844,
+      "dpr": 2,
+      "sky": "night",
+      "time": "2026-06-22T06:30:00Z",
+      "images": [
+        "portrait-night-front.png",
+        "portrait-night-rear.png"
+      ],
+      "frontVisitor": true,
+      "sameOriginalHouseFrame": true,
+      "originalLandingMesh": true,
+      "augmentedRearViewMesh": true,
+      "errors": []
+    },
+    {
+      "view": "landscape",
+      "width": 844,
+      "height": 390,
+      "dpr": 2,
+      "sky": "dusk",
+      "time": "2026-06-22T02:52:00Z",
+      "images": [
+        "landscape-dusk-front.png",
+        "landscape-dusk-rear.png"
+      ],
+      "frontVisitor": true,
+      "sameOriginalHouseFrame": true,
+      "originalLandingMesh": true,
+      "augmentedRearViewMesh": true,
+      "errors": []
+    },
+    {
+      "view": "narrow",
+      "width": 800,
+      "height": 600,
+      "dpr": 1,
+      "sky": "dusk",
+      "time": "2026-06-22T02:52:00Z",
+      "images": [
+        "narrow-dusk-front.png",
+        "narrow-dusk-rear.png"
+      ],
+      "frontVisitor": true,
+      "sameOriginalHouseFrame": true,
+      "originalLandingMesh": true,
+      "augmentedRearViewMesh": true,
+      "errors": []
+    },
+    {
+      "view": "desktop",
+      "width": 1280,
+      "height": 800,
+      "sky": "dusk",
+      "memberPreviewEntry": true,
+      "backendBoundary": "All /garden requests intercepted with204 before server/private-session flow",
+      "entryErrors": []
+    }
+  ],
+  "heldFrameReturnSelection": {
+    "expected": [
+      26,
+      3.339332167793876,
+      60
+    ],
+    "actual": {
+      "matrix": [
+        0,
+        -1.1816555261611938,
+        -0.9137006998062134,
+        -0.9134831428527832,
+        0,
+        2.6529476642608643,
+        -0.40697354078292847,
+        -0.4068766236305237,
+        -2.1781580448150635,
+        0,
+        0,
+        0,
+        130.68948364257812,
+        21.863969802856445,
+        25.015213012695312,
+        25.109256744384766
+      ],
+      "eye": [
+        26,
+        3.339332103729248,
+        60
+      ],
+      "capturedAt": 1718.7999999523163
+    },
+    "selected": "pocket:0:0",
+    "method": "Hold actual rAF callbacks after reduced-motion flower focus settles, close activity and select another stop before renderer can consume focus reset, resume actual WebGPU frames"
+  },
+  "production": {
+    "actualProductionServer": true,
+    "results": [
+      {
+        "path": "/dev/garden-areas",
+        "status": 404,
+        "fixtureStateAbsent": true
+      },
+      {
+        "path": "/dev/garden-areas?empty=1&scope=1&arrival=1",
+        "status": 404,
+        "fixtureStateAbsent": true
+      },
+      {
+        "path": "/dev/garden-areas?boundary=1",
+        "status": 404,
+        "fixtureStateAbsent": true
+      },
+      {
+        "path": "/dev/garden-areas?sparse=1",
+        "status": 404,
+        "fixtureStateAbsent": true
+      },
+      {
+        "path": "/dev/world?areas=1&walking=1",
+        "status": 404,
+        "fixtureStateAbsent": true
+      },
+      {
+        "path": "/dev/landing?sky=dusk&member=1",
+        "status": 404,
+        "fixtureStateAbsent": true
+      }
+    ]
+  },
+  "originalLandingAuthority": {
+    "authority": "6f23246d9c5f309f3d28088c46f5e8aed2d94625",
+    "method": "SHA256 of original ordered JSON stroke arrays; mesh hash original Float32 vertices followed byUint32 indices. Read-only original source loaded from git object, not modified candidate.",
+    "treePlacements": {
+      "count": 273,
+      "sha256": "6666fb29a8cf784903f0c92e95bed1740aae9ce70740f3f6cc26191235bdfe37"
+    },
+    "caster": {
+      "count": 161168,
+      "sha256": "6503e1a129dd28bde5ca16860defa674f8f27b7b66dca678adae68f4aa2dbe08"
+    },
+    "field": {
+      "count": 108737,
+      "sha256": "200afd3bef9eb5eeff64571007c4093f869497601fe63b3621711d72a3f3efd2"
+    },
+    "ground": {
+      "vertices": 37791,
+      "sha256": "39c6c2daafd82d94b2fa07458826aac3b395ac4404ad455eee6f36fa4f090dc6"
+    },
+    "house": {
+      "vertices": 1550,
+      "sha256": "638da3897f12cb9bf48c5527f9a64cb062e028014bc5c28ffd5093f24854eedc"
+    },
+    "rocks": {
+      "count": 52,
+      "sha256": "e8750a09f2c730054c7fd90cff4291f4287019bf236e743198a7b8ff5196537f"
+    }
+  },
+  "limits": [
+    "Synthetic actions emulate a backend response and do not prove real service latency.",
+    "No physical mobile-device or screen-reader hardware session; keyboard/DOM/accessible-name and trusted emulated-touch checks are recorded.",
+    "Known six Mac audio_unavailable failures remain; complete Linux CI is a merge gate."
+  ]
+}

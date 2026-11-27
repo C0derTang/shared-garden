@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { gardenHouseOccludes } from "@/lib/world/garden-house-frame";
 import { projectToNdc } from "@/lib/world/camera";
 import { SPOTS_PER_BED, type Bed, type PlantingSpot, type Vec3 } from "@/lib/world/layout";
+import { scenicMarkerPosition, type ScenicRoute } from "@/lib/world/scenic-route";
 import type { FocusTarget } from "@/lib/world/journey";
 import type { FlowerAnchor } from "@/lib/world/picking";
 import { handFont } from "./hand-font";
@@ -23,6 +25,7 @@ export interface WorldCaption {
    * plot-glow display level of the sky.
    */
   readonly size?: "title" | "label" | "mark";
+  readonly maxDistance?: number;
   /** Makes the caption a button (or, with `href`, enhances the link). */
   readonly onSelect?: () => void;
   /**
@@ -81,6 +84,10 @@ export interface GardenWorldProps {
   /** Opt into local free walking; landing and renderer showcases keep their journey. */
   readonly walking?: boolean;
   readonly walkingBlocked?: boolean;
+  readonly scenicRoute?: ScenicRoute;
+  readonly scenicStop?: string;
+  readonly scenicBlocked?: boolean;
+  readonly onSelectScenicStop?: (id: string) => void;
   /**
    * Garden: the arrival from the landing's walk-through (#204). Its value on
    * the first render decides whether there is one; "play" starts the move.
@@ -146,13 +153,37 @@ export function GardenWorld({
   paused = false,
   walking = false,
   walkingBlocked = false,
+  scenicRoute,
+  scenicStop,
+  scenicBlocked = false,
+  onSelectScenicStop,
   arrival = null,
 }: GardenWorldProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<WorldRenderer | null>(null);
   const captionRefs = useRef(new Map<string, HTMLElement>());
   const captionLayerRef = useRef<HTMLDivElement>(null);
-  const captionsRef = useRef(captions);
+  const [scenicCameraReady, setScenicCameraReady] = useState(true);
+  const scenicReadyRef = useRef(true);
+  const scenicEnabled = Boolean(scenicRoute);
+  const scenicStops = scenicRoute?.stops.filter(stop => !stop.transit) ?? [];
+  const scenicIndex = Math.max(0, scenicStops.findIndex(stop => stop.id === scenicStop));
+  const scenicPrevious = scenicStops[(scenicIndex + scenicStops.length - 1) % scenicStops.length];
+  const scenicNext = scenicStops[(scenicIndex + 1) % scenicStops.length];
+  const canSelect = scenicCameraReady && !scenicBlocked && !paused && !focus;
+  const routePointer = useRef({ x: 0, y: 0, dragged: false });
+  const selectedStop = scenicStops[scenicIndex];
+  const nearbyStops = selectedStop ? scenicStops.filter(stop => stop.id !== selectedStop.id)
+    .map(stop => ({stop, distance: Math.hypot(stop.pose.eye[0]-selectedStop.pose.eye[0],stop.pose.eye[2]-selectedStop.pose.eye[2])}))
+    .filter(candidate => candidate.distance < 30).sort((a,b) => a.distance-b.distance).slice(0,6).map(candidate => candidate.stop) : [];
+  const markerStops = [...new Map([scenicPrevious,scenicNext,...nearbyStops].filter(stop => Boolean(stop)).map(stop => [stop!.id,stop!])).values()];
+  const routeCaptions: readonly WorldCaption[] = scenicRoute && canSelect ? markerStops.map(stop => ({
+    id: `route-${stop.id}`, text: `◇ ${stop.label}`, position: scenicMarkerPosition(stop),
+    onSelect: () => onSelectScenicStop?.(stop.id), size: "label",
+  })) : [];
+
+  const allCaptions = [...captions, ...routeCaptions];
+  const captionsRef = useRef(allCaptions);
   const [status, setStatus] = useState<Status>("loading");
   const reducedMotion = usePrefersReducedMotion();
   const timeValue = time?.getTime() ?? null;
@@ -179,6 +210,9 @@ export function GardenWorld({
     paused,
     walking,
     walkingBlocked,
+    scenicRoute,
+    scenicStop,
+    scenicBlocked,
     arrival,
   };
   const stateRef = useRef(sceneState);
@@ -187,7 +221,7 @@ export function GardenWorld({
 
   useEffect(() => {
     pickRef.current = { onPickSpot, onPickFlower, onPickDoor, onEntered, onView };
-    captionsRef.current = captions;
+    captionsRef.current = allCaptions;
     motionRef.current = reducedMotion;
   });
 
@@ -196,7 +230,7 @@ export function GardenWorld({
     rendererRef.current?.update(sceneState);
     // sceneState is rebuilt from these inputs every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [spotCapacity, plantingLayout, occupiedSpots, flowers, layers, timeValue, reducedMotion, doorInvite, entering, focus, paused, walking, walkingBlocked, arrival]);
+  }, [spotCapacity, plantingLayout, occupiedSpots, flowers, layers, timeValue, reducedMotion, doorInvite, entering, focus, paused, walking, walkingBlocked, scenicRoute, scenicStop, scenicBlocked, arrival]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -212,6 +246,7 @@ export function GardenWorld({
     let glowLevel = "";
     const placeCaptions = (view: WorldView) => {
       pickRef.current.onView?.(view);
+      if(view.scenicReady !== undefined && view.scenicReady !== scenicReadyRef.current){scenicReadyRef.current=view.scenicReady;setScenicCameraReady(view.scenicReady);}
       // Floating marks glow like the plots: the same display level by day, quieter at night.
       const glow = (view.glow ?? 1).toFixed(2);
       if (glow !== glowLevel) {
@@ -219,12 +254,25 @@ export function GardenWorld({
         captionLayerRef.current?.style.setProperty("--plot-glow", glow);
       }
       const t = motionRef.current ? 0 : performance.now() / 1000;
-      captionsRef.current.forEach((caption, index) => {
+      const canvasBounds = canvas.getBoundingClientRect();
+      const reservedControls = stateRef.current.scenicRoute ? [...document.querySelectorAll("nav, [data-world-reserved]")].map(element => element.getBoundingClientRect()).filter(rect => rect.width > 0 && rect.height > 0).map(rect => ({left:rect.left-canvasBounds.left,right:rect.right-canvasBounds.left,top:rect.top-canvasBounds.top,bottom:rect.bottom-canvasBounds.top})) : [];
+      const placedLabels: { x: number; y: number; w: number; h: number }[] = [];
+      const distance = (caption: WorldCaption) => view.eye ? Math.hypot(caption.position[0]-view.eye[0],caption.position[2]-view.eye[2]) : 0;
+      (stateRef.current.scenicRoute ? [...captionsRef.current].sort((a,b)=>distance(a)-distance(b)) : captionsRef.current).forEach((caption, index) => {
         const element = captionRefs.current.get(caption.id);
         if (!element) return;
         const ndc = projectToNdc(view.viewProjection, caption.position);
-        const visible = ndc !== null && Math.abs(ndc[0]) < 1.2 && Math.abs(ndc[1]) < 1.2 && ndc[2] < 1;
+        let visible = (caption.maxDistance === undefined || distance(caption) <= caption.maxDistance) && !(stateRef.current.scenicRoute && view.eye && gardenHouseOccludes(view.eye, caption.position)) && ndc !== null && Math.abs(ndc[0]) < 1.2 && Math.abs(ndc[1]) < 1.2 && ndc[2] < 1;
+        if(stateRef.current.scenicRoute && visible && ndc && caption.size === "label"){
+          const box={x:(ndc[0]+1)/2*view.width-element.offsetWidth/2,y:(1-ndc[1])/2*view.height-element.offsetHeight/2,w:element.offsetWidth,h:element.offsetHeight};
+          if(placedLabels.some(other=>box.x<other.x+other.w+12&&box.x+box.w+12>other.x&&box.y<other.y+other.h+8&&box.y+box.h+8>other.y))visible=false;
+          else placedLabels.push(box);
+        }
         const control = Boolean(caption.onSelect || caption.href || caption.formAction);
+        if(stateRef.current.scenicRoute && control && ndc){
+          const x=(ndc[0]+1)/2*view.width,y=(1-ndc[1])/2*view.height,halfW=element.offsetWidth/2+12,halfH=element.offsetHeight/2+12;
+          if(x<halfW||x>view.width-halfW||y<halfH||y>view.height-halfH||reservedControls.some(rect=>x+halfW>rect.left&&x-halfW<rect.right&&y+halfH>rect.top&&y-halfH<rect.bottom))visible=false;
+        }
         if (!visible && control) {
           // Out of view, a control stays reachable by keyboard: invisible, pinned
           // inside the edge, and shown there while focused.
@@ -237,7 +285,12 @@ export function GardenWorld({
           const halfW = element.offsetWidth / 2 + margin;
           const halfH = element.offsetHeight / 2 + margin;
           const x = Math.min(Math.max(((cx + 1) / 2) * view.width, halfW), Math.max(halfW, view.width - halfW));
-          const y = Math.min(Math.max(((1 - cy) / 2) * view.height, halfH), Math.max(halfH, view.height - halfH));
+          let y = Math.min(Math.max(((1 - cy) / 2) * view.height, halfH), Math.max(halfH, view.height - halfH));
+          for(const rect of reservedControls){
+            if(x+halfW>rect.left&&x-halfW<rect.right&&y+halfH>rect.top&&y-halfH<rect.bottom){
+              const below=rect.bottom+halfH;y=below<view.height-halfH?below:Math.max(halfH,rect.top-halfH);
+            }
+          }
           element.style.transform = `translate(-50%, -50%) translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
           return;
         }
@@ -313,7 +366,7 @@ export function GardenWorld({
   }, []);
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (walking || event.target !== event.currentTarget) return;
+    if (walking || scenicEnabled || event.target !== event.currentTarget) return;
     const step = event.key === "ArrowUp" || event.key === "PageDown" ? KEY_STEP : event.key === "ArrowDown" || event.key === "PageUp" ? -KEY_STEP : 0;
     const side = event.key === "ArrowRight" ? PAN_STEP : event.key === "ArrowLeft" ? -PAN_STEP : 0;
     if (step === 0 && side === 0) return;
@@ -370,7 +423,7 @@ export function GardenWorld({
       tabIndex={composition === "garden" ? 0 : undefined}
       onKeyDown={composition === "garden" ? onKeyDown : undefined}
       aria-label={
-        composition === "garden" ? walking ? `${label}. Hold WASD or arrow keys to walk. Click ground to walk there; tap a flower to visit.` : `${label}. Use the up and down arrow keys to walk closer or step back, and left and right to walk along the beds.` : undefined
+        composition === "garden" ? scenicEnabled ? `${label}. Choose scenic stops along the garden path; tap a flower to visit.` : walking ? `${label}. Hold WASD or arrow keys to walk. Click ground to walk there; tap a flower to visit.` : `${label}. Use the up and down arrow keys to walk closer or step back, and left and right to walk along the beds.` : undefined
       }
     >
       <canvas ref={canvasRef} className={styles.canvas} role="img" aria-label={label} />
@@ -385,8 +438,27 @@ export function GardenWorld({
           </div>
         </div>
       )}
+      {scenicEnabled && status === "ready" && canSelect && (
+        <nav className={styles.scenicControls} aria-label="Garden path"
+          onPointerDownCapture={event => {
+            routePointer.current = { x: event.clientX, y: event.clientY, dragged: false };
+            const button = (event.target as HTMLElement).closest("button");
+            if(button && event.isPrimary && event.button===0)button.setPointerCapture?.(event.pointerId);
+          }}
+          onPointerCancelCapture={() => { routePointer.current.dragged = true; }}
+          onPointerMoveCapture={event => { if (Math.hypot(event.clientX-routePointer.current.x,event.clientY-routePointer.current.y)>8) routePointer.current.dragged=true; }}
+          onClickCapture={event => { if (routePointer.current.dragged && event.detail > 0) { event.preventDefault(); event.stopPropagation(); } }}>
+          <div>
+            <button type="button" aria-label={`Back to ${scenicPrevious?.label}`} onClick={() => scenicPrevious && onSelectScenicStop?.(scenicPrevious.id)}>← back</button>
+            <label><span className={styles.srOnly}>Scenic stop</span><select aria-label="Scenic stop" value={scenicStop ?? scenicStops[0]?.id} onChange={event => onSelectScenicStop?.(event.target.value)}>
+              {scenicStops.map(stop => <option key={stop.id} value={stop.id}>{stop.label}</option>)}
+            </select></label>
+            <button type="button" aria-label={`Onward to ${scenicNext?.label}`} onClick={() => scenicNext && onSelectScenicStop?.(scenicNext.id)}>onward →</button>
+          </div>
+        </nav>
+      )}
       <div ref={captionLayerRef} className={styles.captions}>
-        {captions.map((caption) => {
+        {allCaptions.map((caption) => {
           const className = [
             styles.caption,
             caption.size === "title" ? styles.title : caption.size === "mark" ? styles.mark : styles.label,
@@ -432,7 +504,13 @@ export function GardenWorld({
             );
           }
           return caption.onSelect ? (
-            <button key={caption.id} ref={ref} type="button" className={className} onClick={caption.onSelect} data-caption={caption.id}>
+            <button key={caption.id} ref={ref} type="button" className={className} disabled={scenicEnabled && !canSelect} onPointerDown={event => {
+                routePointer.current={x:event.clientX,y:event.clientY,dragged:false};
+                if(event.isPrimary && event.button===0)event.currentTarget.setPointerCapture?.(event.pointerId);
+              }}
+              onPointerCancel={() => { routePointer.current.dragged=true; }}
+              onPointerMove={event => { if(Math.hypot(event.clientX-routePointer.current.x,event.clientY-routePointer.current.y)>8)routePointer.current.dragged=true; }}
+              onClick={event => { if(event.detail===0 || !routePointer.current.dragged)caption.onSelect?.(); }} data-caption={caption.id}>
               {caption.text}
             </button>
           ) : (

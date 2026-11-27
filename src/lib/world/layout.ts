@@ -1,3 +1,4 @@
+import {plantingSurfaceHeight} from "./site-surface";
 /**
  * Pure layout of the painted meadow: ground height and fixed planting spots
  * grouped into beds that open as they fill.
@@ -69,6 +70,8 @@ export interface Bed {
   readonly row: number;
   readonly center: Vec3;
   readonly radius: number;
+  readonly organic?: boolean;
+  readonly site?: boolean;
 }
 
 /** Fixed position of bed `index` on the meadow lattice. */
@@ -136,3 +139,10 @@ export function distanceToBeds(x: number, z: number, beds: readonly Bed[]): numb
   }
   return best;
 }
+
+/** Stable, softly lobed pocket silhouette; legacy/default beds retain their circle. */
+export function bedRimRadius(bed: Bed, angle: number): number {
+ return bed.radius * (bed.organic ? 1 + .13*Math.sin(angle*3+bed.index*1.17) + .07*Math.cos(angle*5+bed.index*.63) : 1);
+}
+
+export function bedTerrainHeight(bed:Bed,x:number,z:number):number{return bed.site?plantingSurfaceHeight(x,z):terrainHeight(x,z);}

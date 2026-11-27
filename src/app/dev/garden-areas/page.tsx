@@ -13,5 +13,14 @@ export default async function TypeAreaFixture({ searchParams }: { searchParams: 
     state.garden.next_spot = 1;
     state.garden.spot_capacity = 12;
   }
+  if (params.boundary === "1") {
+    state.plants = state.plants.filter(plant => plant.flower.spot !== 24);
+    state.garden.next_spot = 24;
+  }
+  if (params.sparse === "1") {
+    state.plants[0]!.flower.spot = 12001;
+    state.garden.next_spot = 1;
+    state.garden.spot_capacity = 12012;
+  }
   return <GardenFixture state={state} arrival={params.arrival === "1"} scope={params.scope === "1"} />;
 }

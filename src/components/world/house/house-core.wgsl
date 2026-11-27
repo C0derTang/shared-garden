@@ -11,6 +11,8 @@ export const MAT_PLANK: f32 = 6.0;
 export const MAT_INTERIOR: f32 = 7.0;
 export const MAT_LANTERN: f32 = 8.0;
 export const MAT_FRAME: f32 = 9.0;
+// Same painted door style, with no front-hinge animation.
+export const MAT_BACK_DOOR: f32 = 10.0;
 
 export struct House {
   // World position of the door's hinge (at the sill).

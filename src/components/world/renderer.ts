@@ -1,3 +1,8 @@
+import { createScenicNavigator, scenicPose, scenicFovY, type ScenicRoute } from "@/lib/world/scenic-route";
+import { buildScenicGroundMesh } from "@/lib/world/scenic-ground";
+import { buildScenicPath } from "@/lib/world/scenic-path";
+import { buildScenicMeadowStrokes } from "@/lib/world/scenic-scenery";
+import { buildGardenHouseMesh } from "@/lib/world/garden-house";
 import { createWalk, gardenWalkObstacles, groundTarget, walkingBounds, walkingPose } from "@/lib/world/walking";
 import { bindWalkingInput } from "@/lib/world/walking-input";
 import {
@@ -57,6 +62,7 @@ import kuwaharaShader from "./post/kuwahara.wgsl";
 import prepShader from "./post/prep.wgsl";
 import tensorShader from "./post/tensor.wgsl";
 import bedShader from "./shaders/bed.wgsl";
+import scenicPathShader from "./shaders/scenic-path.wgsl";
 import groundShader from "./shaders/ground.wgsl";
 import markerShader from "./shaders/marker.wgsl";
 import mountainShader from "./shaders/mountain.wgsl";
@@ -110,6 +116,9 @@ export interface WorldSceneState {
   readonly focus?: FocusTarget | null;
   readonly walking?: boolean;
   readonly walkingBlocked?: boolean;
+  readonly scenicRoute?: ScenicRoute;
+  readonly scenicStop?: string;
+  readonly scenicBlocked?: boolean;
   /**
    * Stop painting new frames once the camera has settled (e.g. while a
    * full-screen view covers the world). The last frame stays on the canvas.
@@ -127,6 +136,7 @@ export interface WorldSceneState {
 /** Per-frame camera handed to DOM overlays (e.g. floating captions). */
 export interface WorldView {
   readonly viewProjection: Float32Array;
+  readonly eye?: Vec3;
   /** Canvas size in CSS pixels. */
   readonly width: number;
   readonly height: number;
@@ -143,6 +153,8 @@ export interface WorldView {
    * their soft glow by it (#214). Absent means daylight (1).
    */
   readonly glow?: number;
+  /** Scenic controls wait through actual flower return, not a guessed timeout. */
+  readonly scenicReady?: boolean;
 }
 
 export interface WorldRendererCallbacks {
@@ -229,9 +241,11 @@ export function createWorldRenderer(
   const walkBeds = () => state.plantingLayout?.beds ?? Array.from({ length: bedCountFor(state.spotCapacity) }, (_, index) => bedAt(index));
   const bounds = walkingBounds(walkBeds(), state.plantingLayout?.maxZ ?? 7.4);
   const obstacles = gardenWalkObstacles();
-  const walking = !landing && Boolean(initial.walking);
+  const scenic = !landing && Boolean(initial.scenicRoute);
+  const navigator = initial.scenicRoute ? createScenicNavigator(initial.scenicRoute, initial.scenicStop ?? initial.scenicRoute.stops[0]!.id) : null;
+  const walking = !landing && !scenic && Boolean(initial.walking);
   const walker = createWalk([0, 16 + Math.max(0, (initial.plantingLayout?.maxZ ?? 7.4) - 7.4)], bounds, obstacles);
-  const blocked = () => Boolean(state.walkingBlocked || state.paused || state.focus || focus.value > 0 || arrival.active);
+  const blocked = () => Boolean(state.walkingBlocked || state.scenicBlocked || state.paused || state.focus || focus.value > 0 || arrival.active);
   if (walking && canvas.parentElement) cleanups.push(bindWalkingInput(canvas.parentElement, walker, blocked));
   const walkGround = (clientX: number, clientY: number) => {
     if (!cameraReady) return null;
@@ -270,7 +284,7 @@ export function createWorldRenderer(
   };
 
   const travel = (delta: number) => {
-    if (landing) return;
+    if (landing || scenic) return;
     journey.target = Math.min(1, Math.max(0, journey.target + delta));
   };
 
@@ -281,13 +295,13 @@ export function createWorldRenderer(
     return reach === 0 ? 0 : reach + BED_RADIUS;
   };
   const pan = (delta: number) => {
-    if (landing) return;
+    if (landing || scenic) return;
     const limit = panLimit();
     journey.panTarget = Math.min(limit, Math.max(-limit, journey.panTarget + delta));
   };
 
   const onPointerMove = (event: PointerEvent) => {
-    if (walking && blocked()) return;
+    if ((walking || scenic) && blocked()) return;
     const rect = canvas.getBoundingClientRect();
     pointer.x = ((event.clientX - rect.left) / Math.max(rect.width, 1)) * 2 - 1;
     pointer.y = 1 - ((event.clientY - rect.top) / Math.max(rect.height, 1)) * 2;
@@ -295,11 +309,11 @@ export function createWorldRenderer(
     if (pointer.down && !pointer.dragged && Math.hypot(event.clientX - pointer.downX, event.clientY - pointer.downY) > CLICK_SLOP_PX) {
       pointer.dragged = true;
     }
-    if (!walking && pointer.dragged && event.pointerType === "touch") {
+    if (!walking && !scenic && pointer.dragged && event.pointerType === "touch") {
       travel((pointer.touchY - event.clientY) / Math.max(rect.height, 1));
       pointer.touchY = event.clientY;
     }
-    if (!walking && pointer.dragged) {
+    if (!walking && !scenic && pointer.dragged) {
       // Dragging sideways walks along the beds (the scene follows the finger).
       pan(((pointer.dragX - event.clientX) / Math.max(rect.width, 1)) * PAN_PER_WIDTH);
       pointer.dragX = event.clientX;
@@ -308,7 +322,7 @@ export function createWorldRenderer(
     canvas.style.cursor = hovered ? "pointer" : walking && walkGround(event.clientX, event.clientY) ? "crosshair" : "";
   };
   const onPointerDown = (event: PointerEvent) => {
-    if (walking && (event.button !== 0 || !event.isPrimary || blocked())) return;
+    if ((walking || scenic) && (event.button !== 0 || !event.isPrimary || blocked())) return;
     if (walking) { walker.stop(); canvas.parentElement?.focus({ preventScroll: true }); }
     pointer.down = true;
     pointer.dragged = false;
@@ -322,7 +336,7 @@ export function createWorldRenderer(
     const dragged = pointer.dragged;
     pointer.down = false;
     pointer.dragged = false;
-    if ((walking && blocked()) || dragged) return;
+    if (((walking || scenic) && blocked()) || dragged) return;
     if (Math.hypot(event.clientX - pointer.downX, event.clientY - pointer.downY) > CLICK_SLOP_PX) return;
     const result = pickAt(event.clientX, event.clientY);
     if (result) { walker.stop(); callbacks.onPick(result); }
@@ -340,7 +354,7 @@ export function createWorldRenderer(
     canvas.style.cursor = "";
   };
   const onWheel = (event: WheelEvent) => {
-    if (landing || walking) return;
+    if (landing || walking || scenic) return;
     event.preventDefault();
     const scale = event.deltaMode === 1 ? 16 : 1;
     travel((event.deltaY * scale) / 1400);
@@ -355,7 +369,14 @@ export function createWorldRenderer(
     const interrupted = pointer.down || event.type === "pointercancel" || (event.type === "pointerleave" && event.pointerType !== "touch");
     onPointerLeave();
     if (walking && interrupted) walker.stop();
+    if (scenic && interrupted) navigator?.interrupt();
   };
+  const interruptScenic = () => { navigator?.interrupt(); onPointerLeave(); };
+  if(scenic){
+    window.addEventListener("blur",interruptScenic);
+    document.addEventListener("visibilitychange",interruptScenic);
+    cleanups.push(()=>{window.removeEventListener("blur",interruptScenic);document.removeEventListener("visibilitychange",interruptScenic);});
+  }
   canvas.addEventListener("pointerleave", cancelPointer);
   canvas.addEventListener("pointercancel", cancelPointer);
   canvas.addEventListener("lostpointercapture", cancelPointer);
@@ -430,7 +451,7 @@ export function createWorldRenderer(
 
     const sky = draw(gpu, { shader: skyShader, vertices: 3, depth: false, label: "garden-world.sky" });
     let groundExtent = state.plantingLayout ? Math.max(18, state.plantingLayout.maxZ + 12) : 18;
-    let groundGeometry = meshGeometry(gpu, landing ? buildLandingGroundMesh() : buildGroundMesh(groundExtent), GROUND_ATTRIBUTES, "garden-world.ground");
+    let groundGeometry = meshGeometry(gpu, landing ? buildLandingGroundMesh() : scenic && state.scenicRoute ? buildScenicGroundMesh(state.scenicRoute,walkBeds()) : buildGroundMesh(groundExtent), GROUND_ATTRIBUTES, "garden-world.ground");
     let ground = draw(gpu, {
       shader: groundShader,
       geometry: groundGeometry,
@@ -446,14 +467,14 @@ export function createWorldRenderer(
       shader: rockShader,
       geometry: meshGeometry(
         gpu,
-        landing ? buildRockMesh(landingRocks(), landingTerrainHeight) : buildRockMesh(shoreRocks()),
+        landing || scenic ? buildRockMesh(landingRocks(), landingTerrainHeight) : buildRockMesh(shoreRocks()),
         ROCK_ATTRIBUTES,
         "garden-world.rocks",
       ),
       label: "garden-world.rocks",
       set: shadowBindings,
     });
-    const water = draw(gpu, { shader: waterShader, geometry: waterGeometry(gpu, composition), label: "garden-world.water" });
+    const water = draw(gpu, { shader: waterShader, geometry: waterGeometry(gpu, scenic ? "landing" : composition), label: "garden-world.water" });
     const motes = draw(gpu, {
       shader: motesShader,
       vertices: 6,
@@ -464,13 +485,13 @@ export function createWorldRenderer(
       label: "garden-world.motes",
     });
     const farShore = createStrokeBatch(gpu, buildFarShoreStrokes(), { label: "garden-world.far-shore", shadow });
-    const nearShore = createStrokeBatch(gpu, landing ? buildLandingCasterStrokes() : buildNearShoreStrokes(), {
+    const nearShore = createStrokeBatch(gpu, landing || scenic ? buildLandingCasterStrokes() : buildNearShoreStrokes(), {
       label: "garden-world.near-shore",
       shadow,
       castShadows: true,
     });
     // The landing's house and the low cover of its clearing.
-    const houseGeometry = landing ? meshGeometry(gpu, buildHouseMesh(), HOUSE_ATTRIBUTES, "garden-world.house") : undefined;
+    const houseGeometry = landing || scenic ? meshGeometry(gpu, landing ? buildHouseMesh() : buildGardenHouseMesh(), HOUSE_ATTRIBUTES, "garden-world.house") : undefined;
     const house = houseGeometry
       ? draw(gpu, { shader: houseShader, geometry: houseGeometry, label: "garden-world.house", set: shadowBindings })
       : undefined;
@@ -494,6 +515,8 @@ export function createWorldRenderer(
     let markerGeometry: Geometry | undefined;
     let markerCount = 0;
     let markerKey = "";
+    let pathDraw: Draw | undefined;
+    let pathGeometry: Geometry | undefined;
 
     const rebuildBeds = () => {
       if (landing) {
@@ -505,11 +528,11 @@ export function createWorldRenderer(
       if (nextKey === bedKey) return;
       bedKey = nextKey;
       const nextExtent = state.plantingLayout ? Math.max(18, state.plantingLayout.maxZ + 12) : 18;
-      if (nextExtent > groundExtent) {
+      if (scenic || nextExtent > groundExtent) {
         groundExtent = nextExtent;
         ground.dispose();
         groundGeometry.destroy();
-        groundGeometry = meshGeometry(gpu!, buildGroundMesh(groundExtent), GROUND_ATTRIBUTES, "garden-world.ground");
+        groundGeometry = meshGeometry(gpu!, scenic && state.scenicRoute ? buildScenicGroundMesh(state.scenicRoute,bedLayout) : buildGroundMesh(groundExtent), GROUND_ATTRIBUTES, "garden-world.ground");
         ground = draw(gpu!, { shader: groundShader, geometry: groundGeometry, label: "garden-world.ground", set: shadowBindings });
       }
       meadow?.dispose();
@@ -517,8 +540,13 @@ export function createWorldRenderer(
       bedGeometry?.destroy();
       edging?.dispose();
       edgingGeometry?.destroy();
-      meadow = createStrokeBatch(gpu!, buildMeadowStrokes(bedLayout), { label: "garden-world.meadow", shadow });
-      edgingGeometry = meshGeometry(gpu!, buildRockMesh(bedEdgingRocks(bedLayout)), ROCK_ATTRIBUTES, "garden-world.edging");
+      meadow = createStrokeBatch(gpu!, scenic && state.scenicRoute ? buildScenicMeadowStrokes(state.scenicRoute,bedLayout) : buildMeadowStrokes(bedLayout), { label: "garden-world.meadow", shadow, castShadows: scenic });
+      if(scenic && state.scenicRoute){
+        pathDraw?.dispose();pathGeometry?.destroy();
+        pathGeometry=meshGeometry(gpu!,buildScenicPath(state.scenicRoute),{position:"float32x3",normal:"float32x3",ribbon:"float32x2"},"garden-world.path");
+        pathDraw=draw(gpu!,{shader:scenicPathShader,geometry:pathGeometry,label:"garden-world.path",set:shadowBindings,depth:{write:true,compare:"less-equal",bias:-2,biasSlopeScale:-1}});
+      }
+      edgingGeometry = meshGeometry(gpu!, buildRockMesh(bedEdgingRocks(bedLayout), scenic ? landingTerrainHeight : undefined), ROCK_ATTRIBUTES, "garden-world.edging");
       edging = draw(gpu!, { shader: rockShader, geometry: edgingGeometry, label: "garden-world.edging", set: shadowBindings });
       bedGeometry = meshGeometry(gpu!, buildBedMesh(bedLayout), BED_ATTRIBUTES, "garden-world.beds");
       beds = draw(gpu!, {
@@ -574,7 +602,7 @@ export function createWorldRenderer(
     const bind = () => {
       const [w, h] = scene.size;
       const [hw, hh] = glowA.size;
-      water.set({ reflection: mirror, reflectionSampler: linear, water: { texel: [1 / w, 1 / h], distortion: 0.12, shore: landing ? 1 : 0 } });
+      water.set({ reflection: mirror, reflectionSampler: linear, water: { texel: [1 / w, 1 / h], distortion: 0.12, shore: landing || scenic ? 1 : 0 } });
       bright.set({ source: scene, sourceSampler: linear, params: { texel: [1 / w, 1 / h], threshold: 1.1, knee: 0.5 } });
       blurH.set({ source: glowA, sourceSampler: linear, params: { direction: [1.6 / hw, 0], pad: [0, 0] } });
       blurV.set({ source: glowB, sourceSampler: linear, params: { direction: [0, 1.6 / hh], pad: [0, 0] } });
@@ -697,12 +725,18 @@ export function createWorldRenderer(
         const focusGoal = state.focus ? 1 : 0;
         focus.value = still ? focusGoal : focus.value + (focusGoal - focus.value) * Math.min(1, dt * 3.2);
         if (Math.abs(focus.value - focusGoal) < 0.002) focus.value = focusGoal;
+        // A React selection can arrive before this frame consumes focus reset.
+        // Reconcile after focus settles so that selection is never discarded.
+        if(navigator){
+          if(blocked())navigator.interrupt();
+          else {if(state.scenicStop)navigator.select(state.scenicStop,still);if(still)navigator.interrupt();else navigator.tick(time.deltaTime);}
+        }
         // Covered by a full-screen view: keep the settled frame and save the GPU.
         if (state.paused && focus.value === focusGoal && cameraReady) return;
 
         const [w, h] = scene.size;
         const aspect = output.size[0] / Math.max(output.size[1], 1);
-        const fovY = gardenFovY(aspect);
+        const fovY = navigator ? scenicFovY(navigator.pose,aspect,focus.value) : gardenFovY(aspect);
         perspective(fovY, aspect, 0.1, 420, projection);
         let pose: JourneyPose;
         let walk: ReturnType<typeof walkThroughAt> | null = null;
@@ -722,7 +756,7 @@ export function createWorldRenderer(
           pose = walk ?? home;
         } else {
           // Journey, sideways walk and the glide to a flower (portrait tilt included).
-          pose = walking ? walkingPose(walker.position, aspect, fovY, focus.target, focus.value) : gardenPose({ journey: journey.value, pan: journey.pan, depth: Math.max(0, (state.plantingLayout?.maxZ ?? 7.4) - 7.4), focus: focus.target, focusWeight: focus.value }, aspect, fovY);
+          pose = navigator ? scenicPose(navigator.pose, aspect, fovY, focus.target, focus.value) : walking ? walkingPose(walker.position, aspect, fovY, focus.target, focus.value) : gardenPose({ journey: journey.value, pan: journey.pan, depth: Math.max(0, (state.plantingLayout?.maxZ ?? 7.4) - 7.4), focus: focus.target, focusWeight: focus.value }, aspect, fovY);
           // The arrival from the walk-through (#204) glides into this pose.
           if (arrival.active) {
             if (state.arrival === "play") arrival.playing = true;
@@ -744,7 +778,7 @@ export function createWorldRenderer(
         }
         const t = motionTime;
         // Idle drift and pointer parallax settle while the walk-through takes over.
-        const settle = (walking ? 0 : 1) * (walk ? Math.max(0, 1 - entry.seconds / 1.2) : 1) * (1 - focus.value);
+        const settle = (walking || scenic ? 0 : 1) * (walk ? Math.max(0, 1 - entry.seconds / 1.2) : 1) * (1 - focus.value);
         const sway = landing ? 0.45 : 0.6;
         const drifted = withDrift(pose, t, settle);
         const eye: Vec3 = [drifted.eye[0] + pointer.smoothX * sway * settle, drifted.eye[1] + pointer.smoothY * 0.2 * settle, drifted.eye[2]];
@@ -773,7 +807,7 @@ export function createWorldRenderer(
         }
         const lampLight = landing || !layerLight ? null : layerLight;
         const lightDir = lighting.lightDirection;
-        const shadowCenter = landing ? LANDING_SHADOW_CENTER : SHADOW_CENTER;
+        const shadowCenter = landing ? LANDING_SHADOW_CENTER : scenic ? [pose.eye[0], 0, pose.eye[2]] as Vec3 : SHADOW_CENTER;
         const lightEye: Vec3 = [shadowCenter[0] + lightDir[0] * 100, shadowCenter[1] + lightDir[1] * 100, shadowCenter[2] + lightDir[2] * 100];
         lookAt(lightEye, shadowCenter, Math.abs(lightDir[1]) > 0.98 ? [0, 0, -1] : [0, 1, 0], lightView);
         multiply(lightProjection, lightView, lightViewProjection);
@@ -850,9 +884,11 @@ export function createWorldRenderer(
 
         // 0. Key-light shadow map (trees, reeds and layers such as the flowers cast; leaves are alpha-tested).
         nearShore.setWorld(world);
+        if(scenic)meadow?.setWorld(world);
         houseCaster?.set({ world, house: houseParams });
         currentFrame.pass({ target: shadowMap, clear: [1, 1, 1, 1], clearDepth: 1 }, (pass) => {
           nearShore.encodeShadow(pass);
+          if(scenic)meadow?.encodeShadow(pass);
           if (houseCaster) pass.draw(houseCaster);
           for (const layer of state.layers) {
             if (readyLayers.has(layer)) layer.drawShadow?.(pass, context);
@@ -878,7 +914,7 @@ export function createWorldRenderer(
         });
 
         // 2. The scene.
-        for (const drawable of [sky, ground, mountains, rocks, water, motes, beds, edging, markers]) drawable?.set({ world });
+        for (const drawable of [sky, ground, mountains, rocks, water, motes, beds, edging, markers, pathDraw]) drawable?.set({ world });
         house?.set({ world, house: houseParams });
         for (const batch of [farShore, nearShore, meadow]) batch?.setWorld(world);
         currentFrame.pass({ target: scene, clear: [0, 0, 0, 1], clearDepth: 1 }, (pass) => {
@@ -887,6 +923,7 @@ export function createWorldRenderer(
           pass.draw(ground);
           pass.draw(water);
           pass.draw(rocks);
+          if(pathDraw)pass.draw(pathDraw);
           if (beds) pass.draw(beds);
           if (edging) pass.draw(edging);
           if (house) pass.draw(house);
@@ -923,7 +960,7 @@ export function createWorldRenderer(
         currentFrame.pass({ target: painted, clear: [0, 0, 0, 1] }, (pass) => pass.draw(kuwahara));
         currentFrame.pass({ target: output, clear: [0, 0, 0, 1] }, (pass) => pass.draw(composite));
 
-        callbacks.onFrame?.({ viewProjection, width: canvas.clientWidth, height: canvas.clientHeight, entryFade: walk?.fade ?? 0, arrival: arrival.active ? arrival.seconds : null, glow: plotGlowDisplay(lighting) });
+        callbacks.onFrame?.({ viewProjection, eye, width: canvas.clientWidth, height: canvas.clientHeight, entryFade: walk?.fade ?? 0, arrival: arrival.active ? arrival.seconds : null, glow: plotGlowDisplay(lighting), scenicReady: navigator ? !blocked() : undefined });
         if (arrival.active && arrival.seconds >= (still ? ARRIVAL_STILL_SETTLE_SECONDS : ARRIVAL_SETTLE_SECONDS)) arrival.active = false;
       } catch (error) {
         // A throwing tick ends vgpu's loop; dispose and report the error so the
@@ -966,6 +1003,11 @@ export function createWorldRenderer(
   return {
     update(next) {
       state = next;
+      if(navigator && next.scenicRoute){
+        navigator.update(next.scenicRoute);
+        if(next.scenicStop && !blocked())navigator.select(next.scenicStop,next.reducedMotion);
+        if(blocked()){navigator.interrupt();onPointerLeave();}
+      }
       if (walking) {
         Object.assign(bounds, walkingBounds(walkBeds(), state.plantingLayout?.maxZ ?? 7.4));
         if (blocked()) { walker.stop(); onPointerLeave(); }
