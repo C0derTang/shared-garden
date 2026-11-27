@@ -66,3 +66,5 @@ Files GardenV2/GardenWorld/renderer and CSS/tests; focused drawer component plus
 - [ ] Root obtains fresh independent exact-head review in a separate checkout, records all verdicts, routes corrections to this builder, then verifies allCI/dependencies/protection before eligible merge and safe cleanup.
 
 Builder base0575e83c96ec9c73a56d61fab8edda52df9bdd45; managed isolated worktree226-scroll-garden. Concrete choices: [decision0073](../../decisions/0073-compact-scrolling-garden.md). Read-only issue/spec/dependency sufficiency and vgpu0.6 scene/camera docs completed. Original source render capture precedes implementation; keep retained immutable authority and compare intentional static thinning separately.
+
+Early actual review correction: retain three low/mid species terraces inside the C-room; native scroll begins at garden overlook with backward access to the surveyed actual rear-house/porch. Use documented monotonic per-leg scroll pacing to keep woodland brief and angular turns deliberate. Test exact pixel↔arc round trips, all13anchors, initial semantic position and actual native-scroll rear view before broad checks.
