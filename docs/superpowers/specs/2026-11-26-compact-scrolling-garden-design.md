@@ -35,3 +35,5 @@ Four sizes1280x800,390x844,844x390,800x600: readable/pickable plants, unobscured
 Follow issue-first dedicated isolated builder, docs-first0073/design/plan, fresh fork-none exact-head independent reviews, required CI, eligible merge and safe cleanup. No costs, services, auth, schema, activity-rule, private-data or legacy expansion.
 
 Concrete implementation choices and timestamp/overflow stability limits are recorded in [decision0073](../../decisions/0073-compact-scrolling-garden.md). Six-plant adjacent terrace modules and a single directed inland walk replace the prior island graph. Native scroll distance is the sole product navigation authority.
+
+Early actual-render refinement: final room is an open C-shaped curve with adjoining terraces and thirteen varied outward headings, not a straight corridor. No target-only overflow geometry; all13seed marks sit at current walk-facing terrace rims. See0073's refinement and mature species order/envelopes. The actual rear porch woodland access ribbon stays connected.

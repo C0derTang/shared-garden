@@ -15,3 +15,11 @@ Conservative implementation choices under that discretion:
 No service/dependency upgrade, backend/schema, capacity/unlock, content/history, private state in public landing, cost/auth, or legacy change. Synthetic loopback browser evidence only; production fixture404 remains required. Dedicated isolated builder, full checks, exact-head independent review, requiredCI, merge and cleanup gates remain mandatory.
 
 [Design](../superpowers/specs/2026-11-26-compact-scrolling-garden-design.md) · [Plan](../superpowers/plans/2026-11-26-compact-scrolling-garden.md).
+
+## Early-render composition refinement
+
+Before broad verification, actual renders showed the first straight-strip prototype read as a corridor and its entrance intersected a preserved crown. The final compact room therefore follows one **open C-shaped curve**, approximately worldx8..28,z49..79, rather than a straight strip. Thirteen adjacent scalloped terraces follow its outside; canonical height/color order is Sunflower, Snapdragon, Rose, Hydrangea, Peony, Marigold, Tulip, Daisy, Cactus, Moonflower, Bluebell, Forget-me-not, Dandelion. Tall/warm framing gradually gives way to shorter/cool blooms. The directed tour does not wrap; outward headings reveal the original site from different sides. Its access ribbon remains connected to the actual original rear porch woodland route.
+
+Six actual mature plants fit each terrace with species-specific measured ceilings (radius0.14–0.40m; height0.43–1.42m, conservative above canonical seeds1..300). Next seed targets sit on the walk-facing rim of the last occupied terrace. **No target-only overflow terrace is generated.** Only actual occupied overflow appends a new terrace in immutable creation chronology. This supersedes the preliminary target-only overflow detail above. Existing plants retain their positions on ordinary later creation/lower-hole allocation; historical equal-time ties remain deterministic as explicitly documented.
+
+Picker panels begin below global chrome and use tighter bloom-framed canonical portraits. The early fixture refresh error is corrected before acceptance captures; stress evidence must confirm six mature plants/type remain after refresh.
