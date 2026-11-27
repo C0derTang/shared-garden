@@ -1,3 +1,5 @@
+import { buildSiteCasterStrokes } from '@/lib/world/site-woodland';
+import { tourPose, tourFovY, type GardenTour } from '@/lib/world/garden-tour';
 import { createScenicNavigator, scenicPose, scenicFovY, type ScenicRoute } from "@/lib/world/scenic-route";
 import { buildScenicGroundMesh } from "@/lib/world/scenic-ground";
 import { buildScenicPath } from "@/lib/world/scenic-path";
@@ -33,7 +35,6 @@ import {
   LANDING_WATER_EXTENT,
   PORCH_LIGHT,
   buildHouseMesh,
-  buildLandingCasterStrokes,
   buildLandingFieldStrokes,
   buildLandingGroundMesh,
   landingHomePose,
@@ -117,6 +118,8 @@ export interface WorldSceneState {
   readonly walking?: boolean;
   readonly walkingBlocked?: boolean;
   readonly scenicRoute?: ScenicRoute;
+  readonly tour?: GardenTour;
+  readonly tourDistance?: number;
   readonly scenicStop?: string;
   readonly scenicBlocked?: boolean;
   /**
@@ -242,7 +245,7 @@ export function createWorldRenderer(
   const bounds = walkingBounds(walkBeds(), state.plantingLayout?.maxZ ?? 7.4);
   const obstacles = gardenWalkObstacles();
   const scenic = !landing && Boolean(initial.scenicRoute);
-  const navigator = initial.scenicRoute ? createScenicNavigator(initial.scenicRoute, initial.scenicStop ?? initial.scenicRoute.stops[0]!.id) : null;
+  const navigator = initial.scenicRoute && !initial.tour ? createScenicNavigator(initial.scenicRoute, initial.scenicStop ?? initial.scenicRoute.stops[0]!.id) : null;
   const walking = !landing && !scenic && Boolean(initial.walking);
   const walker = createWalk([0, 16 + Math.max(0, (initial.plantingLayout?.maxZ ?? 7.4) - 7.4)], bounds, obstacles);
   const blocked = () => Boolean(state.walkingBlocked || state.scenicBlocked || state.paused || state.focus || focus.value > 0 || arrival.active);
@@ -354,7 +357,8 @@ export function createWorldRenderer(
     canvas.style.cursor = "";
   };
   const onWheel = (event: WheelEvent) => {
-    if (landing || walking || scenic) return;
+    if (scenic) {onPointerLeave();return;}
+    if (landing || walking) return;
     event.preventDefault();
     const scale = event.deltaMode === 1 ? 16 : 1;
     travel((event.deltaY * scale) / 1400);
@@ -485,7 +489,7 @@ export function createWorldRenderer(
       label: "garden-world.motes",
     });
     const farShore = createStrokeBatch(gpu, buildFarShoreStrokes(), { label: "garden-world.far-shore", shadow });
-    const nearShore = createStrokeBatch(gpu, landing || scenic ? buildLandingCasterStrokes() : buildNearShoreStrokes(), {
+    const nearShore = createStrokeBatch(gpu, landing || scenic ? buildSiteCasterStrokes() : buildNearShoreStrokes(), {
       label: "garden-world.near-shore",
       shadow,
       castShadows: true,
@@ -736,7 +740,8 @@ export function createWorldRenderer(
 
         const [w, h] = scene.size;
         const aspect = output.size[0] / Math.max(output.size[1], 1);
-        const fovY = navigator ? scenicFovY(navigator.pose,aspect,focus.value) : gardenFovY(aspect);
+        const routePose = state.tour ? tourPose(state.tour,state.tourDistance??0) : navigator?.pose;
+        const fovY = routePose ? (state.tour?tourFovY(routePose,aspect,focus.value):scenicFovY(routePose,aspect,focus.value)) : gardenFovY(aspect);
         perspective(fovY, aspect, 0.1, 420, projection);
         let pose: JourneyPose;
         let walk: ReturnType<typeof walkThroughAt> | null = null;
@@ -756,7 +761,7 @@ export function createWorldRenderer(
           pose = walk ?? home;
         } else {
           // Journey, sideways walk and the glide to a flower (portrait tilt included).
-          pose = navigator ? scenicPose(navigator.pose, aspect, fovY, focus.target, focus.value) : walking ? walkingPose(walker.position, aspect, fovY, focus.target, focus.value) : gardenPose({ journey: journey.value, pan: journey.pan, depth: Math.max(0, (state.plantingLayout?.maxZ ?? 7.4) - 7.4), focus: focus.target, focusWeight: focus.value }, aspect, fovY);
+          pose = routePose ? scenicPose(routePose, aspect, fovY, focus.target, focus.value) : walking ? walkingPose(walker.position, aspect, fovY, focus.target, focus.value) : gardenPose({ journey: journey.value, pan: journey.pan, depth: Math.max(0, (state.plantingLayout?.maxZ ?? 7.4) - 7.4), focus: focus.target, focusWeight: focus.value }, aspect, fovY);
           // The arrival from the walk-through (#204) glides into this pose.
           if (arrival.active) {
             if (state.arrival === "play") arrival.playing = true;
@@ -960,7 +965,7 @@ export function createWorldRenderer(
         currentFrame.pass({ target: painted, clear: [0, 0, 0, 1] }, (pass) => pass.draw(kuwahara));
         currentFrame.pass({ target: output, clear: [0, 0, 0, 1] }, (pass) => pass.draw(composite));
 
-        callbacks.onFrame?.({ viewProjection, eye, width: canvas.clientWidth, height: canvas.clientHeight, entryFade: walk?.fade ?? 0, arrival: arrival.active ? arrival.seconds : null, glow: plotGlowDisplay(lighting), scenicReady: navigator ? !blocked() : undefined });
+        callbacks.onFrame?.({ viewProjection, eye, width: canvas.clientWidth, height: canvas.clientHeight, entryFade: walk?.fade ?? 0, arrival: arrival.active ? arrival.seconds : null, glow: plotGlowDisplay(lighting), scenicReady: scenic ? !blocked() : undefined });
         if (arrival.active && arrival.seconds >= (still ? ARRIVAL_STILL_SETTLE_SECONDS : ARRIVAL_SETTLE_SECONDS)) arrival.active = false;
       } catch (error) {
         // A throwing tick ends vgpu's loop; dispose and report the error so the

@@ -50,3 +50,5 @@ describe("the hidden plot list (#210)", () => {
     expect(document.activeElement).toBe(world);
   });
 });
+
+it('does not let a late activity-close focus return overwrite a newly chosen plot',()=>{render(<PlotList plots={plots} onOpen={vi.fn()}/>);const next=document.querySelector<HTMLElement>('[data-plot-spot="5"]')!;next.focus();act(()=>focusPlot(1));expect(document.activeElement).toBe(next);});

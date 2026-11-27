@@ -260,3 +260,5 @@ form.caption:focus-within:has(:focus-visible) {
  .scenicControls button, .scenicControls select { padding: 0.4rem 0.55rem; }
  .scenicControls label { flex: 1; }
 }
+
+.world[data-tour] .canvas { touch-action: pan-y; }

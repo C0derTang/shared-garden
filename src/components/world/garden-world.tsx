@@ -1,4 +1,5 @@
 "use client";
+import type { GardenTour } from '@/lib/world/garden-tour';
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
@@ -85,6 +86,8 @@ export interface GardenWorldProps {
   readonly walking?: boolean;
   readonly walkingBlocked?: boolean;
   readonly scenicRoute?: ScenicRoute;
+  readonly tour?: GardenTour;
+  readonly tourDistance?: number;
   readonly scenicStop?: string;
   readonly scenicBlocked?: boolean;
   readonly onSelectScenicStop?: (id: string) => void;
@@ -154,6 +157,8 @@ export function GardenWorld({
   walking = false,
   walkingBlocked = false,
   scenicRoute,
+  tour,
+  tourDistance,
   scenicStop,
   scenicBlocked = false,
   onSelectScenicStop,
@@ -177,7 +182,7 @@ export function GardenWorld({
     .map(stop => ({stop, distance: Math.hypot(stop.pose.eye[0]-selectedStop.pose.eye[0],stop.pose.eye[2]-selectedStop.pose.eye[2])}))
     .filter(candidate => candidate.distance < 30).sort((a,b) => a.distance-b.distance).slice(0,6).map(candidate => candidate.stop) : [];
   const markerStops = [...new Map([scenicPrevious,scenicNext,...nearbyStops].filter(stop => Boolean(stop)).map(stop => [stop!.id,stop!])).values()];
-  const routeCaptions: readonly WorldCaption[] = scenicRoute && canSelect ? markerStops.map(stop => ({
+  const routeCaptions: readonly WorldCaption[] = scenicRoute && !tour && canSelect ? markerStops.map(stop => ({
     id: `route-${stop.id}`, text: `◇ ${stop.label}`, position: scenicMarkerPosition(stop),
     onSelect: () => onSelectScenicStop?.(stop.id), size: "label",
   })) : [];
@@ -211,6 +216,8 @@ export function GardenWorld({
     walking,
     walkingBlocked,
     scenicRoute,
+    tour,
+    tourDistance,
     scenicStop,
     scenicBlocked,
     arrival,
@@ -230,7 +237,7 @@ export function GardenWorld({
     rendererRef.current?.update(sceneState);
     // sceneState is rebuilt from these inputs every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [spotCapacity, plantingLayout, occupiedSpots, flowers, layers, timeValue, reducedMotion, doorInvite, entering, focus, paused, walking, walkingBlocked, scenicRoute, scenicStop, scenicBlocked, arrival]);
+  }, [spotCapacity, plantingLayout, occupiedSpots, flowers, layers, timeValue, reducedMotion, doorInvite, entering, focus, paused, walking, walkingBlocked, scenicRoute, tour, tourDistance, scenicStop, scenicBlocked, arrival]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -420,10 +427,11 @@ export function GardenWorld({
       className={classes}
       data-status={status}
       data-garden-world=""
+      data-tour={tour ? "" : undefined}
       tabIndex={composition === "garden" ? 0 : undefined}
       onKeyDown={composition === "garden" ? onKeyDown : undefined}
       aria-label={
-        composition === "garden" ? scenicEnabled ? `${label}. Choose scenic stops along the garden path; tap a flower to visit.` : walking ? `${label}. Hold WASD or arrow keys to walk. Click ground to walk there; tap a flower to visit.` : `${label}. Use the up and down arrow keys to walk closer or step back, and left and right to walk along the beds.` : undefined
+        composition === "garden" ? tour ? `${label}. Scroll along the garden path or choose a flower from the flower picker; tap a flower to visit.` : scenicEnabled ? `${label}. Choose scenic stops along the garden path; tap a flower to visit.` : walking ? `${label}. Hold WASD or arrow keys to walk. Click ground to walk there; tap a flower to visit.` : `${label}. Use the up and down arrow keys to walk closer or step back, and left and right to walk along the beds.` : undefined
       }
     >
       <canvas ref={canvasRef} className={styles.canvas} role="img" aria-label={label} />
@@ -438,7 +446,7 @@ export function GardenWorld({
           </div>
         </div>
       )}
-      {scenicEnabled && status === "ready" && canSelect && (
+      {scenicEnabled && !tour && status === "ready" && canSelect && (
         <nav className={styles.scenicControls} aria-label="Garden path"
           onPointerDownCapture={event => {
             routePointer.current = { x: event.clientX, y: event.clientY, dragged: false };

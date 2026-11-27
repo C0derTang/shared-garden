@@ -8,6 +8,13 @@ export default async function TypeAreaFixture({ searchParams }: { searchParams: 
   if (process.env.NODE_ENV === "production") notFound();
   const params = await searchParams;
   const state = parseGardenState(structuredClone(fixture));
+  if (params.many === "1") {
+    const templates=state.catalog.map(c=>state.plants.find(p=>p.flower.type_key===c.type_key)!);
+    state.plants=templates.flatMap((p,type)=>Array.from({length:6},(_,i)=>({...structuredClone(p),flower:{...p.flower,id:`00000000-0000-4000-8000-${String(type*6+i+1).padStart(12,"0")}`,spot:type*6+i+1,seed:i+1,planted_at:`2026-06-01T12:00:${String(i).padStart(2,"0")}Z`}})));state.garden.next_spot=79;
+  }
+  if (params.bloom === "1") {
+    state.plants = state.plants.map(p=>({...p,flower:{...p.flower,growth_units:state.catalog.find(c=>c.type_key===p.flower.type_key)!.growth_target,first_bloom_at:"2026-06-01T12:00:00Z",first_bloom_day:"2026-06-01"}}));
+  }
   if (params.empty === "1") {
     state.plants = [];
     state.garden.next_spot = 1;

@@ -80,6 +80,7 @@ export function bedEdgingRocks(bedCount: number | readonly Bed[]): Rock[] {
       const a = (i / count) * Math.PI * 2 + (random() - 0.5) * 0.08;
       if (bed.organic && random() < .55) continue;
       const radius = bed.organic ? .065 + random()*.08 : 0.13 + random() * 0.06;
+      if(bed.terrace && Math.abs(Math.cos(a-(bed.rotation??0)))>.7)continue;
       rocks.push({
         x: bed.center[0] + Math.cos(a) * (bed.organic ? bedRimRadius(bed,a)+.04 : ring),
         z: bed.center[2] + Math.sin(a) * (bed.organic ? bedRimRadius(bed,a)+.04 : ring),

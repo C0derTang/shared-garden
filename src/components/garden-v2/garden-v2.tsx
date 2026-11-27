@@ -15,10 +15,12 @@ import type { FlowerType, GardenResult, GardenState, Plant } from "@/lib/garden-
 import { gardenPlots, waitingOnYou, type GardenPlot } from "@/lib/garden-v2/plots";
 import { useGardenV2 } from "@/lib/garden-v2/use-garden-v2";
 import { gardenViewHref, type GardenView } from "@/lib/garden-v2/views";
-import { scenicRoute, resolveScenicStop } from "@/lib/world/scenic-route";
+import { gardenTour, retainTourDistance, pixelsToTourDistance, tourDistanceToPixels } from "@/lib/world/garden-tour";
+import { compactAreaLayout } from "@/lib/garden-v2/compact-areas";
+import { FlowerPicker } from "./flower-picker";
 import type {WorldView} from "@/components/world/renderer";
 import type { FocusTarget } from "@/lib/world/journey";
-import { areaLabelPosition, typeAreaLayout, type TypeAreaLayout } from "@/lib/garden-v2/type-areas";
+import { areaLabelPosition, type TypeAreaLayout } from "@/lib/garden-v2/type-areas";
 import { DEFAULT_FLOWER_HEIGHT, type FlowerAnchor } from "@/lib/world/picking";
 import { ArrivalLight, useGardenArrival } from "./arrival";
 import { AwayNote } from "./away-note";
@@ -99,18 +101,28 @@ export function GardenV2({
   const { state, now, error, busy, mutate } = useGardenV2(initial);
   const partner = usePartnerName();
   const reducedMotion = usePrefersReducedMotion();
+  const [cameraReady,setCameraReady]=useState(true);
   const [worldStatus, setWorldStatus] = useState<WorldStatus>("loading");
   const [focus, setFocus] = useState<FocusTarget | null>(null);
   const [mode, setMode] = useState<Mode>({ kind: "idle" });
   const [announcement, setAnnouncement] = useState("");
   const [news, setNews] = useState<AwayNews>(noAwayNews);
   const [wandered, setWandered] = useState(false);
-  const [scenicStop, setScenicStop] = useState("overview:0");
+  const [tourDistance, setTourDistance] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const acceptedScroll = useRef(0);
+  const scrollGlideFrame=useRef<number|null>(null);
+  const scrollGlideEpoch=useRef(0);
+  const interruptScrollGlide=useCallback(()=>{
+    scrollGlideEpoch.current+=1;
+    if(scrollGlideFrame.current!==null){cancelAnimationFrame(scrollGlideFrame.current);scrollGlideFrame.current=null;}
+  },[]);
   const [view, setView] = useState<GardenView | null>(initialFlowerId ? null : initialView);
   /** The flower the camera is gliding to or showing in its painting (its seeds wait for the painting). */
   const [visiting, setVisiting] = useState<string | null>(null);
   const timer = useRef<number | undefined>(undefined);
   const visitSpot = useRef<number | null>(null);
+  const updateWorldStatus=useCallback((status:WorldStatus)=>{if(status!=="ready")interruptScrollGlide();setWorldStatus(status);},[interruptScrollGlide]);
   // Where focus returns when a view closes (#210): the hidden plot that opened it, else the world.
   const returnSpot = useRef<number | null>(null);
   const returning = useRef(false);
@@ -130,22 +142,40 @@ export function GardenV2({
   const recordArrivalView=arrival.onView;
   const onWorldView=useCallback((frame:WorldView)=>{
     recordArrivalView(frame);
-    if(frame.scenicReady)returning.current=false;
+    if(frame.scenicReady!==undefined){setCameraReady(frame.scenicReady);if(frame.scenicReady)returning.current=false;}
   },[recordArrivalView]);
   // A scoped sheet (such as a private moment) is open: the hint waits.
   const sheetOpen = Boolean(useSheetScope()?.active);
-  const layout = useMemo(() => state ? typeAreaLayout(state) : null, [state]);
-  const route = useMemo(() => layout ? scenicRoute(layout.beds) : undefined, [layout]);
+  const layout = useMemo(() => state ? compactAreaLayout(state) : null, [state]);
+  const route = useMemo(() => layout ? gardenTour(layout.beds) : undefined, [layout]);
+  const previousRoute = useRef(route);
+  const scrollInitialized=useRef(false);
   useEffect(() => {
-    if(route){const resolved=resolveScenicStop(route,scenicStop);if(resolved!==scenicStop){
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- reconcile a disappearing pending-only presentation stop
-      setScenicStop(resolved);
-    }}
-  }, [route, scenicStop]);
+    if(route && (!scrollInitialized.current || (previousRoute.current && (route.length!==previousRoute.current.length || route.legs.some((leg,i)=>leg.edge.id!==previousRoute.current!.legs[i]?.edge.id))))){
+      interruptScrollGlide();
+      const retained=scrollInitialized.current&&previousRoute.current?retainTourDistance(previousRoute.current,route,pixelsToTourDistance(previousRoute.current,acceptedScroll.current)):route.startDistance;
+      scrollInitialized.current=true;
+      acceptedScroll.current=tourDistanceToPixels(route,retained);
+      scrollRef.current?.scrollTo?.({top:acceptedScroll.current,behavior:"instant"});
+      setTourDistance(retained);
+    }
+    previousRoute.current=route;
+  },[route,interruptScrollGlide]);
   const { flowers, anchors } = useWorldFlowers(state, layout);
   useEffect(() => flowerLayer?.setFlowers(flowers), [flowerLayer, flowers]);
   // Any full-screen view (a flower, planting, or an overlay such as Memories) covers the world.
   const covered = mode.kind !== "idle" || view !== null;
+  const navigationBlocked=covered || sheetOpen || !arrival.settled || focus!==null || !cameraReady || worldStatus!=="ready";
+  const navigationBlockedRef=useRef(navigationBlocked);
+  useEffect(()=>{navigationBlockedRef.current=navigationBlocked;},[navigationBlocked]);
+  const [pickerOpen,setPickerOpen]=useState(false);
+  useEffect(()=>{
+    const freeze=()=>{interruptScrollGlide();scrollRef.current?.scrollTo?.({top:acceptedScroll.current,behavior:"instant"});};
+    if(navigationBlocked || reducedMotion)freeze();
+    window.addEventListener("blur",freeze);document.addEventListener("visibilitychange",freeze);
+    return()=>{window.removeEventListener("blur",freeze);document.removeEventListener("visibilitychange",freeze);};
+  },[navigationBlocked,reducedMotion,interruptScrollGlide]);
+  useEffect(()=>()=>interruptScrollGlide(),[interruptScrollGlide]);
   // Night fireworks after a day with an achievement (#184); they pause with the world behind the split view.
   const fireworks = useNightFireworks({ state, now, covered, worldReady: worldStatus === "ready" && arrival.settled, reducedMotion });
   const layers = useMemo(() => [flowerLayer, fireworks.layer].filter((layer) => layer !== null), [flowerLayer, fireworks.layer]);
@@ -165,12 +195,13 @@ export function GardenV2({
   /** Glides the camera to `target`, then runs `then` (at once without motion or a painted world). */
   const glide = useCallback(
     (target: FocusTarget, then: () => void, immediate = false) => {
+      interruptScrollGlide();
       window.clearTimeout(timer.current);
       setFocus(target);
       if (immediate || reducedMotion || worldStatus !== "ready") then();
       else timer.current = window.setTimeout(then, GLIDE_MS);
     },
-    [reducedMotion, worldStatus],
+    [reducedMotion, worldStatus, interruptScrollGlide],
   );
 
   const visit = useCallback(
@@ -200,6 +231,7 @@ export function GardenV2({
 
   const openView = useCallback((next: GardenView) => {
     // Ends any glide or close-look hold (#201): the camera is released too.
+    interruptScrollGlide();
     window.clearTimeout(timer.current);
     setFocus(null);
     setMode({ kind: "idle" });
@@ -207,7 +239,7 @@ export function GardenV2({
     setWandered(true);
     setView(next);
     window.history.replaceState(window.history.state, "", gardenViewHref(next));
-  }, []);
+  }, [interruptScrollGlide]);
 
   const closeView = useCallback(() => {
     setView(null);
@@ -219,6 +251,7 @@ export function GardenV2({
     window.clearTimeout(timer.current);
     const closing = visiting;
     returning.current=worldStatus==="ready"&&(!reducedMotion||(closing!==null&&awaitsWorld(closing)));
+    if(returning.current)setCameraReady(false);
     setMode({ kind: "idle" });
     setVisiting(null);
     if (closing !== null && awaitsWorld(closing)) {
@@ -343,6 +376,19 @@ export function GardenV2({
       onKeyDown={() => setWandered(true)}
     >
       <h1 className={styles.srOnly}>Our garden</h1>
+      <div ref={scrollRef} className={styles.tourScroll} data-garden-scroll="" data-distance={tourDistance.toFixed(4)}
+        style={{overflowY:navigationBlocked || pickerOpen ? "hidden":"auto"}}
+        tabIndex={0} aria-label="Scroll through the garden"
+        onWheelCapture={interruptScrollGlide}
+        onPointerDownCapture={interruptScrollGlide}
+        onKeyDownCapture={event=>{if(["ArrowUp","ArrowDown","PageUp","PageDown","Home","End"," "].includes(event.key))interruptScrollGlide();}}
+        onScroll={event=>{
+          if(navigationBlockedRef.current || pickerOpen){event.currentTarget.scrollTop=acceptedScroll.current;return;}
+          acceptedScroll.current=event.currentTarget.scrollTop;
+          if(route)setTourDistance(pixelsToTourDistance(route,acceptedScroll.current));
+        }}>
+        <div style={{height:`calc(100% + ${route?.scrollLength??0}px)`}}>
+          <div className={styles.pinnedWorld}>
       <GardenWorld
         className={styles.world}
         spotCapacity={state.garden.spot_capacity}
@@ -354,16 +400,38 @@ export function GardenV2({
         focus={focus}
         paused={covered}
         scenicRoute={route}
-        scenicStop={scenicStop}
+        tour={route}
+        tourDistance={tourDistance}
         scenicBlocked={covered || sheetOpen || !arrival.settled || focus !== null}
-        onSelectScenicStop={id => { if (!covered && !sheetOpen && arrival.settled && !focus) { setScenicStop(id); setWandered(true); } }}
         arrival={arrival.world}
         onView={onWorldView}
-        onStatusChange={setWorldStatus}
+        onStatusChange={updateWorldStatus}
         onPickFlower={pickFlower}
         onPickSpot={pickSpot}
         label={`Our painted garden by the lake, with ${state.plants.length} ${state.plants.length === 1 ? "flower" : "flowers"}`}
       />
+          </div>
+        </div>
+      </div>
+      {!navigationBlocked && route && <FlowerPicker areas={layout!.areas} open={pickerOpen} onOpenChange={open=>{if(open)interruptScrollGlide();setPickerOpen(open);}} onSelect={type=>{
+        const index=layout!.areas.findIndex(area=>area.type===type),distance=route.anchors.get(index)??0;
+        setPickerOpen(false);setWandered(true);
+        interruptScrollGlide();
+        const element=scrollRef.current;if(!element)return;
+        const top=tourDistanceToPixels(route,distance),from=element.scrollTop;
+        if(reducedMotion){element.scrollTo?.({top,behavior:"instant"});return;}
+        // Only the native scroll position is animated; camera/picking consume its events.
+        // Canceling this writer leaves the very first native input delta untouched.
+        const epoch=scrollGlideEpoch.current,started=performance.now(),duration=Math.min(1600,Math.max(500,Math.abs(top-from)*.18));
+        const glideScroll=(time:number)=>{
+          if(epoch!==scrollGlideEpoch.current)return;
+          if(navigationBlockedRef.current || document.hidden){scrollGlideFrame.current=null;return;}
+          const progress=Math.min(1,(time-started)/duration),eased=progress*progress*(3-2*progress);
+          element.scrollTo?.({top:from+(top-from)*eased,behavior:"instant"});
+          scrollGlideFrame.current=progress<1?requestAnimationFrame(glideScroll):null;
+        };
+        scrollGlideFrame.current=requestAnimationFrame(glideScroll);
+      }} />}
       <nav className={styles.corner} aria-label="Leave the garden">
         <Link href="/">home</Link>
         <Link href={legacyPath}>old garden</Link>
@@ -384,7 +452,7 @@ export function GardenV2({
       />
       <FireworksOverlay {...fireworks.overlay} hidden={covered} />
       {worldStatus === "ready" && arrival.settled && !wandered && !covered && !sheetOpen && (
-        <p data-world-reserved className={styles.hint}>choose a stop along the path · tap a flower to visit</p>
+        <p data-world-reserved className={styles.hint}>scroll through the garden · choose a flower at the right</p>
       )}
       {/* The away note waits for the fireworks to finish, so their words never overlap. */}
       {!covered && arrival.settled && !fireworks.overlay.playing && hasAwayNews(news) && <AwayNote news={news} state={state} onDismiss={() => setNews(noAwayNews)} />}

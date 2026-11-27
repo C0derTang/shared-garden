@@ -1,11 +1,11 @@
-import { act, render, screen, within } from "@testing-library/react";
+import { act, render, screen, within, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { StudioState } from "@/components/world/flowers/studio-renderer";
 import type { WorldRendererCallbacks, WorldSceneState } from "@/components/world/renderer";
 import { awayKey, takeAwaySnapshot } from "@/lib/garden-v2/away";
 import { flowerTypes, type GardenState } from "@/lib/garden-v2/model";
-import { typeAreaLayout } from "@/lib/garden-v2/type-areas";
+import { compactAreaLayout as typeAreaLayout } from "@/lib/garden-v2/compact-areas";
 import type { GardenView } from "@/lib/garden-v2/views";
 import { guideKey } from "@/lib/garden-v2/views";
 import { v2EntryFixture, v2GardenFixture } from "@/test/garden-v2-fixture";
@@ -748,24 +748,22 @@ describe("GardenV2", () => {
   });
 });
 
-it("selects scenic stops with persistent pointer/keyboard controls and supplies no free walking", async () => {
-  stubReducedMotion();
-  const state=v2GardenFixture();api.refreshGardenV2.mockResolvedValue({state,error:null});
-  render(<GardenV2 initial={{state,error:null}} />);await flush();
-  await act(async()=>worlds.at(-1)!.callbacks.onReady());await flush();
+it("shares native scroll with the picture/name picker and has no stop/free-walking chrome", async () => {
+  stubReducedMotion();const state=v2GardenFixture();api.refreshGardenV2.mockResolvedValue({state,error:null});
+  render(<GardenV2 initial={{state,error:null}} />);await flush();await act(async()=>worlds.at(-1)!.callbacks.onReady());await flush();
   expect(worlds.at(-1)!.states.at(-1)!.walking).not.toBe(true);
-  expect(worlds.at(-1)!.states.at(-1)!.scenicRoute!.stops.length).toBeGreaterThanOrEqual(16);
-  expect(screen.queryByRole("group",{name:"Walk around the garden"})).not.toBeInTheDocument();
-  const route=screen.getByRole("navigation",{name:"Garden path"});
-  const user=userEvent.setup();
-  await user.click(within(route).getByRole("button",{name:/onward/i}));
-  expect(worlds.at(-1)!.states.at(-1)!.scenicStop).toBe("pocket:0:0");
-  await user.selectOptions(within(route).getByRole("combobox",{name:"Scenic stop"}),"house-rear");
-  expect(worlds.at(-1)!.states.at(-1)!.scenicStop).toBe("house-rear");
-  await user.click(within(route).getByRole("button",{name:/back/i}));
-  expect(worlds.at(-1)!.states.at(-1)!.scenicStop).toBe("pocket:12:0");
-  await user.click(screen.getByRole("link",{name:"settings"}));
+  expect(worlds.at(-1)!.states.at(-1)!.tour!.anchors.size).toBe(13);
   expect(screen.queryByRole("navigation",{name:"Garden path"})).not.toBeInTheDocument();
+  expect(screen.queryByRole("combobox",{name:"Scenic stop"})).not.toBeInTheDocument();
+  const scroll=screen.getByLabelText('Scroll through the garden');scroll.scrollTop=240;fireEvent.scroll(scroll);
+  const distance=worlds.at(-1)!.states.at(-1)!.tourDistance;expect(distance).toBeGreaterThan(0);
+  const user=userEvent.setup();await user.click(screen.getByRole('button',{name:'Choose a flower'}));
+  const picker=screen.getByRole('dialog',{name:'Choose a flower'});const options=within(picker).getAllByRole('button');expect(options).toHaveLength(13);
+  expect(options.map(button=>button.querySelector('img')?.getAttribute('src'))).toEqual(flowerTypes.map(type=>`/flowers/picker/${type}.webp`));
+  for(const option of options)expect(option.children).toHaveLength(2);
+  picker.scrollTop=100;fireEvent.scroll(picker);expect(worlds.at(-1)!.states.at(-1)!.tourDistance).toBe(distance);
+  await user.keyboard('{Escape}');expect(screen.queryByRole('dialog')).not.toBeInTheDocument();expect(screen.getByRole('button',{name:'Choose a flower'})).toHaveFocus();
+  await user.click(screen.getByRole('link',{name:'settings'}));scroll.scrollTop=500;fireEvent.scroll(scroll);expect(worlds.at(-1)!.states.at(-1)!.tourDistance).toBe(distance);
 });
 
 it('blocks another plot activation during normal return, then accepts it when the renderer settles',async()=>{
@@ -774,6 +772,7 @@ it('blocks another plot activation during normal return, then accepts it when th
  await user.click(document.querySelector<HTMLButtonElement>('[data-plot-spot="1"]')!);await act(async()=>{await new Promise(resolve=>setTimeout(resolve,1000));});
  expect(screen.getByRole('dialog',{name:'rose'})).toBeInTheDocument();
  await user.keyboard('{Escape}');expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+ const scroll=screen.getByLabelText('Scroll through the garden'),before=worlds[0]!.states.at(-1)!.tourDistance;scroll.scrollTop+=400;fireEvent.scroll(scroll);expect(worlds[0]!.states.at(-1)!.tourDistance).toBe(before);
  await user.click(document.querySelector<HTMLButtonElement>('[data-plot-spot="-1"]')!);
  expect(worlds[0]!.states.at(-1)!.focus).toBeNull();
  act(()=>worlds[0]!.callbacks.onFrame?.({viewProjection:new Float32Array(16),width:1280,height:800,entryFade:0,arrival:null,scenicReady:true}));
