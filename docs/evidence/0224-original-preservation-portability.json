@@ -1,0 +1,269 @@
+{
+  "authorityBase": "6f23246d9c5f309f3d28088c46f5e8aed2d94625",
+  "candidateAtDiagnosis": "d6e96f5235fb81f325f012cf5b234f7d36b6067a",
+  "runtimeSourceSha256": "f36c137d10a786595f00dd6ffd4de22f52ad7885fb2c6fd4b79c73dc1a5961b8",
+  "method": "Read-only standalone TypeScript transpilation of complete ORIGINAL Git-object dependency graph and separate current graph; native Node execution on each runtime. Exact deep equality compares ordered objects within each runtime. Cross-runtime differences compare all 17 numeric GPU fields as doubles, then exact packStrokes Float32 buffers. No application source, tolerance, dependency or runtime pin changed.",
+  "ciReproduction": "Linux Node 24.22.3 x64 original and candidate both reproduce the exact failing CI raw hashes. Matching Linux Vitest red: 2 failed/1 passed before guard correction.",
+  "results": [
+    {
+      "node": "v24.18.0",
+      "platform": "darwin",
+      "arch": "arm64",
+      "v8": "13.6.233.17-node.50",
+      "cases": [
+        {
+          "kind": "caster",
+          "count": 161168,
+          "currentCount": 161168,
+          "exactSameRuntimeOriginalCurrent": true,
+          "originalRawSha256": "6503e1a129dd28bde5ca16860defa674f8f27b7b66dca678adae68f4aa2dbe08",
+          "currentRawSha256": "6503e1a129dd28bde5ca16860defa674f8f27b7b66dca678adae68f4aa2dbe08",
+          "originalPackedSha256": "04f2e7b05870bdc3f3a1a9e25bc240ac0484ff30e7ec7d42678ae8433e15bc10",
+          "currentPackedSha256": "04f2e7b05870bdc3f3a1a9e25bc240ac0484ff30e7ec7d42678ae8433e15bc10"
+        },
+        {
+          "kind": "field",
+          "count": 108737,
+          "currentCount": 108737,
+          "exactSameRuntimeOriginalCurrent": true,
+          "originalRawSha256": "200afd3bef9eb5eeff64571007c4093f869497601fe63b3621711d72a3f3efd2",
+          "currentRawSha256": "200afd3bef9eb5eeff64571007c4093f869497601fe63b3621711d72a3f3efd2",
+          "originalPackedSha256": "f1cc74d36b89a9be7826c1f1ae129dc9b1cdb5edd033f83b5d1fd96c30dc9c10",
+          "currentPackedSha256": "f1cc74d36b89a9be7826c1f1ae129dc9b1cdb5edd033f83b5d1fd96c30dc9c10"
+        }
+      ]
+    },
+    {
+      "node": "v24.18.0",
+      "platform": "linux",
+      "arch": "arm64",
+      "v8": "13.6.233.17-node.50",
+      "cases": [
+        {
+          "kind": "caster",
+          "count": 161168,
+          "currentCount": 161168,
+          "exactSameRuntimeOriginalCurrent": true,
+          "originalRawSha256": "05e2ce7e267dfb2579bf248a5d32199aba9ee8ff7b741f5453e81e5d23ab604d",
+          "currentRawSha256": "05e2ce7e267dfb2579bf248a5d32199aba9ee8ff7b741f5453e81e5d23ab604d",
+          "originalPackedSha256": "04f2e7b05870bdc3f3a1a9e25bc240ac0484ff30e7ec7d42678ae8433e15bc10",
+          "currentPackedSha256": "04f2e7b05870bdc3f3a1a9e25bc240ac0484ff30e7ec7d42678ae8433e15bc10",
+          "macComparison": {
+            "changedNumericFields": 115,
+            "changedFloat32Fields": 0,
+            "maxAbsDelta": 1.4210854715202004e-14,
+            "firstDifferences": [
+              {
+                "stroke": 489,
+                "field": "origin[1]",
+                "mac": 11.294895102510441,
+                "linux": 11.294895102510443,
+                "absoluteDelta": 1.7763568394002505e-15,
+                "macFloat32": 11.29489517211914,
+                "linuxFloat32": 11.29489517211914
+              },
+              {
+                "stroke": 1229,
+                "field": "origin[1]",
+                "mac": 14.21976999064509,
+                "linux": 14.219769990645093,
+                "absoluteDelta": 1.7763568394002505e-15,
+                "macFloat32": 14.219770431518555,
+                "linuxFloat32": 14.219770431518555
+              },
+              {
+                "stroke": 2977,
+                "field": "origin[1]",
+                "mac": 2.072615281486257,
+                "linux": 2.0726152814862564,
+                "absoluteDelta": 4.440892098500626e-16,
+                "macFloat32": 2.072615385055542,
+                "linuxFloat32": 2.072615385055542
+              }
+            ]
+          }
+        },
+        {
+          "kind": "field",
+          "count": 108737,
+          "currentCount": 108737,
+          "exactSameRuntimeOriginalCurrent": true,
+          "originalRawSha256": "200afd3bef9eb5eeff64571007c4093f869497601fe63b3621711d72a3f3efd2",
+          "currentRawSha256": "200afd3bef9eb5eeff64571007c4093f869497601fe63b3621711d72a3f3efd2",
+          "originalPackedSha256": "f1cc74d36b89a9be7826c1f1ae129dc9b1cdb5edd033f83b5d1fd96c30dc9c10",
+          "currentPackedSha256": "f1cc74d36b89a9be7826c1f1ae129dc9b1cdb5edd033f83b5d1fd96c30dc9c10",
+          "macComparison": {
+            "changedNumericFields": 0,
+            "changedFloat32Fields": 0,
+            "maxAbsDelta": 0,
+            "firstDifferences": []
+          }
+        }
+      ]
+    },
+    {
+      "node": "v24.22.3",
+      "platform": "linux",
+      "arch": "arm64",
+      "v8": "13.6.233.17-node.63",
+      "cases": [
+        {
+          "kind": "caster",
+          "count": 161168,
+          "currentCount": 161168,
+          "exactSameRuntimeOriginalCurrent": true,
+          "originalRawSha256": "05e2ce7e267dfb2579bf248a5d32199aba9ee8ff7b741f5453e81e5d23ab604d",
+          "currentRawSha256": "05e2ce7e267dfb2579bf248a5d32199aba9ee8ff7b741f5453e81e5d23ab604d",
+          "originalPackedSha256": "04f2e7b05870bdc3f3a1a9e25bc240ac0484ff30e7ec7d42678ae8433e15bc10",
+          "currentPackedSha256": "04f2e7b05870bdc3f3a1a9e25bc240ac0484ff30e7ec7d42678ae8433e15bc10",
+          "macComparison": {
+            "changedNumericFields": 115,
+            "changedFloat32Fields": 0,
+            "maxAbsDelta": 1.4210854715202004e-14,
+            "firstDifferences": [
+              {
+                "stroke": 489,
+                "field": "origin[1]",
+                "mac": 11.294895102510441,
+                "linux": 11.294895102510443,
+                "absoluteDelta": 1.7763568394002505e-15,
+                "macFloat32": 11.29489517211914,
+                "linuxFloat32": 11.29489517211914
+              },
+              {
+                "stroke": 1229,
+                "field": "origin[1]",
+                "mac": 14.21976999064509,
+                "linux": 14.219769990645093,
+                "absoluteDelta": 1.7763568394002505e-15,
+                "macFloat32": 14.219770431518555,
+                "linuxFloat32": 14.219770431518555
+              },
+              {
+                "stroke": 2977,
+                "field": "origin[1]",
+                "mac": 2.072615281486257,
+                "linux": 2.0726152814862564,
+                "absoluteDelta": 4.440892098500626e-16,
+                "macFloat32": 2.072615385055542,
+                "linuxFloat32": 2.072615385055542
+              }
+            ]
+          }
+        },
+        {
+          "kind": "field",
+          "count": 108737,
+          "currentCount": 108737,
+          "exactSameRuntimeOriginalCurrent": true,
+          "originalRawSha256": "200afd3bef9eb5eeff64571007c4093f869497601fe63b3621711d72a3f3efd2",
+          "currentRawSha256": "200afd3bef9eb5eeff64571007c4093f869497601fe63b3621711d72a3f3efd2",
+          "originalPackedSha256": "f1cc74d36b89a9be7826c1f1ae129dc9b1cdb5edd033f83b5d1fd96c30dc9c10",
+          "currentPackedSha256": "f1cc74d36b89a9be7826c1f1ae129dc9b1cdb5edd033f83b5d1fd96c30dc9c10",
+          "macComparison": {
+            "changedNumericFields": 0,
+            "changedFloat32Fields": 0,
+            "maxAbsDelta": 0,
+            "firstDifferences": []
+          }
+        }
+      ]
+    },
+    {
+      "node": "v24.22.3",
+      "platform": "linux",
+      "arch": "x64",
+      "v8": "13.6.233.17-node.63",
+      "cases": [
+        {
+          "kind": "caster",
+          "count": 161168,
+          "currentCount": 161168,
+          "exactSameRuntimeOriginalCurrent": true,
+          "originalRawSha256": "efa9f21754669c435c0e6c460ae88d7fd830f928855238d703ccbb82ea3db0b0",
+          "currentRawSha256": "efa9f21754669c435c0e6c460ae88d7fd830f928855238d703ccbb82ea3db0b0",
+          "originalPackedSha256": "04f2e7b05870bdc3f3a1a9e25bc240ac0484ff30e7ec7d42678ae8433e15bc10",
+          "currentPackedSha256": "04f2e7b05870bdc3f3a1a9e25bc240ac0484ff30e7ec7d42678ae8433e15bc10",
+          "macComparison": {
+            "changedNumericFields": 7422,
+            "changedFloat32Fields": 0,
+            "maxAbsDelta": 1.4210854715202004e-14,
+            "firstDifferences": [
+              {
+                "stroke": 83,
+                "field": "normal[2]",
+                "mac": 0.40293708956748026,
+                "linux": 0.4029370895674802,
+                "absoluteDelta": 5.551115123125783e-17,
+                "macFloat32": 0.4029370844364166,
+                "linuxFloat32": 0.4029370844364166
+              },
+              {
+                "stroke": 91,
+                "field": "axis[0]",
+                "mac": -0.284666515496035,
+                "linux": -0.28466651549603506,
+                "absoluteDelta": 5.551115123125783e-17,
+                "macFloat32": -0.284666508436203,
+                "linuxFloat32": -0.284666508436203
+              },
+              {
+                "stroke": 91,
+                "field": "axis[1]",
+                "mac": -0.2717569470368373,
+                "linux": -0.2717569470368372,
+                "absoluteDelta": 5.551115123125783e-17,
+                "macFloat32": -0.27175694704055786,
+                "linuxFloat32": -0.27175694704055786
+              }
+            ]
+          }
+        },
+        {
+          "kind": "field",
+          "count": 108737,
+          "currentCount": 108737,
+          "exactSameRuntimeOriginalCurrent": true,
+          "originalRawSha256": "f225f23e1b35993840e5ddc4ceaf598ae5fb804f0681526cda87b1f90c268475",
+          "currentRawSha256": "f225f23e1b35993840e5ddc4ceaf598ae5fb804f0681526cda87b1f90c268475",
+          "originalPackedSha256": "f1cc74d36b89a9be7826c1f1ae129dc9b1cdb5edd033f83b5d1fd96c30dc9c10",
+          "currentPackedSha256": "f1cc74d36b89a9be7826c1f1ae129dc9b1cdb5edd033f83b5d1fd96c30dc9c10",
+          "macComparison": {
+            "changedNumericFields": 710,
+            "changedFloat32Fields": 0,
+            "maxAbsDelta": 1.1102230246251565e-16,
+            "firstDifferences": [
+              {
+                "stroke": 77,
+                "field": "origin[1]",
+                "mac": -0.009172752543915606,
+                "linux": -0.009172752543915613,
+                "absoluteDelta": 6.938893903907228e-18,
+                "macFloat32": -0.009172752499580383,
+                "linuxFloat32": -0.009172752499580383
+              },
+              {
+                "stroke": 242,
+                "field": "origin[1]",
+                "mac": -0.016144432423834065,
+                "linux": -0.01614443242383407,
+                "absoluteDelta": 3.469446951953614e-18,
+                "macFloat32": -0.01614443212747574,
+                "linuxFloat32": -0.01614443212747574
+              },
+              {
+                "stroke": 256,
+                "field": "axis[1]",
+                "mac": 0.007230937109796688,
+                "linux": 0.00723093710979669,
+                "absoluteDelta": 1.734723475976807e-18,
+                "macFloat32": 0.007230937015265226,
+                "linuxFloat32": 0.007230937015265226
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

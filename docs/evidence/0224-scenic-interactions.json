@@ -2642,18 +2642,20 @@
   },
   "originalLandingAuthority": {
     "authority": "6f23246d9c5f309f3d28088c46f5e8aed2d94625",
-    "method": "SHA256 of original ordered JSON stroke arrays; mesh hash original Float32 vertices followed byUint32 indices. Read-only original source loaded from git object, not modified candidate.",
+    "method": "Frozen ORIGINAL Git-object output at 6f23246. Portable stroke guards hash the exact ordered packStrokes Float32 GPU buffer (all 17 attributes) with exact counts. Raw ordered JSON hashes remain diagnostic Mac Node 24.18 arm64 provenance; Math last bits can vary by runtime/architecture. Mesh hashes are original Float32 vertices followed by Uint32 indices.",
     "treePlacements": {
       "count": 273,
       "sha256": "6666fb29a8cf784903f0c92e95bed1740aae9ce70740f3f6cc26191235bdfe37"
     },
     "caster": {
       "count": 161168,
-      "sha256": "6503e1a129dd28bde5ca16860defa674f8f27b7b66dca678adae68f4aa2dbe08"
+      "sha256": "6503e1a129dd28bde5ca16860defa674f8f27b7b66dca678adae68f4aa2dbe08",
+      "packedFloat32Sha256": "04f2e7b05870bdc3f3a1a9e25bc240ac0484ff30e7ec7d42678ae8433e15bc10"
     },
     "field": {
       "count": 108737,
-      "sha256": "200afd3bef9eb5eeff64571007c4093f869497601fe63b3621711d72a3f3efd2"
+      "sha256": "200afd3bef9eb5eeff64571007c4093f869497601fe63b3621711d72a3f3efd2",
+      "packedFloat32Sha256": "f1cc74d36b89a9be7826c1f1ae129dc9b1cdb5edd033f83b5d1fd96c30dc9c10"
     },
     "ground": {
       "vertices": 37791,
@@ -2666,6 +2668,11 @@
     "rocks": {
       "count": 52,
       "sha256": "e8750a09f2c730054c7fd90cff4291f4287019bf236e743198a7b8ff5196537f"
+    },
+    "rawJsonRuntime": {
+      "node": "v24.18.0",
+      "platform": "darwin",
+      "arch": "arm64"
     }
   },
   "limits": [
