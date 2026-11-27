@@ -50,6 +50,9 @@ export function focusPlot(spot: number | null) {
   const settled = () => document.activeElement !== null && document.activeElement !== document.body;
   const attempt = (left: number) => {
     const button = spot === null ? null : document.querySelector<HTMLElement>(`[data-plot-list] [data-plot-spot="${spot}"]`);
+    const current=document.activeElement;
+    // A delayed close callback must not steal a newer keyboard/pointer destination.
+    if(current instanceof HTMLElement && current!==document.body && current!==button && !current.closest('[role="dialog"]'))return;
     button?.focus();
     if (button && document.activeElement === button) return;
     if (button && left > 0 && !settled()) {

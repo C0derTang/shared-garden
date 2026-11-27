@@ -1,0 +1,658 @@
+{
+  "runtimeSourceSha256": "c7a00e3332c53a295b688d80cce00eac8d6e356f92abe44dbc117666b6aa8a29",
+  "base": "0575e83c96ec9c73a56d61fab8edda52df9bdd45",
+  "node": "v24.18.0",
+  "platform": "darwin",
+  "arch": "arm64",
+  "browser": "156.0.8078.4",
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  },
+  "method": "Quiet separate CPU and GPU runs after all correctness browsers/build/tests stopped. Actual compact GardenV2,mixed26/full78 synthetic flowers. Fixed dusk/reduced motion. Each kind/view uses reference/optimized/optimized/reference order;10warm frames discarded and80retained per case. GPU command-buffer envelope is not a sum of overlapping Metal pass spans. Quantiles linearly interpolate sorted index(n-1)*p. Timestamp feature/observer overhead and one emulated device limit conclusions; no universal FPS claim.",
+  "gpuCases": 16,
+  "retainedGpuFrames": 1280,
+  "gpuPooled": [
+    {
+      "kind": "mixed",
+      "view": "desktop",
+      "variant": "reference",
+      "canvas": [
+        1280,
+        800
+      ],
+      "dpr": 1,
+      "gpuEnvelopeMs": {
+        "n": 160,
+        "median": 7.4823645,
+        "p95": 7.8225254,
+        "min": 7.355638,
+        "max": 8.472162
+      },
+      "kuwaharaSpanMs": {
+        "n": 160,
+        "median": 3.0436195,
+        "p95": 3.14809365,
+        "min": 2.304881,
+        "max": 3.227408
+      },
+      "encodeMs": {
+        "n": 160,
+        "median": 2,
+        "p95": 2,
+        "min": 0,
+        "max": 3
+      },
+      "perRunMedians": [
+        {
+          "run": 0,
+          "gpuEnvelopeMs": 7.430116
+        },
+        {
+          "run": 3,
+          "gpuEnvelopeMs": 7.532780499999999
+        }
+      ]
+    },
+    {
+      "kind": "mixed",
+      "view": "desktop",
+      "variant": "optimized",
+      "canvas": [
+        1280,
+        800
+      ],
+      "dpr": 1,
+      "gpuEnvelopeMs": {
+        "n": 160,
+        "median": 7.169703,
+        "p95": 7.3195553,
+        "min": 7.051267,
+        "max": 8.060377
+      },
+      "kuwaharaSpanMs": {
+        "n": 160,
+        "median": 2.743875,
+        "p95": 2.78018895,
+        "min": 2.00572,
+        "max": 2.891831
+      },
+      "encodeMs": {
+        "n": 160,
+        "median": 2,
+        "p95": 2.049999999999983,
+        "min": 0,
+        "max": 3
+      },
+      "perRunMedians": [
+        {
+          "run": 1,
+          "gpuEnvelopeMs": 7.1728275
+        },
+        {
+          "run": 2,
+          "gpuEnvelopeMs": 7.164266
+        }
+      ]
+    },
+    {
+      "kind": "mixed",
+      "view": "portrait",
+      "variant": "reference",
+      "canvas": [
+        780,
+        1688
+      ],
+      "dpr": 2,
+      "gpuEnvelopeMs": {
+        "n": 160,
+        "median": 9.322524000000001,
+        "p95": 9.63330715,
+        "min": 9.211817,
+        "max": 10.801835
+      },
+      "kuwaharaSpanMs": {
+        "n": 160,
+        "median": 4.809823,
+        "p95": 4.8275433,
+        "min": 3.942398,
+        "max": 5.068839
+      },
+      "encodeMs": {
+        "n": 160,
+        "median": 2,
+        "p95": 2,
+        "min": 0,
+        "max": 3
+      },
+      "perRunMedians": [
+        {
+          "run": 0,
+          "gpuEnvelopeMs": 9.3229825
+        },
+        {
+          "run": 3,
+          "gpuEnvelopeMs": 9.322524000000001
+        }
+      ]
+    },
+    {
+      "kind": "mixed",
+      "view": "portrait",
+      "variant": "optimized",
+      "canvas": [
+        780,
+        1688
+      ],
+      "dpr": 2,
+      "gpuEnvelopeMs": {
+        "n": 160,
+        "median": 8.819511,
+        "p95": 8.91932375,
+        "min": 8.722826,
+        "max": 9.145735
+      },
+      "kuwaharaSpanMs": {
+        "n": 160,
+        "median": 4.3047260000000005,
+        "p95": 4.323546149999999,
+        "min": 3.435823,
+        "max": 4.618263
+      },
+      "encodeMs": {
+        "n": 160,
+        "median": 2,
+        "p95": 3,
+        "min": 0,
+        "max": 3
+      },
+      "perRunMedians": [
+        {
+          "run": 1,
+          "gpuEnvelopeMs": 8.816699
+        },
+        {
+          "run": 2,
+          "gpuEnvelopeMs": 8.820782000000001
+        }
+      ]
+    },
+    {
+      "kind": "full",
+      "view": "desktop",
+      "variant": "reference",
+      "canvas": [
+        1280,
+        800
+      ],
+      "dpr": 1,
+      "gpuEnvelopeMs": {
+        "n": 160,
+        "median": 8.390393,
+        "p95": 9.858351899999997,
+        "min": 8.023253,
+        "max": 10.736377
+      },
+      "kuwaharaSpanMs": {
+        "n": 160,
+        "median": 3.1136405,
+        "p95": 3.4585744000000003,
+        "min": 2.313757,
+        "max": 3.693068
+      },
+      "encodeMs": {
+        "n": 160,
+        "median": 1,
+        "p95": 2,
+        "min": 0,
+        "max": 3
+      },
+      "perRunMedians": [
+        {
+          "run": 0,
+          "gpuEnvelopeMs": 8.2187075
+        },
+        {
+          "run": 3,
+          "gpuEnvelopeMs": 8.703492
+        }
+      ]
+    },
+    {
+      "kind": "full",
+      "view": "desktop",
+      "variant": "optimized",
+      "canvas": [
+        1280,
+        800
+      ],
+      "dpr": 1,
+      "gpuEnvelopeMs": {
+        "n": 160,
+        "median": 8.040294,
+        "p95": 9.78578785,
+        "min": 7.746507,
+        "max": 10.212595
+      },
+      "kuwaharaSpanMs": {
+        "n": 160,
+        "median": 2.791687,
+        "p95": 3.1775784000000002,
+        "min": 2.011052,
+        "max": 3.2332
+      },
+      "encodeMs": {
+        "n": 160,
+        "median": 2,
+        "p95": 2,
+        "min": 0,
+        "max": 3
+      },
+      "perRunMedians": [
+        {
+          "run": 1,
+          "gpuEnvelopeMs": 7.8688385
+        },
+        {
+          "run": 2,
+          "gpuEnvelopeMs": 8.312373000000001
+        }
+      ]
+    },
+    {
+      "kind": "full",
+      "view": "portrait",
+      "variant": "reference",
+      "canvas": [
+        780,
+        1688
+      ],
+      "dpr": 2,
+      "gpuEnvelopeMs": {
+        "n": 160,
+        "median": 9.996930500000001,
+        "p95": 10.06568655,
+        "min": 9.90064,
+        "max": 10.886917
+      },
+      "kuwaharaSpanMs": {
+        "n": 160,
+        "median": 4.8307590000000005,
+        "p95": 4.851594749999999,
+        "min": 3.946147,
+        "max": 5.670288
+      },
+      "encodeMs": {
+        "n": 160,
+        "median": 1,
+        "p95": 2,
+        "min": 0,
+        "max": 2
+      },
+      "perRunMedians": [
+        {
+          "run": 0,
+          "gpuEnvelopeMs": 9.995452499999999
+        },
+        {
+          "run": 3,
+          "gpuEnvelopeMs": 10.004639000000001
+        }
+      ]
+    },
+    {
+      "kind": "full",
+      "view": "portrait",
+      "variant": "optimized",
+      "canvas": [
+        780,
+        1688
+      ],
+      "dpr": 2,
+      "gpuEnvelopeMs": {
+        "n": 160,
+        "median": 9.496522,
+        "p95": 9.58680545,
+        "min": 9.379691,
+        "max": 9.737602
+      },
+      "kuwaharaSpanMs": {
+        "n": 160,
+        "median": 4.32208,
+        "p95": 4.34113635,
+        "min": 3.436238,
+        "max": 4.3651
+      },
+      "encodeMs": {
+        "n": 160,
+        "median": 2,
+        "p95": 2,
+        "min": 0,
+        "max": 3
+      },
+      "perRunMedians": [
+        {
+          "run": 1,
+          "gpuEnvelopeMs": 9.502001
+        },
+        {
+          "run": 2,
+          "gpuEnvelopeMs": 9.4897515
+        }
+      ]
+    }
+  ],
+  "cpu": {
+    "method": "Three actual pure scene/rebuilds per synthetic scenario; Vite setup/GPU upload/shader compilation excluded. Canonical mature/full models included separately. 1000 actual camera samples separately. No concurrent GPU workload during measurement. Raw maxima retained; no universal FPS claim.",
+    "originalCasterStrokes": 161168,
+    "siteCasterStrokes": 158384,
+    "removedFoliageStrokes": 2784,
+    "samples": [
+      {
+        "kind": "empty",
+        "run": 0,
+        "plants": 0,
+        "beds": 13,
+        "edges": 23,
+        "routeMetres": 109.02391424760727,
+        "scrollPixels": 8677.796114597486,
+        "vertices": {
+          "path": 2254,
+          "ground": 54432
+        },
+        "meadowStrokes": 115277,
+        "ms": {
+          "layout": 0.423041000000012,
+          "tour": 2.1480840000000114,
+          "path": 2.7782499999999857,
+          "ground": 25.164333,
+          "meadow": 148.83137499999998,
+          "models": 0.0007920000000467553,
+          "poses1000": 1.678875000000005,
+          "geometryTotal": 179.345083,
+          "total": 179.34587500000004
+        }
+      },
+      {
+        "kind": "empty",
+        "run": 1,
+        "plants": 0,
+        "beds": 13,
+        "edges": 23,
+        "routeMetres": 109.02391424760727,
+        "scrollPixels": 8677.796114597486,
+        "vertices": {
+          "path": 2254,
+          "ground": 54432
+        },
+        "meadowStrokes": 115277,
+        "ms": {
+          "layout": 0.07083399999999074,
+          "tour": 0.6029159999999933,
+          "path": 1.3674589999999966,
+          "ground": 21.94074999999998,
+          "meadow": 154.20029100000005,
+          "models": 0.0038339999999834617,
+          "poses1000": 1.070916000000011,
+          "geometryTotal": 178.18225,
+          "total": 178.186084
+        }
+      },
+      {
+        "kind": "empty",
+        "run": 2,
+        "plants": 0,
+        "beds": 13,
+        "edges": 23,
+        "routeMetres": 109.02391424760727,
+        "scrollPixels": 8677.796114597486,
+        "vertices": {
+          "path": 2254,
+          "ground": 54432
+        },
+        "meadowStrokes": 115277,
+        "ms": {
+          "layout": 0.05254200000001674,
+          "tour": 0.6401250000000118,
+          "path": 1.221541000000002,
+          "ground": 23.538208999999938,
+          "meadow": 132.065875,
+          "models": 0.0002910000000611035,
+          "poses1000": 0.9118750000000091,
+          "geometryTotal": 157.51829199999997,
+          "total": 157.51858300000004
+        }
+      },
+      {
+        "kind": "mixed",
+        "run": 0,
+        "plants": 26,
+        "beds": 13,
+        "edges": 23,
+        "routeMetres": 109.02391424760727,
+        "scrollPixels": 8677.796114597486,
+        "vertices": {
+          "path": 2254,
+          "ground": 54432
+        },
+        "meadowStrokes": 115277,
+        "ms": {
+          "layout": 0.5451249999999845,
+          "tour": 0.5444589999999607,
+          "path": 1.1105830000000196,
+          "ground": 21.778332999999975,
+          "meadow": 116.51945899999998,
+          "models": 7.947125000000028,
+          "poses1000": 0.8410410000000184,
+          "geometryTotal": 140.49795899999992,
+          "total": 148.44508399999995
+        }
+      },
+      {
+        "kind": "mixed",
+        "run": 1,
+        "plants": 26,
+        "beds": 13,
+        "edges": 23,
+        "routeMetres": 109.02391424760727,
+        "scrollPixels": 8677.796114597486,
+        "vertices": {
+          "path": 2254,
+          "ground": 54432
+        },
+        "meadowStrokes": 115277,
+        "ms": {
+          "layout": 0.08179100000006656,
+          "tour": 0.5400839999999789,
+          "path": 1.0858749999999873,
+          "ground": 20.03520800000001,
+          "meadow": 117.265083,
+          "models": 3.294958999999949,
+          "poses1000": 0.7369580000000724,
+          "geometryTotal": 139.00804100000005,
+          "total": 142.303
+        }
+      },
+      {
+        "kind": "mixed",
+        "run": 2,
+        "plants": 26,
+        "beds": 13,
+        "edges": 23,
+        "routeMetres": 109.02391424760727,
+        "scrollPixels": 8677.796114597486,
+        "vertices": {
+          "path": 2254,
+          "ground": 54432
+        },
+        "meadowStrokes": 115277,
+        "ms": {
+          "layout": 0.07466699999997672,
+          "tour": 0.5333749999999782,
+          "path": 1.1249169999999822,
+          "ground": 20.528083000000038,
+          "meadow": 116.40641699999992,
+          "models": 3.079291000000012,
+          "poses1000": 0.7508749999999509,
+          "geometryTotal": 138.6674589999999,
+          "total": 141.7467499999999
+        }
+      },
+      {
+        "kind": "full",
+        "run": 0,
+        "plants": 78,
+        "beds": 13,
+        "edges": 23,
+        "routeMetres": 109.02391424760727,
+        "scrollPixels": 8677.796114597486,
+        "vertices": {
+          "path": 2254,
+          "ground": 54432
+        },
+        "meadowStrokes": 115277,
+        "ms": {
+          "layout": 0.11670800000001691,
+          "tour": 0.5228339999998752,
+          "path": 1.1244580000000042,
+          "ground": 19.756167000000005,
+          "meadow": 137.90912500000013,
+          "models": 8.18833299999983,
+          "poses1000": 1.1619170000001304,
+          "geometryTotal": 159.42929200000003,
+          "total": 167.61762499999986
+        }
+      },
+      {
+        "kind": "full",
+        "run": 1,
+        "plants": 78,
+        "beds": 13,
+        "edges": 23,
+        "routeMetres": 109.02391424760727,
+        "scrollPixels": 8677.796114597486,
+        "vertices": {
+          "path": 2254,
+          "ground": 54432
+        },
+        "meadowStrokes": 115277,
+        "ms": {
+          "layout": 0.10162500000001273,
+          "tour": 0.5307080000000042,
+          "path": 1.081957999999986,
+          "ground": 20.378791999999976,
+          "meadow": 110.76354200000014,
+          "models": 7.37195799999995,
+          "poses1000": 0.4653329999998732,
+          "geometryTotal": 132.85662500000012,
+          "total": 140.22858300000007
+        }
+      },
+      {
+        "kind": "full",
+        "run": 2,
+        "plants": 78,
+        "beds": 13,
+        "edges": 23,
+        "routeMetres": 109.02391424760727,
+        "scrollPixels": 8677.796114597486,
+        "vertices": {
+          "path": 2254,
+          "ground": 54432
+        },
+        "meadowStrokes": 115277,
+        "ms": {
+          "layout": 0.10487499999999272,
+          "tour": 0.513332999999875,
+          "path": 1.0555840000001808,
+          "ground": 20.214749999999867,
+          "meadow": 124.43658300000016,
+          "models": 7.489207999999962,
+          "poses1000": 0.46325000000001637,
+          "geometryTotal": 146.32512500000007,
+          "total": 153.81433300000003
+        }
+      },
+      {
+        "kind": "sparse",
+        "run": 0,
+        "plants": 26,
+        "beds": 13,
+        "edges": 23,
+        "routeMetres": 109.02391424760727,
+        "scrollPixels": 8677.796114597486,
+        "vertices": {
+          "path": 2254,
+          "ground": 54432
+        },
+        "meadowStrokes": 115277,
+        "ms": {
+          "layout": 0.07129199999985758,
+          "tour": 0.5560830000001715,
+          "path": 1.0557079999998678,
+          "ground": 20.146541999999954,
+          "meadow": 119.47620800000004,
+          "models": 2.6319169999999303,
+          "poses1000": 0.47220800000013696,
+          "geometryTotal": 141.3058329999999,
+          "total": 143.93774999999982
+        }
+      },
+      {
+        "kind": "sparse",
+        "run": 1,
+        "plants": 26,
+        "beds": 13,
+        "edges": 23,
+        "routeMetres": 109.02391424760727,
+        "scrollPixels": 8677.796114597486,
+        "vertices": {
+          "path": 2254,
+          "ground": 54432
+        },
+        "meadowStrokes": 115277,
+        "ms": {
+          "layout": 0.07137499999998909,
+          "tour": 0.4976249999999709,
+          "path": 1.0414160000000265,
+          "ground": 19.487708999999995,
+          "meadow": 113.56862500000011,
+          "models": 2.4234579999999823,
+          "poses1000": 0.4669579999999769,
+          "geometryTotal": 134.6667500000001,
+          "total": 137.09020800000008
+        }
+      },
+      {
+        "kind": "sparse",
+        "run": 2,
+        "plants": 26,
+        "beds": 13,
+        "edges": 23,
+        "routeMetres": 109.02391424760727,
+        "scrollPixels": 8677.796114597486,
+        "vertices": {
+          "path": 2254,
+          "ground": 54432
+        },
+        "meadowStrokes": 115277,
+        "ms": {
+          "layout": 0.07295799999997143,
+          "tour": 0.4995000000001255,
+          "path": 1.035708999999997,
+          "ground": 19.903790999999956,
+          "meadow": 109.19274999999993,
+          "models": 2.316291999999976,
+          "poses1000": 0.45866700000010496,
+          "geometryTotal": 130.70470799999998,
+          "total": 133.02099999999996
+        }
+      }
+    ]
+  },
+  "rawArtifacts": {
+    "cpu": "/tmp/ccapp-226-cpu-final/measurements.json",
+    "gpu": "/tmp/ccapp-226-render-final/measurements.json"
+  },
+  "allRawMaximaRetained": true
+}

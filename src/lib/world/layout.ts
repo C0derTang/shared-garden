@@ -71,6 +71,9 @@ export interface Bed {
   readonly center: Vec3;
   readonly radius: number;
   readonly organic?: boolean;
+  readonly terrace?: boolean;
+  readonly rotation?: number;
+  readonly tourOrder?: number;
   readonly site?: boolean;
 }
 
@@ -142,6 +145,7 @@ export function distanceToBeds(x: number, z: number, beds: readonly Bed[]): numb
 
 /** Stable, softly lobed pocket silhouette; legacy/default beds retain their circle. */
 export function bedRimRadius(bed: Bed, angle: number): number {
+ if(bed.terrace){const c=Math.abs(Math.cos(angle-(bed.rotation??0))),s=Math.abs(Math.sin(angle-(bed.rotation??0)));return bed.radius/Math.pow((c/1.07)**4+(s/.78)**4,.25)*(1+.025*Math.sin(angle*5+bed.index));}
  return bed.radius * (bed.organic ? 1 + .13*Math.sin(angle*3+bed.index*1.17) + .07*Math.cos(angle*5+bed.index*.63) : 1);
 }
 

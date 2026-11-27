@@ -1589,3 +1589,16 @@
   gap: 0.6rem;
   margin-bottom: 1.2rem;
 }
+
+.tourScroll { position:absolute; inset:0; height:100%; overscroll-behavior:none; overflow-x:hidden; scrollbar-width:none; }
+.tourScroll::-webkit-scrollbar { display:none; }
+.tourScroll:focus-visible { outline:3px solid #fff3d1; outline-offset:-4px; }
+.pinnedWorld { position:sticky; top:0; height:100dvh; min-height:0; }
+.flowerPicker { position:absolute; z-index:12; right:max(.6rem,env(safe-area-inset-right)); top:calc(50% - 1.6rem); }
+.pickerTab { position:relative; z-index:2; min-width:48px; min-height:52px; border:1px solid #f6e5bf88; border-radius:1.2rem 0 0 1.2rem; background:#efe5cde8; color:#433624; font-size:1.8rem; box-shadow:0 3px 16px #1b241e44; cursor:pointer; }
+.pickerBackdrop { position:fixed; inset:0; border:0; background:#18211924; }
+.pickerPanel { position:fixed; z-index:3; right:max(.6rem,env(safe-area-inset-right)); top:max(4.5rem,calc(env(safe-area-inset-top) + 4rem)); bottom:max(.6rem,env(safe-area-inset-bottom)); width:min(18rem,calc(100vw - 4.5rem)); overflow-y:auto; overscroll-behavior:contain; touch-action:pan-y; padding:.6rem; background:#eee4ceeF; border:1px solid #fff3d588; border-radius:1.3rem; box-shadow:0 8px 40px #17221977; }
+.pickerPanel button { display:flex; align-items:center; gap:.9rem; width:100%; min-height:88px; padding:.2rem .7rem; border:0; border-radius:.9rem; background:transparent; color:#443b2a; font:inherit; font-size:1.2rem; text-align:left; cursor:pointer; }
+.pickerPanel button:hover,.pickerPanel button:focus-visible { background:#fff7e1; outline:2px solid #7a8654; outline-offset:-2px; }
+.pickerPanel img { object-fit:contain; flex:none; }
+@media(max-height:450px) { .pickerPanel button { min-height:74px; } .pickerPanel img { height:64px; width:52px; } }

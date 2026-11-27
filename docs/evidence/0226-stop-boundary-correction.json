@@ -1,0 +1,3158 @@
+{
+  "runtimeSourceSha256": "855fbe9f70f39287aec3fd2edf65a30fbfbec2903aa5f25bfd364ccf14b70fe7",
+  "correctsReviewedHead": "69d2a11d11764eda5b1f895c98d3b2f7516ad62d",
+  "scope": "Synthetic loopback only; no real authenticated/private backend session or mutation.",
+  "semanticRule": "Exact surviving stop IDs precede removed-edge classification. Surviving curves retain exact coordinate/buffers. Only removed geometry uses nearest surviving old-route boundary by arc distance; numeric tie picks earlier boundary. No epsilon, latest-type alias or separate camera authority.",
+  "boundaryMetadata": {
+    "headAtCapture": "69d2a11d11764eda5b1f895c98d3b2f7516ad62d",
+    "runtimeSourceSha256": "855fbe9f70f39287aec3fd2edf65a30fbfbec2903aa5f25bfd364ccf14b70fe7",
+    "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+    "capturedAt": "2026-11-27T06:46:12.735Z",
+    "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+  },
+  "boundaryCases": [
+    {
+      "view": "desktop",
+      "motion": "reduce",
+      "modules": 0,
+      "id": "terrace:1",
+      "flower": "cactus",
+      "offset": -1,
+      "accepted": {
+        "distance": 88.8652,
+        "native": 6104
+      },
+      "oldStopDistance": 88.86820833857185,
+      "newStopDistance": 109.21394234350075,
+      "coordinate": {
+        "id": "tour:terrace:4:terrace:1",
+        "fraction": 0.9992182036454289
+      },
+      "survives": false,
+      "retained": 109.21394234350075,
+      "errors": [],
+      "beforeEye": [
+        23.283246994018555,
+        3.097461462020874,
+        70.92520904541016
+      ],
+      "afterEye": [
+        23.284591674804688,
+        3.0974509716033936,
+        70.92252349853516
+      ],
+      "expectedEye": [
+        23.284591674804688,
+        3.0974509716033936,
+        70.92252349853516
+      ],
+      "beforeBufferSha256": "71b150a2949e5a3baeb20478b597ba02a1cdc2dc60af7f6e5b45f8d001b56ff4",
+      "afterBufferSha256": "bc60fe8460d5a2b375b941a911716e130eae14564e6a234b4a7e1c05202c5308",
+      "expectedBufferSha256": "bc60fe8460d5a2b375b941a911716e130eae14564e6a234b4a7e1c05202c5308",
+      "submittedFramesChecked": 6,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0030034044821295614
+    },
+    {
+      "view": "desktop",
+      "motion": "reduce",
+      "modules": 0,
+      "id": "terrace:1",
+      "flower": "cactus",
+      "offset": 0,
+      "accepted": {
+        "distance": 88.8728,
+        "native": 6105
+      },
+      "oldStopDistance": 88.86820833857185,
+      "newStopDistance": 109.21394234350075,
+      "coordinate": {
+        "id": "tour:terrace:1:terrace:8",
+        "fraction": 0.0010049452183187484
+      },
+      "survives": true,
+      "retained": 109.2185340049289,
+      "errors": [],
+      "beforeEye": [
+        23.286638259887695,
+        3.0974347591400146,
+        70.9184341430664
+      ],
+      "afterEye": [
+        23.286638259887695,
+        3.0974347591400146,
+        70.9184341430664
+      ],
+      "expectedEye": [
+        23.286638259887695,
+        3.0974347591400146,
+        70.9184341430664
+      ],
+      "beforeBufferSha256": "dab727f10408e42bd8aaec68eb13a964fe46d3659c3c2a7bf4ca12ab703feadf",
+      "afterBufferSha256": "dab727f10408e42bd8aaec68eb13a964fe46d3659c3c2a7bf4ca12ab703feadf",
+      "expectedBufferSha256": "dab727f10408e42bd8aaec68eb13a964fe46d3659c3c2a7bf4ca12ab703feadf",
+      "submittedFramesChecked": 5,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "desktop",
+      "motion": "reduce",
+      "modules": 0,
+      "id": "terrace:1",
+      "flower": "cactus",
+      "offset": 1,
+      "accepted": {
+        "distance": 88.8853,
+        "native": 6106
+      },
+      "oldStopDistance": 88.86820833857185,
+      "newStopDistance": 109.21394234350075,
+      "coordinate": {
+        "id": "tour:terrace:1:terrace:8",
+        "fraction": 0.0037407338703243647
+      },
+      "survives": true,
+      "retained": 109.2310340049289,
+      "errors": [],
+      "beforeEye": [
+        23.292192459106445,
+        3.0973899364471436,
+        70.90731048583984
+      ],
+      "afterEye": [
+        23.292192459106445,
+        3.0973899364471436,
+        70.90731048583984
+      ],
+      "expectedEye": [
+        23.292192459106445,
+        3.0973899364471436,
+        70.90731048583984
+      ],
+      "beforeBufferSha256": "bb32bd7ac5811a10c5cc1618b128f8ed6e0f5ee938a2e69bbf629b11a9428d0e",
+      "afterBufferSha256": "bb32bd7ac5811a10c5cc1618b128f8ed6e0f5ee938a2e69bbf629b11a9428d0e",
+      "expectedBufferSha256": "bb32bd7ac5811a10c5cc1618b128f8ed6e0f5ee938a2e69bbf629b11a9428d0e",
+      "submittedFramesChecked": 5,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "desktop",
+      "motion": "reduce",
+      "modules": 0,
+      "id": "terrace:4",
+      "flower": "daisy",
+      "offset": -1,
+      "accepted": {
+        "distance": 85.016,
+        "native": 5296
+      },
+      "oldStopDistance": 85.02022599092514,
+      "newStopDistance": 85.02022599092514,
+      "coordinate": {
+        "id": "tour:terrace:2:terrace:4",
+        "fraction": 0.9986662410188716
+      },
+      "survives": true,
+      "retained": 85.016,
+      "errors": [],
+      "beforeEye": [
+        20.924095153808594,
+        3.0719122886657715,
+        73.93104553222656
+      ],
+      "afterEye": [
+        20.924095153808594,
+        3.0719122886657715,
+        73.93104553222656
+      ],
+      "expectedEye": [
+        20.924095153808594,
+        3.0719122886657715,
+        73.93104553222656
+      ],
+      "beforeBufferSha256": "a303bcc567ee7af0caa47227ecdf4a5abef7c1ace907735d7e4d7f07cff90eba",
+      "afterBufferSha256": "a303bcc567ee7af0caa47227ecdf4a5abef7c1ace907735d7e4d7f07cff90eba",
+      "expectedBufferSha256": "a303bcc567ee7af0caa47227ecdf4a5abef7c1ace907735d7e4d7f07cff90eba",
+      "submittedFramesChecked": 6,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "desktop",
+      "motion": "reduce",
+      "modules": 0,
+      "id": "terrace:4",
+      "flower": "daisy",
+      "offset": 1,
+      "accepted": {
+        "distance": 85.025,
+        "native": 5298
+      },
+      "oldStopDistance": 85.02022599092514,
+      "newStopDistance": 85.02022599092514,
+      "coordinate": {
+        "id": "tour:terrace:4:terrace:1",
+        "fraction": 0.0012406525403590573
+      },
+      "survives": false,
+      "retained": 85.02022599092514,
+      "errors": [],
+      "beforeEye": [
+        20.93120002746582,
+        3.0720014572143555,
+        73.9255599975586
+      ],
+      "afterEye": [
+        20.927474975585938,
+        3.0719544887542725,
+        73.92843627929688
+      ],
+      "expectedEye": [
+        20.927474975585938,
+        3.0719544887542725,
+        73.92843627929688
+      ],
+      "beforeBufferSha256": "69c6d4920a1735fe20ffb83b4aa9ef4ce6b051ebfe3ba10339368f74fdf7025d",
+      "afterBufferSha256": "1b93b457d3640ce64d9a5e64961dca8673d618ea92c2e3145d3704cd45f5dfae",
+      "expectedBufferSha256": "1b93b457d3640ce64d9a5e64961dca8673d618ea92c2e3145d3704cd45f5dfae",
+      "submittedFramesChecked": 6,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.004706507641769134
+    },
+    {
+      "view": "desktop",
+      "motion": "reduce",
+      "modules": 0,
+      "id": "terrace:0",
+      "flower": "rose",
+      "offset": 0,
+      "accepted": {
+        "distance": 65.4012,
+        "native": 2244
+      },
+      "oldStopDistance": 65.39747244148376,
+      "newStopDistance": 65.39747244148376,
+      "coordinate": {
+        "id": "tour:terrace:0:terrace:5",
+        "fraction": 0.000765610289800032
+      },
+      "survives": true,
+      "retained": 65.4012,
+      "errors": [],
+      "beforeEye": [
+        11.348111152648926,
+        3.125964403152466,
+        61.71666717529297
+      ],
+      "afterEye": [
+        11.348111152648926,
+        3.125964403152466,
+        61.71666717529297
+      ],
+      "expectedEye": [
+        11.348111152648926,
+        3.125964403152466,
+        61.71666717529297
+      ],
+      "beforeBufferSha256": "d5faa55c80fc46f7a8d3de20b1e693623b9cacbbd980d78a0766adb747d4bc70",
+      "afterBufferSha256": "d5faa55c80fc46f7a8d3de20b1e693623b9cacbbd980d78a0766adb747d4bc70",
+      "expectedBufferSha256": "d5faa55c80fc46f7a8d3de20b1e693623b9cacbbd980d78a0766adb747d4bc70",
+      "submittedFramesChecked": 4,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "desktop",
+      "motion": "reduce",
+      "modules": 1,
+      "id": "terrace:13",
+      "offset": -1,
+      "accepted": {
+        "distance": 92.4338,
+        "native": 5890
+      },
+      "oldStopDistance": 92.45135101229475,
+      "newStopDistance": 92.45135101229475,
+      "coordinate": {
+        "id": "tour:terrace:4:terrace:13",
+        "fraction": 0.9976381756134803
+      },
+      "survives": true,
+      "retained": 92.4338,
+      "errors": [],
+      "beforeEye": [
+        21.99839973449707,
+        3.076653242111206,
+        80.98318481445312
+      ],
+      "afterEye": [
+        21.99839973449707,
+        3.076653242111206,
+        80.98318481445312
+      ],
+      "expectedEye": [
+        21.99839973449707,
+        3.076653242111206,
+        80.98318481445312
+      ],
+      "beforeBufferSha256": "9183d939a741db78698dceab92417bf7d1f46c19b7bffc204f204cafc59308f2",
+      "afterBufferSha256": "9183d939a741db78698dceab92417bf7d1f46c19b7bffc204f204cafc59308f2",
+      "expectedBufferSha256": "9183d939a741db78698dceab92417bf7d1f46c19b7bffc204f204cafc59308f2",
+      "submittedFramesChecked": 5,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "desktop",
+      "motion": "reduce",
+      "modules": 1,
+      "id": "terrace:13",
+      "offset": 0,
+      "accepted": {
+        "distance": 92.4463,
+        "native": 5891
+      },
+      "oldStopDistance": 92.45135101229475,
+      "newStopDistance": 92.45135101229475,
+      "coordinate": {
+        "id": "tour:terrace:4:terrace:13",
+        "fraction": 0.9993202896896185
+      },
+      "survives": true,
+      "retained": 92.4463,
+      "errors": [],
+      "beforeEye": [
+        21.99953842163086,
+        3.076606512069702,
+        80.99517822265625
+      ],
+      "afterEye": [
+        21.99953842163086,
+        3.076606512069702,
+        80.99517822265625
+      ],
+      "expectedEye": [
+        21.99953842163086,
+        3.076606512069702,
+        80.99517822265625
+      ],
+      "beforeBufferSha256": "7bd00b2c53e47cb639e5df925dde42abd9e28ae5c6847121696ac4d7bc3a8baf",
+      "afterBufferSha256": "7bd00b2c53e47cb639e5df925dde42abd9e28ae5c6847121696ac4d7bc3a8baf",
+      "expectedBufferSha256": "7bd00b2c53e47cb639e5df925dde42abd9e28ae5c6847121696ac4d7bc3a8baf",
+      "submittedFramesChecked": 5,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "desktop",
+      "motion": "reduce",
+      "modules": 1,
+      "id": "terrace:13",
+      "offset": 1,
+      "accepted": {
+        "distance": 92.4588,
+        "native": 5892
+      },
+      "oldStopDistance": 92.45135101229475,
+      "newStopDistance": 92.45135101229475,
+      "coordinate": {
+        "id": "tour:terrace:13:expansion-turn:terrace:13",
+        "fraction": 0.002288262324355978
+      },
+      "survives": false,
+      "retained": 92.45135101229475,
+      "errors": [],
+      "beforeEye": [
+        22.000717163085938,
+        3.0765562057495117,
+        81.0074462890625
+      ],
+      "afterEye": [
+        22,
+        3.076587200164795,
+        81
+      ],
+      "expectedEye": [
+        22,
+        3.076587200164795,
+        81
+      ],
+      "beforeBufferSha256": "cc337249a4b0f15a07a3d5e3a400f1b3ff6cecf8979b976b527d60219bfc83c1",
+      "afterBufferSha256": "d27d65851fb6746b8e38de1d682dde6f26a260986e97a2691eddd9cea757770e",
+      "expectedBufferSha256": "d27d65851fb6746b8e38de1d682dde6f26a260986e97a2691eddd9cea757770e",
+      "submittedFramesChecked": 5,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.007480809070409248
+    },
+    {
+      "view": "desktop",
+      "motion": "reduce",
+      "modules": 1,
+      "id": "return:terrace:13",
+      "offset": -1,
+      "accepted": {
+        "distance": 99.0588,
+        "native": 6420
+      },
+      "oldStopDistance": 99.07003304909873,
+      "newStopDistance": 107.16263499570793,
+      "coordinate": {
+        "id": "tour:expansion-turn:terrace:13:return:terrace:13",
+        "fraction": 0.9966601891432063
+      },
+      "survives": false,
+      "retained": 107.16263499570793,
+      "errors": [],
+      "beforeEye": [
+        24.000566482543945,
+        3.052926778793335,
+        81.0113754272461
+      ],
+      "afterEye": [
+        24,
+        3.053260087966919,
+        81
+      ],
+      "expectedEye": [
+        24,
+        3.053260087966919,
+        81
+      ],
+      "beforeBufferSha256": "182fd1518d03b1d375fdf4ffdf043606a667186be3c200fda45244f775967d4b",
+      "afterBufferSha256": "71f2a53b4d6076b4217033a87d48aae13330ef886334e3a351581aad151bc175",
+      "expectedBufferSha256": "71f2a53b4d6076b4217033a87d48aae13330ef886334e3a351581aad151bc175",
+      "submittedFramesChecked": 6,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.011394399611605783
+    },
+    {
+      "view": "desktop",
+      "motion": "reduce",
+      "modules": 1,
+      "id": "return:terrace:13",
+      "offset": 0,
+      "accepted": {
+        "distance": 99.0713,
+        "native": 6421
+      },
+      "oldStopDistance": 99.07003304909873,
+      "newStopDistance": 107.16263499570793,
+      "coordinate": {
+        "id": "tour:return:terrace:13:terrace:1",
+        "fraction": 0.0001248976961936494
+      },
+      "survives": true,
+      "retained": 107.1639019466092,
+      "errors": [],
+      "beforeEye": [
+        23.99993896484375,
+        3.053295373916626,
+        80.99879455566406
+      ],
+      "afterEye": [
+        23.99993896484375,
+        3.053295373916626,
+        80.99879455566406
+      ],
+      "expectedEye": [
+        23.99993896484375,
+        3.053295373916626,
+        80.99879455566406
+      ],
+      "beforeBufferSha256": "becd2dc9b044b9ce599dca34634820df50a7d1fcc6cd54fb79c2e087d77ad160",
+      "afterBufferSha256": "becd2dc9b044b9ce599dca34634820df50a7d1fcc6cd54fb79c2e087d77ad160",
+      "expectedBufferSha256": "becd2dc9b044b9ce599dca34634820df50a7d1fcc6cd54fb79c2e087d77ad160",
+      "submittedFramesChecked": 5,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "desktop",
+      "motion": "reduce",
+      "modules": 1,
+      "id": "return:terrace:13",
+      "offset": 1,
+      "accepted": {
+        "distance": 99.0838,
+        "native": 6422
+      },
+      "oldStopDistance": 99.07003304909873,
+      "newStopDistance": 107.16263499570793,
+      "coordinate": {
+        "id": "tour:return:terrace:13:terrace:1",
+        "fraction": 0.0013571642353770235
+      },
+      "survives": true,
+      "retained": 107.1764019466092,
+      "errors": [],
+      "beforeEye": [
+        23.99932098388672,
+        3.053647518157959,
+        80.98674011230469
+      ],
+      "afterEye": [
+        23.99932098388672,
+        3.053647518157959,
+        80.98674011230469
+      ],
+      "expectedEye": [
+        23.99932098388672,
+        3.053647518157959,
+        80.98674011230469
+      ],
+      "beforeBufferSha256": "de61c284dc048bdb370cd4cb6ca092e90b548201a8d5c07fa6b573e493512918",
+      "afterBufferSha256": "de61c284dc048bdb370cd4cb6ca092e90b548201a8d5c07fa6b573e493512918",
+      "expectedBufferSha256": "de61c284dc048bdb370cd4cb6ca092e90b548201a8d5c07fa6b573e493512918",
+      "submittedFramesChecked": 5,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "desktop",
+      "motion": "reduce",
+      "modules": 2,
+      "id": "terrace:26",
+      "offset": 0,
+      "accepted": {
+        "distance": 96.5588,
+        "native": 6220
+      },
+      "oldStopDistance": 96.5552196132556,
+      "newStopDistance": 96.5552196132556,
+      "coordinate": {
+        "id": "tour:terrace:26:expansion-turn:terrace:26",
+        "fraction": 0.0011006755605257768
+      },
+      "survives": false,
+      "retained": 96.5552196132556,
+      "errors": [],
+      "beforeEye": [
+        22.000001907348633,
+        3.008462905883789,
+        85.10355377197266
+      ],
+      "afterEye": [
+        22,
+        3.0084805488586426,
+        85.0999984741211
+      ],
+      "expectedEye": [
+        22,
+        3.0084805488586426,
+        85.0999984741211
+      ],
+      "beforeBufferSha256": "bf04fc9d7d899cd7c23a70b281dcebe6ac26a64c22bb27c0e509bf90edd7f809",
+      "afterBufferSha256": "ffae3f35dbaa7c9347a5cdb5db9dd52c6628009a69ee6be86bca89f1938ede1f",
+      "expectedBufferSha256": "ffae3f35dbaa7c9347a5cdb5db9dd52c6628009a69ee6be86bca89f1938ede1f",
+      "submittedFramesChecked": 5,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0035553421390726123
+    },
+    {
+      "view": "desktop",
+      "motion": "reduce",
+      "modules": 2,
+      "id": "return:terrace:26",
+      "offset": 0,
+      "accepted": {
+        "distance": 103.0588,
+        "native": 6740
+      },
+      "oldStopDistance": 103.06101818425829,
+      "newStopDistance": 111.2610181842583,
+      "coordinate": {
+        "id": "tour:expansion-turn:terrace:26:return:terrace:26",
+        "fraction": 0.9993180900902268
+      },
+      "survives": false,
+      "retained": 111.2610181842583,
+      "errors": [],
+      "beforeEye": [
+        24,
+        2.9966020584106445,
+        85.10221099853516
+      ],
+      "afterEye": [
+        24,
+        2.9965691566467285,
+        85.0999984741211
+      ],
+      "expectedEye": [
+        24,
+        2.9965691566467285,
+        85.0999984741211
+      ],
+      "beforeBufferSha256": "d326d44422854706184d7e89ab9943c09a3816331d62445db76785bce96215d1",
+      "afterBufferSha256": "953b813b52206fec4a549ac34fb8033e30957358d783be0c05d148da7228a72f",
+      "expectedBufferSha256": "953b813b52206fec4a549ac34fb8033e30957358d783be0c05d148da7228a72f",
+      "submittedFramesChecked": 4,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0022127690364996057
+    },
+    {
+      "view": "desktop",
+      "motion": "no-preference",
+      "modules": 0,
+      "id": "terrace:1",
+      "flower": "cactus",
+      "offset": -1,
+      "accepted": {
+        "distance": 88.8652,
+        "native": 6104
+      },
+      "oldStopDistance": 88.86820833857185,
+      "newStopDistance": 109.21394234350075,
+      "coordinate": {
+        "id": "tour:terrace:4:terrace:1",
+        "fraction": 0.9992182036454289
+      },
+      "survives": false,
+      "retained": 109.21394234350075,
+      "errors": [],
+      "beforeEye": [
+        23.283246994018555,
+        3.097461462020874,
+        70.92520904541016
+      ],
+      "afterEye": [
+        23.284591674804688,
+        3.0974509716033936,
+        70.92252349853516
+      ],
+      "expectedEye": [
+        23.284591674804688,
+        3.0974509716033936,
+        70.92252349853516
+      ],
+      "beforeBufferSha256": "71b150a2949e5a3baeb20478b597ba02a1cdc2dc60af7f6e5b45f8d001b56ff4",
+      "afterBufferSha256": "bc60fe8460d5a2b375b941a911716e130eae14564e6a234b4a7e1c05202c5308",
+      "expectedBufferSha256": "bc60fe8460d5a2b375b941a911716e130eae14564e6a234b4a7e1c05202c5308",
+      "submittedFramesChecked": 3,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0030034044821295614
+    },
+    {
+      "view": "desktop",
+      "motion": "no-preference",
+      "modules": 0,
+      "id": "terrace:1",
+      "flower": "cactus",
+      "offset": 0,
+      "accepted": {
+        "distance": 88.8728,
+        "native": 6105
+      },
+      "oldStopDistance": 88.86820833857185,
+      "newStopDistance": 109.21394234350075,
+      "coordinate": {
+        "id": "tour:terrace:1:terrace:8",
+        "fraction": 0.0010049452183187484
+      },
+      "survives": true,
+      "retained": 109.2185340049289,
+      "errors": [],
+      "beforeEye": [
+        23.286638259887695,
+        3.0974347591400146,
+        70.9184341430664
+      ],
+      "afterEye": [
+        23.286638259887695,
+        3.0974347591400146,
+        70.9184341430664
+      ],
+      "expectedEye": [
+        23.286638259887695,
+        3.0974347591400146,
+        70.9184341430664
+      ],
+      "beforeBufferSha256": "dab727f10408e42bd8aaec68eb13a964fe46d3659c3c2a7bf4ca12ab703feadf",
+      "afterBufferSha256": "dab727f10408e42bd8aaec68eb13a964fe46d3659c3c2a7bf4ca12ab703feadf",
+      "expectedBufferSha256": "dab727f10408e42bd8aaec68eb13a964fe46d3659c3c2a7bf4ca12ab703feadf",
+      "submittedFramesChecked": 5,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "desktop",
+      "motion": "no-preference",
+      "modules": 0,
+      "id": "terrace:1",
+      "flower": "cactus",
+      "offset": 1,
+      "accepted": {
+        "distance": 88.8853,
+        "native": 6106
+      },
+      "oldStopDistance": 88.86820833857185,
+      "newStopDistance": 109.21394234350075,
+      "coordinate": {
+        "id": "tour:terrace:1:terrace:8",
+        "fraction": 0.0037407338703243647
+      },
+      "survives": true,
+      "retained": 109.2310340049289,
+      "errors": [],
+      "beforeEye": [
+        23.292192459106445,
+        3.0973899364471436,
+        70.90731048583984
+      ],
+      "afterEye": [
+        23.292192459106445,
+        3.0973899364471436,
+        70.90731048583984
+      ],
+      "expectedEye": [
+        23.292192459106445,
+        3.0973899364471436,
+        70.90731048583984
+      ],
+      "beforeBufferSha256": "bb32bd7ac5811a10c5cc1618b128f8ed6e0f5ee938a2e69bbf629b11a9428d0e",
+      "afterBufferSha256": "bb32bd7ac5811a10c5cc1618b128f8ed6e0f5ee938a2e69bbf629b11a9428d0e",
+      "expectedBufferSha256": "bb32bd7ac5811a10c5cc1618b128f8ed6e0f5ee938a2e69bbf629b11a9428d0e",
+      "submittedFramesChecked": 3,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "desktop",
+      "motion": "no-preference",
+      "modules": 0,
+      "id": "terrace:4",
+      "flower": "daisy",
+      "offset": -1,
+      "accepted": {
+        "distance": 85.016,
+        "native": 5296
+      },
+      "oldStopDistance": 85.02022599092514,
+      "newStopDistance": 85.02022599092514,
+      "coordinate": {
+        "id": "tour:terrace:2:terrace:4",
+        "fraction": 0.9986662410188716
+      },
+      "survives": true,
+      "retained": 85.016,
+      "errors": [],
+      "beforeEye": [
+        20.924095153808594,
+        3.0719122886657715,
+        73.93104553222656
+      ],
+      "afterEye": [
+        20.924095153808594,
+        3.0719122886657715,
+        73.93104553222656
+      ],
+      "expectedEye": [
+        20.924095153808594,
+        3.0719122886657715,
+        73.93104553222656
+      ],
+      "beforeBufferSha256": "a303bcc567ee7af0caa47227ecdf4a5abef7c1ace907735d7e4d7f07cff90eba",
+      "afterBufferSha256": "a303bcc567ee7af0caa47227ecdf4a5abef7c1ace907735d7e4d7f07cff90eba",
+      "expectedBufferSha256": "a303bcc567ee7af0caa47227ecdf4a5abef7c1ace907735d7e4d7f07cff90eba",
+      "submittedFramesChecked": 3,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "desktop",
+      "motion": "no-preference",
+      "modules": 0,
+      "id": "terrace:4",
+      "flower": "daisy",
+      "offset": 1,
+      "accepted": {
+        "distance": 85.025,
+        "native": 5298
+      },
+      "oldStopDistance": 85.02022599092514,
+      "newStopDistance": 85.02022599092514,
+      "coordinate": {
+        "id": "tour:terrace:4:terrace:1",
+        "fraction": 0.0012406525403590573
+      },
+      "survives": false,
+      "retained": 85.02022599092514,
+      "errors": [],
+      "beforeEye": [
+        20.93120002746582,
+        3.0720014572143555,
+        73.9255599975586
+      ],
+      "afterEye": [
+        20.927474975585938,
+        3.0719544887542725,
+        73.92843627929688
+      ],
+      "expectedEye": [
+        20.927474975585938,
+        3.0719544887542725,
+        73.92843627929688
+      ],
+      "beforeBufferSha256": "69c6d4920a1735fe20ffb83b4aa9ef4ce6b051ebfe3ba10339368f74fdf7025d",
+      "afterBufferSha256": "1b93b457d3640ce64d9a5e64961dca8673d618ea92c2e3145d3704cd45f5dfae",
+      "expectedBufferSha256": "1b93b457d3640ce64d9a5e64961dca8673d618ea92c2e3145d3704cd45f5dfae",
+      "submittedFramesChecked": 3,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.004706507641769134
+    },
+    {
+      "view": "desktop",
+      "motion": "no-preference",
+      "modules": 0,
+      "id": "terrace:0",
+      "flower": "rose",
+      "offset": 0,
+      "accepted": {
+        "distance": 65.4012,
+        "native": 2244
+      },
+      "oldStopDistance": 65.39747244148376,
+      "newStopDistance": 65.39747244148376,
+      "coordinate": {
+        "id": "tour:terrace:0:terrace:5",
+        "fraction": 0.000765610289800032
+      },
+      "survives": true,
+      "retained": 65.4012,
+      "errors": [],
+      "beforeEye": [
+        11.348111152648926,
+        3.125964403152466,
+        61.71666717529297
+      ],
+      "afterEye": [
+        11.348111152648926,
+        3.125964403152466,
+        61.71666717529297
+      ],
+      "expectedEye": [
+        11.348111152648926,
+        3.125964403152466,
+        61.71666717529297
+      ],
+      "beforeBufferSha256": "d5faa55c80fc46f7a8d3de20b1e693623b9cacbbd980d78a0766adb747d4bc70",
+      "afterBufferSha256": "d5faa55c80fc46f7a8d3de20b1e693623b9cacbbd980d78a0766adb747d4bc70",
+      "expectedBufferSha256": "d5faa55c80fc46f7a8d3de20b1e693623b9cacbbd980d78a0766adb747d4bc70",
+      "submittedFramesChecked": 5,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "desktop",
+      "motion": "no-preference",
+      "modules": 1,
+      "id": "terrace:13",
+      "offset": -1,
+      "accepted": {
+        "distance": 92.4338,
+        "native": 5890
+      },
+      "oldStopDistance": 92.45135101229475,
+      "newStopDistance": 92.45135101229475,
+      "coordinate": {
+        "id": "tour:terrace:4:terrace:13",
+        "fraction": 0.9976381756134803
+      },
+      "survives": true,
+      "retained": 92.4338,
+      "errors": [],
+      "beforeEye": [
+        21.99839973449707,
+        3.076653242111206,
+        80.98318481445312
+      ],
+      "afterEye": [
+        21.99839973449707,
+        3.076653242111206,
+        80.98318481445312
+      ],
+      "expectedEye": [
+        21.99839973449707,
+        3.076653242111206,
+        80.98318481445312
+      ],
+      "beforeBufferSha256": "9183d939a741db78698dceab92417bf7d1f46c19b7bffc204f204cafc59308f2",
+      "afterBufferSha256": "9183d939a741db78698dceab92417bf7d1f46c19b7bffc204f204cafc59308f2",
+      "expectedBufferSha256": "9183d939a741db78698dceab92417bf7d1f46c19b7bffc204f204cafc59308f2",
+      "submittedFramesChecked": 3,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "desktop",
+      "motion": "no-preference",
+      "modules": 1,
+      "id": "terrace:13",
+      "offset": 0,
+      "accepted": {
+        "distance": 92.4463,
+        "native": 5891
+      },
+      "oldStopDistance": 92.45135101229475,
+      "newStopDistance": 92.45135101229475,
+      "coordinate": {
+        "id": "tour:terrace:4:terrace:13",
+        "fraction": 0.9993202896896185
+      },
+      "survives": true,
+      "retained": 92.4463,
+      "errors": [],
+      "beforeEye": [
+        21.99953842163086,
+        3.076606512069702,
+        80.99517822265625
+      ],
+      "afterEye": [
+        21.99953842163086,
+        3.076606512069702,
+        80.99517822265625
+      ],
+      "expectedEye": [
+        21.99953842163086,
+        3.076606512069702,
+        80.99517822265625
+      ],
+      "beforeBufferSha256": "7bd00b2c53e47cb639e5df925dde42abd9e28ae5c6847121696ac4d7bc3a8baf",
+      "afterBufferSha256": "7bd00b2c53e47cb639e5df925dde42abd9e28ae5c6847121696ac4d7bc3a8baf",
+      "expectedBufferSha256": "7bd00b2c53e47cb639e5df925dde42abd9e28ae5c6847121696ac4d7bc3a8baf",
+      "submittedFramesChecked": 4,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "desktop",
+      "motion": "no-preference",
+      "modules": 1,
+      "id": "terrace:13",
+      "offset": 1,
+      "accepted": {
+        "distance": 92.4588,
+        "native": 5892
+      },
+      "oldStopDistance": 92.45135101229475,
+      "newStopDistance": 92.45135101229475,
+      "coordinate": {
+        "id": "tour:terrace:13:expansion-turn:terrace:13",
+        "fraction": 0.002288262324355978
+      },
+      "survives": false,
+      "retained": 92.45135101229475,
+      "errors": [],
+      "beforeEye": [
+        22.000717163085938,
+        3.0765562057495117,
+        81.0074462890625
+      ],
+      "afterEye": [
+        22,
+        3.076587200164795,
+        81
+      ],
+      "expectedEye": [
+        22,
+        3.076587200164795,
+        81
+      ],
+      "beforeBufferSha256": "cc337249a4b0f15a07a3d5e3a400f1b3ff6cecf8979b976b527d60219bfc83c1",
+      "afterBufferSha256": "d27d65851fb6746b8e38de1d682dde6f26a260986e97a2691eddd9cea757770e",
+      "expectedBufferSha256": "d27d65851fb6746b8e38de1d682dde6f26a260986e97a2691eddd9cea757770e",
+      "submittedFramesChecked": 4,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.007480809070409248
+    },
+    {
+      "view": "desktop",
+      "motion": "no-preference",
+      "modules": 1,
+      "id": "return:terrace:13",
+      "offset": -1,
+      "accepted": {
+        "distance": 99.0588,
+        "native": 6420
+      },
+      "oldStopDistance": 99.07003304909873,
+      "newStopDistance": 107.16263499570793,
+      "coordinate": {
+        "id": "tour:expansion-turn:terrace:13:return:terrace:13",
+        "fraction": 0.9966601891432063
+      },
+      "survives": false,
+      "retained": 107.16263499570793,
+      "errors": [],
+      "beforeEye": [
+        24.000566482543945,
+        3.052926778793335,
+        81.0113754272461
+      ],
+      "afterEye": [
+        24,
+        3.053260087966919,
+        81
+      ],
+      "expectedEye": [
+        24,
+        3.053260087966919,
+        81
+      ],
+      "beforeBufferSha256": "182fd1518d03b1d375fdf4ffdf043606a667186be3c200fda45244f775967d4b",
+      "afterBufferSha256": "71f2a53b4d6076b4217033a87d48aae13330ef886334e3a351581aad151bc175",
+      "expectedBufferSha256": "71f2a53b4d6076b4217033a87d48aae13330ef886334e3a351581aad151bc175",
+      "submittedFramesChecked": 4,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.011394399611605783
+    },
+    {
+      "view": "desktop",
+      "motion": "no-preference",
+      "modules": 1,
+      "id": "return:terrace:13",
+      "offset": 0,
+      "accepted": {
+        "distance": 99.0713,
+        "native": 6421
+      },
+      "oldStopDistance": 99.07003304909873,
+      "newStopDistance": 107.16263499570793,
+      "coordinate": {
+        "id": "tour:return:terrace:13:terrace:1",
+        "fraction": 0.0001248976961936494
+      },
+      "survives": true,
+      "retained": 107.1639019466092,
+      "errors": [],
+      "beforeEye": [
+        23.99993896484375,
+        3.053295373916626,
+        80.99879455566406
+      ],
+      "afterEye": [
+        23.99993896484375,
+        3.053295373916626,
+        80.99879455566406
+      ],
+      "expectedEye": [
+        23.99993896484375,
+        3.053295373916626,
+        80.99879455566406
+      ],
+      "beforeBufferSha256": "becd2dc9b044b9ce599dca34634820df50a7d1fcc6cd54fb79c2e087d77ad160",
+      "afterBufferSha256": "becd2dc9b044b9ce599dca34634820df50a7d1fcc6cd54fb79c2e087d77ad160",
+      "expectedBufferSha256": "becd2dc9b044b9ce599dca34634820df50a7d1fcc6cd54fb79c2e087d77ad160",
+      "submittedFramesChecked": 4,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "desktop",
+      "motion": "no-preference",
+      "modules": 1,
+      "id": "return:terrace:13",
+      "offset": 1,
+      "accepted": {
+        "distance": 99.0838,
+        "native": 6422
+      },
+      "oldStopDistance": 99.07003304909873,
+      "newStopDistance": 107.16263499570793,
+      "coordinate": {
+        "id": "tour:return:terrace:13:terrace:1",
+        "fraction": 0.0013571642353770235
+      },
+      "survives": true,
+      "retained": 107.1764019466092,
+      "errors": [],
+      "beforeEye": [
+        23.99932098388672,
+        3.053647518157959,
+        80.98674011230469
+      ],
+      "afterEye": [
+        23.99932098388672,
+        3.053647518157959,
+        80.98674011230469
+      ],
+      "expectedEye": [
+        23.99932098388672,
+        3.053647518157959,
+        80.98674011230469
+      ],
+      "beforeBufferSha256": "de61c284dc048bdb370cd4cb6ca092e90b548201a8d5c07fa6b573e493512918",
+      "afterBufferSha256": "de61c284dc048bdb370cd4cb6ca092e90b548201a8d5c07fa6b573e493512918",
+      "expectedBufferSha256": "de61c284dc048bdb370cd4cb6ca092e90b548201a8d5c07fa6b573e493512918",
+      "submittedFramesChecked": 4,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "desktop",
+      "motion": "no-preference",
+      "modules": 2,
+      "id": "terrace:26",
+      "offset": 0,
+      "accepted": {
+        "distance": 96.5588,
+        "native": 6220
+      },
+      "oldStopDistance": 96.5552196132556,
+      "newStopDistance": 96.5552196132556,
+      "coordinate": {
+        "id": "tour:terrace:26:expansion-turn:terrace:26",
+        "fraction": 0.0011006755605257768
+      },
+      "survives": false,
+      "retained": 96.5552196132556,
+      "errors": [],
+      "beforeEye": [
+        22.000001907348633,
+        3.008462905883789,
+        85.10355377197266
+      ],
+      "afterEye": [
+        22,
+        3.0084805488586426,
+        85.0999984741211
+      ],
+      "expectedEye": [
+        22,
+        3.0084805488586426,
+        85.0999984741211
+      ],
+      "beforeBufferSha256": "bf04fc9d7d899cd7c23a70b281dcebe6ac26a64c22bb27c0e509bf90edd7f809",
+      "afterBufferSha256": "ffae3f35dbaa7c9347a5cdb5db9dd52c6628009a69ee6be86bca89f1938ede1f",
+      "expectedBufferSha256": "ffae3f35dbaa7c9347a5cdb5db9dd52c6628009a69ee6be86bca89f1938ede1f",
+      "submittedFramesChecked": 4,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0035553421390726123
+    },
+    {
+      "view": "desktop",
+      "motion": "no-preference",
+      "modules": 2,
+      "id": "return:terrace:26",
+      "offset": 0,
+      "accepted": {
+        "distance": 103.0588,
+        "native": 6740
+      },
+      "oldStopDistance": 103.06101818425829,
+      "newStopDistance": 111.2610181842583,
+      "coordinate": {
+        "id": "tour:expansion-turn:terrace:26:return:terrace:26",
+        "fraction": 0.9993180900902268
+      },
+      "survives": false,
+      "retained": 111.2610181842583,
+      "errors": [],
+      "beforeEye": [
+        24,
+        2.9966020584106445,
+        85.10221099853516
+      ],
+      "afterEye": [
+        24,
+        2.9965691566467285,
+        85.0999984741211
+      ],
+      "expectedEye": [
+        24,
+        2.9965691566467285,
+        85.0999984741211
+      ],
+      "beforeBufferSha256": "d326d44422854706184d7e89ab9943c09a3816331d62445db76785bce96215d1",
+      "afterBufferSha256": "953b813b52206fec4a549ac34fb8033e30957358d783be0c05d148da7228a72f",
+      "expectedBufferSha256": "953b813b52206fec4a549ac34fb8033e30957358d783be0c05d148da7228a72f",
+      "submittedFramesChecked": 4,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0022127690364996057
+    },
+    {
+      "view": "portrait",
+      "motion": "reduce",
+      "modules": 0,
+      "id": "terrace:1",
+      "flower": "cactus",
+      "offset": -1,
+      "accepted": {
+        "distance": 88.8652,
+        "native": 6104
+      },
+      "oldStopDistance": 88.86820833857185,
+      "newStopDistance": 109.21394234350075,
+      "coordinate": {
+        "id": "tour:terrace:4:terrace:1",
+        "fraction": 0.9992182036454289
+      },
+      "survives": false,
+      "retained": 109.21394234350075,
+      "errors": [],
+      "beforeEye": [
+        23.283246994018555,
+        3.097461462020874,
+        70.92520904541016
+      ],
+      "afterEye": [
+        23.284591674804688,
+        3.0974509716033936,
+        70.92252349853516
+      ],
+      "expectedEye": [
+        23.284591674804688,
+        3.0974509716033936,
+        70.92252349853516
+      ],
+      "beforeBufferSha256": "169016d5b04299c2be826455344ccb9f332438b477e91ea4c2a980d412092f0f",
+      "afterBufferSha256": "8670dec8374d6ac48ecc91fd7f48c2ccbde74e94131f34ae20082dc5cff2987e",
+      "expectedBufferSha256": "8670dec8374d6ac48ecc91fd7f48c2ccbde74e94131f34ae20082dc5cff2987e",
+      "submittedFramesChecked": 5,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0030034044821295614
+    },
+    {
+      "view": "portrait",
+      "motion": "reduce",
+      "modules": 0,
+      "id": "terrace:1",
+      "flower": "cactus",
+      "offset": 0,
+      "accepted": {
+        "distance": 88.8728,
+        "native": 6105
+      },
+      "oldStopDistance": 88.86820833857185,
+      "newStopDistance": 109.21394234350075,
+      "coordinate": {
+        "id": "tour:terrace:1:terrace:8",
+        "fraction": 0.0010049452183187484
+      },
+      "survives": true,
+      "retained": 109.2185340049289,
+      "errors": [],
+      "beforeEye": [
+        23.286638259887695,
+        3.0974347591400146,
+        70.9184341430664
+      ],
+      "afterEye": [
+        23.286638259887695,
+        3.0974347591400146,
+        70.9184341430664
+      ],
+      "expectedEye": [
+        23.286638259887695,
+        3.0974347591400146,
+        70.9184341430664
+      ],
+      "beforeBufferSha256": "6b6c94124cdfbd6681577dfd8ebaf6fd3194c9125e9b30ab73d899754829c9bb",
+      "afterBufferSha256": "6b6c94124cdfbd6681577dfd8ebaf6fd3194c9125e9b30ab73d899754829c9bb",
+      "expectedBufferSha256": "6b6c94124cdfbd6681577dfd8ebaf6fd3194c9125e9b30ab73d899754829c9bb",
+      "submittedFramesChecked": 5,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "portrait",
+      "motion": "reduce",
+      "modules": 0,
+      "id": "terrace:1",
+      "flower": "cactus",
+      "offset": 1,
+      "accepted": {
+        "distance": 88.8853,
+        "native": 6106
+      },
+      "oldStopDistance": 88.86820833857185,
+      "newStopDistance": 109.21394234350075,
+      "coordinate": {
+        "id": "tour:terrace:1:terrace:8",
+        "fraction": 0.0037407338703243647
+      },
+      "survives": true,
+      "retained": 109.2310340049289,
+      "errors": [],
+      "beforeEye": [
+        23.292192459106445,
+        3.0973899364471436,
+        70.90731048583984
+      ],
+      "afterEye": [
+        23.292192459106445,
+        3.0973899364471436,
+        70.90731048583984
+      ],
+      "expectedEye": [
+        23.292192459106445,
+        3.0973899364471436,
+        70.90731048583984
+      ],
+      "beforeBufferSha256": "d314daf5a57d7dd1af428142981dd42b96afb62732c7bd62b8ed0a839064f875",
+      "afterBufferSha256": "d314daf5a57d7dd1af428142981dd42b96afb62732c7bd62b8ed0a839064f875",
+      "expectedBufferSha256": "d314daf5a57d7dd1af428142981dd42b96afb62732c7bd62b8ed0a839064f875",
+      "submittedFramesChecked": 6,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "portrait",
+      "motion": "reduce",
+      "modules": 0,
+      "id": "terrace:4",
+      "flower": "daisy",
+      "offset": -1,
+      "accepted": {
+        "distance": 85.016,
+        "native": 5296
+      },
+      "oldStopDistance": 85.02022599092514,
+      "newStopDistance": 85.02022599092514,
+      "coordinate": {
+        "id": "tour:terrace:2:terrace:4",
+        "fraction": 0.9986662410188716
+      },
+      "survives": true,
+      "retained": 85.016,
+      "errors": [],
+      "beforeEye": [
+        20.924095153808594,
+        3.0719122886657715,
+        73.93104553222656
+      ],
+      "afterEye": [
+        20.924095153808594,
+        3.0719122886657715,
+        73.93104553222656
+      ],
+      "expectedEye": [
+        20.924095153808594,
+        3.0719122886657715,
+        73.93104553222656
+      ],
+      "beforeBufferSha256": "a9c98860167d7f06eb8515bea1639eceb88152f591ab8ea4798ab9e28a58eae8",
+      "afterBufferSha256": "a9c98860167d7f06eb8515bea1639eceb88152f591ab8ea4798ab9e28a58eae8",
+      "expectedBufferSha256": "a9c98860167d7f06eb8515bea1639eceb88152f591ab8ea4798ab9e28a58eae8",
+      "submittedFramesChecked": 7,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "portrait",
+      "motion": "reduce",
+      "modules": 0,
+      "id": "terrace:4",
+      "flower": "daisy",
+      "offset": 1,
+      "accepted": {
+        "distance": 85.025,
+        "native": 5298
+      },
+      "oldStopDistance": 85.02022599092514,
+      "newStopDistance": 85.02022599092514,
+      "coordinate": {
+        "id": "tour:terrace:4:terrace:1",
+        "fraction": 0.0012406525403590573
+      },
+      "survives": false,
+      "retained": 85.02022599092514,
+      "errors": [],
+      "beforeEye": [
+        20.93120002746582,
+        3.0720014572143555,
+        73.9255599975586
+      ],
+      "afterEye": [
+        20.927474975585938,
+        3.0719544887542725,
+        73.92843627929688
+      ],
+      "expectedEye": [
+        20.927474975585938,
+        3.0719544887542725,
+        73.92843627929688
+      ],
+      "beforeBufferSha256": "e534aee50db000a092065be480381fd3d4d2c1aac925c2d24e70792eab3b8fbd",
+      "afterBufferSha256": "8ab874b406026cc29a90908e4bb4ff387b413c400adbbba27c3a058d71ba5639",
+      "expectedBufferSha256": "8ab874b406026cc29a90908e4bb4ff387b413c400adbbba27c3a058d71ba5639",
+      "submittedFramesChecked": 5,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.004706507641769134
+    },
+    {
+      "view": "portrait",
+      "motion": "reduce",
+      "modules": 0,
+      "id": "terrace:0",
+      "flower": "rose",
+      "offset": 0,
+      "accepted": {
+        "distance": 65.4012,
+        "native": 2244
+      },
+      "oldStopDistance": 65.39747244148376,
+      "newStopDistance": 65.39747244148376,
+      "coordinate": {
+        "id": "tour:terrace:0:terrace:5",
+        "fraction": 0.000765610289800032
+      },
+      "survives": true,
+      "retained": 65.4012,
+      "errors": [],
+      "beforeEye": [
+        11.348111152648926,
+        3.125964403152466,
+        61.71666717529297
+      ],
+      "afterEye": [
+        11.348111152648926,
+        3.125964403152466,
+        61.71666717529297
+      ],
+      "expectedEye": [
+        11.348111152648926,
+        3.125964403152466,
+        61.71666717529297
+      ],
+      "beforeBufferSha256": "e99b517a02779593b7c21c813e74c73e2d98f3fc1ed6d0186d295cd5d75ab183",
+      "afterBufferSha256": "e99b517a02779593b7c21c813e74c73e2d98f3fc1ed6d0186d295cd5d75ab183",
+      "expectedBufferSha256": "e99b517a02779593b7c21c813e74c73e2d98f3fc1ed6d0186d295cd5d75ab183",
+      "submittedFramesChecked": 6,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "portrait",
+      "motion": "reduce",
+      "modules": 1,
+      "id": "terrace:13",
+      "offset": -1,
+      "accepted": {
+        "distance": 92.4338,
+        "native": 5890
+      },
+      "oldStopDistance": 92.45135101229475,
+      "newStopDistance": 92.45135101229475,
+      "coordinate": {
+        "id": "tour:terrace:4:terrace:13",
+        "fraction": 0.9976381756134803
+      },
+      "survives": true,
+      "retained": 92.4338,
+      "errors": [],
+      "beforeEye": [
+        21.99839973449707,
+        3.076653242111206,
+        80.98318481445312
+      ],
+      "afterEye": [
+        21.99839973449707,
+        3.076653242111206,
+        80.98318481445312
+      ],
+      "expectedEye": [
+        21.99839973449707,
+        3.076653242111206,
+        80.98318481445312
+      ],
+      "beforeBufferSha256": "977160a9705b0cb458082c220e1e616431907925f07b54887efda94ef153b2a6",
+      "afterBufferSha256": "977160a9705b0cb458082c220e1e616431907925f07b54887efda94ef153b2a6",
+      "expectedBufferSha256": "977160a9705b0cb458082c220e1e616431907925f07b54887efda94ef153b2a6",
+      "submittedFramesChecked": 5,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "portrait",
+      "motion": "reduce",
+      "modules": 1,
+      "id": "terrace:13",
+      "offset": 0,
+      "accepted": {
+        "distance": 92.4463,
+        "native": 5891
+      },
+      "oldStopDistance": 92.45135101229475,
+      "newStopDistance": 92.45135101229475,
+      "coordinate": {
+        "id": "tour:terrace:4:terrace:13",
+        "fraction": 0.9993202896896185
+      },
+      "survives": true,
+      "retained": 92.4463,
+      "errors": [],
+      "beforeEye": [
+        21.99953842163086,
+        3.076606512069702,
+        80.99517822265625
+      ],
+      "afterEye": [
+        21.99953842163086,
+        3.076606512069702,
+        80.99517822265625
+      ],
+      "expectedEye": [
+        21.99953842163086,
+        3.076606512069702,
+        80.99517822265625
+      ],
+      "beforeBufferSha256": "01b5c5ae962b44d6937aa20199931c24d52d9569042e44949fd3255b73c6b9d0",
+      "afterBufferSha256": "01b5c5ae962b44d6937aa20199931c24d52d9569042e44949fd3255b73c6b9d0",
+      "expectedBufferSha256": "01b5c5ae962b44d6937aa20199931c24d52d9569042e44949fd3255b73c6b9d0",
+      "submittedFramesChecked": 5,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "portrait",
+      "motion": "reduce",
+      "modules": 1,
+      "id": "terrace:13",
+      "offset": 1,
+      "accepted": {
+        "distance": 92.4588,
+        "native": 5892
+      },
+      "oldStopDistance": 92.45135101229475,
+      "newStopDistance": 92.45135101229475,
+      "coordinate": {
+        "id": "tour:terrace:13:expansion-turn:terrace:13",
+        "fraction": 0.002288262324355978
+      },
+      "survives": false,
+      "retained": 92.45135101229475,
+      "errors": [],
+      "beforeEye": [
+        22.000717163085938,
+        3.0765562057495117,
+        81.0074462890625
+      ],
+      "afterEye": [
+        22,
+        3.076587200164795,
+        81
+      ],
+      "expectedEye": [
+        22,
+        3.076587200164795,
+        81
+      ],
+      "beforeBufferSha256": "4b39ec49d2e38a5f1aea04394ef2a77d44c81c5ad6bf33944b387841f870f5d0",
+      "afterBufferSha256": "c39aa1e1ff7175ddef33dc2c51ffadc35b4b9cf0da6bcb7fc719462e07a0ff8b",
+      "expectedBufferSha256": "c39aa1e1ff7175ddef33dc2c51ffadc35b4b9cf0da6bcb7fc719462e07a0ff8b",
+      "submittedFramesChecked": 6,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.007480809070409248
+    },
+    {
+      "view": "portrait",
+      "motion": "reduce",
+      "modules": 1,
+      "id": "return:terrace:13",
+      "offset": -1,
+      "accepted": {
+        "distance": 99.0588,
+        "native": 6420
+      },
+      "oldStopDistance": 99.07003304909873,
+      "newStopDistance": 107.16263499570793,
+      "coordinate": {
+        "id": "tour:expansion-turn:terrace:13:return:terrace:13",
+        "fraction": 0.9966601891432063
+      },
+      "survives": false,
+      "retained": 107.16263499570793,
+      "errors": [],
+      "beforeEye": [
+        24.000566482543945,
+        3.052926778793335,
+        81.0113754272461
+      ],
+      "afterEye": [
+        24,
+        3.053260087966919,
+        81
+      ],
+      "expectedEye": [
+        24,
+        3.053260087966919,
+        81
+      ],
+      "beforeBufferSha256": "305162928ac79adc8788c37a5dcd9057224dc522a31fc6020b817b470b607d88",
+      "afterBufferSha256": "2001a6eca04022a45535ccc5c9bbf819c18cea8e76d8415980279f51bd7e3c50",
+      "expectedBufferSha256": "2001a6eca04022a45535ccc5c9bbf819c18cea8e76d8415980279f51bd7e3c50",
+      "submittedFramesChecked": 5,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.011394399611605783
+    },
+    {
+      "view": "portrait",
+      "motion": "reduce",
+      "modules": 1,
+      "id": "return:terrace:13",
+      "offset": 0,
+      "accepted": {
+        "distance": 99.0713,
+        "native": 6421
+      },
+      "oldStopDistance": 99.07003304909873,
+      "newStopDistance": 107.16263499570793,
+      "coordinate": {
+        "id": "tour:return:terrace:13:terrace:1",
+        "fraction": 0.0001248976961936494
+      },
+      "survives": true,
+      "retained": 107.1639019466092,
+      "errors": [],
+      "beforeEye": [
+        23.99993896484375,
+        3.053295373916626,
+        80.99879455566406
+      ],
+      "afterEye": [
+        23.99993896484375,
+        3.053295373916626,
+        80.99879455566406
+      ],
+      "expectedEye": [
+        23.99993896484375,
+        3.053295373916626,
+        80.99879455566406
+      ],
+      "beforeBufferSha256": "3d1ea91a1d770e04a9733a4f1909935eabf9271cc309d7df24cc5c8cabf5eccf",
+      "afterBufferSha256": "3d1ea91a1d770e04a9733a4f1909935eabf9271cc309d7df24cc5c8cabf5eccf",
+      "expectedBufferSha256": "3d1ea91a1d770e04a9733a4f1909935eabf9271cc309d7df24cc5c8cabf5eccf",
+      "submittedFramesChecked": 5,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "portrait",
+      "motion": "reduce",
+      "modules": 1,
+      "id": "return:terrace:13",
+      "offset": 1,
+      "accepted": {
+        "distance": 99.0838,
+        "native": 6422
+      },
+      "oldStopDistance": 99.07003304909873,
+      "newStopDistance": 107.16263499570793,
+      "coordinate": {
+        "id": "tour:return:terrace:13:terrace:1",
+        "fraction": 0.0013571642353770235
+      },
+      "survives": true,
+      "retained": 107.1764019466092,
+      "errors": [],
+      "beforeEye": [
+        23.99932098388672,
+        3.053647518157959,
+        80.98674011230469
+      ],
+      "afterEye": [
+        23.99932098388672,
+        3.053647518157959,
+        80.98674011230469
+      ],
+      "expectedEye": [
+        23.99932098388672,
+        3.053647518157959,
+        80.98674011230469
+      ],
+      "beforeBufferSha256": "3910b05e1b8c761ca06d4be8d580f9f672ebd080b1246a756228bfd182c13525",
+      "afterBufferSha256": "3910b05e1b8c761ca06d4be8d580f9f672ebd080b1246a756228bfd182c13525",
+      "expectedBufferSha256": "3910b05e1b8c761ca06d4be8d580f9f672ebd080b1246a756228bfd182c13525",
+      "submittedFramesChecked": 5,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "portrait",
+      "motion": "reduce",
+      "modules": 2,
+      "id": "terrace:26",
+      "offset": 0,
+      "accepted": {
+        "distance": 96.5588,
+        "native": 6220
+      },
+      "oldStopDistance": 96.5552196132556,
+      "newStopDistance": 96.5552196132556,
+      "coordinate": {
+        "id": "tour:terrace:26:expansion-turn:terrace:26",
+        "fraction": 0.0011006755605257768
+      },
+      "survives": false,
+      "retained": 96.5552196132556,
+      "errors": [],
+      "beforeEye": [
+        22.000001907348633,
+        3.008462905883789,
+        85.10355377197266
+      ],
+      "afterEye": [
+        22,
+        3.0084805488586426,
+        85.0999984741211
+      ],
+      "expectedEye": [
+        22,
+        3.0084805488586426,
+        85.0999984741211
+      ],
+      "beforeBufferSha256": "4ccf0d134e581611f6c5d15addffdb03080d785d1fbdcf59663a04cd41b905fa",
+      "afterBufferSha256": "1009f052cdc530efff1577bb745507bf1ac990fa35a296b997c94fafa26fbab1",
+      "expectedBufferSha256": "1009f052cdc530efff1577bb745507bf1ac990fa35a296b997c94fafa26fbab1",
+      "submittedFramesChecked": 5,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0035553421390726123
+    },
+    {
+      "view": "portrait",
+      "motion": "reduce",
+      "modules": 2,
+      "id": "return:terrace:26",
+      "offset": 0,
+      "accepted": {
+        "distance": 103.0588,
+        "native": 6740
+      },
+      "oldStopDistance": 103.06101818425829,
+      "newStopDistance": 111.2610181842583,
+      "coordinate": {
+        "id": "tour:expansion-turn:terrace:26:return:terrace:26",
+        "fraction": 0.9993180900902268
+      },
+      "survives": false,
+      "retained": 111.2610181842583,
+      "errors": [],
+      "beforeEye": [
+        24,
+        2.9966020584106445,
+        85.10221099853516
+      ],
+      "afterEye": [
+        24,
+        2.9965691566467285,
+        85.0999984741211
+      ],
+      "expectedEye": [
+        24,
+        2.9965691566467285,
+        85.0999984741211
+      ],
+      "beforeBufferSha256": "423a932831d9d1b039bad8bac95ae31365f60e37decbadc730a2557ed856f3fa",
+      "afterBufferSha256": "002fbea2fc7730df4d94efcbb95d5cfdabea48c99ca144e5a54b961a0b98e996",
+      "expectedBufferSha256": "002fbea2fc7730df4d94efcbb95d5cfdabea48c99ca144e5a54b961a0b98e996",
+      "submittedFramesChecked": 5,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0022127690364996057
+    },
+    {
+      "view": "portrait",
+      "motion": "no-preference",
+      "modules": 0,
+      "id": "terrace:1",
+      "flower": "cactus",
+      "offset": -1,
+      "accepted": {
+        "distance": 88.8652,
+        "native": 6104
+      },
+      "oldStopDistance": 88.86820833857185,
+      "newStopDistance": 109.21394234350075,
+      "coordinate": {
+        "id": "tour:terrace:4:terrace:1",
+        "fraction": 0.9992182036454289
+      },
+      "survives": false,
+      "retained": 109.21394234350075,
+      "errors": [],
+      "beforeEye": [
+        23.283246994018555,
+        3.097461462020874,
+        70.92520904541016
+      ],
+      "afterEye": [
+        23.284591674804688,
+        3.0974509716033936,
+        70.92252349853516
+      ],
+      "expectedEye": [
+        23.284591674804688,
+        3.0974509716033936,
+        70.92252349853516
+      ],
+      "beforeBufferSha256": "169016d5b04299c2be826455344ccb9f332438b477e91ea4c2a980d412092f0f",
+      "afterBufferSha256": "8670dec8374d6ac48ecc91fd7f48c2ccbde74e94131f34ae20082dc5cff2987e",
+      "expectedBufferSha256": "8670dec8374d6ac48ecc91fd7f48c2ccbde74e94131f34ae20082dc5cff2987e",
+      "submittedFramesChecked": 3,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0030034044821295614
+    },
+    {
+      "view": "portrait",
+      "motion": "no-preference",
+      "modules": 0,
+      "id": "terrace:1",
+      "flower": "cactus",
+      "offset": 0,
+      "accepted": {
+        "distance": 88.8728,
+        "native": 6105
+      },
+      "oldStopDistance": 88.86820833857185,
+      "newStopDistance": 109.21394234350075,
+      "coordinate": {
+        "id": "tour:terrace:1:terrace:8",
+        "fraction": 0.0010049452183187484
+      },
+      "survives": true,
+      "retained": 109.2185340049289,
+      "errors": [],
+      "beforeEye": [
+        23.286638259887695,
+        3.0974347591400146,
+        70.9184341430664
+      ],
+      "afterEye": [
+        23.286638259887695,
+        3.0974347591400146,
+        70.9184341430664
+      ],
+      "expectedEye": [
+        23.286638259887695,
+        3.0974347591400146,
+        70.9184341430664
+      ],
+      "beforeBufferSha256": "6b6c94124cdfbd6681577dfd8ebaf6fd3194c9125e9b30ab73d899754829c9bb",
+      "afterBufferSha256": "6b6c94124cdfbd6681577dfd8ebaf6fd3194c9125e9b30ab73d899754829c9bb",
+      "expectedBufferSha256": "6b6c94124cdfbd6681577dfd8ebaf6fd3194c9125e9b30ab73d899754829c9bb",
+      "submittedFramesChecked": 6,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "portrait",
+      "motion": "no-preference",
+      "modules": 0,
+      "id": "terrace:1",
+      "flower": "cactus",
+      "offset": 1,
+      "accepted": {
+        "distance": 88.8853,
+        "native": 6106
+      },
+      "oldStopDistance": 88.86820833857185,
+      "newStopDistance": 109.21394234350075,
+      "coordinate": {
+        "id": "tour:terrace:1:terrace:8",
+        "fraction": 0.0037407338703243647
+      },
+      "survives": true,
+      "retained": 109.2310340049289,
+      "errors": [],
+      "beforeEye": [
+        23.292192459106445,
+        3.0973899364471436,
+        70.90731048583984
+      ],
+      "afterEye": [
+        23.292192459106445,
+        3.0973899364471436,
+        70.90731048583984
+      ],
+      "expectedEye": [
+        23.292192459106445,
+        3.0973899364471436,
+        70.90731048583984
+      ],
+      "beforeBufferSha256": "d314daf5a57d7dd1af428142981dd42b96afb62732c7bd62b8ed0a839064f875",
+      "afterBufferSha256": "d314daf5a57d7dd1af428142981dd42b96afb62732c7bd62b8ed0a839064f875",
+      "expectedBufferSha256": "d314daf5a57d7dd1af428142981dd42b96afb62732c7bd62b8ed0a839064f875",
+      "submittedFramesChecked": 3,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "portrait",
+      "motion": "no-preference",
+      "modules": 0,
+      "id": "terrace:4",
+      "flower": "daisy",
+      "offset": -1,
+      "accepted": {
+        "distance": 85.016,
+        "native": 5296
+      },
+      "oldStopDistance": 85.02022599092514,
+      "newStopDistance": 85.02022599092514,
+      "coordinate": {
+        "id": "tour:terrace:2:terrace:4",
+        "fraction": 0.9986662410188716
+      },
+      "survives": true,
+      "retained": 85.016,
+      "errors": [],
+      "beforeEye": [
+        20.924095153808594,
+        3.0719122886657715,
+        73.93104553222656
+      ],
+      "afterEye": [
+        20.924095153808594,
+        3.0719122886657715,
+        73.93104553222656
+      ],
+      "expectedEye": [
+        20.924095153808594,
+        3.0719122886657715,
+        73.93104553222656
+      ],
+      "beforeBufferSha256": "a9c98860167d7f06eb8515bea1639eceb88152f591ab8ea4798ab9e28a58eae8",
+      "afterBufferSha256": "a9c98860167d7f06eb8515bea1639eceb88152f591ab8ea4798ab9e28a58eae8",
+      "expectedBufferSha256": "a9c98860167d7f06eb8515bea1639eceb88152f591ab8ea4798ab9e28a58eae8",
+      "submittedFramesChecked": 3,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "portrait",
+      "motion": "no-preference",
+      "modules": 0,
+      "id": "terrace:4",
+      "flower": "daisy",
+      "offset": 1,
+      "accepted": {
+        "distance": 85.025,
+        "native": 5298
+      },
+      "oldStopDistance": 85.02022599092514,
+      "newStopDistance": 85.02022599092514,
+      "coordinate": {
+        "id": "tour:terrace:4:terrace:1",
+        "fraction": 0.0012406525403590573
+      },
+      "survives": false,
+      "retained": 85.02022599092514,
+      "errors": [],
+      "beforeEye": [
+        20.93120002746582,
+        3.0720014572143555,
+        73.9255599975586
+      ],
+      "afterEye": [
+        20.927474975585938,
+        3.0719544887542725,
+        73.92843627929688
+      ],
+      "expectedEye": [
+        20.927474975585938,
+        3.0719544887542725,
+        73.92843627929688
+      ],
+      "beforeBufferSha256": "e534aee50db000a092065be480381fd3d4d2c1aac925c2d24e70792eab3b8fbd",
+      "afterBufferSha256": "8ab874b406026cc29a90908e4bb4ff387b413c400adbbba27c3a058d71ba5639",
+      "expectedBufferSha256": "8ab874b406026cc29a90908e4bb4ff387b413c400adbbba27c3a058d71ba5639",
+      "submittedFramesChecked": 3,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.004706507641769134
+    },
+    {
+      "view": "portrait",
+      "motion": "no-preference",
+      "modules": 0,
+      "id": "terrace:0",
+      "flower": "rose",
+      "offset": 0,
+      "accepted": {
+        "distance": 65.4012,
+        "native": 2244
+      },
+      "oldStopDistance": 65.39747244148376,
+      "newStopDistance": 65.39747244148376,
+      "coordinate": {
+        "id": "tour:terrace:0:terrace:5",
+        "fraction": 0.000765610289800032
+      },
+      "survives": true,
+      "retained": 65.4012,
+      "errors": [],
+      "beforeEye": [
+        11.348111152648926,
+        3.125964403152466,
+        61.71666717529297
+      ],
+      "afterEye": [
+        11.348111152648926,
+        3.125964403152466,
+        61.71666717529297
+      ],
+      "expectedEye": [
+        11.348111152648926,
+        3.125964403152466,
+        61.71666717529297
+      ],
+      "beforeBufferSha256": "e99b517a02779593b7c21c813e74c73e2d98f3fc1ed6d0186d295cd5d75ab183",
+      "afterBufferSha256": "e99b517a02779593b7c21c813e74c73e2d98f3fc1ed6d0186d295cd5d75ab183",
+      "expectedBufferSha256": "e99b517a02779593b7c21c813e74c73e2d98f3fc1ed6d0186d295cd5d75ab183",
+      "submittedFramesChecked": 5,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "portrait",
+      "motion": "no-preference",
+      "modules": 1,
+      "id": "terrace:13",
+      "offset": -1,
+      "accepted": {
+        "distance": 92.4338,
+        "native": 5890
+      },
+      "oldStopDistance": 92.45135101229475,
+      "newStopDistance": 92.45135101229475,
+      "coordinate": {
+        "id": "tour:terrace:4:terrace:13",
+        "fraction": 0.9976381756134803
+      },
+      "survives": true,
+      "retained": 92.4338,
+      "errors": [],
+      "beforeEye": [
+        21.99839973449707,
+        3.076653242111206,
+        80.98318481445312
+      ],
+      "afterEye": [
+        21.99839973449707,
+        3.076653242111206,
+        80.98318481445312
+      ],
+      "expectedEye": [
+        21.99839973449707,
+        3.076653242111206,
+        80.98318481445312
+      ],
+      "beforeBufferSha256": "977160a9705b0cb458082c220e1e616431907925f07b54887efda94ef153b2a6",
+      "afterBufferSha256": "977160a9705b0cb458082c220e1e616431907925f07b54887efda94ef153b2a6",
+      "expectedBufferSha256": "977160a9705b0cb458082c220e1e616431907925f07b54887efda94ef153b2a6",
+      "submittedFramesChecked": 4,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "portrait",
+      "motion": "no-preference",
+      "modules": 1,
+      "id": "terrace:13",
+      "offset": 0,
+      "accepted": {
+        "distance": 92.4463,
+        "native": 5891
+      },
+      "oldStopDistance": 92.45135101229475,
+      "newStopDistance": 92.45135101229475,
+      "coordinate": {
+        "id": "tour:terrace:4:terrace:13",
+        "fraction": 0.9993202896896185
+      },
+      "survives": true,
+      "retained": 92.4463,
+      "errors": [],
+      "beforeEye": [
+        21.99953842163086,
+        3.076606512069702,
+        80.99517822265625
+      ],
+      "afterEye": [
+        21.99953842163086,
+        3.076606512069702,
+        80.99517822265625
+      ],
+      "expectedEye": [
+        21.99953842163086,
+        3.076606512069702,
+        80.99517822265625
+      ],
+      "beforeBufferSha256": "01b5c5ae962b44d6937aa20199931c24d52d9569042e44949fd3255b73c6b9d0",
+      "afterBufferSha256": "01b5c5ae962b44d6937aa20199931c24d52d9569042e44949fd3255b73c6b9d0",
+      "expectedBufferSha256": "01b5c5ae962b44d6937aa20199931c24d52d9569042e44949fd3255b73c6b9d0",
+      "submittedFramesChecked": 4,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "portrait",
+      "motion": "no-preference",
+      "modules": 1,
+      "id": "terrace:13",
+      "offset": 1,
+      "accepted": {
+        "distance": 92.4588,
+        "native": 5892
+      },
+      "oldStopDistance": 92.45135101229475,
+      "newStopDistance": 92.45135101229475,
+      "coordinate": {
+        "id": "tour:terrace:13:expansion-turn:terrace:13",
+        "fraction": 0.002288262324355978
+      },
+      "survives": false,
+      "retained": 92.45135101229475,
+      "errors": [],
+      "beforeEye": [
+        22.000717163085938,
+        3.0765562057495117,
+        81.0074462890625
+      ],
+      "afterEye": [
+        22,
+        3.076587200164795,
+        81
+      ],
+      "expectedEye": [
+        22,
+        3.076587200164795,
+        81
+      ],
+      "beforeBufferSha256": "4b39ec49d2e38a5f1aea04394ef2a77d44c81c5ad6bf33944b387841f870f5d0",
+      "afterBufferSha256": "c39aa1e1ff7175ddef33dc2c51ffadc35b4b9cf0da6bcb7fc719462e07a0ff8b",
+      "expectedBufferSha256": "c39aa1e1ff7175ddef33dc2c51ffadc35b4b9cf0da6bcb7fc719462e07a0ff8b",
+      "submittedFramesChecked": 4,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.007480809070409248
+    },
+    {
+      "view": "portrait",
+      "motion": "no-preference",
+      "modules": 1,
+      "id": "return:terrace:13",
+      "offset": -1,
+      "accepted": {
+        "distance": 99.0588,
+        "native": 6420
+      },
+      "oldStopDistance": 99.07003304909873,
+      "newStopDistance": 107.16263499570793,
+      "coordinate": {
+        "id": "tour:expansion-turn:terrace:13:return:terrace:13",
+        "fraction": 0.9966601891432063
+      },
+      "survives": false,
+      "retained": 107.16263499570793,
+      "errors": [],
+      "beforeEye": [
+        24.000566482543945,
+        3.052926778793335,
+        81.0113754272461
+      ],
+      "afterEye": [
+        24,
+        3.053260087966919,
+        81
+      ],
+      "expectedEye": [
+        24,
+        3.053260087966919,
+        81
+      ],
+      "beforeBufferSha256": "305162928ac79adc8788c37a5dcd9057224dc522a31fc6020b817b470b607d88",
+      "afterBufferSha256": "2001a6eca04022a45535ccc5c9bbf819c18cea8e76d8415980279f51bd7e3c50",
+      "expectedBufferSha256": "2001a6eca04022a45535ccc5c9bbf819c18cea8e76d8415980279f51bd7e3c50",
+      "submittedFramesChecked": 4,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.011394399611605783
+    },
+    {
+      "view": "portrait",
+      "motion": "no-preference",
+      "modules": 1,
+      "id": "return:terrace:13",
+      "offset": 0,
+      "accepted": {
+        "distance": 99.0713,
+        "native": 6421
+      },
+      "oldStopDistance": 99.07003304909873,
+      "newStopDistance": 107.16263499570793,
+      "coordinate": {
+        "id": "tour:return:terrace:13:terrace:1",
+        "fraction": 0.0001248976961936494
+      },
+      "survives": true,
+      "retained": 107.1639019466092,
+      "errors": [],
+      "beforeEye": [
+        23.99993896484375,
+        3.053295373916626,
+        80.99879455566406
+      ],
+      "afterEye": [
+        23.99993896484375,
+        3.053295373916626,
+        80.99879455566406
+      ],
+      "expectedEye": [
+        23.99993896484375,
+        3.053295373916626,
+        80.99879455566406
+      ],
+      "beforeBufferSha256": "3d1ea91a1d770e04a9733a4f1909935eabf9271cc309d7df24cc5c8cabf5eccf",
+      "afterBufferSha256": "3d1ea91a1d770e04a9733a4f1909935eabf9271cc309d7df24cc5c8cabf5eccf",
+      "expectedBufferSha256": "3d1ea91a1d770e04a9733a4f1909935eabf9271cc309d7df24cc5c8cabf5eccf",
+      "submittedFramesChecked": 5,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "portrait",
+      "motion": "no-preference",
+      "modules": 1,
+      "id": "return:terrace:13",
+      "offset": 1,
+      "accepted": {
+        "distance": 99.0838,
+        "native": 6422
+      },
+      "oldStopDistance": 99.07003304909873,
+      "newStopDistance": 107.16263499570793,
+      "coordinate": {
+        "id": "tour:return:terrace:13:terrace:1",
+        "fraction": 0.0013571642353770235
+      },
+      "survives": true,
+      "retained": 107.1764019466092,
+      "errors": [],
+      "beforeEye": [
+        23.99932098388672,
+        3.053647518157959,
+        80.98674011230469
+      ],
+      "afterEye": [
+        23.99932098388672,
+        3.053647518157959,
+        80.98674011230469
+      ],
+      "expectedEye": [
+        23.99932098388672,
+        3.053647518157959,
+        80.98674011230469
+      ],
+      "beforeBufferSha256": "3910b05e1b8c761ca06d4be8d580f9f672ebd080b1246a756228bfd182c13525",
+      "afterBufferSha256": "3910b05e1b8c761ca06d4be8d580f9f672ebd080b1246a756228bfd182c13525",
+      "expectedBufferSha256": "3910b05e1b8c761ca06d4be8d580f9f672ebd080b1246a756228bfd182c13525",
+      "submittedFramesChecked": 4,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "portrait",
+      "motion": "no-preference",
+      "modules": 2,
+      "id": "terrace:26",
+      "offset": 0,
+      "accepted": {
+        "distance": 96.5588,
+        "native": 6220
+      },
+      "oldStopDistance": 96.5552196132556,
+      "newStopDistance": 96.5552196132556,
+      "coordinate": {
+        "id": "tour:terrace:26:expansion-turn:terrace:26",
+        "fraction": 0.0011006755605257768
+      },
+      "survives": false,
+      "retained": 96.5552196132556,
+      "errors": [],
+      "beforeEye": [
+        22.000001907348633,
+        3.008462905883789,
+        85.10355377197266
+      ],
+      "afterEye": [
+        22,
+        3.0084805488586426,
+        85.0999984741211
+      ],
+      "expectedEye": [
+        22,
+        3.0084805488586426,
+        85.0999984741211
+      ],
+      "beforeBufferSha256": "4ccf0d134e581611f6c5d15addffdb03080d785d1fbdcf59663a04cd41b905fa",
+      "afterBufferSha256": "1009f052cdc530efff1577bb745507bf1ac990fa35a296b997c94fafa26fbab1",
+      "expectedBufferSha256": "1009f052cdc530efff1577bb745507bf1ac990fa35a296b997c94fafa26fbab1",
+      "submittedFramesChecked": 4,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0035553421390726123
+    },
+    {
+      "view": "portrait",
+      "motion": "no-preference",
+      "modules": 2,
+      "id": "return:terrace:26",
+      "offset": 0,
+      "accepted": {
+        "distance": 103.0588,
+        "native": 6740
+      },
+      "oldStopDistance": 103.06101818425829,
+      "newStopDistance": 111.2610181842583,
+      "coordinate": {
+        "id": "tour:expansion-turn:terrace:26:return:terrace:26",
+        "fraction": 0.9993180900902268
+      },
+      "survives": false,
+      "retained": 111.2610181842583,
+      "errors": [],
+      "beforeEye": [
+        24,
+        2.9966020584106445,
+        85.10221099853516
+      ],
+      "afterEye": [
+        24,
+        2.9965691566467285,
+        85.0999984741211
+      ],
+      "expectedEye": [
+        24,
+        2.9965691566467285,
+        85.0999984741211
+      ],
+      "beforeBufferSha256": "423a932831d9d1b039bad8bac95ae31365f60e37decbadc730a2557ed856f3fa",
+      "afterBufferSha256": "002fbea2fc7730df4d94efcbb95d5cfdabea48c99ca144e5a54b961a0b98e996",
+      "expectedBufferSha256": "002fbea2fc7730df4d94efcbb95d5cfdabea48c99ca144e5a54b961a0b98e996",
+      "submittedFramesChecked": 4,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0022127690364996057
+    },
+    {
+      "view": "landscape",
+      "motion": "reduce",
+      "modules": 0,
+      "id": "terrace:1",
+      "flower": "cactus",
+      "offset": -1,
+      "accepted": {
+        "distance": 88.8652,
+        "native": 6104
+      },
+      "oldStopDistance": 88.86820833857185,
+      "newStopDistance": 109.21394234350075,
+      "coordinate": {
+        "id": "tour:terrace:4:terrace:1",
+        "fraction": 0.9992182036454289
+      },
+      "survives": false,
+      "retained": 109.21394234350075,
+      "errors": [],
+      "beforeEye": [
+        23.283246994018555,
+        3.097461462020874,
+        70.92520904541016
+      ],
+      "afterEye": [
+        23.284591674804688,
+        3.0974509716033936,
+        70.92252349853516
+      ],
+      "expectedEye": [
+        23.284591674804688,
+        3.0974509716033936,
+        70.92252349853516
+      ],
+      "beforeBufferSha256": "bcb6a663725891d8ec9a51a905ebc7531a36edefe9e6f43fe1a872bca6f0ff04",
+      "afterBufferSha256": "65206dfac30f719ba6b3f55d853ba023a3771bd36c735e22319a991e763b5e5b",
+      "expectedBufferSha256": "65206dfac30f719ba6b3f55d853ba023a3771bd36c735e22319a991e763b5e5b",
+      "submittedFramesChecked": 6,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0030034044821295614
+    },
+    {
+      "view": "landscape",
+      "motion": "reduce",
+      "modules": 0,
+      "id": "terrace:1",
+      "flower": "cactus",
+      "offset": 0,
+      "accepted": {
+        "distance": 88.8728,
+        "native": 6105
+      },
+      "oldStopDistance": 88.86820833857185,
+      "newStopDistance": 109.21394234350075,
+      "coordinate": {
+        "id": "tour:terrace:1:terrace:8",
+        "fraction": 0.0010049452183187484
+      },
+      "survives": true,
+      "retained": 109.2185340049289,
+      "errors": [],
+      "beforeEye": [
+        23.286638259887695,
+        3.0974347591400146,
+        70.9184341430664
+      ],
+      "afterEye": [
+        23.286638259887695,
+        3.0974347591400146,
+        70.9184341430664
+      ],
+      "expectedEye": [
+        23.286638259887695,
+        3.0974347591400146,
+        70.9184341430664
+      ],
+      "beforeBufferSha256": "3d58b05d8c59c5ffe5195842bc5e6fe569b18f584b8e759d9ed6b823a105568a",
+      "afterBufferSha256": "3d58b05d8c59c5ffe5195842bc5e6fe569b18f584b8e759d9ed6b823a105568a",
+      "expectedBufferSha256": "3d58b05d8c59c5ffe5195842bc5e6fe569b18f584b8e759d9ed6b823a105568a",
+      "submittedFramesChecked": 5,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "landscape",
+      "motion": "reduce",
+      "modules": 0,
+      "id": "terrace:1",
+      "flower": "cactus",
+      "offset": 1,
+      "accepted": {
+        "distance": 88.8853,
+        "native": 6106
+      },
+      "oldStopDistance": 88.86820833857185,
+      "newStopDistance": 109.21394234350075,
+      "coordinate": {
+        "id": "tour:terrace:1:terrace:8",
+        "fraction": 0.0037407338703243647
+      },
+      "survives": true,
+      "retained": 109.2310340049289,
+      "errors": [],
+      "beforeEye": [
+        23.292192459106445,
+        3.0973899364471436,
+        70.90731048583984
+      ],
+      "afterEye": [
+        23.292192459106445,
+        3.0973899364471436,
+        70.90731048583984
+      ],
+      "expectedEye": [
+        23.292192459106445,
+        3.0973899364471436,
+        70.90731048583984
+      ],
+      "beforeBufferSha256": "af88c2ba39297f5cd8cb7bde9c29282d1ee4c71cc8d7f4c81dc5c58fe1489607",
+      "afterBufferSha256": "af88c2ba39297f5cd8cb7bde9c29282d1ee4c71cc8d7f4c81dc5c58fe1489607",
+      "expectedBufferSha256": "af88c2ba39297f5cd8cb7bde9c29282d1ee4c71cc8d7f4c81dc5c58fe1489607",
+      "submittedFramesChecked": 6,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "landscape",
+      "motion": "no-preference",
+      "modules": 0,
+      "id": "terrace:1",
+      "flower": "cactus",
+      "offset": -1,
+      "accepted": {
+        "distance": 88.8652,
+        "native": 6104
+      },
+      "oldStopDistance": 88.86820833857185,
+      "newStopDistance": 109.21394234350075,
+      "coordinate": {
+        "id": "tour:terrace:4:terrace:1",
+        "fraction": 0.9992182036454289
+      },
+      "survives": false,
+      "retained": 109.21394234350075,
+      "errors": [],
+      "beforeEye": [
+        23.283246994018555,
+        3.097461462020874,
+        70.92520904541016
+      ],
+      "afterEye": [
+        23.284591674804688,
+        3.0974509716033936,
+        70.92252349853516
+      ],
+      "expectedEye": [
+        23.284591674804688,
+        3.0974509716033936,
+        70.92252349853516
+      ],
+      "beforeBufferSha256": "bcb6a663725891d8ec9a51a905ebc7531a36edefe9e6f43fe1a872bca6f0ff04",
+      "afterBufferSha256": "65206dfac30f719ba6b3f55d853ba023a3771bd36c735e22319a991e763b5e5b",
+      "expectedBufferSha256": "65206dfac30f719ba6b3f55d853ba023a3771bd36c735e22319a991e763b5e5b",
+      "submittedFramesChecked": 3,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0030034044821295614
+    },
+    {
+      "view": "landscape",
+      "motion": "no-preference",
+      "modules": 0,
+      "id": "terrace:1",
+      "flower": "cactus",
+      "offset": 0,
+      "accepted": {
+        "distance": 88.8728,
+        "native": 6105
+      },
+      "oldStopDistance": 88.86820833857185,
+      "newStopDistance": 109.21394234350075,
+      "coordinate": {
+        "id": "tour:terrace:1:terrace:8",
+        "fraction": 0.0010049452183187484
+      },
+      "survives": true,
+      "retained": 109.2185340049289,
+      "errors": [],
+      "beforeEye": [
+        23.286638259887695,
+        3.0974347591400146,
+        70.9184341430664
+      ],
+      "afterEye": [
+        23.286638259887695,
+        3.0974347591400146,
+        70.9184341430664
+      ],
+      "expectedEye": [
+        23.286638259887695,
+        3.0974347591400146,
+        70.9184341430664
+      ],
+      "beforeBufferSha256": "3d58b05d8c59c5ffe5195842bc5e6fe569b18f584b8e759d9ed6b823a105568a",
+      "afterBufferSha256": "3d58b05d8c59c5ffe5195842bc5e6fe569b18f584b8e759d9ed6b823a105568a",
+      "expectedBufferSha256": "3d58b05d8c59c5ffe5195842bc5e6fe569b18f584b8e759d9ed6b823a105568a",
+      "submittedFramesChecked": 5,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "landscape",
+      "motion": "no-preference",
+      "modules": 0,
+      "id": "terrace:1",
+      "flower": "cactus",
+      "offset": 1,
+      "accepted": {
+        "distance": 88.8853,
+        "native": 6106
+      },
+      "oldStopDistance": 88.86820833857185,
+      "newStopDistance": 109.21394234350075,
+      "coordinate": {
+        "id": "tour:terrace:1:terrace:8",
+        "fraction": 0.0037407338703243647
+      },
+      "survives": true,
+      "retained": 109.2310340049289,
+      "errors": [],
+      "beforeEye": [
+        23.292192459106445,
+        3.0973899364471436,
+        70.90731048583984
+      ],
+      "afterEye": [
+        23.292192459106445,
+        3.0973899364471436,
+        70.90731048583984
+      ],
+      "expectedEye": [
+        23.292192459106445,
+        3.0973899364471436,
+        70.90731048583984
+      ],
+      "beforeBufferSha256": "af88c2ba39297f5cd8cb7bde9c29282d1ee4c71cc8d7f4c81dc5c58fe1489607",
+      "afterBufferSha256": "af88c2ba39297f5cd8cb7bde9c29282d1ee4c71cc8d7f4c81dc5c58fe1489607",
+      "expectedBufferSha256": "af88c2ba39297f5cd8cb7bde9c29282d1ee4c71cc8d7f4c81dc5c58fe1489607",
+      "submittedFramesChecked": 4,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "narrow",
+      "motion": "reduce",
+      "modules": 0,
+      "id": "terrace:1",
+      "flower": "cactus",
+      "offset": -1,
+      "accepted": {
+        "distance": 88.8652,
+        "native": 6104
+      },
+      "oldStopDistance": 88.86820833857185,
+      "newStopDistance": 109.21394234350075,
+      "coordinate": {
+        "id": "tour:terrace:4:terrace:1",
+        "fraction": 0.9992182036454289
+      },
+      "survives": false,
+      "retained": 109.21394234350075,
+      "errors": [],
+      "beforeEye": [
+        23.283246994018555,
+        3.097461462020874,
+        70.92520904541016
+      ],
+      "afterEye": [
+        23.284591674804688,
+        3.0974509716033936,
+        70.92252349853516
+      ],
+      "expectedEye": [
+        23.284591674804688,
+        3.0974509716033936,
+        70.92252349853516
+      ],
+      "beforeBufferSha256": "ab71b58cbe2e429968c394b81734f4f209e3fad54960ba5c3eca12c58da5d342",
+      "afterBufferSha256": "5b0510fdc9ed805ea807c32baf0d44d16e8a200f3c1ec439f36f7ed12fdf8e5c",
+      "expectedBufferSha256": "5b0510fdc9ed805ea807c32baf0d44d16e8a200f3c1ec439f36f7ed12fdf8e5c",
+      "submittedFramesChecked": 4,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0030034044821295614
+    },
+    {
+      "view": "narrow",
+      "motion": "reduce",
+      "modules": 0,
+      "id": "terrace:1",
+      "flower": "cactus",
+      "offset": 0,
+      "accepted": {
+        "distance": 88.8728,
+        "native": 6105
+      },
+      "oldStopDistance": 88.86820833857185,
+      "newStopDistance": 109.21394234350075,
+      "coordinate": {
+        "id": "tour:terrace:1:terrace:8",
+        "fraction": 0.0010049452183187484
+      },
+      "survives": true,
+      "retained": 109.2185340049289,
+      "errors": [],
+      "beforeEye": [
+        23.286638259887695,
+        3.0974347591400146,
+        70.9184341430664
+      ],
+      "afterEye": [
+        23.286638259887695,
+        3.0974347591400146,
+        70.9184341430664
+      ],
+      "expectedEye": [
+        23.286638259887695,
+        3.0974347591400146,
+        70.9184341430664
+      ],
+      "beforeBufferSha256": "9837cfc019e248e46d47efd175a596caff376ff187a32d4032282e0d30312e06",
+      "afterBufferSha256": "9837cfc019e248e46d47efd175a596caff376ff187a32d4032282e0d30312e06",
+      "expectedBufferSha256": "9837cfc019e248e46d47efd175a596caff376ff187a32d4032282e0d30312e06",
+      "submittedFramesChecked": 5,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "narrow",
+      "motion": "reduce",
+      "modules": 0,
+      "id": "terrace:1",
+      "flower": "cactus",
+      "offset": 1,
+      "accepted": {
+        "distance": 88.8853,
+        "native": 6106
+      },
+      "oldStopDistance": 88.86820833857185,
+      "newStopDistance": 109.21394234350075,
+      "coordinate": {
+        "id": "tour:terrace:1:terrace:8",
+        "fraction": 0.0037407338703243647
+      },
+      "survives": true,
+      "retained": 109.2310340049289,
+      "errors": [],
+      "beforeEye": [
+        23.292192459106445,
+        3.0973899364471436,
+        70.90731048583984
+      ],
+      "afterEye": [
+        23.292192459106445,
+        3.0973899364471436,
+        70.90731048583984
+      ],
+      "expectedEye": [
+        23.292192459106445,
+        3.0973899364471436,
+        70.90731048583984
+      ],
+      "beforeBufferSha256": "c5cdea4ca1a15b2e81089022358d8e5ea0ff093059b210c485b2084245325b3a",
+      "afterBufferSha256": "c5cdea4ca1a15b2e81089022358d8e5ea0ff093059b210c485b2084245325b3a",
+      "expectedBufferSha256": "c5cdea4ca1a15b2e81089022358d8e5ea0ff093059b210c485b2084245325b3a",
+      "submittedFramesChecked": 6,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "narrow",
+      "motion": "no-preference",
+      "modules": 0,
+      "id": "terrace:1",
+      "flower": "cactus",
+      "offset": -1,
+      "accepted": {
+        "distance": 88.8652,
+        "native": 6104
+      },
+      "oldStopDistance": 88.86820833857185,
+      "newStopDistance": 109.21394234350075,
+      "coordinate": {
+        "id": "tour:terrace:4:terrace:1",
+        "fraction": 0.9992182036454289
+      },
+      "survives": false,
+      "retained": 109.21394234350075,
+      "errors": [],
+      "beforeEye": [
+        23.283246994018555,
+        3.097461462020874,
+        70.92520904541016
+      ],
+      "afterEye": [
+        23.284591674804688,
+        3.0974509716033936,
+        70.92252349853516
+      ],
+      "expectedEye": [
+        23.284591674804688,
+        3.0974509716033936,
+        70.92252349853516
+      ],
+      "beforeBufferSha256": "ab71b58cbe2e429968c394b81734f4f209e3fad54960ba5c3eca12c58da5d342",
+      "afterBufferSha256": "5b0510fdc9ed805ea807c32baf0d44d16e8a200f3c1ec439f36f7ed12fdf8e5c",
+      "expectedBufferSha256": "5b0510fdc9ed805ea807c32baf0d44d16e8a200f3c1ec439f36f7ed12fdf8e5c",
+      "submittedFramesChecked": 4,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0030034044821295614
+    },
+    {
+      "view": "narrow",
+      "motion": "no-preference",
+      "modules": 0,
+      "id": "terrace:1",
+      "flower": "cactus",
+      "offset": 0,
+      "accepted": {
+        "distance": 88.8728,
+        "native": 6105
+      },
+      "oldStopDistance": 88.86820833857185,
+      "newStopDistance": 109.21394234350075,
+      "coordinate": {
+        "id": "tour:terrace:1:terrace:8",
+        "fraction": 0.0010049452183187484
+      },
+      "survives": true,
+      "retained": 109.2185340049289,
+      "errors": [],
+      "beforeEye": [
+        23.286638259887695,
+        3.0974347591400146,
+        70.9184341430664
+      ],
+      "afterEye": [
+        23.286638259887695,
+        3.0974347591400146,
+        70.9184341430664
+      ],
+      "expectedEye": [
+        23.286638259887695,
+        3.0974347591400146,
+        70.9184341430664
+      ],
+      "beforeBufferSha256": "9837cfc019e248e46d47efd175a596caff376ff187a32d4032282e0d30312e06",
+      "afterBufferSha256": "9837cfc019e248e46d47efd175a596caff376ff187a32d4032282e0d30312e06",
+      "expectedBufferSha256": "9837cfc019e248e46d47efd175a596caff376ff187a32d4032282e0d30312e06",
+      "submittedFramesChecked": 5,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    },
+    {
+      "view": "narrow",
+      "motion": "no-preference",
+      "modules": 0,
+      "id": "terrace:1",
+      "flower": "cactus",
+      "offset": 1,
+      "accepted": {
+        "distance": 88.8853,
+        "native": 6106
+      },
+      "oldStopDistance": 88.86820833857185,
+      "newStopDistance": 109.21394234350075,
+      "coordinate": {
+        "id": "tour:terrace:1:terrace:8",
+        "fraction": 0.0037407338703243647
+      },
+      "survives": true,
+      "retained": 109.2310340049289,
+      "errors": [],
+      "beforeEye": [
+        23.292192459106445,
+        3.0973899364471436,
+        70.90731048583984
+      ],
+      "afterEye": [
+        23.292192459106445,
+        3.0973899364471436,
+        70.90731048583984
+      ],
+      "expectedEye": [
+        23.292192459106445,
+        3.0973899364471436,
+        70.90731048583984
+      ],
+      "beforeBufferSha256": "c5cdea4ca1a15b2e81089022358d8e5ea0ff093059b210c485b2084245325b3a",
+      "afterBufferSha256": "c5cdea4ca1a15b2e81089022358d8e5ea0ff093059b210c485b2084245325b3a",
+      "expectedBufferSha256": "c5cdea4ca1a15b2e81089022358d8e5ea0ff093059b210c485b2084245325b3a",
+      "submittedFramesChecked": 4,
+      "everyFramePermitted": true,
+      "eyeDisplacementMetres": 0.0
+    }
+  ],
+  "strictComparison": "The native probe uses node:util isDeepStrictEqual on complete eye/matrix objects for EVERY submitted frame (including signed zero), and deep strict equality for the expected final buffer. Summaries serialize numeric arrays/hashes; complete raw live-comparison traces remain separate.",
+  "retainedCurveCases": 24,
+  "retainedCurveFrames": 90,
+  "retainedCurveMaxEyeDeltaMetres": 0,
+  "remapCases": 4,
+  "remapFrames": 14,
+  "lifecycle": [
+    {
+      "motion": "reduce",
+      "heldFrameExactReturn": true,
+      "discardedBlockedInput": true,
+      "reverseInterrupt": false,
+      "blurVisibility": false,
+      "focusTrap": true,
+      "pickerDragRejected": true,
+      "outsideDismiss": true,
+      "noPickerGPUcontexts": true,
+      "pickerRecovery": true,
+      "secondLossStops": true
+    },
+    {
+      "motion": "no-preference",
+      "heldFrameExactReturn": true,
+      "discardedBlockedInput": true,
+      "reverseInterrupt": true,
+      "blurVisibility": true,
+      "focusTrap": true,
+      "pickerDragRejected": true,
+      "outsideDismiss": true,
+      "noPickerGPUcontexts": true,
+      "pickerRecovery": true,
+      "secondLossStops": true
+    }
+  ],
+  "occupiedPlanting": [
+    {
+      "view": "desktop",
+      "width": 1280,
+      "height": 800,
+      "previousDistance": 109.0239,
+      "plants": 79,
+      "bedCount": 14,
+      "connectionMetres": 7.431125021369612,
+      "oldPlantsUnmoved": true,
+      "semanticEndRetained": true,
+      "newPlantAndTargetReachable": true
+    },
+    {
+      "view": "portrait",
+      "width": 390,
+      "height": 844,
+      "previousDistance": 109.0239,
+      "plants": 79,
+      "bedCount": 14,
+      "connectionMetres": 7.431125021369612,
+      "oldPlantsUnmoved": true,
+      "semanticEndRetained": true,
+      "newPlantAndTargetReachable": true
+    }
+  ],
+  "lowerHoleCases": [
+    {
+      "view": "desktop",
+      "width": 1280,
+      "height": 800,
+      "kind": "boundary",
+      "motion": "reduced",
+      "plants": 25,
+      "fullBloomPerType": null,
+      "all13PickerPicturesAndAnchors": true,
+      "nativeWheelSmallLargeReverse": true,
+      "nativeHomeEndRear": true,
+      "trustedTouch": false,
+      "drawerOwnScroll": true,
+      "all13Seeds": true,
+      "canvasPickAndDrag": true,
+      "exactActivityReturn": true,
+      "overlayTyping": true,
+      "gpuRecovery": true,
+      "resize": true,
+      "finalDistance": 65.4012,
+      "errors": []
+    },
+    {
+      "view": "portrait",
+      "width": 390,
+      "height": 844,
+      "kind": "boundary",
+      "motion": "reduced",
+      "plants": 25,
+      "fullBloomPerType": null,
+      "all13PickerPicturesAndAnchors": true,
+      "nativeWheelSmallLargeReverse": true,
+      "nativeHomeEndRear": true,
+      "trustedTouch": true,
+      "drawerOwnScroll": true,
+      "all13Seeds": true,
+      "canvasPickAndDrag": true,
+      "exactActivityReturn": true,
+      "overlayTyping": true,
+      "gpuRecovery": true,
+      "resize": true,
+      "finalDistance": 65.4012,
+      "errors": []
+    },
+    {
+      "view": "landscape",
+      "width": 844,
+      "height": 390,
+      "kind": "boundary",
+      "motion": "reduced",
+      "plants": 25,
+      "fullBloomPerType": null,
+      "all13PickerPicturesAndAnchors": true,
+      "nativeWheelSmallLargeReverse": true,
+      "nativeHomeEndRear": true,
+      "trustedTouch": true,
+      "drawerOwnScroll": true,
+      "all13Seeds": true,
+      "canvasPickAndDrag": true,
+      "exactActivityReturn": true,
+      "overlayTyping": true,
+      "gpuRecovery": true,
+      "resize": true,
+      "finalDistance": 65.4012,
+      "errors": []
+    },
+    {
+      "view": "narrow",
+      "width": 800,
+      "height": 600,
+      "kind": "boundary",
+      "motion": "reduced",
+      "plants": 25,
+      "fullBloomPerType": null,
+      "all13PickerPicturesAndAnchors": true,
+      "nativeWheelSmallLargeReverse": true,
+      "nativeHomeEndRear": true,
+      "trustedTouch": false,
+      "drawerOwnScroll": true,
+      "all13Seeds": true,
+      "canvasPickAndDrag": true,
+      "exactActivityReturn": true,
+      "overlayTyping": true,
+      "gpuRecovery": true,
+      "resize": true,
+      "finalDistance": 65.4012,
+      "errors": []
+    }
+  ],
+  "inputEquivalence": {
+    "headAtCapture": "69d2a11d11764eda5b1f895c98d3b2f7516ad62d",
+    "runtimeSourceSha256": "855fbe9f70f39287aec3fd2edf65a30fbfbec2903aa5f25bfd364ccf14b70fe7",
+    "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+    "capturedAt": "2026-11-27T06:43:17.568Z",
+    "scope": "Loopback-only synthetic state; no authenticated session or backend mutations",
+    "reviewedHead": "69d2a11d11764eda5b1f895c98d3b2f7516ad62d",
+    "reviewedRuntimeSourceSha256": "9143d10602c2251665a102fb5663c51b891cdf3dc6d06f079d8dac35cd47092d",
+    "profiledCodeIdentical": true,
+    "method": "Exact byte identity of all six profiled tour constructor/sampling functions, every other source, CPU profiler/fixture/dependency inputs; execute reviewed Git-object constructor and compare full tour/actual mesh/stroke/camera buffers. Only retention semantics changed; prior CPU/front/GPU measurements keep original metadata.",
+    "unchangedOtherSourceFiles": 367,
+    "unchangedSourceInputsSha256": "943fa104de5289c1b4d2e3d2141da4f633d1f328f201cf7b1579516edccb44ff",
+    "firstOverflowLength": 7.431125021369612,
+    "results": [
+      {
+        "renderedCameraBufferSha256": "7c31cbcd713826db7334341dc041af8d0edd3960a636070c1136db045f287360",
+        "kind": "empty",
+        "plants": 0,
+        "tourDeepEqual": true,
+        "exactGpuBufferSha256": {
+          "path": "797cd1110a1f89d7a9097d699fba6072f813b74f1db19862b31a57ec9d93a0fe",
+          "ground": "1021ef1d9390554fe26e3b6afdfd260103984b38f36a29cd46de2b866d080d99",
+          "meadow": "2aa798b0dd0a46560c6212bbe362c6d126043ee8ae41b7fc7b86b8a22bb40348",
+          "edging": "3fb10be9dea32ef29d454948d86d22a0a2bd0fef5a56240fa58196225081e1d2"
+        }
+      },
+      {
+        "renderedCameraBufferSha256": "7c31cbcd713826db7334341dc041af8d0edd3960a636070c1136db045f287360",
+        "kind": "mixed",
+        "plants": 26,
+        "tourDeepEqual": true,
+        "exactGpuBufferSha256": {
+          "path": "797cd1110a1f89d7a9097d699fba6072f813b74f1db19862b31a57ec9d93a0fe",
+          "ground": "1021ef1d9390554fe26e3b6afdfd260103984b38f36a29cd46de2b866d080d99",
+          "meadow": "2aa798b0dd0a46560c6212bbe362c6d126043ee8ae41b7fc7b86b8a22bb40348",
+          "edging": "3fb10be9dea32ef29d454948d86d22a0a2bd0fef5a56240fa58196225081e1d2"
+        }
+      },
+      {
+        "renderedCameraBufferSha256": "7c31cbcd713826db7334341dc041af8d0edd3960a636070c1136db045f287360",
+        "kind": "full",
+        "plants": 78,
+        "tourDeepEqual": true,
+        "exactGpuBufferSha256": {
+          "path": "797cd1110a1f89d7a9097d699fba6072f813b74f1db19862b31a57ec9d93a0fe",
+          "ground": "1021ef1d9390554fe26e3b6afdfd260103984b38f36a29cd46de2b866d080d99",
+          "meadow": "2aa798b0dd0a46560c6212bbe362c6d126043ee8ae41b7fc7b86b8a22bb40348",
+          "edging": "3fb10be9dea32ef29d454948d86d22a0a2bd0fef5a56240fa58196225081e1d2"
+        }
+      },
+      {
+        "renderedCameraBufferSha256": "7c31cbcd713826db7334341dc041af8d0edd3960a636070c1136db045f287360",
+        "kind": "sparse",
+        "plants": 26,
+        "tourDeepEqual": true,
+        "exactGpuBufferSha256": {
+          "path": "797cd1110a1f89d7a9097d699fba6072f813b74f1db19862b31a57ec9d93a0fe",
+          "ground": "1021ef1d9390554fe26e3b6afdfd260103984b38f36a29cd46de2b866d080d99",
+          "meadow": "2aa798b0dd0a46560c6212bbe362c6d126043ee8ae41b7fc7b86b8a22bb40348",
+          "edging": "3fb10be9dea32ef29d454948d86d22a0a2bd0fef5a56240fa58196225081e1d2"
+        }
+      }
+    ],
+    "priorFrontAndNoOverflowGpuInputsEquivalent": true,
+    "priorCpuFactoryTimingsNotRelabelled": true
+  },
+  "sourceChecks": [
+    {
+      "name": "lint",
+      "command": [
+        "npm",
+        "run",
+        "lint"
+      ],
+      "exitCode": 0,
+      "log": "/tmp/ccapp-226-r2-lint.log"
+    },
+    {
+      "name": "typecheck",
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "exitCode": 0,
+      "log": "/tmp/ccapp-226-r2-typecheck.log"
+    },
+    {
+      "name": "test",
+      "command": [
+        "npm",
+        "test"
+      ],
+      "exitCode": 1,
+      "log": "/tmp/ccapp-226-r2-test.log"
+    },
+    {
+      "name": "node",
+      "command": [
+        "node",
+        "--test",
+        "content/daisy-questions.test.mjs",
+        "scripts/release/production.test.mjs",
+        "scripts/setup-home-media.test.mjs",
+        "scripts/dev-signin.test.mjs"
+      ],
+      "exitCode": 0,
+      "log": "/tmp/ccapp-226-r2-node.log"
+    },
+    {
+      "name": "build",
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "exitCode": 0,
+      "log": "/tmp/ccapp-226-r2-build.log"
+    }
+  ],
+  "production": {
+    "actualProductionServer": true,
+    "results": [
+      {
+        "path": "/dev/garden-areas",
+        "status": 404,
+        "fixtureStateAbsent": true
+      },
+      {
+        "path": "/dev/garden-areas?empty=1&scope=1&arrival=1",
+        "status": 404,
+        "fixtureStateAbsent": true
+      },
+      {
+        "path": "/dev/garden-areas?boundary=1",
+        "status": 404,
+        "fixtureStateAbsent": true
+      },
+      {
+        "path": "/dev/garden-areas?sparse=1",
+        "status": 404,
+        "fixtureStateAbsent": true
+      },
+      {
+        "path": "/dev/garden-areas?bloom=1&many=1",
+        "status": 404,
+        "fixtureStateAbsent": true
+      },
+      {
+        "path": "/dev/world?areas=1&walking=1",
+        "status": 404,
+        "fixtureStateAbsent": true
+      },
+      {
+        "path": "/dev/landing?sky=dusk&member=1",
+        "status": 404,
+        "fixtureStateAbsent": true
+      }
+    ]
+  },
+  "priorMeasurements": "Original front/entry/no-overflow GPU and69d2 constructor CPU records remain at original timestamps/fingerprints. Entire profiled source and inputs are identical; no new measurement or silent relabelling. Reused CPU component timings exclude the changed one-off retention function.",
+  "redEvidence": "Independent R2 exact-Cactus/native\u22121px proof at69d2 plus own pure all-stop/neighbor regression red before the correction. Previous fixed-Daisy fallback expectation is superseded explicitly by the approved nearest-boundary rule.",
+  "limitations": [
+    "Mac audio_unavailable: six known failures remain; current-head complete Linux CI mandatory.",
+    "Trusted CDP touch/phone viewport is emulation, not physical phone/trackpad/assistive hardware.",
+    "Original missing entry sizes retain explicit later immutable-source reconstruction provenance and moving-frame limits.",
+    "No new GPU/CPU/front measurement or universal FPS claim.",
+    "Fresh independent exact-head approval and all current-head CI remain required."
+  ]
+}
