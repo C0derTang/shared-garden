@@ -5,6 +5,7 @@ import { World, aerial, belowMirror, distanceAlpha, fbm, hash21, lampLight, shad
 import {
   House,
   MAT_DOOR,
+  MAT_BACK_DOOR,
   MAT_FRAME,
   MAT_GLASS,
   MAT_INTERIOR,
@@ -166,7 +167,7 @@ fn fieldstone(uv: vec2f) -> vec4f {
     albedo = srgbToLinear(vec3f(0.1, 0.09, 0.08));
     let flicker = 0.92 + 0.08 * sin(house.time * 7.0 + p.x * 3.0) * sin(house.time * 3.1);
     emission = warmLight() * vec3f(1.0, 0.9, 0.8) * house.windows * 2.4 * flicker * (1.0 - bar);
-  } else if (isMaterial(m, MAT_DOOR)) {
+  } else if (isMaterial(m, MAT_DOOR) || isMaterial(m, MAT_BACK_DOOR)) {
     // A red plank door: raised frame, vertical boards, a four-pane window and a brass knob.
     let boards = fract(uv.x * 5.0);
     let groove = smoothstep(0.0, 0.05, boards) * smoothstep(1.0, 0.95, boards);
@@ -181,7 +182,9 @@ fn fieldstone(uv: vec2f) -> vec4f {
     let window = step(0.2, uv.x) * step(uv.x, 0.8) * step(0.7, uv.y) * step(uv.y, 0.9);
     let pane = fract(vec2f((uv.x - 0.2) / 0.3, (uv.y - 0.7) / 0.1));
     let paneBar = 1.0 - smoothstep(0.04, 0.09, min(min(pane.x, 1.0 - pane.x), min(pane.y, 1.0 - pane.y)));
-    let lit = house.windows + house.glow * 1.5 + house.spill * 4.0;
+    let doorGlow=select(0.0,house.glow,isMaterial(m,MAT_DOOR));
+    let doorSpill=select(0.0,house.spill,isMaterial(m,MAT_DOOR));
+    let lit = house.windows + doorGlow * 1.5 + doorSpill * 4.0;
     emission += warmLight() * window * (1.0 - paneBar) * lit * 1.3;
     albedo = mix(albedo, srgbToLinear(vec3f(0.86, 0.82, 0.72)), window * paneBar);
     let knob = 1.0 - smoothstep(0.025, 0.04, length((uv - vec2f(0.86, 0.47)) * vec2f(1.0, 0.51)));
@@ -190,8 +193,8 @@ fn fieldstone(uv: vec2f) -> vec4f {
     // The invitation: light leaking around the door's edges, breathing softly.
     let edge = min(min(uv.x, 1.0 - uv.x) * 1.95, min(uv.y, 1.0 - uv.y));
     let leak = 1.0 - smoothstep(0.0, 0.09, edge);
-    emission += warmLight() * leak * house.glow * 3.2;
-    emission += warmLight() * house.glow * 0.14 * (1.0 - window);
+    emission += warmLight() * leak * doorGlow * 3.2;
+    emission += warmLight() * doorGlow * 0.14 * (1.0 - window);
   } else if (isMaterial(m, MAT_INTERIOR)) {
     // The lit room: cream plaster, a honey floor and a hearth's glow deep inside.
     let floorPart = 1.0 - smoothstep(0.62, 0.7, p.y);

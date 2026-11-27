@@ -18,7 +18,7 @@ export function GardenFixture({ state, arrival, scope }: { state: GardenState; a
   }, [arrival]);
   return <SheetScope>
     {(!arrival || started) && <GardenV2 initial={{ state, error: null }} />}
-    {scope && <BottomSheet trigger={<button type="button" style={{ position: "fixed", right: 16, bottom: 16 }}>synthetic scoped sheet</button>} title="Synthetic scoped draft" description="Local input interruption fixture">
+    {scope && <BottomSheet trigger={<button type="button" style={{ position: "fixed", right: 16, top: 64 }}>synthetic scoped sheet</button>} title="Synthetic scoped draft" description="Local input interruption fixture">
       <label>Synthetic draft<textarea aria-label="Synthetic draft" /></label>
     </BottomSheet>}
   </SheetScope>;

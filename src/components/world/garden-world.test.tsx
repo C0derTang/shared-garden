@@ -1,5 +1,6 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, fireEvent, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { scenicRoute } from "@/lib/world/scenic-route";
 import type { WorldRendererCallbacks } from "./renderer";
 
 // The real renderer needs WebGPU and .wgsl imports; record its callbacks instead.
@@ -157,4 +158,64 @@ describe("GardenWorld with WebGPU", () => {
     act(() => created[0]!.onFrame?.({ viewProjection: identity, width: 200, height: 100, entryFade: 0, arrival: null }));
     expect(mark.parentElement!.style.getPropertyValue("--plot-glow")).toBe("1.00");
   });
+});
+
+describe("fixed scenic route controls",()=>{
+ beforeEach(()=>{created.length=0;moves.travel.mockClear();moves.pan.mockClear();vi.stubGlobal("navigator",{...navigator,gpu:{}});});
+ afterEach(()=>vi.unstubAllGlobals());
+ it("keeps back/onward selectable independently of projection and blocks free movement and return input",async()=>{
+  const route=scenicRoute([]),select=vi.fn();
+  const view=render(<GardenWorld scenicRoute={route} scenicStop="house-rear" onSelectScenicStop={select} />);await flush();act(()=>created[0]!.onReady());
+  const nav=screen.getByRole('navigation',{name:'Garden path'});
+  expect(within(nav).getByRole('button',{name:'Back to peony outskirts'})).toBeInTheDocument();
+  fireEvent.click(within(nav).getByRole('button',{name:'Onward to lakeside'}));expect(select).toHaveBeenLastCalledWith('lake');
+  fireEvent.keyDown(screen.getByLabelText(/Choose scenic stops/),{key:'ArrowRight'});fireEvent.keyDown(screen.getByLabelText(/Choose scenic stops/),{key:'w'});
+  expect(moves.pan).not.toHaveBeenCalled();expect(moves.travel).not.toHaveBeenCalled();
+  act(()=>created[0]!.onFrame?.({viewProjection:new Float32Array(16),width:390,height:844,arrival:null,entryFade:0,scenicReady:false}));
+  expect(screen.queryByRole('navigation',{name:'Garden path'})).not.toBeInTheDocument();
+  act(()=>created[0]!.onFrame?.({viewProjection:new Float32Array(16),width:390,height:844,arrival:null,entryFade:0,scenicReady:true}));
+  expect(screen.getByRole('navigation',{name:'Garden path'})).toBeInTheDocument();
+  view.rerender(<GardenWorld scenicRoute={route} scenicStop="house-rear" scenicBlocked onSelectScenicStop={select} />);await flush();
+  expect(screen.queryByRole('navigation',{name:'Garden path'})).not.toBeInTheDocument();
+  view.rerender(<GardenWorld scenicRoute={route} scenicStop="house-rear" onSelectScenicStop={select} />);await flush();
+  act(()=>created[0]!.onLost(lost));await flush();act(()=>created[1]!.onReady());
+  expect(screen.getByRole('combobox',{name:'Scenic stop'})).toHaveValue('house-rear');
+ });
+ it("rejects an out-and-back route button drag and culls distant area labels without removing keyboard access",async()=>{
+  const route=scenicRoute([]),select=vi.fn();
+  render(<GardenWorld scenicRoute={route} scenicStop="pocket:0:0" onSelectScenicStop={select} captions={[{id:'distant',text:'far garden',size:'label',position:[0,0,0],maxDistance:3,onSelect:vi.fn()}]} />);await flush();act(()=>created[0]!.onReady());
+  const onward=screen.getByRole('button',{name:/Onward to/});
+  fireEvent.pointerDown(onward,{clientX:10,clientY:10});fireEvent.pointerMove(onward,{clientX:40,clientY:40});fireEvent.pointerMove(onward,{clientX:10,clientY:10});fireEvent.click(onward,{detail:1});expect(select).not.toHaveBeenCalled();
+  const matrix=new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
+  act(()=>created[0]!.onFrame?.({viewProjection:matrix,eye:[10,2,0],width:390,height:844,arrival:null,entryFade:0}));
+  const far=screen.getByRole('button',{name:'far garden'});expect(far).toHaveAttribute('data-offscreen');expect(far.style.opacity).toBe('0');
+ });
+});
+
+describe('scenic projected-control bounds',()=>{
+ beforeEach(()=>{created.length=0;vi.stubGlobal('navigator',{...navigator,gpu:{}});});afterEach(()=>vi.unstubAllGlobals());
+ it('pins a partially clipped world control accessibly instead of showing an unreadable edge fragment',async()=>{
+  render(<GardenWorld scenicRoute={scenicRoute([])} scenicStop="pocket:0:0" captions={[{id:'edge-stop',text:'edge stop',position:[.95,0,0],size:'label',onSelect:vi.fn()}]} />);await flush();act(()=>created[0]!.onReady());
+  const button=screen.getByRole('button',{name:'edge stop'});Object.defineProperty(button,'offsetWidth',{configurable:true,value:120});Object.defineProperty(button,'offsetHeight',{configurable:true,value:44});
+  act(()=>created[0]!.onFrame?.({viewProjection:new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]),width:390,height:844,arrival:null,entryFade:0}));
+  expect(button).toHaveAttribute('data-offscreen');expect(button.style.opacity).toBe('0');expect(button.style.transform).toContain('318.0px');
+ });
+});
+
+it('hides a projected route control covered by product navigation while retaining keyboard access',async()=>{
+ created.length=0;vi.stubGlobal('navigator',{...navigator,gpu:{}});
+ render(<><nav aria-label="Leave the garden"><span>home</span></nav><GardenWorld scenicRoute={scenicRoute([])} scenicStop="pocket:0:0" captions={[{id:'covered-stop',text:'covered stop',position:[.5,.9,0],size:'label',onSelect:vi.fn()}]} /></>);await flush();act(()=>created[0]!.onReady());
+ const button=screen.getByRole('button',{name:'covered stop'});Object.defineProperty(button,'offsetWidth',{configurable:true,value:120});Object.defineProperty(button,'offsetHeight',{configurable:true,value:44});
+ vi.spyOn(screen.getByRole('navigation',{name:'Leave the garden'}),'getBoundingClientRect').mockReturnValue({x:260,y:20,left:260,top:20,right:380,bottom:70,width:120,height:50,toJSON:()=>({})});
+ act(()=>created[0]!.onFrame?.({viewProjection:new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]),width:390,height:844,arrival:null,entryFade:0}));
+ expect(button).toHaveAttribute('data-offscreen');expect(button.style.opacity).toBe('0');vi.unstubAllGlobals();
+});
+
+it('hides a projected route control covered by the initial garden hint while retaining keyboard access',async()=>{
+ created.length=0;vi.stubGlobal('navigator',{...navigator,gpu:{}});
+ render(<><p data-world-reserved>choose a stop</p><GardenWorld scenicRoute={scenicRoute([])} scenicStop="pocket:0:0" captions={[{id:'covered-stop',text:'covered stop',position:[.5,.9,0],size:'label',onSelect:vi.fn()}]} /></>);await flush();act(()=>created[0]!.onReady());
+ const button=screen.getByRole('button',{name:'covered stop'});Object.defineProperty(button,'offsetWidth',{configurable:true,value:120});Object.defineProperty(button,'offsetHeight',{configurable:true,value:44});
+ vi.spyOn(screen.getByText('choose a stop'),'getBoundingClientRect').mockReturnValue({x:260,y:20,left:260,top:20,right:380,bottom:70,width:120,height:50,toJSON:()=>({})});
+ act(()=>created[0]!.onFrame?.({viewProjection:new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]),width:390,height:844,arrival:null,entryFade:0}));
+ expect(button).toHaveAttribute('data-offscreen');expect(button.style.opacity).toBe('0');vi.unstubAllGlobals();
 });

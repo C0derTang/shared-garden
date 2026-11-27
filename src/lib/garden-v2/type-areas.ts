@@ -1,6 +1,7 @@
 /** Immutable presentation addresses; never rewrite the persisted garden. See decision 0070. */
-import { BED_RADIUS, SPOTS_PER_BED, terrainHeight, type Bed, type PlantingSpot, type Vec3 } from "@/lib/world/layout";
+import { BED_RADIUS, SPOTS_PER_BED, bedTerrainHeight, type Bed, type PlantingSpot, type Vec3 } from "@/lib/world/layout";
 import { flowerTypes, type FlowerType, type GardenState, type Plant } from "./model";
+import { pocketCenter } from "@/lib/world/scenic-route";
 
 type LayoutPlant = { readonly flower: Pick<Plant["flower"], "spot" | "type_key"> };
 
@@ -18,13 +19,11 @@ export interface TypeAreaLayout<P = Plant> {
   readonly maxZ: number;
 }
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
-const FIRST_Z = 7.4;
+const FIRST_Z = 6;
 
-/** One type owns a fixed-width lane, expanding away from the lake. */
+/** Immutable pockets along the curved route; sections expand east on clear spurs. */
 function areaBed(typeIndex: number, section: number): Bed {
-  const x = (typeIndex - 6) * 3.3;
-  const z = FIRST_Z + section * 3.1;
-  return { index: section * flowerTypes.length + typeIndex, row: section, radius: BED_RADIUS, center: [x, terrainHeight(x, z), z] };
+  return { index: section * flowerTypes.length + typeIndex, row: section, radius: BED_RADIUS, organic: true, site: true, center: pocketCenter(typeIndex, section) };
 }
 function address(typeIndex: number, persistedSpot: number, pickId = persistedSpot): PlantingSpot {
   const section = Math.floor((persistedSpot - 1) / SPOTS_PER_BED);
@@ -34,7 +33,7 @@ function address(typeIndex: number, persistedSpot: number, pickId = persistedSpo
   const a = k * GOLDEN_ANGLE + typeIndex * 0.9;
   const x = bed.center[0] + Math.cos(a) * r;
   const z = bed.center[2] + Math.sin(a) * r;
-  return { spot: pickId, bed: bed.index, position: [x, terrainHeight(x, z), z] };
+  return { spot: pickId, bed: bed.index, position: [x, bedTerrainHeight(bed,x,z), z] };
 }
 
 /**
@@ -55,7 +54,7 @@ export function typeAreaLayout<P extends LayoutPlant>(state: {
     for (const plant of plants) spots.push(address(index, plant.flower.spot));
     spots.push(target);
     // No decorative sections for unoccupied gaps, even with old sparse addresses.
-    for (const section of new Set([...plants.map((plant) => Math.floor((plant.flower.spot - 1) / SPOTS_PER_BED)), Math.floor((state.garden.next_spot - 1) / SPOTS_PER_BED)])) {
+    for (const section of new Set([0, ...plants.map((plant) => Math.floor((plant.flower.spot - 1) / SPOTS_PER_BED)), Math.floor((state.garden.next_spot - 1) / SPOTS_PER_BED)])) {
       const bed = areaBed(index, section);
       beds.set(bed.index, bed);
     }

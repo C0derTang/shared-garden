@@ -225,3 +225,38 @@ form.caption:focus-within:has(:focus-visible) {
 .walkControls button:nth-child(2) { grid-column: 1; }
 .walkControls button:active { background: #647047; }
 .walkControls button:focus-visible { outline: 2px solid #fffaf0; outline-offset: 2px; }
+
+.scenicControls {
+ position: absolute;
+ bottom: max(1rem, env(safe-area-inset-bottom));
+ left: 50%;
+ transform: translateX(-50%);
+ z-index: 2;
+ max-width: calc(100% - 2rem);
+ color: #fffaf0;
+ font-size: 1rem;
+ text-shadow: 0 1px 3px #29291d;
+}
+.scenicControls > div { display: flex; align-items: center; gap: 0.4rem; }
+.scenicControls button, .scenicControls select {
+ min-height: 44px;
+ border: 1px solid rgb(255 250 240 / 0.5);
+ border-radius: 999px;
+ background: rgb(40 46 27 / 0.88);
+ color: inherit;
+ font: inherit;
+ padding: 0.45rem 0.8rem;
+ cursor: pointer;
+}
+.scenicControls button { white-space: nowrap; }
+.scenicControls label { min-width: 0; }
+.scenicControls select { width: 100%; max-width: 14rem; text-overflow: ellipsis; }
+.scenicControls option { color: #fffaf0; background: #282e1b; }
+.scenicControls button:focus-visible, .scenicControls select:focus-visible { outline: 2px solid #fffaf0; outline-offset: 3px; }
+.srOnly { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (max-width: 480px) {
+ .scenicControls { max-width: calc(100% - 1rem); width: 100%; }
+ .scenicControls > div { gap: 0.25rem; }
+ .scenicControls button, .scenicControls select { padding: 0.4rem 0.55rem; }
+ .scenicControls label { flex: 1; }
+}

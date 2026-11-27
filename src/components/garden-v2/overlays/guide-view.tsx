@@ -11,7 +11,7 @@ export const guideSteps = [
   },
   {
     title: "wander",
-    body: "hold WASD or the arrow keys to walk, or use the little arrow pad. tap the ground to wander there, and tap a flower to visit!",
+    body: "choose a scenic stop along the winding path with back, onward, or the stop menu. tap a flower to visit, then return to your view!",
   },
   {
     title: "keepsakes",

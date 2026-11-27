@@ -146,7 +146,7 @@ describe("the house", () => {
     expect(mesh.vertices.every(Number.isFinite)).toBe(true);
     expect(mesh.indices.length % 3).toBe(0);
     expect(Math.max(...mesh.indices)).toBeLessThan(mesh.vertices.length / HOUSE_STRIDE);
-    expect([...materials].sort((a, b) => a - b)).toEqual(Object.values(HOUSE_MATERIAL).sort((a, b) => a - b));
+    expect([...materials].sort((a, b) => a - b)).toEqual(Object.values(HOUSE_MATERIAL).filter(m=>m!==HOUSE_MATERIAL.backDoor).sort((a, b) => a - b));
   });
 
   it("faces the viewer, with the door hinged on the front wall", () => {

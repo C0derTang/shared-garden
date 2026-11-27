@@ -23,8 +23,7 @@ describe("type areas", () => {
     state.plants.push({ ...structuredClone(rose), flower: { ...rose.flower, id: "cactus", spot: 12, type_key: "cactus" } });
     const before = structuredClone(state);
     const layout = typeAreaLayout(state);
-    expect(layout.spots.find((spot) => spot.spot === 1)!.position[0]).toBeLessThan(-18);
-    expect(layout.spots.find((spot) => spot.spot === 12)!.position[0]).toBeLessThan(-15);
+    expect(Math.hypot(...layout.spots.find(spot=>spot.spot===1)!.position.map((v,i)=>v-layout.spots.find(spot=>spot.spot===12)!.position[i]!))).toBeGreaterThan(10);
     expect(layout.areas.find((area) => area.type === "rose")!.plants).toEqual([rose]);
     expect(state).toEqual(before);
   });
@@ -51,12 +50,13 @@ describe("type areas", () => {
     const layout = typeAreaLayout(state);
     expect(layout.beds.length).toBeLessThanOrEqual(27);
     expect(layout.spots).toHaveLength(14);
-    expect(layout.maxZ).toBeGreaterThan(3000);
+    expect(Math.max(...layout.spots.map(spot => spot.position[2]))).toBeGreaterThan(3000);
   });
 });
 
 // The actual camera/picking algorithms must agree with the layout at both widths.
-import { gardenFovY, gardenPose, gardenViewProjection } from "@/lib/world/garden-camera";
+import { gardenFovY, gardenViewProjection } from "@/lib/world/garden-camera";
+import { scenicRoute, scenicPose } from "@/lib/world/scenic-route";
 import { projectToNdc } from "@/lib/world/camera";
 import { pickOnScreen, plotFootprints } from "@/lib/world/picking";
 import { buildBedMesh } from "@/lib/world/scenery";
@@ -69,11 +69,13 @@ it.each([[1280, 800], [390, 844]])("reaches and picks every area and occupied ad
   const layout = typeAreaLayout(state);
   const empty = layout.areas.map((area) => area.target);
   const flowers = layout.spots.filter((spot) => spot.spot > 0).map((spot) => ({ id: `plant-${spot.spot - 1}`, position: spot.position, height: 1.1, radius: 0.32 }));
+  const route = scenicRoute(layout.beds);
   for (const spot of layout.spots) {
-    const depth = layout.maxZ - 7.4;
-    const journey = Math.min(1, Math.max(0, (layout.maxZ - spot.position[2]) / depth));
+    const typeIndex = spot.spot < 0 ? -spot.spot-1 : (spot.spot-1)%13;
+    const section = Math.floor(((spot.spot<0?40:spot.spot)-1)/12);
+    const stop = route.stops.find(stop=>stop.typeIndex===typeIndex&&stop.section===section)!;
     const aspect = width / height;
-    const pose = gardenPose({ journey, pan: spot.position[0], depth }, aspect, gardenFovY(aspect));
+    const pose = scenicPose(stop.pose, aspect, gardenFovY(aspect), null, 0);
     const view = { width, height, viewProjection: gardenViewProjection(width, height, pose) };
     const footprint = plotFootprints(view, empty, flowers).find((plot) => spot.spot < 0 ? plot.target.kind === "spot" && plot.target.spot === spot.spot : plot.target.kind === "flower" && plot.target.id === `plant-${spot.spot - 1}`)!;
     expect(footprint).toBeDefined();
@@ -102,6 +104,12 @@ it("advances the shared planting preview across sections while existing plants s
   const after = typeAreaLayout(state);
   expect(after.spots.find((spot) => spot.spot === 1)).toEqual(before.spots.find((spot) => spot.spot === 1));
   expect(after.areas.map((area) => area.target.spot)).toEqual(before.areas.map((area) => area.target.spot));
-  expect(after.areas[1]!.target.position[2]).toBeGreaterThan(before.areas[1]!.target.position[2]);
+  expect(Math.hypot(...after.areas[1]!.target.position.map((v,i)=>v-before.areas[1]!.target.position[i]!))).toBeGreaterThan(5);
   expect(after.areas[1]!.plants).toHaveLength(0);
+});
+
+it("uses varied organic pocket outlines rather than repeated circular stone rings",()=>{
+ const layout=typeAreaLayout(v2GardenFixture()),mesh=buildBedMesh(layout.beds);
+ const radial=[];for(let i=1;i<=40;i++){const k=i*mesh.stride;radial.push(Math.hypot(mesh.vertices[k]!-layout.beds[0]!.center[0],mesh.vertices[k+2]!-layout.beds[0]!.center[2]));}
+ expect(Math.max(...radial)-Math.min(...radial)).toBeGreaterThan(.25);
 });

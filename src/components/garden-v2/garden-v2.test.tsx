@@ -151,7 +151,7 @@ describe("GardenV2", () => {
     expect(scene.flowers.map((f) => f.id)).toEqual([state.plants[0]!.flower.id]);
     // Only the world's title and a "♡" over the flower waiting on your care float in the scene;
     // no names over the plants or seed marks (#206, #214).
-    expect(captionIds()).toEqual(["title", ...flowerTypes.map((type) => `area-${type}`), `care-${state.plants[0]!.flower.id}`]);
+    expect(captionIds().filter(id=>!id?.startsWith("route-"))).toEqual(["title", ...flowerTypes.map((type) => `area-${type}`), `care-${state.plants[0]!.flower.id}`]);
     expect(scene.plantingLayout?.spots).toEqual(typeAreaLayout(state).spots);
     expect(scene.flowers[0]!.position).toEqual(scene.plantingLayout!.spots.find((spot) => spot.spot === 1)!.position);
     expect(screen.queryByRole("link", { name: /^rose/i })).toBeNull();
@@ -596,6 +596,7 @@ describe("GardenV2", () => {
       expect(captionIds()).toEqual(["title"]);
       await user.keyboard("{Escape}");
       expect(hearts()).toHaveLength(2);
+      act(() => worlds[0]!.callbacks.onFrame?.({ viewProjection: new Float32Array(16), width: 1280, height: 800, entryFade: 0, arrival: null, scenicReady: true }));
       // Planting an empty spot.
       act(() => worlds[0]!.callbacks.onPick({ kind: "spot", spot: -9, distance: 1 }));
       await screen.findByRole("dialog", { name: "plant a seed" }, { timeout: 3000 });
@@ -612,7 +613,7 @@ describe("GardenV2", () => {
       const state = mixed();
       for (const plant of state.plants) plant.member1_submitted = true;
       await mount(state);
-      expect(captionIds()).toEqual(["title", ...flowerTypes.map((type) => `area-${type}`)]);
+      expect(captionIds().filter(id=>!id?.startsWith("route-"))).toEqual(["title", ...flowerTypes.map((type) => `area-${type}`)]);
     });
   });
 
@@ -666,6 +667,11 @@ describe("GardenV2", () => {
       expect(worlds[0]!.states.at(-1)).toMatchObject({ paused: false, focus: { position: expect.any(Array) } });
       expect(seeds.deferred.at(-1)).toBeNull();
       act(() => seeds.requests[0]!.onStart?.());
+      // A seed hold still owns the camera; a click during it cannot open a new activity.
+      act(() => worlds[0]!.callbacks.onPick({ kind: "flower", id, distance: 1 }));
+      expect(screen.queryByRole("dialog")).toBeNull();
+      await act(async () => { await new Promise((resolve) => setTimeout(resolve, 1250)); });
+      act(() => worlds[0]!.callbacks.onFrame?.({ viewProjection: new Float32Array(16), width: 1280, height: 800, entryFade: 0, arrival: null, scenicReady: true }));
       // Reopening the painting shows the golden head directly.
       act(() => worlds[0]!.callbacks.onPick({ kind: "flower", id, distance: 1 }));
       await screen.findByRole("dialog", { name: "dandelion" });
@@ -740,4 +746,44 @@ describe("GardenV2", () => {
       expect(seeds.requests).toEqual([]);
     });
   });
+});
+
+it("selects scenic stops with persistent pointer/keyboard controls and supplies no free walking", async () => {
+  stubReducedMotion();
+  const state=v2GardenFixture();api.refreshGardenV2.mockResolvedValue({state,error:null});
+  render(<GardenV2 initial={{state,error:null}} />);await flush();
+  await act(async()=>worlds.at(-1)!.callbacks.onReady());await flush();
+  expect(worlds.at(-1)!.states.at(-1)!.walking).not.toBe(true);
+  expect(worlds.at(-1)!.states.at(-1)!.scenicRoute!.stops.length).toBeGreaterThanOrEqual(16);
+  expect(screen.queryByRole("group",{name:"Walk around the garden"})).not.toBeInTheDocument();
+  const route=screen.getByRole("navigation",{name:"Garden path"});
+  const user=userEvent.setup();
+  await user.click(within(route).getByRole("button",{name:/onward/i}));
+  expect(worlds.at(-1)!.states.at(-1)!.scenicStop).toBe("pocket:0:0");
+  await user.selectOptions(within(route).getByRole("combobox",{name:"Scenic stop"}),"house-rear");
+  expect(worlds.at(-1)!.states.at(-1)!.scenicStop).toBe("house-rear");
+  await user.click(within(route).getByRole("button",{name:/back/i}));
+  expect(worlds.at(-1)!.states.at(-1)!.scenicStop).toBe("pocket:12:0");
+  await user.click(screen.getByRole("link",{name:"settings"}));
+  expect(screen.queryByRole("navigation",{name:"Garden path"})).not.toBeInTheDocument();
+});
+
+it('blocks another plot activation during normal return, then accepts it when the renderer settles',async()=>{
+ vi.stubGlobal('matchMedia',(query:string)=>({matches:false,media:query,addEventListener:vi.fn(),removeEventListener:vi.fn()}));
+ await mount();const user=userEvent.setup();
+ await user.click(document.querySelector<HTMLButtonElement>('[data-plot-spot="1"]')!);await act(async()=>{await new Promise(resolve=>setTimeout(resolve,1000));});
+ expect(screen.getByRole('dialog',{name:'rose'})).toBeInTheDocument();
+ await user.keyboard('{Escape}');expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+ await user.click(document.querySelector<HTMLButtonElement>('[data-plot-spot="-1"]')!);
+ expect(worlds[0]!.states.at(-1)!.focus).toBeNull();
+ act(()=>worlds[0]!.callbacks.onFrame?.({viewProjection:new Float32Array(16),width:1280,height:800,entryFade:0,arrival:null,scenicReady:true}));
+ await user.click(document.querySelector<HTMLButtonElement>('[data-plot-spot="-1"]')!);
+ expect(worlds[0]!.states.at(-1)!.focus).not.toBeNull();
+});
+
+it('keeps accessible plot visits usable after closing while the world is still loading',async()=>{
+ vi.stubGlobal('matchMedia',(query:string)=>({matches:false,media:query,addEventListener:vi.fn(),removeEventListener:vi.fn()}));
+ const state=garden();api.refreshGardenV2.mockResolvedValue({state,error:null});render(<GardenV2 initial={{state,error:null}} />);await flush();await flush();const user=userEvent.setup();
+ await user.click(document.querySelector<HTMLButtonElement>('[data-plot-spot="1"]')!);await screen.findByRole('dialog',{name:'rose'});await user.keyboard('{Escape}');
+ await user.click(document.querySelector<HTMLButtonElement>('[data-plot-spot="-1"]')!);await screen.findByRole('dialog',{name:'plant a seed'});
 });

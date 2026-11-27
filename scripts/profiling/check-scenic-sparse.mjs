@@ -1,0 +1,16 @@
+/* global document,window,PointerEvent */
+import assert from 'node:assert/strict';
+import {readFileSync,mkdirSync,writeFileSync} from 'node:fs';
+import {resolve} from 'node:path';
+import process from 'node:process';
+import console from 'node:console';
+import {evidenceMetadata} from './scenic-evidence.mjs';
+import {installReadOnlyFixture} from './scenic-browser-fixture.mjs';
+const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright'),output=resolve(process.env.PROFILE_OUTPUT||'/tmp/ccapp-224-final-sparse'),base=process.env.BASE_URL||'http://localhost:3224';mkdirSync(output,{recursive:true});evidenceMetadata(output);
+const state=JSON.parse(readFileSync('scripts/profiling/fixtures/type-area-garden.json','utf8'));state.plants[0].flower.spot=12001;state.garden.next_spot=1;state.garden.spot_capacity=12012;
+const browser=await chromium.launch({executablePath:process.env.CHROMIUM_EXECUTABLE,headless:true,args:['--enable-unsafe-webgpu']}),observations=[];
+try{for(const [view,width,height]of [['desktop',1280,800],['portrait',390,844],['landscape',844,390],['narrow',800,600]]){
+ const context=await browser.newContext({viewport:{width,height},reducedMotion:'reduce'}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));await installReadOnlyFixture(page,base,state);await page.clock.setFixedTime('2026-06-22T02:52:00Z');
+ try{await page.goto(`${base}/dev/garden-areas?sparse=1`);await page.addStyleTag({content:'nextjs-portal{display:none!important}'});await page.locator('[data-garden-world][data-status="ready"]').waitFor({timeout:90000});const selector=page.getByRole('combobox',{name:'Scenic stop'});const count=await selector.locator('option').count();assert(count<60,'Sparse12001 must not allocate missing stops');
+ await selector.selectOption('pocket:0:1000');await page.waitForTimeout(200);await page.screenshot({path:resolve(output,`${view}-sparse12001.png`)});const target=await page.evaluate(()=>{const canvas=document.querySelector('canvas');for(let y=window.innerHeight*.2;y<window.innerHeight*.84;y+=8)for(let x=window.innerWidth*.08;x<window.innerWidth*.92;x+=8){if(document.elementFromPoint(x,y)!==canvas)continue;canvas.dispatchEvent(new PointerEvent('pointermove',{clientX:x,clientY:y}));if(canvas.style.cursor==='pointer')return{x,y};}return null;});assert(target,'Sparse original flower has a real canvas pick');await page.mouse.click(target.x,target.y);await page.getByRole('dialog',{name:'rose',exact:true}).waitFor();await page.keyboard.press('Escape');await selector.waitFor();await page.waitForTimeout(150);await page.locator('[data-plot-spot="12001"]').focus();await page.keyboard.press('Enter');await page.getByRole('dialog',{name:'rose',exact:true}).waitFor();await page.keyboard.press('Escape');await selector.waitFor();assert.equal(await selector.inputValue(),'pocket:0:1000');await selector.selectOption('overview:0');await page.waitForTimeout(150);assert.deepEqual(errors,[]);observations.push({view,width,height,originalUuid:state.plants[0].flower.id,originalAddress:12001,stopCount:count,returnToSparse:true,actualCanvasPick:true,accessiblePlotVisit:true,errors});writeFileSync(resolve(output,'observations.json'),JSON.stringify(observations,null,2));console.log(view,'sparse passed');}finally{await context.close();}
+}}finally{await browser.close();}
