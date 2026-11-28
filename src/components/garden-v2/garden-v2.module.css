@@ -1594,7 +1594,7 @@
 .tourScroll::-webkit-scrollbar { display:none; }
 .tourScroll:focus-visible { outline:3px solid #fff3d1; outline-offset:-4px; }
 .pinnedWorld { position:sticky; top:0; height:100dvh; min-height:0; }
-.flowerPicker { position:absolute; z-index:12; right:max(.6rem,env(safe-area-inset-right)); top:calc(50% - 1.6rem); }
+.flowerPicker { position:absolute; z-index:12; right:max(.6rem,env(safe-area-inset-right)); bottom:max(1rem,env(safe-area-inset-bottom)); }
 .pickerTab { position:relative; z-index:2; min-width:48px; min-height:52px; border:1px solid #f6e5bf88; border-radius:1.2rem 0 0 1.2rem; background:#efe5cde8; color:#433624; font-size:1.8rem; box-shadow:0 3px 16px #1b241e44; cursor:pointer; }
 .pickerBackdrop { position:fixed; inset:0; border:0; background:#18211924; }
 .pickerPanel { position:fixed; z-index:3; right:max(.6rem,env(safe-area-inset-right)); top:max(4.5rem,calc(env(safe-area-inset-top) + 4rem)); bottom:max(.6rem,env(safe-area-inset-bottom)); width:min(18rem,calc(100vw - 4.5rem)); overflow-y:auto; overscroll-behavior:contain; touch-action:pan-y; padding:.6rem; background:#eee4ceeF; border:1px solid #fff3d588; border-radius:1.3rem; box-shadow:0 8px 40px #17221977; }

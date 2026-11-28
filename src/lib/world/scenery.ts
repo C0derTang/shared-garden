@@ -8,10 +8,10 @@
 
 import { hexToLinear } from "./sky-palette";
 import {
-  BED_RADIUS,
   CAMERA_HOME,
   WATER_LEVEL,
   bedAt,
+  BED_RADIUS,
   bedRimRadius,
   bedTerrainHeight,
   distanceToBeds,
@@ -395,7 +395,7 @@ export function buildMeadowStrokes(bedCount: number | readonly Bed[]): Stroke[] 
 
   // Raked soil in every open bed: concentric dabs of umber.
   for (const bed of beds) {
-    for (let r = 0.08; r < BED_RADIUS * 0.98; r += 0.1 + random() * 0.03) {
+    for (let r = 0.08; r < (bed.terrace?bed.radius:BED_RADIUS) * 0.98; r += 0.1 + random() * 0.03) {
       const steps = Math.max(5, Math.round((Math.PI * 2 * r) / 0.15));
       const offset = random() * Math.PI * 2;
       for (let s = 0; s < steps; s += 1) {
@@ -495,19 +495,21 @@ export function buildBedMesh(bedCount: number | readonly Bed[]): MeshData {
   const beds = typeof bedCount === "number" ? Array.from({ length: bedCount }, (_, i) => bedAt(i)) : bedCount;
   for (const bed of beds) {
     const b = bed.index;
-    const first = vertices.length / BED_STRIDE;
-    vertices.push(bed.center[0], bed.center[1] + 0.005, bed.center[2], 0, 1, 0, 0, 0, b);
-    for (let s = 0; s < segments; s += 1) {
-      const angle = (s / segments) * Math.PI * 2;
-      const lx = Math.cos(angle);
-      const lz = Math.sin(angle);
-      const rim = bedRimRadius(bed, angle);
-      const x = bed.center[0] + lx * rim;
-      const z = bed.center[2] + lz * rim;
-      vertices.push(x, bedTerrainHeight(bed,x,z) + 0.005, z, 0, 1, 0, lx, lz, b);
+    const first = vertices.length / BED_STRIDE,soilLift=bed.terrace?.008:.005;
+    vertices.push(bed.center[0], bed.center[1] + soilLift, bed.center[2], 0, 1, 0, 0, 0, b);
+    // New soil follows the original site's non-planar rendered facets throughout
+    // its interior. A single rim fan can sink below the bank between vertices.
+    const rings=bed.terrace?18:1;
+    for(let ring=1;ring<=rings;ring++)for (let s = 0; s < segments; s += 1) {
+      const angle = (s / segments) * Math.PI * 2, fraction=ring/rings;
+      const lx = Math.cos(angle),lz = Math.sin(angle),rim = bedRimRadius(bed, angle);
+      const x = bed.center[0] + lx * rim*fraction,z = bed.center[2] + lz * rim*fraction;
+      vertices.push(x, bedTerrainHeight(bed,x,z) + soilLift, z, 0, 1, 0, lx*fraction, lz*fraction, b);
     }
-    for (let s = 0; s < segments; s += 1) {
-      indices.push(first, first + 1 + ((s + 1) % segments), first + 1 + s);
+    for (let s = 0; s < segments; s += 1)indices.push(first, first + 1 + ((s + 1) % segments), first + 1 + s);
+    for(let ring=1;ring<rings;ring++)for(let s=0;s<segments;s++){
+      const a=first+1+(ring-1)*segments+s,b=first+1+(ring-1)*segments+(s+1)%segments,c=first+1+ring*segments+s,d=first+1+ring*segments+(s+1)%segments;
+      indices.push(a,b,c,b,d,c);
     }
   }
   return { vertices: new Float32Array(vertices), indices: new Uint32Array(indices), stride: BED_STRIDE };

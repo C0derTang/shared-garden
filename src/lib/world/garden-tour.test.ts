@@ -35,7 +35,7 @@ it('preserves every surviving edge and interior rendered pose/lens across first 
 it('replaces only explicitly named shortcut or extent-specific turn legs',()=>{
  const state=fullTourFixture();let before=gardenTour(compactAreaLayout(state).beds);
  for(const [count,removedIds] of [
-  [1,['tour:terrace:4:terrace:1']],
+  [1,['tour:terrace:1:end']],
   [6,['tour:terrace:13:expansion-turn:terrace:13','tour:expansion-turn:terrace:13:return:terrace:13']],
   [6,['tour:terrace:26:expansion-turn:terrace:26','tour:expansion-turn:terrace:26:return:terrace:26']],
  ] as const){
@@ -83,4 +83,8 @@ it('retains surviving curves on either boundary side and chooses the closest sta
   }
   before=after;
  }
+});
+it('changes the actual lens continuously through short/tall and overlook framing transitions at every aspect',()=>{
+ const tour=gardenTour(compactAreaLayout(fullTourFixture()).beds);
+ for(const aspect of[1280/800,390/844,844/390,800/600]){let previous=tourFovY(tourPose(tour,0),aspect);for(let d=.01;d<tour.length;d+=.01){const lens=tourFovY(tourPose(tour,d),aspect);expect(Math.abs(lens-previous),`actual lens at${d},aspect${aspect}`).toBeLessThan(.015);previous=lens;}}
 });

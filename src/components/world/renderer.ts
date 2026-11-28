@@ -1,3 +1,4 @@
+import {scenicWaterExtent} from '@/lib/world/scenic-water';
 import { buildSiteCasterStrokes } from '@/lib/world/site-woodland';
 import { tourPose, tourFovY, type GardenTour } from '@/lib/world/garden-tour';
 import { createScenicNavigator, scenicPose, scenicFovY, type ScenicRoute } from "@/lib/world/scenic-route";
@@ -197,8 +198,8 @@ function meshGeometry(gpu: Gpu, mesh: MeshData, attributes: Record<string, GPUVe
 
 const HOUSE_ATTRIBUTES = { position: "float32x3", normal: "float32x3", uv: "float32x2", material: "float32" } as const;
 
-function waterGeometry(gpu: Gpu, composition: WorldComposition): Geometry {
-  const e = composition === "landing" ? LANDING_WATER_EXTENT : { minX: -260, maxX: 260, minZ: -160, maxZ: 6 };
+function waterGeometry(gpu: Gpu, composition: WorldComposition, route?: ScenicRoute): Geometry {
+  const e = route ? scenicWaterExtent(route) : composition === "landing" ? LANDING_WATER_EXTENT : { minX: -260, maxX: 260, minZ: -160, maxZ: 6 };
   const vertices = new Float32Array([e.minX, 0, e.maxZ, e.maxX, 0, e.maxZ, e.maxX, 0, e.minZ, e.minX, 0, e.minZ]);
   return geometry(gpu, {
     label: "garden-world.water",
@@ -478,7 +479,9 @@ export function createWorldRenderer(
       label: "garden-world.rocks",
       set: shadowBindings,
     });
-    const water = draw(gpu, { shader: waterShader, geometry: waterGeometry(gpu, scenic ? "landing" : composition), label: "garden-world.water" });
+    let waterMesh=waterGeometry(gpu,scenic?"landing":composition,scenic?state.scenicRoute:undefined);
+    let water = draw(gpu, { shader: waterShader, geometry: waterMesh, label: "garden-world.water" });
+    const bindWater=()=>{const[w,h]=full();water.set({reflection:mirror,reflectionSampler:linear,water:{texel:[1/w,1/h],distortion:.12,shore:landing||scenic?1:0}});};
     const motes = draw(gpu, {
       shader: motesShader,
       vertices: 6,
@@ -538,6 +541,10 @@ export function createWorldRenderer(
         groundGeometry.destroy();
         groundGeometry = meshGeometry(gpu!, scenic && state.scenicRoute ? buildScenicGroundMesh(state.scenicRoute,bedLayout) : buildGroundMesh(groundExtent), GROUND_ATTRIBUTES, "garden-world.ground");
         ground = draw(gpu!, { shader: groundShader, geometry: groundGeometry, label: "garden-world.ground", set: shadowBindings });
+      }
+      if(scenic&&state.scenicRoute){
+        water.dispose();waterMesh.destroy();waterMesh=waterGeometry(gpu!,"landing",state.scenicRoute);
+        water=draw(gpu!,{shader:waterShader,geometry:waterMesh,label:"garden-world.water"});bindWater();
       }
       meadow?.dispose();
       beds?.dispose();
@@ -606,7 +613,7 @@ export function createWorldRenderer(
     const bind = () => {
       const [w, h] = scene.size;
       const [hw, hh] = glowA.size;
-      water.set({ reflection: mirror, reflectionSampler: linear, water: { texel: [1 / w, 1 / h], distortion: 0.12, shore: landing || scenic ? 1 : 0 } });
+      bindWater();
       bright.set({ source: scene, sourceSampler: linear, params: { texel: [1 / w, 1 / h], threshold: 1.1, knee: 0.5 } });
       blurH.set({ source: glowA, sourceSampler: linear, params: { direction: [1.6 / hw, 0], pad: [0, 0] } });
       blurV.set({ source: glowB, sourceSampler: linear, params: { direction: [0, 1.6 / hh], pad: [0, 0] } });

@@ -66,7 +66,7 @@ function useWorldFlowers(state: GardenState | null, layout: TypeAreaLayout | nul
   return { flowers, anchors };
 }
 
-const TITLE: readonly WorldCaption[] = [{ id: "title", text: "our garden", position: [0, 7, -62], size: "title" }];
+const TITLE: readonly WorldCaption[] = [{ id: "title", text: "our garden", maxDistance: 14, position: [0, 7, -62], size: "title" }];
 /** How far above the top of a flower (or a sprout's shoot) its "♡" floats, in world units (#214). */
 export const HEART_LIFT = 0.02;
 
@@ -79,7 +79,7 @@ export function careHearts(waiting: readonly Plant[], anchors: readonly FlowerAn
     const anchor = anchors.find((candidate) => candidate.id === plant.flower.id);
     if (!anchor) return [];
     const [x, y, z] = anchor.position;
-    return [{ id: `care-${plant.flower.id}`, text: "♡", size: "mark", position: [x, y + (anchor.height ?? DEFAULT_FLOWER_HEIGHT) + HEART_LIFT, z] }];
+    return [{ id: `care-${plant.flower.id}`, text: "♡", size: "mark", maxDistance: 6, position: [x, y + (anchor.height ?? DEFAULT_FLOWER_HEIGHT) + HEART_LIFT, z] }];
   });
 }
 
@@ -357,7 +357,7 @@ export function GardenV2({
   const captions = useMemo<readonly WorldCaption[]>(() => {
     if (covered || focus !== null) return TITLE;
     const hearts = careHearts(waiting, anchors);
-    const areas = layout?.areas.map((area): WorldCaption => ({ id: `area-${area.type}`, text: area.name, size: "label", maxDistance: 14, position: areaLabelPosition(area), onSelect: () => pickSpot(area.target.spot) })) ?? [];
+    const areas = layout?.areas.map((area): WorldCaption => ({ id: `area-${area.type}`, text: area.name, size: "label", maxDistance: 5.5, position: areaLabelPosition(area), onSelect: () => pickSpot(area.target.spot) })) ?? [];
     return [...TITLE, ...areas, ...hearts];
   }, [waiting, anchors, covered, focus, layout, pickSpot]);
 
@@ -390,7 +390,7 @@ export function GardenV2({
       onKeyDown={() => setWandered(true)}
     >
       <h1 className={styles.srOnly}>Our garden</h1>
-      <div ref={scrollRef} className={styles.tourScroll} data-garden-scroll="" data-distance={tourDistance.toFixed(4)}
+      <div ref={scrollRef} className={styles.tourScroll} data-garden-scroll="" data-distance={tourDistance}
         style={{overflowY:navigationBlocked || pickerOpen ? "hidden":"auto"}}
         tabIndex={0} aria-label="Scroll through the garden"
         onWheelCapture={interruptScrollGlide}
