@@ -61,6 +61,8 @@ export interface GardenWorldProps {
   readonly notice?: (status: "unsupported" | "stopped") => ReactNode;
   /** Number of planting spots to show (rounded up to whole beds of twelve). */
   readonly spotCapacity?: number;
+  /** Empty marker drawing/picking; default keeps shared/legacy consumers unchanged. */
+  readonly plantingTargets?: boolean;
   /** New garden: authoritative type-area geometry and pick positions. */
   readonly plantingLayout?: { readonly beds: readonly Bed[]; readonly spots: readonly PlantingSpot[]; readonly maxZ: number };
   /** One-based spots that already hold a flower; they get no empty marker. */
@@ -143,6 +145,7 @@ export function GardenWorld({
   notice,
   spotCapacity = SPOTS_PER_BED,
   plantingLayout,
+  plantingTargets = true,
   occupiedSpots = EMPTY,
   flowers = EMPTY,
   layers = EMPTY,
@@ -206,6 +209,7 @@ export function GardenWorld({
     entering,
     spotCapacity,
     plantingLayout,
+    plantingTargets,
     occupiedSpots,
     flowers,
     layers,
@@ -237,7 +241,7 @@ export function GardenWorld({
     rendererRef.current?.update(sceneState);
     // sceneState is rebuilt from these inputs every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [spotCapacity, plantingLayout, occupiedSpots, flowers, layers, timeValue, reducedMotion, doorInvite, entering, focus, paused, walking, walkingBlocked, scenicRoute, tour, tourDistance, scenicStop, scenicBlocked, arrival]);
+  }, [spotCapacity, plantingLayout, plantingTargets, occupiedSpots, flowers, layers, timeValue, reducedMotion, doorInvite, entering, focus, paused, walking, walkingBlocked, scenicRoute, tour, tourDistance, scenicStop, scenicBlocked, arrival]);
 
   useEffect(() => {
     const canvas = canvasRef.current;

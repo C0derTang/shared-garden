@@ -107,6 +107,8 @@ export interface WorldSceneState {
   /** Landing: play the walk-through into the house (once set, it runs to the end). */
   readonly entering?: boolean;
   readonly spotCapacity: number;
+  /** Empty marker drawing and picking only; defaults to enabled. */
+  readonly plantingTargets?: boolean;
   readonly plantingLayout?: { readonly beds: readonly Bed[]; readonly spots: readonly PlantingSpot[]; readonly maxZ: number };
   readonly occupiedSpots: readonly number[];
   readonly flowers: readonly FlowerAnchor[];
@@ -264,6 +266,7 @@ export function createWorldRenderer(
   let cameraReady = false;
 
   const emptySpotTargets = () => {
+    if (state.plantingTargets === false) return [];
     const occupied = new Set(state.occupiedSpots);
     return (state.plantingLayout?.spots ?? layoutPlantingSpots(state.spotCapacity))
       .filter((spot) => !occupied.has(spot.spot))

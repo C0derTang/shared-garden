@@ -1628,3 +1628,7 @@
 .invitation:focus-visible { outline: 2px solid #fff7e4; outline-offset: 3px; border-radius: .3rem; }
 .invitation:disabled { cursor: wait; opacity: .65; }
 .pickerPanel button[aria-current="location"] { background: #fff7e1; box-shadow: inset 0 0 0 1px #7a8654; }
+
+/* The shovel sits above the separate flower-navigation tab. */
+.plantTrigger { position:absolute; z-index:13; right:max(.6rem,env(safe-area-inset-right)); bottom:calc(max(1rem,env(safe-area-inset-bottom)) + 60px); }
+.plantTrigger button { display:grid; place-items:center; width:48px; padding:6px; }

@@ -27,13 +27,12 @@ const ABOUT: Record<FlowerType, string> = {
 };
 
 /**
- * Planting on an empty spot: any of the 13 flowers, any number of each. The
+ * Planting from the shovel: any of the 13 flowers, any number of each. The
  * selected flower is painted on the left as it will look in bloom (each real
  * seed grows its own way). A Dandelion asks for its shared wish first.
  */
 export function PlantView({
-  spot,
-  initialType = "rose",
+  open,
   state,
   busy,
   mutate,
@@ -41,8 +40,7 @@ export function PlantView({
   onPlanted,
   onReturnFocus,
 }: {
-  spot: number | null;
-  initialType?: FlowerType;
+  open: boolean;
   state: GardenState;
   busy: boolean;
   mutate: MutateV2;
@@ -52,7 +50,9 @@ export function PlantView({
   onReturnFocus?: () => void;
 }) {
   const id = useId();
-  const [type, setType] = useState<FlowerType>(initialType);
+  const spot = state.garden.next_spot;
+  const validSpot = Number.isSafeInteger(spot) && spot > 0;
+  const [type, setType] = useState<FlowerType>("rose");
   const [wish, setWish] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -62,7 +62,7 @@ export function PlantView({
 
   async function plant(event: FormEvent) {
     event.preventDefault();
-    if (spot === null || !wishValid || lock.current || busy) return;
+    if (!open || !validSpot || !wishValid || lock.current || busy) return;
     lock.current = true;
     setPending(true);
     setError(null);
@@ -81,7 +81,7 @@ export function PlantView({
   const name = (item?.display_name ?? type).toLowerCase();
   return (
     <SplitView
-      open={spot !== null}
+      open={open}
       onClose={onClose}
       spec={{ type, seed: previewSeed(type), growth: 1 }}
       heroLabel={`A ${name} in bloom, as this seed could grow`}
@@ -141,7 +141,7 @@ export function PlantView({
           </p>
         )}
         <div className={styles.actions}>
-          <button type="submit" className={styles.primary} disabled={spot === null || !wishValid || busy || pending}>
+          <button type="submit" className={styles.primary} disabled={!validSpot || !wishValid || busy || pending}>
             {pending ? "planting…" : `plant the ${name}`}
           </button>
         </div>
