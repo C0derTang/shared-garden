@@ -397,6 +397,71 @@ describe("GardenV2", () => {
     expect(screen.getByText("The dandelion is planted.")).toBeInTheDocument();
   });
 
+  it.each(["close only", "newer flower"] as const)("applies a delayed planted state without taking over after %s", async (next) => {
+    const user = userEvent.setup();
+    const { state } = await mount();
+    let finish!: (result: { state: GardenState; saved: true; error: null }) => void;
+    api.mutateGardenV2.mockImplementation(() => new Promise(resolve => { finish = resolve; }));
+    await user.click(document.querySelector<HTMLButtonElement>('[data-plot-spot="-1"]')!);
+    const planting = screen.getByRole("dialog", { name: "plant a seed" });
+    await user.click(within(planting).getByRole("radio", { name: /^tulip/ }));
+    await user.click(within(planting).getByRole("button", { name: "plant the tulip" }));
+    expect(api.mutateGardenV2).toHaveBeenCalledWith({ kind: "plant", type: "tulip", spot: 2 });
+    await user.keyboard("{Escape}");
+    if (next === "newer flower") {
+      await user.click(document.querySelector<HTMLButtonElement>('[data-plot-spot="1"]')!);
+      await user.type(screen.getByRole("textbox"), "Newer intentional rose draft");
+    }
+    const before = worlds[0]!.states.at(-1)!;
+    const planted = structuredClone(state);
+    planted.plants.push({ ...structuredClone(state.plants[0]!), entries: [], member1_submitted: false, member2_submitted: false, flower: { ...state.plants[0]!.flower, id: "00000000-0000-4000-8000-000000000002", spot: 2, type_key: "tulip", planted_at: state.server_now } });
+    planted.garden.next_spot = 3;
+    api.refreshGardenV2.mockResolvedValue({ state: planted, error: null });
+    await act(async () => finish({ state: planted, saved: true, error: null }));
+    await flush();
+    // The real save is retained; only the stale view continuation is canceled.
+    expect(worlds[0]!.states.at(-1)!.flowers.map(flower => flower.id)).toContain("00000000-0000-4000-8000-000000000002");
+    expect(api.mutateGardenV2).toHaveBeenCalledTimes(1);
+    expect(worlds[0]!.states.at(-1)!.tourDistance).toBe(before.tourDistance);
+    expect(worlds[0]!.states.at(-1)!.focus).toEqual(before.focus);
+    if (next === "close only") {
+      expect(screen.queryByRole("dialog")).toBeNull();
+      expect(window.location.search).toBe("");
+    } else {
+      expect(screen.getByRole("dialog", { name: "rose" })).toBeInTheDocument();
+      expect(screen.getByRole("textbox")).toHaveValue("Newer intentional rose draft");
+      expect(screen.getByRole("textbox")).toHaveFocus();
+      expect(window.location.search).toBe(`?flower=${state.plants[0]!.flower.id}`);
+    }
+  });
+
+  it("discards a queued planted-flower visit when a newer activity opens before its state refresh", async () => {
+    const user = userEvent.setup();
+    const { state } = await mount();
+    let deliver!: (result: { state: GardenState; error: null }) => void;
+    api.refreshGardenV2.mockImplementation(() => new Promise(resolve => { deliver = resolve; }));
+    // The write succeeded, but its follow-up read is still in flight.
+    api.mutateGardenV2.mockResolvedValue({ state: null, saved: true, error: null });
+    await user.click(document.querySelector<HTMLButtonElement>('[data-plot-spot="-1"]')!);
+    const planting = screen.getByRole("dialog", { name: "plant a seed" });
+    await user.click(within(planting).getByRole("radio", { name: /^tulip/ }));
+    await user.click(within(planting).getByRole("button", { name: "plant the tulip" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+    await user.click(document.querySelector<HTMLButtonElement>('[data-plot-spot="1"]')!);
+    await user.type(screen.getByRole("textbox"), "A draft newer than the queued visit");
+    const planted = structuredClone(state);
+    planted.plants.push({ ...structuredClone(state.plants[0]!), entries: [], flower: { ...state.plants[0]!.flower, id: "00000000-0000-4000-8000-000000000002", spot: 2, type_key: "tulip" } });
+    planted.garden.next_spot = 3;
+    await act(async () => deliver({ state: planted, error: null }));
+    await flush();
+    expect(worlds[0]!.states.at(-1)!.flowers.map(flower => flower.id)).toContain("00000000-0000-4000-8000-000000000002");
+    expect(screen.getByRole("dialog", { name: "rose" })).toBeInTheDocument();
+    expect(screen.getByRole("textbox")).toHaveValue("A draft newer than the queued visit");
+    expect(screen.getByRole("textbox")).toHaveFocus();
+    expect(window.location.search).toBe(`?flower=${state.plants[0]!.flower.id}`);
+    expect(api.mutateGardenV2).toHaveBeenCalledTimes(1);
+  });
+
   it("opens sparse grouped flowers by their original identity and reads their existing history", async () => {
     const user = userEvent.setup();
     const state = garden();

@@ -444,5 +444,28 @@
     "src/test/ground-sampler-equivalence.test.ts:5:import {groundSampler,meshClearanceQuery,type ClearanceAudit} from './ground-sampler';"
   ],
   "productionFileSetExact": true,
-  "newProductionFilesAfter233": []
+  "newProductionFilesAfter233": [],
+  "earlierBridgeAppliesToHead": "8c9fcd198054c4ad519b16f03bb371b8a34bc8b5",
+  "currentCorrection": {
+    "reason": "Independent P1 review reproduced late planting completion replacing a newer Rose draft. Current intent ownership cancels obsolete planting UI continuations, preserves real saved state, and keeps uninterrupted success navigation.",
+    "earlierFrozenProductionFiles": 312,
+    "unchangedFrozenProductionFiles": 311,
+    "changedProductionFiles": [
+      "src/components/garden-v2/garden-v2.tsx"
+    ],
+    "actualProductionFileSetUnchanged": true,
+    "productionSourceSha256": "68788d9b969dcc7b159e884f285a6dae888e15f2d4220621ff40728b73065434",
+    "broadNonTestSrcSha256": "063d55f21436924d20c20c932a4142ddd24aec9b4469f2b099c5ffc2670660d0",
+    "deltaFromEarlierFrozenSnapshot": {
+      "src/components/garden-v2/garden-v2.tsx": {
+        "earlier": "9245f8a56f043c9d58a3c9d18fbbdf67925b057502389eeb5829e007eceb51cc",
+        "corrected": "795d045da8e1d2fe4ce87ede4a2f4b169ff96809f12fc07e695bceefc31ebeb9"
+      },
+      "src/test/ground-sampler.ts": {
+        "earlier": "b9b3057a7aa9b1ec7e0e8983f179611311a7c8cb07bd767d1f7e34837e8b4146",
+        "corrected": "edb90d2be6be9b4f763d0e4fd0565d99605e7c36d7fa3b2b566ede42d8189da5"
+      }
+    },
+    "qualifiedReuse": "Earlier 312-file equality applies to the rejected 8c9 candidate, not this correction. All 417 unchanged prerequisite input hashes below still match. World/renderer/geometry/camera/model/house/shader/backend/dependency inputs remain exact; fresh post-correction direct/forms/focus/held/pre-device/seed/placement and delayed-response checks cover the changed UI. Original metadata is retained without relabeling."
+  }
 }

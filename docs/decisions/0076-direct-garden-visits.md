@@ -41,7 +41,8 @@ Test-only prerequisite #233 is merged at `1db0a7e9b2ef858501946077585a74353d5c69
 Its ground-sampler helper changes the existing metadata tool's broad source scan,
 which includes test support despite its runtime-hash field name. Original capture
 hashes remain untouched. The [input bridge](../evidence/0230-production-inputs.json)
-proves all 312 actual production source files still match the frozen issue 230 capture;
+recorded that all 312 actual production source files matched the frozen capture
+at the subsequently rejected `8c9fcd1` head;
 417 of the earlier 418 unchanged inputs remain identical, with the sole test-only
 delta explicitly recorded.
 
@@ -54,9 +55,42 @@ hearts, global chrome and the picker tab. Forced suppression/recovery works in
 all eight contexts; all eight correct-UUID physical flower forms remain reachable.
 No overlap or aesthetic change is forced to keep a note visible.
 
-Final lint, types, build, 55 Node checks and production-mode seven-fixture404 checks
-pass. The full Mac web run passes 1,510 tests with the six known audio decoder
+The rejected `8c9fcd1` candidate passed lint, types, build, 55 Node checks and
+production-mode seven-fixture404 checks. Its full Mac web run passed 1,510 tests with the six known audio decoder
 failures and three existing skips recorded explicitly; complete Linux Web and
 all required current-head CI remain merge gates. Fresh independent exact-head
 review and safe merge/cleanup belong to the orchestrator. No builder
 self-approval or merge is implied.
+
+## Independent review correction: delayed planting ownership
+
+Review of candidate `8c9fcd1` reproduced a late planting-save response replacing
+a newer physically selected Rose and destroying its typed draft. The save itself
+is valid; its asynchronous UI continuation was unowned. Within the existing
+newer-intent requirement, an initiating intent now owns the planting view and
+any queued post-save visit. Explicit close revokes that ownership, as does a
+new flower, planting or overlay intent. A late save still updates the real
+garden state and existing planted announcement, but cannot reopen a canceled
+view, replace a newer draft, move its camera, change its URL or steal focus.
+An uninterrupted successful planting still opens its new flower normally.
+
+Original capture metadata and the rejected-head finding remain preserved. The
+post-correction source bridge records the additional GardenV2 UI-file delta:
+311 of 312 frozen production files remain identical, along with all 417 prior
+core inputs. It does not claim the corrected UI file matched earlier captures. Relevant direct/form/focus/held-frame/pre-device/seed/reservation
+checks and the actual delayed-response regression are rerun for the correction;
+unchanged geometry, models, house and shaders retain their qualified prior proof.
+
+
+Corrected-candidate validation passes lint, types, build and all 55 Node checks.
+The full Mac web run passes 1,513 tests, with only the same six known audio
+failures and three existing skips (1,522 total). All seven actual production-mode
+fixture variants return 404 without fixture state. Fresh corrected browser runs
+cover all 52 forms, 48 invitation labels, 32 long-note/native views, pre-device
+and held frames, exact return, normal/reduced seed holds and shared refresh.
+Six additional desktop-normal/portrait-reduced delayed-save controls retain the
+saved plant while preserving the fully visible newer Rose draft, keep close-only
+completion closed, and preserve uninterrupted successful planting navigation.
+The before draft is captured only after natural CSS animation completion; no
+animation is forced or advanced. Current-head Linux CI and a new independent
+review remain required before merge.

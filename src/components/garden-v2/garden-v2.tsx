@@ -49,7 +49,7 @@ export const GARDEN_PATH = "/garden";
 const flowerHref = (id: string) => `${GARDEN_PATH}?flower=${encodeURIComponent(id)}`;
 const themeStyle = { "--hand": handFont.style.fontFamily } as CSSProperties;
 
-type Mode = { kind: "idle" } | { kind: "flower"; id: string } | { kind: "plant"; spot: number; type: FlowerType };
+type Mode = { kind: "idle" } | { kind: "flower"; id: string } | { kind: "plant"; spot: number; type: FlowerType; intent: number };
 
 function useWorldFlowers(state: GardenState | null, layout: TypeAreaLayout | null) {
   const flowers = useMemo<WorldFlower[]>(
@@ -126,7 +126,7 @@ export function GardenV2({
   /** The flower the camera is gliding to or showing in its painting (its seeds wait for the painting). */
   const [visiting, setVisiting] = useState<string | null>(null);
   const timer = useRef<number | undefined>(undefined);
-  const visitSpot = useRef<number | null>(null);
+  const visitSpot = useRef<{ spot: number; intent: number } | null>(null);
   const updateWorldStatus=useCallback((status:WorldStatus)=>{if(status!=="ready")interruptScrollGlide();setWorldStatus(status);},[interruptScrollGlide]);
   // Where focus returns when a view closes (#210): the hidden plot that opened it, else the world.
   const returnSpot = useRef<number | null>(null);
@@ -242,11 +242,13 @@ export function GardenV2({
     (spot: number) => {
       const area = layout?.areas.find((candidate) => candidate.target.spot === spot);
       if (!area) return;
-      intent.current += 1;
+      const owner = ++intent.current;
       setMode({ kind: "idle" });
       setVisiting(null);
       setWandered(true);
-      glide({ position: area.target.position, height: 0.7 }, () => setMode({ kind: "plant", spot: area.target.persistedSpot, type: area.type }));
+      glide({ position: area.target.position, height: 0.7 }, () => {
+        if (intent.current === owner) setMode({ kind: "plant", spot: area.target.persistedSpot, type: area.type, intent: owner });
+      });
     },
     [glide, layout],
   );
@@ -272,7 +274,8 @@ export function GardenV2({
 
   const { awaitsWorld } = seedBlows;
   const close = useCallback(() => {
-    closedIntent.current = intent.current;
+    closedIntent.current = ++intent.current;
+    visitSpot.current = null;
     window.clearTimeout(timer.current);
     const closing = visiting;
     seedHolding.current = closing !== null && awaitsWorld(closing);
@@ -299,10 +302,14 @@ export function GardenV2({
     visit(id, true);
   }, [anchors, visit]);
 
-  // After planting, glide to the new flower so today's care is one tap away.
+  // A successful active planting opens its flower; canceled/older intents cannot.
   useEffect(() => {
-    const spot = visitSpot.current;
-    const planted = spot === null ? undefined : state?.plants.find((plant) => plant.flower.spot === spot);
+    const pending = visitSpot.current;
+    if (pending && pending.intent !== intent.current) {
+      visitSpot.current = null;
+      return;
+    }
+    const planted = pending === null ? undefined : state?.plants.find((plant) => plant.flower.spot === pending.spot);
     if (!planted || !anchors.some((anchor) => anchor.id === planted.flower.id)) return;
     visitSpot.current = null;
     visit(planted.flower.id);
@@ -415,6 +422,7 @@ export function GardenV2({
   const openPlant = mode.kind === "flower" ? state.plants.find((plant) => plant.flower.id === mode.id) : undefined;
   const openItem = openPlant ? catalogItem(state, openPlant.flower.type_key) : undefined;
   const openName = openPlant ? captionName(openItem, openPlant.flower.type_key) : "";
+  const plantingIntent = mode.kind === "plant" ? mode.intent : null;
 
   return (
     <main
@@ -563,8 +571,9 @@ export function GardenV2({
           const planted = result.state?.plants.find((plant) => plant.flower.spot === spot);
           const name = planted ? captionName(catalogItem(result.state!, planted.flower.type_key), planted.flower.type_key) : "flower";
           setAnnouncement(`The ${name} is planted.`);
+          if (plantingIntent === null || plantingIntent !== intent.current) return;
           setMode({ kind: "idle" });
-          visitSpot.current = spot;
+          visitSpot.current = { spot, intent: plantingIntent };
         }}
       />
       <ArrivalLight phase={arrival.phase} lightRef={arrival.lightRef} />
