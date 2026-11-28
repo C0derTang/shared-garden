@@ -187,3 +187,31 @@ These are current-state growth comparisons, not before/after identity claims.
 The orchestrator inspected all four. Raw stage-specific images, actual fixture
 states and per-file source manifests remain separate; the sanitized ledger
 records their hashes and the intended camera/source deltas.
+
+## Cross-platform exact-baseline correction
+
+Required Linux Web CI at initial head262c550 rejected one new test: a frozen
+Mac leg scroll-length value106.3387958941401 differed from Linux's value
+106.33879589414012 by one ULP. The original physical controls/route are unchanged;
+strict equality against a different platform's libm output was the wrong oracle.
+The independent review requested correction rather than accepting a tolerance.
+
+The original pre-edit Mac JSON remains untouched as capture history and fixed
+sample-distance inputs. Live expected values now execute exact original057ec685
+garden-tour source on the test platform. The committed non-executing source
+fixture has original SHA2569c64dda0aa2b71cb560c304b8515ced44608a90d48e8b9e572250b80cd14b4fc
+and Git bloba680edc53620573191215c77cb6045c641cc019a. Tests guard these bytes,
+unchanged geographic/bank dependencies, shared compiled route runtime, original
+mature-envelope constants and the same bank-frame function. All original four
+layout cases, sample inputs and eight camera tests remain; route/leg/control/
+length/anchor/access/eyeXZ/lens comparisons stay exact, with additional exact
+forward and reverse native-mapping comparisons. No golden is regenerated from
+the candidate and no tolerance, fixture count or timeout is relaxed.
+
+This correction changes one test file, its immutable source fixture and
+documentation only. Every broad runtime byte remains identical at7903598e.
+The original262c550 all519-source capture bridge stays historical; the corrected
+head differs in exactly one captured test source and retains the other518src
+files exactly. Captures are qualified by unchanged runtime/production bytes,
+not relabeled as identical new test bytes. Fresh exact-head CI and independent
+review are required.

@@ -397,5 +397,21 @@
     "package-lock.json": "b4b78455f48cfaba8699c72bcf59d765845cff98e0fdc9283f1a48638a9e5bb3",
     "next.config.ts": "6b0ffe100847163815ed6cc03ed594f1ffef014f68ce8defcb1a04a6aace3ea5",
     "tsconfig.json": "d88b60c515bc31b4e69138f4548c378268cb4b1c61e28f632194edf950d22d59"
+  },
+  "testOnlyReviewCorrection": {
+    "rejectedHead": "262c55035bf5f6b33787f9746123429a9697c178",
+    "reason": "Required Linux Web exposed1ULP Mac frozen scrollLength oracle mismatch; initial independent review requested changes.",
+    "changedCapturedTest": "src/lib/world/garden-camera-tilt.test.ts",
+    "oldTestSha256": "6508c5ec1ac05d6086788f19434ef89673fbfa82df9c9dd9696d9060e703b2dc",
+    "newTestSha256": "2dfd487a6d36fd709533d2bf58d78e8dd6110d72c215da5cfd8b3f246ab4ae67",
+    "newTestGitBlob": "f4f7b0932d4eab420f83fcf65a50a4b65e3f1bba",
+    "unchangedCapturedSrcFiles": 518,
+    "originalAll519Bridge": "Historical262c550 source-capture linkage retained; new head has one explicit test delta.",
+    "runtimeUnchanged": "7903598e3549cb78171f6d41247defb5f59c942c725020297f92a0465e366550",
+    "immutableOriginalSourceFixture": "scripts/profiling/fixtures/garden-tour-prior-057ec685.ts.txt",
+    "originalGitBlob": "a680edc53620573191215c77cb6045c641cc019a",
+    "originalSha256": "9c64dda0aa2b71cb560c304b8515ced44608a90d48e8b9e572250b80cd14b4fc",
+    "oracle": "Same-platform execution of exact immutable original constructor/dependencies; original Mac JSON remains untouched archival/sample-distance provenance. Strict original numeric comparisons plus exact forward/reverse native mapping; no relaxed tolerance/count/timeout or candidate-generated golden.",
+    "gate": "Fresh exact-head full LinuxWeb/all4CI and fresh independent review required."
   }
 }

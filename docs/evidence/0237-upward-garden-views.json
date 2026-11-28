@@ -1148,5 +1148,21 @@
     "currentNearAndFarPerFileStartEndExact": true,
     "allSourcesAtFinalEndEqualBeforeFirstFinalRun": true,
     "method": "Shared checks retain original actual runtime metadata; those without their own per-file snapshots are qualified by the same exact globally frozen per-file source observed before first final camera run and after last combined check. No metadata is rewritten."
+  },
+  "testOnlyReviewCorrection": {
+    "rejectedHead": "262c55035bf5f6b33787f9746123429a9697c178",
+    "reason": "Required Linux Web exposed1ULP Mac frozen scrollLength oracle mismatch; initial independent review requested changes.",
+    "changedCapturedTest": "src/lib/world/garden-camera-tilt.test.ts",
+    "oldTestSha256": "6508c5ec1ac05d6086788f19434ef89673fbfa82df9c9dd9696d9060e703b2dc",
+    "newTestSha256": "2dfd487a6d36fd709533d2bf58d78e8dd6110d72c215da5cfd8b3f246ab4ae67",
+    "newTestGitBlob": "f4f7b0932d4eab420f83fcf65a50a4b65e3f1bba",
+    "unchangedCapturedSrcFiles": 518,
+    "originalAll519Bridge": "Historical262c550 source-capture linkage retained; new head has one explicit test delta.",
+    "runtimeUnchanged": "7903598e3549cb78171f6d41247defb5f59c942c725020297f92a0465e366550",
+    "immutableOriginalSourceFixture": "scripts/profiling/fixtures/garden-tour-prior-057ec685.ts.txt",
+    "originalGitBlob": "a680edc53620573191215c77cb6045c641cc019a",
+    "originalSha256": "9c64dda0aa2b71cb560c304b8515ced44608a90d48e8b9e572250b80cd14b4fc",
+    "oracle": "Same-platform execution of exact immutable original constructor/dependencies; original Mac JSON remains untouched archival/sample-distance provenance. Strict original numeric comparisons plus exact forward/reverse native mapping; no relaxed tolerance/count/timeout or candidate-generated golden.",
+    "gate": "Fresh exact-head full LinuxWeb/all4CI and fresh independent review required."
   }
 }
