@@ -1,0 +1,1152 @@
+{
+  "issue": "https://github.com/C0derTang/shared-garden/issues/237",
+  "decision": "../decisions/0078-upward-garden-views.md",
+  "initialBase": "057ec685e1b02291437fbd1f7d2f45e2666a2e0f",
+  "integratedReviewBase": "3a73e57cd1ea2abc80394cbc4db6dd77aec5b8a1",
+  "runtimeSourceSha256": "7903598e3549cb78171f6d41247defb5f59c942c725020297f92a0465e366550",
+  "fingerprintMethod": "Sorted Git tracked+untracked non-.test src paths and bytes, matching scenic-evidence. Includes test support/fixtures; not a production-only hash.",
+  "status": "Final builder local/native checks complete at frozen runtime. Full LinuxWeb/all4exact-head CI and fresh independent review remain external completion gates.",
+  "composition": {
+    "main": "Lower terrain-clear private garden eyeY and raise aim with original zoom wherever it fits. Fit actual heading-projected seed bounds with two-degree bottom margin.",
+    "baseWideExceptionsDegrees": {
+      "cactus": 44,
+      "dandelion": 42,
+      "hydrangea": 44,
+      "moonflower": 44
+    },
+    "otherNineBaseWideLenses": "Exact original",
+    "allPhoneLenses": "Exact original",
+    "expansionWideExceptions": "Only measured necessary <=44degree floors",
+    "unchanged": "EyeXZ/yaw, physical route/controlY/arc/native pixels, IDs, world/terrain/house/lake/forest/models/quality; original front/access/arrival/legacy cameras.",
+    "inwardViews": [
+      "bluebell",
+      "forget-me-not",
+      "daisy"
+    ],
+    "finiteForestLimit": "Original finite forest preserved. Ordinary water-facing/near views show recognizable original trees; terrace403 remote193-Rose facing extends beyond original crown origins,416 natural bend reveals them. No universal unbounded treeline claim."
+  },
+  "scope": "Sanitized synthetic loopback only; no private backend/session/media/credentials/reset/dependency/service/rule/auth/schema change. Merged236 supplies existing planting UI/shovel/dot removal;237 adds camera framing plus one coupled scenic care-mark reservation condition.",
+  "nativeRealTargets": {
+    "nearPicks": 676,
+    "far193RosePicks": 56,
+    "total": 732,
+    "actualSubmittedFloat32SourcePoseExact": true,
+    "trustedCanvasUuidReadsAndExactReturns": true,
+    "sightlineAudits": 732,
+    "minimumOpaqueClearanceMetres": 0.01538828438082851,
+    "surfaces": [
+      "actual terrain",
+      "actual path",
+      "actual soil",
+      "actual edging rocks",
+      "original rocks"
+    ],
+    "method": "Conservative1mm sight corridor against exact triangle-clipping oracle, tied to every actual submitted Float32 eye and real head/sprout body; visual inspection also required. No through-ground selection accepted.",
+    "retiredEmptyNegativeClicks": 42,
+    "actualMarkerDrawCalls": 0,
+    "cases": [
+      {
+        "view": "desktop",
+        "width": 1280,
+        "height": 800,
+        "dpr": 1,
+        "kind": "full",
+        "picks": 78,
+        "retiredEmptyNegativeClicks": 4,
+        "markerDrawCalls": 0,
+        "fixtureStateSha256": "4ae30095ce193bb9108e5449e4ec6a59d53d635b1db01d6cea06f0e742a5f5a6",
+        "errors": [],
+        "limitation": "Chromium/CDP emulation; no physical phone claim"
+      },
+      {
+        "view": "desktop",
+        "width": 1280,
+        "height": 800,
+        "dpr": 1,
+        "kind": "early",
+        "picks": 78,
+        "retiredEmptyNegativeClicks": 5,
+        "markerDrawCalls": 0,
+        "fixtureStateSha256": "6a2698928f4e719441c40cb33cb528570a99b84977434912bc2ae56a246f210e",
+        "errors": [],
+        "limitation": "Chromium/CDP emulation; no physical phone claim"
+      },
+      {
+        "view": "desktop",
+        "width": 1280,
+        "height": 800,
+        "dpr": 1,
+        "kind": "expansion",
+        "picks": 13,
+        "retiredEmptyNegativeClicks": 1,
+        "markerDrawCalls": 0,
+        "fixtureStateSha256": "9e6b0c316418fde9fdb958b09cf12bc03ef2c1d21eac511a5ac47f555025fed7",
+        "errors": [],
+        "limitation": "Chromium/CDP emulation; no physical phone claim"
+      },
+      {
+        "view": "portrait",
+        "width": 390,
+        "height": 844,
+        "dpr": 2,
+        "kind": "full",
+        "picks": 78,
+        "retiredEmptyNegativeClicks": 3,
+        "markerDrawCalls": 0,
+        "fixtureStateSha256": "4ae30095ce193bb9108e5449e4ec6a59d53d635b1db01d6cea06f0e742a5f5a6",
+        "errors": [],
+        "limitation": "Chromium/CDP emulation; no physical phone claim"
+      },
+      {
+        "view": "portrait",
+        "width": 390,
+        "height": 844,
+        "dpr": 2,
+        "kind": "early",
+        "picks": 78,
+        "retiredEmptyNegativeClicks": 3,
+        "markerDrawCalls": 0,
+        "fixtureStateSha256": "6a2698928f4e719441c40cb33cb528570a99b84977434912bc2ae56a246f210e",
+        "errors": [],
+        "limitation": "Chromium/CDP emulation; no physical phone claim"
+      },
+      {
+        "view": "portrait",
+        "width": 390,
+        "height": 844,
+        "dpr": 2,
+        "kind": "expansion",
+        "picks": 13,
+        "retiredEmptyNegativeClicks": 1,
+        "markerDrawCalls": 0,
+        "fixtureStateSha256": "9e6b0c316418fde9fdb958b09cf12bc03ef2c1d21eac511a5ac47f555025fed7",
+        "errors": [],
+        "limitation": "Chromium/CDP emulation; no physical phone claim"
+      },
+      {
+        "view": "landscape",
+        "width": 844,
+        "height": 390,
+        "dpr": 2,
+        "kind": "full",
+        "picks": 78,
+        "retiredEmptyNegativeClicks": 3,
+        "markerDrawCalls": 0,
+        "fixtureStateSha256": "4ae30095ce193bb9108e5449e4ec6a59d53d635b1db01d6cea06f0e742a5f5a6",
+        "errors": [],
+        "limitation": "Chromium/CDP emulation; no physical phone claim"
+      },
+      {
+        "view": "landscape",
+        "width": 844,
+        "height": 390,
+        "dpr": 2,
+        "kind": "early",
+        "picks": 78,
+        "retiredEmptyNegativeClicks": 3,
+        "markerDrawCalls": 0,
+        "fixtureStateSha256": "6a2698928f4e719441c40cb33cb528570a99b84977434912bc2ae56a246f210e",
+        "errors": [],
+        "limitation": "Chromium/CDP emulation; no physical phone claim"
+      },
+      {
+        "view": "landscape",
+        "width": 844,
+        "height": 390,
+        "dpr": 2,
+        "kind": "expansion",
+        "picks": 13,
+        "retiredEmptyNegativeClicks": 1,
+        "markerDrawCalls": 0,
+        "fixtureStateSha256": "9e6b0c316418fde9fdb958b09cf12bc03ef2c1d21eac511a5ac47f555025fed7",
+        "errors": [],
+        "limitation": "Chromium/CDP emulation; no physical phone claim"
+      },
+      {
+        "view": "narrow",
+        "width": 800,
+        "height": 600,
+        "dpr": 1,
+        "kind": "full",
+        "picks": 78,
+        "retiredEmptyNegativeClicks": 4,
+        "markerDrawCalls": 0,
+        "fixtureStateSha256": "4ae30095ce193bb9108e5449e4ec6a59d53d635b1db01d6cea06f0e742a5f5a6",
+        "errors": [],
+        "limitation": "Chromium/CDP emulation; no physical phone claim"
+      },
+      {
+        "view": "narrow",
+        "width": 800,
+        "height": 600,
+        "dpr": 1,
+        "kind": "early",
+        "picks": 78,
+        "retiredEmptyNegativeClicks": 5,
+        "markerDrawCalls": 0,
+        "fixtureStateSha256": "6a2698928f4e719441c40cb33cb528570a99b84977434912bc2ae56a246f210e",
+        "errors": [],
+        "limitation": "Chromium/CDP emulation; no physical phone claim"
+      },
+      {
+        "view": "narrow",
+        "width": 800,
+        "height": 600,
+        "dpr": 1,
+        "kind": "expansion",
+        "picks": 13,
+        "retiredEmptyNegativeClicks": 1,
+        "markerDrawCalls": 0,
+        "fixtureStateSha256": "9e6b0c316418fde9fdb958b09cf12bc03ef2c1d21eac511a5ac47f555025fed7",
+        "errors": [],
+        "limitation": "Chromium/CDP emulation; no physical phone claim"
+      },
+      {
+        "view": "desktop",
+        "width": 1280,
+        "height": 800,
+        "dpr": 1,
+        "kind": "far-full",
+        "picks": 7,
+        "retiredEmptyNegativeClicks": 1,
+        "markerDrawCalls": 0,
+        "fixtureStateSha256": "561dfe7d1108a79b60d39f01ccfcaf1caf65cdb648a7db4409f6db0548e86dbc",
+        "errors": [],
+        "limitation": "Chromium/CDP emulation; no physical phone claim"
+      },
+      {
+        "view": "desktop",
+        "width": 1280,
+        "height": 800,
+        "dpr": 1,
+        "kind": "far-early",
+        "picks": 7,
+        "retiredEmptyNegativeClicks": 1,
+        "markerDrawCalls": 0,
+        "fixtureStateSha256": "cc15e1214bf972be54b7670e933e0aa032c398d59561113a05f67d20f7e8c35e",
+        "errors": [],
+        "limitation": "Chromium/CDP emulation; no physical phone claim"
+      },
+      {
+        "view": "portrait",
+        "width": 390,
+        "height": 844,
+        "dpr": 2,
+        "kind": "far-full",
+        "picks": 7,
+        "retiredEmptyNegativeClicks": 1,
+        "markerDrawCalls": 0,
+        "fixtureStateSha256": "561dfe7d1108a79b60d39f01ccfcaf1caf65cdb648a7db4409f6db0548e86dbc",
+        "errors": [],
+        "limitation": "Chromium/CDP emulation; no physical phone claim"
+      },
+      {
+        "view": "portrait",
+        "width": 390,
+        "height": 844,
+        "dpr": 2,
+        "kind": "far-early",
+        "picks": 7,
+        "retiredEmptyNegativeClicks": 1,
+        "markerDrawCalls": 0,
+        "fixtureStateSha256": "cc15e1214bf972be54b7670e933e0aa032c398d59561113a05f67d20f7e8c35e",
+        "errors": [],
+        "limitation": "Chromium/CDP emulation; no physical phone claim"
+      },
+      {
+        "view": "landscape",
+        "width": 844,
+        "height": 390,
+        "dpr": 2,
+        "kind": "far-full",
+        "picks": 7,
+        "retiredEmptyNegativeClicks": 1,
+        "markerDrawCalls": 0,
+        "fixtureStateSha256": "561dfe7d1108a79b60d39f01ccfcaf1caf65cdb648a7db4409f6db0548e86dbc",
+        "errors": [],
+        "limitation": "Chromium/CDP emulation; no physical phone claim"
+      },
+      {
+        "view": "landscape",
+        "width": 844,
+        "height": 390,
+        "dpr": 2,
+        "kind": "far-early",
+        "picks": 7,
+        "retiredEmptyNegativeClicks": 1,
+        "markerDrawCalls": 0,
+        "fixtureStateSha256": "cc15e1214bf972be54b7670e933e0aa032c398d59561113a05f67d20f7e8c35e",
+        "errors": [],
+        "limitation": "Chromium/CDP emulation; no physical phone claim"
+      },
+      {
+        "view": "narrow",
+        "width": 800,
+        "height": 600,
+        "dpr": 1,
+        "kind": "far-full",
+        "picks": 7,
+        "retiredEmptyNegativeClicks": 1,
+        "markerDrawCalls": 0,
+        "fixtureStateSha256": "561dfe7d1108a79b60d39f01ccfcaf1caf65cdb648a7db4409f6db0548e86dbc",
+        "errors": [],
+        "limitation": "Chromium/CDP emulation; no physical phone claim"
+      },
+      {
+        "view": "narrow",
+        "width": 800,
+        "height": 600,
+        "dpr": 1,
+        "kind": "far-early",
+        "picks": 7,
+        "retiredEmptyNegativeClicks": 1,
+        "markerDrawCalls": 0,
+        "fixtureStateSha256": "cc15e1214bf972be54b7670e933e0aa032c398d59561113a05f67d20f7e8c35e",
+        "errors": [],
+        "limitation": "Chromium/CDP emulation; no physical phone claim"
+      }
+    ]
+  },
+  "currentPublicCaptures": [
+    {
+      "file": "docs/evidence/0237-current-desktop-cactus.webp",
+      "order": [
+        "mature left",
+        "representative early right"
+      ],
+      "sourceImages": [
+        {
+          "name": "desktop-full-cactus.png",
+          "sha256": "bd6b9779c68303687e80e22fbf86dd14b7cb3ee206ddd74b66620e185faa4ee5"
+        },
+        {
+          "name": "desktop-early-cactus.png",
+          "sha256": "303964d0ce417943bcdca6bfbd93b6fd91884f1b65977e0744cd031842d9d363"
+        }
+      ],
+      "sha256": "ba83ec7acd77f3398ae17cd6b86ca4ed052e20a69ae5c59cf403bba73df52ecf",
+      "source": {
+        "headAtCapture": "3a73e57cd1ea2abc80394cbc4db6dd77aec5b8a1",
+        "runtimeSourceSha256": "7903598e3549cb78171f6d41247defb5f59c942c725020297f92a0465e366550",
+        "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+        "capturedAt": "2026-11-28T07:40:08.299Z",
+        "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+      }
+    },
+    {
+      "file": "docs/evidence/0237-current-desktop-sunflower.webp",
+      "order": [
+        "mature left",
+        "representative early right"
+      ],
+      "sourceImages": [
+        {
+          "name": "desktop-full-sunflower.png",
+          "sha256": "38aebc520942bdeff0c789c02dbadd045f22f08168e84247c8df6b80d4ff960d"
+        },
+        {
+          "name": "desktop-early-sunflower.png",
+          "sha256": "f3ee85eac97f2e06a42e7cbb0dd447bc21c53fc873c6e2c6d80d232991ca6fb8"
+        }
+      ],
+      "sha256": "bc70e6ae2508541803d424befd2896a76e4aed49d056c64702fb26b2c2eacc5d",
+      "source": {
+        "headAtCapture": "3a73e57cd1ea2abc80394cbc4db6dd77aec5b8a1",
+        "runtimeSourceSha256": "7903598e3549cb78171f6d41247defb5f59c942c725020297f92a0465e366550",
+        "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+        "capturedAt": "2026-11-28T07:40:08.299Z",
+        "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+      }
+    },
+    {
+      "file": "docs/evidence/0237-current-portrait-cactus.webp",
+      "order": [
+        "mature left",
+        "representative early right"
+      ],
+      "sourceImages": [
+        {
+          "name": "portrait-full-cactus.png",
+          "sha256": "5bce86ec79c45621c7de25fdbd17d2ab13da445842df99265f0c32fca395856a"
+        },
+        {
+          "name": "portrait-early-cactus.png",
+          "sha256": "e63e10f26007ba2089473dc0d19ee4ea742988a60e99e0c7ff3aaf0ccd556e32"
+        }
+      ],
+      "sha256": "757f61aa61a60c92bf3d6f714cea8d972250e16eb10c2907ae635bfa55fd1b98",
+      "source": {
+        "headAtCapture": "3a73e57cd1ea2abc80394cbc4db6dd77aec5b8a1",
+        "runtimeSourceSha256": "7903598e3549cb78171f6d41247defb5f59c942c725020297f92a0465e366550",
+        "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+        "capturedAt": "2026-11-28T07:40:08.299Z",
+        "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+      }
+    },
+    {
+      "file": "docs/evidence/0237-current-portrait-sunflower.webp",
+      "order": [
+        "mature left",
+        "representative early right"
+      ],
+      "sourceImages": [
+        {
+          "name": "portrait-full-sunflower.png",
+          "sha256": "53af5dab7d92a52e87edc9bf63c07e04d6112f2213c0f3e651c88c25dc2088d8"
+        },
+        {
+          "name": "portrait-early-sunflower.png",
+          "sha256": "b6249465d0d9ccd7d5cc755066dd05e4ae86c271bde096bfb8bccd9f3580fe45"
+        }
+      ],
+      "sha256": "edcaa3a672ad139c1b02159db6e0e2c575a8f26845c477f51734e14f82f3f512",
+      "source": {
+        "headAtCapture": "3a73e57cd1ea2abc80394cbc4db6dd77aec5b8a1",
+        "runtimeSourceSha256": "7903598e3549cb78171f6d41247defb5f59c942c725020297f92a0465e366550",
+        "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+        "capturedAt": "2026-11-28T07:40:08.299Z",
+        "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+      }
+    }
+  ],
+  "regressions": {
+    "careHeart": "Meaningful RED/GREEN suppression/recovery/default control and actual6UUID landscapeMoonflower adverse-case rerun; no eligibility/timing/model/default change.",
+    "trueProjection": {
+      "oldRuntime": "b9dc4b5f38c38c3e5936b77fbab98e116c88b83f2e368b4e7dab93d8014f910a",
+      "newRuntime": "7903598e3549cb78171f6d41247defb5f59c942c725020297f92a0465e366550",
+      "id": "00000000-0000-4000-8000-000000012004",
+      "oldPixelY": 394.09705711024134,
+      "newPixelY": 360.2434469061281,
+      "newActualClick": {
+        "x": 275.3731486187382,
+        "y": 360.24344690612804
+      },
+      "newSightlineClearance": 0.07419888871840852,
+      "newSourceDistance": 96.59170086847655,
+      "oldSourceDistance": 96.59170086847655,
+      "oldSourceEye": [
+        83.48782772110847,
+        2.6673144050961635,
+        -15.157624529144822
+      ],
+      "newSubmittedEye": [
+        83.48783111572266,
+        2.667314291000366,
+        -15.157624244689941
+      ],
+      "originalEyeFloat32Exact": true
+    },
+    "trueProjectionUnitRed": "Old desktop occupied bed13 slot3 projects y823.9156 in800high view; unchanged full regression fails.",
+    "trueProjectionUnitGreen": "29focused tests pass, including original0.015rad/cm continuity; actual desktop13+landscape13 mixed growth UUIDs pass after fit. Root inspected and accepted views before broad run."
+  },
+  "localChecks": {
+    "lint": "PASS",
+    "typecheck": "PASS",
+    "build": "PASS",
+    "fullMacNpmTest": {
+      "passed": 1544,
+      "failed": 6,
+      "skipped": 3,
+      "total": 1553,
+      "knownFailures": [
+        "safari-300.webm",
+        "safari-5.webm",
+        "tone-5.webm",
+        "tone-300.webm",
+        "browser-5-0.webm",
+        "browser-300-0.webm"
+      ],
+      "reason": "Existing native audio_unavailable codec failures; complete LinuxWeb remains mandatory."
+    },
+    "separateNodeTests": 55,
+    "sightlineNegativeAndPositiveControls": 3,
+    "actualGeometryParityScenarios": 5,
+    "productionFixture404": 7,
+    "productionFixture404Details": {
+      "actualProductionServer": true,
+      "results": [
+        {
+          "path": "/dev/garden-areas",
+          "status": 404,
+          "fixtureStateAbsent": true
+        },
+        {
+          "path": "/dev/garden-areas?empty=1&scope=1&arrival=1",
+          "status": 404,
+          "fixtureStateAbsent": true
+        },
+        {
+          "path": "/dev/garden-areas?boundary=1",
+          "status": 404,
+          "fixtureStateAbsent": true
+        },
+        {
+          "path": "/dev/garden-areas?sparse=1",
+          "status": 404,
+          "fixtureStateAbsent": true
+        },
+        {
+          "path": "/dev/garden-areas?bloom=1&many=1",
+          "status": 404,
+          "fixtureStateAbsent": true
+        },
+        {
+          "path": "/dev/world?areas=1&walking=1",
+          "status": 404,
+          "fixtureStateAbsent": true
+        },
+        {
+          "path": "/dev/landing?sky=dusk&member=1",
+          "status": 404,
+          "fixtureStateAbsent": true
+        }
+      ]
+    },
+    "geometryProof": {
+      "metadata": {
+        "headAtCapture": "3a73e57cd1ea2abc80394cbc4db6dd77aec5b8a1",
+        "runtimeSourceSha256": "7903598e3549cb78171f6d41247defb5f59c942c725020297f92a0465e366550",
+        "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+        "capturedAt": "2026-11-28T07:40:54.437Z",
+        "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+      },
+      "base": "057ec685e1b02291437fbd1f7d2f45e2666a2e0f",
+      "method": "Execute original Git-object layout with independently verified unchanged dependencies; compare roots/beds and actual Float32 vertex/Uint32 index buffers from original frozen route and lowered-camera route. Geometry factories/upload path remain unchanged. Camera eyeY is intentionally distinct from physical edgeY. No broad world/clearance sweep or GPU readback claim.",
+      "originalDefaultLensCasesExact": 2964,
+      "sharedPoseRuntimeExact": true,
+      "layoutSlotExtractionPreservesOriginalGeometry": true,
+      "results": [
+        {
+          "extraSparseRoses": 0,
+          "beds": 13,
+          "physicalInputsAndGeometryBuffersExact": true,
+          "buffers": {
+            "path": {
+              "sha256": "c79d76a3e7947abb2b265956d4c05d103faacfdea55d86d08da03ed6a29bf072",
+              "vertices": 18522,
+              "indices": 93312
+            },
+            "terrain": {
+              "sha256": "4028592752fa5dddbed93ee3ed613f91690535fc5ffffa4d2781c9aafe258bab",
+              "vertices": 54432,
+              "indices": 322704
+            },
+            "beds": {
+              "sha256": "0e427188f7090cfaa7f9f1be75acb020627f9cd4b59b111c940f35c7b1d63350",
+              "vertices": 9373,
+              "indices": 54600
+            }
+          }
+        },
+        {
+          "extraSparseRoses": 1,
+          "beds": 14,
+          "physicalInputsAndGeometryBuffersExact": true,
+          "buffers": {
+            "path": {
+              "sha256": "23911e6caf1bd51f6f7a1870b57f2267d343bd8abaf3c4d3b4ff506f341fcd19",
+              "vertices": 20923,
+              "indices": 105408
+            },
+            "terrain": {
+              "sha256": "4028592752fa5dddbed93ee3ed613f91690535fc5ffffa4d2781c9aafe258bab",
+              "vertices": 54432,
+              "indices": 322704
+            },
+            "beds": {
+              "sha256": "25da287042ad7a3a49e398925f315d4e1b7d8742dd1f12970a800e3ee63ce187",
+              "vertices": 10094,
+              "indices": 58800
+            }
+          }
+        },
+        {
+          "extraSparseRoses": 7,
+          "beds": 15,
+          "physicalInputsAndGeometryBuffersExact": true,
+          "buffers": {
+            "path": {
+              "sha256": "b0c138f1ae409df971b182b3999c7d1ed9df959a71aeaf5830409f5508a1595f",
+              "vertices": 21609,
+              "indices": 108864
+            },
+            "terrain": {
+              "sha256": "4028592752fa5dddbed93ee3ed613f91690535fc5ffffa4d2781c9aafe258bab",
+              "vertices": 54432,
+              "indices": 322704
+            },
+            "beds": {
+              "sha256": "b07b831f96c9f1d66d05474bd9ab9e363f77ebe641eaaec3eb72635cabcae81d",
+              "vertices": 10815,
+              "indices": 63000
+            }
+          }
+        },
+        {
+          "extraSparseRoses": 13,
+          "beds": 16,
+          "physicalInputsAndGeometryBuffersExact": true,
+          "buffers": {
+            "path": {
+              "sha256": "8d0c1e4801f2787f9aea34228de9b0dc358dc0918c55ca63369df72bbe598fed",
+              "vertices": 22295,
+              "indices": 112320
+            },
+            "terrain": {
+              "sha256": "4028592752fa5dddbed93ee3ed613f91690535fc5ffffa4d2781c9aafe258bab",
+              "vertices": 54432,
+              "indices": 322704
+            },
+            "beds": {
+              "sha256": "c62637077039a0d073f8f916d7f41012ca5a7794e489b9f42cc896f16b9396cd",
+              "vertices": 11536,
+              "indices": 67200
+            }
+          }
+        },
+        {
+          "scenario": "193 original-seed Roses /45 actual beds",
+          "sourceMethod": "Execute original057ec685 Git-object constructor/layout; not a genuine pre-edit image capture",
+          "physicalInputsAndGeometryBuffersExact": true,
+          "buffers": {
+            "terrain": {
+              "sha256": "285541f6a9e81d5c5b01577976680befb41d9f494a8b8226ca38c9beaf723de4",
+              "vertices": 115556,
+              "indices": 659664
+            },
+            "path": {
+              "sha256": "2d73f0c9a377a37e3c29f4942436a78bd6cfbfe1bc45ef91e27a1fad4999de7c",
+              "vertices": 42189,
+              "indices": 212544
+            },
+            "beds": {
+              "sha256": "5c7a5efecb6c3f8aaba3c06ca7553ff3d3ae573ec97b0d7453746ca82116d917",
+              "vertices": 32445,
+              "indices": 189000
+            }
+          }
+        }
+      ]
+    }
+  },
+  "inputQualification": "0237-camera-inputs.json",
+  "historicalCalibration": {
+    "issue": "https://github.com/C0derTang/shared-garden/issues/237",
+    "base": "057ec685e1b02291437fbd1f7d2f45e2666a2e0f",
+    "decision": "../decisions/0078-upward-garden-views.md",
+    "calibration": {
+      "finalDegrees": null,
+      "initialDegrees": 3,
+      "initialFailure": "All six mature Daisy UUID picks passed; its empty next-planting marker fell below the desktop frame at3degrees. Raw failure is retained, not a real growth-stage flower failure.",
+      "initialFailureArtifact": "/tmp/ccapp-237/after-desktop/desktop-full-failure.json",
+      "acceptedCheckpoint": "Four genuine shortDaisy/tallSunflower desktop/phone pairs inspected and accepted by orchestrator before broad runs.2degrees passes all28 checkpoint clicks. No eye/lens/geometry adjustment.",
+      "historicalDegrees": 2
+    },
+    "scope": "Loopback synthetic fixtures only. No authenticated session, production content, backend reset, model/shader/quality/geometry dependency change.237 intentionally changes camera pitch;236 shovel menu is excluded.",
+    "source": {
+      "captureHead": "057ec685e1b02291437fbd1f7d2f45e2666a2e0f",
+      "afterCaptureIncludesUncommittedFinalCameraDelta": true,
+      "productionDelta": "src/lib/world/garden-tour.ts",
+      "finalCameraSha256": "56553e6fbb926bca942e98b9f5b2e52ad3bf2b83a73929a56fb7d833b4bb2686",
+      "baselineFixtureSha256": "461aa17f05fcf00bb0ce019ce0e41e2b28bc646ce5a65c6dd0f1a5fb88fb533b",
+      "verificationScriptSha256": "bb87b67f9d177593996ef2a7c1636b0aa2d34526e754860b29391235366b6541",
+      "inputBridge": "0237-camera-inputs.json",
+      "sourceStartEnd": "Each dedicated capture directory contains unchanged source-start.json/source-end.json, plus original metadata.json. Source hashes and git diff bind these captures to the final committed runtime; capture HEAD is not mislabeled as the later commit. Existing evidenceMetadata broad non-.test source hash includes test-support helpers.",
+      "sourceTests": "New immutable057ec685 priorposes/route/native samples for0/1/7/13 sparse laterRoses. Expected0vs3degree RED observed before implementation; final2degree12focused checks pass. No prior test/tolerance/timeout/fixture coverage was relaxed.",
+      "qualificationAfterSteering": "This snapshot describes earlier2degree runtime; its source hash intentionally does not describe current3degree candidate."
+    },
+    "matchedBefore": {
+      "desktop": {
+        "metadata": {
+          "headAtCapture": "057ec685e1b02291437fbd1f7d2f45e2666a2e0f",
+          "runtimeSourceSha256": "063d55f21436924d20c20c932a4142ddd24aec9b4469f2b099c5ffc2670660d0",
+          "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+          "capturedAt": "2026-11-28T06:11:51.299Z",
+          "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+        },
+        "actualClicks": 14,
+        "artifact": "/tmp/ccapp-237/before-desktop",
+        "genuineBeforeProductionSourceEdit": true,
+        "time": "2026-06-22T02:52:00Z; reduced-motion worldtime0; same viewport/DPR/full78state/eyes/lens before and after"
+      },
+      "portrait": {
+        "metadata": {
+          "headAtCapture": "057ec685e1b02291437fbd1f7d2f45e2666a2e0f",
+          "runtimeSourceSha256": "063d55f21436924d20c20c932a4142ddd24aec9b4469f2b099c5ffc2670660d0",
+          "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+          "capturedAt": "2026-11-28T06:12:14.183Z",
+          "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+        },
+        "actualClicks": 14,
+        "artifact": "/tmp/ccapp-237/before-portrait",
+        "genuineBeforeProductionSourceEdit": true,
+        "time": "2026-06-22T02:52:00Z; reduced-motion worldtime0; same viewport/DPR/full78state/eyes/lens before and after"
+      }
+    },
+    "nativeTargets": {
+      "mature": {
+        "metadata": {
+          "headAtCapture": "057ec685e1b02291437fbd1f7d2f45e2666a2e0f",
+          "runtimeSourceSha256": "da6a221399b59a6a2001fcb3c90de2a768af5acfdc27de33a17fb84ead358f17",
+          "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+          "capturedAt": "2026-11-28T06:15:54.864Z",
+          "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+        },
+        "artifact": "/tmp/ccapp-237/final-mature",
+        "views": [
+          {
+            "view": "desktop",
+            "width": 1280,
+            "height": 800,
+            "dpr": 1,
+            "picks": 91,
+            "errors": [],
+            "flowerUuidPicks": 78,
+            "emptyNextPlantingPicks": 13,
+            "sourceGpuFloat32Exact": true,
+            "everyReturnExact": true
+          },
+          {
+            "view": "portrait",
+            "width": 390,
+            "height": 844,
+            "dpr": 2,
+            "picks": 91,
+            "errors": [],
+            "flowerUuidPicks": 78,
+            "emptyNextPlantingPicks": 13,
+            "sourceGpuFloat32Exact": true,
+            "everyReturnExact": true
+          },
+          {
+            "view": "landscape",
+            "width": 844,
+            "height": 390,
+            "dpr": 2,
+            "picks": 91,
+            "errors": [],
+            "flowerUuidPicks": 78,
+            "emptyNextPlantingPicks": 13,
+            "sourceGpuFloat32Exact": true,
+            "everyReturnExact": true
+          },
+          {
+            "view": "narrow",
+            "width": 800,
+            "height": 600,
+            "dpr": 1,
+            "picks": 91,
+            "errors": [],
+            "flowerUuidPicks": 78,
+            "emptyNextPlantingPicks": 13,
+            "sourceGpuFloat32Exact": true,
+            "everyReturnExact": true
+          }
+        ],
+        "method": "Trusted canvas clicks using actual submitted camera, original pick rules/48px minimum, actual DOM hit test, own UUID history/milestones read and exact actual GPU return. All thirteen species at four sizes;6individuals each, canonical seeds1\u20136 mature; early0/1/mid seeds201\u2013206;3occupiedoverflowbeds with sparseUUID/spot12001\u201312013, growth0/1/mature."
+      },
+      "early": {
+        "metadata": {
+          "headAtCapture": "057ec685e1b02291437fbd1f7d2f45e2666a2e0f",
+          "runtimeSourceSha256": "da6a221399b59a6a2001fcb3c90de2a768af5acfdc27de33a17fb84ead358f17",
+          "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+          "capturedAt": "2026-11-28T06:17:55.750Z",
+          "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+        },
+        "artifact": "/tmp/ccapp-237/final-early",
+        "views": [
+          {
+            "view": "desktop",
+            "width": 1280,
+            "height": 800,
+            "dpr": 1,
+            "picks": 91,
+            "errors": [],
+            "flowerUuidPicks": 78,
+            "emptyNextPlantingPicks": 13,
+            "sourceGpuFloat32Exact": true,
+            "everyReturnExact": true
+          },
+          {
+            "view": "portrait",
+            "width": 390,
+            "height": 844,
+            "dpr": 2,
+            "picks": 91,
+            "errors": [],
+            "flowerUuidPicks": 78,
+            "emptyNextPlantingPicks": 13,
+            "sourceGpuFloat32Exact": true,
+            "everyReturnExact": true
+          },
+          {
+            "view": "landscape",
+            "width": 844,
+            "height": 390,
+            "dpr": 2,
+            "picks": 91,
+            "errors": [],
+            "flowerUuidPicks": 78,
+            "emptyNextPlantingPicks": 13,
+            "sourceGpuFloat32Exact": true,
+            "everyReturnExact": true
+          },
+          {
+            "view": "narrow",
+            "width": 800,
+            "height": 600,
+            "dpr": 1,
+            "picks": 91,
+            "errors": [],
+            "flowerUuidPicks": 78,
+            "emptyNextPlantingPicks": 13,
+            "sourceGpuFloat32Exact": true,
+            "everyReturnExact": true
+          }
+        ],
+        "method": "Trusted canvas clicks using actual submitted camera, original pick rules/48px minimum, actual DOM hit test, own UUID history/milestones read and exact actual GPU return. All thirteen species at four sizes;6individuals each, canonical seeds1\u20136 mature; early0/1/mid seeds201\u2013206;3occupiedoverflowbeds with sparseUUID/spot12001\u201312013, growth0/1/mature."
+      },
+      "expansion": {
+        "metadata": {
+          "headAtCapture": "057ec685e1b02291437fbd1f7d2f45e2666a2e0f",
+          "runtimeSourceSha256": "da6a221399b59a6a2001fcb3c90de2a768af5acfdc27de33a17fb84ead358f17",
+          "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+          "capturedAt": "2026-11-28T06:19:35.502Z",
+          "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+        },
+        "artifact": "/tmp/ccapp-237/final-expansion",
+        "views": [
+          {
+            "view": "desktop",
+            "width": 1280,
+            "height": 800,
+            "dpr": 1,
+            "picks": 14,
+            "errors": [],
+            "flowerUuidPicks": 13,
+            "emptyNextPlantingPicks": 1,
+            "sourceGpuFloat32Exact": true,
+            "everyReturnExact": true
+          },
+          {
+            "view": "portrait",
+            "width": 390,
+            "height": 844,
+            "dpr": 2,
+            "picks": 14,
+            "errors": [],
+            "flowerUuidPicks": 13,
+            "emptyNextPlantingPicks": 1,
+            "sourceGpuFloat32Exact": true,
+            "everyReturnExact": true
+          },
+          {
+            "view": "landscape",
+            "width": 844,
+            "height": 390,
+            "dpr": 2,
+            "picks": 14,
+            "errors": [],
+            "flowerUuidPicks": 13,
+            "emptyNextPlantingPicks": 1,
+            "sourceGpuFloat32Exact": true,
+            "everyReturnExact": true
+          },
+          {
+            "view": "narrow",
+            "width": 800,
+            "height": 600,
+            "dpr": 1,
+            "picks": 14,
+            "errors": [],
+            "flowerUuidPicks": 13,
+            "emptyNextPlantingPicks": 1,
+            "sourceGpuFloat32Exact": true,
+            "everyReturnExact": true
+          }
+        ],
+        "method": "Trusted canvas clicks using actual submitted camera, original pick rules/48px minimum, actual DOM hit test, own UUID history/milestones read and exact actual GPU return. All thirteen species at four sizes;6individuals each, canonical seeds1\u20136 mature; early0/1/mid seeds201\u2013206;3occupiedoverflowbeds with sparseUUID/spot12001\u201312013, growth0/1/mature."
+      }
+    },
+    "otherNative": {
+      "reservations": {
+        "artifact": "/tmp/ccapp-237/final-reservations",
+        "cases": 8,
+        "metadata": {
+          "headAtCapture": "057ec685e1b02291437fbd1f7d2f45e2666a2e0f",
+          "runtimeSourceSha256": "da6a221399b59a6a2001fcb3c90de2a768af5acfdc27de33a17fb84ead358f17",
+          "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+          "capturedAt": "2026-11-28T06:19:55.730Z",
+          "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+        },
+        "summary": {
+          "normalReducedContexts": 8,
+          "actualViews": 32,
+          "visibleInvitationViews": 26,
+          "correctUuidPhysicalForms": 8,
+          "suppressionRecovery": true
+        }
+      },
+      "direct": {
+        "artifact": "/tmp/ccapp-237/final-direct",
+        "cases": 4,
+        "metadata": {
+          "headAtCapture": "057ec685e1b02291437fbd1f7d2f45e2666a2e0f",
+          "runtimeSourceSha256": "da6a221399b59a6a2001fcb3c90de2a768af5acfdc27de33a17fb84ead358f17",
+          "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+          "capturedAt": "2026-11-28T06:20:17.226Z",
+          "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+        },
+        "summary": {
+          "sourceBoundEvidence": "Raw original observations preserve exact camera, native-distance, real-ID, held-frame, interruption/refresh/GPU-recovery and/or lifecycle assertions; no metadata relabeling."
+        }
+      },
+      "lifecycle": {
+        "artifact": "/tmp/ccapp-237/final-lifecycle",
+        "cases": 5,
+        "metadata": {
+          "headAtCapture": "057ec685e1b02291437fbd1f7d2f45e2666a2e0f",
+          "runtimeSourceSha256": "da6a221399b59a6a2001fcb3c90de2a768af5acfdc27de33a17fb84ead358f17",
+          "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+          "capturedAt": "2026-11-28T06:20:52.611Z",
+          "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+        },
+        "summary": {
+          "sourceBoundEvidence": "Raw original observations preserve exact camera, native-distance, real-ID, held-frame, interruption/refresh/GPU-recovery and/or lifecycle assertions; no metadata relabeling."
+        }
+      },
+      "retention-normal": {
+        "artifact": "/tmp/ccapp-237/final-retention-normal",
+        "cases": 6,
+        "metadata": {
+          "headAtCapture": "057ec685e1b02291437fbd1f7d2f45e2666a2e0f",
+          "runtimeSourceSha256": "da6a221399b59a6a2001fcb3c90de2a768af5acfdc27de33a17fb84ead358f17",
+          "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+          "capturedAt": "2026-11-28T06:21:12.646Z",
+          "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+        },
+        "summary": {
+          "sourceBoundEvidence": "Raw original observations preserve exact camera, native-distance, real-ID, held-frame, interruption/refresh/GPU-recovery and/or lifecycle assertions; no metadata relabeling."
+        }
+      },
+      "retention-reduced": {
+        "artifact": "/tmp/ccapp-237/final-retention-reduced",
+        "cases": 6,
+        "metadata": {
+          "headAtCapture": "057ec685e1b02291437fbd1f7d2f45e2666a2e0f",
+          "runtimeSourceSha256": "da6a221399b59a6a2001fcb3c90de2a768af5acfdc27de33a17fb84ead358f17",
+          "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+          "capturedAt": "2026-11-28T06:21:20.368Z",
+          "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+        },
+        "summary": {
+          "sourceBoundEvidence": "Raw original observations preserve exact camera, native-distance, real-ID, held-frame, interruption/refresh/GPU-recovery and/or lifecycle assertions; no metadata relabeling."
+        }
+      },
+      "boundaries": {
+        "artifact": "/tmp/ccapp-237/final-boundaries",
+        "cases": 4,
+        "metadata": {
+          "headAtCapture": "057ec685e1b02291437fbd1f7d2f45e2666a2e0f",
+          "runtimeSourceSha256": "da6a221399b59a6a2001fcb3c90de2a768af5acfdc27de33a17fb84ead358f17",
+          "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+          "capturedAt": "2026-11-28T06:21:27.872Z",
+          "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+        },
+        "summary": {
+          "sourceBoundEvidence": "Raw original observations preserve exact camera, native-distance, real-ID, held-frame, interruption/refresh/GPU-recovery and/or lifecycle assertions; no metadata relabeling."
+        }
+      }
+    },
+    "localChecks": {
+      "lint": "PASS",
+      "typecheck": "PASS",
+      "build": "PASS",
+      "node": "55/55PASS separately after npmtest short-circuits on audio failures",
+      "fullMacNpmTest": {
+        "passed": 1516,
+        "failed": 6,
+        "skipped": 3,
+        "total": 1525,
+        "knownFailures": [
+          "audio.test.ts fully decodes and normalizes safari-300.webm",
+          "audio.test.ts fully decodes and normalizes safari-5.webm",
+          "audio.test.ts fully decodes and normalizes tone-5.webm",
+          "audio.test.ts fully decodes and normalizes tone-300.webm",
+          "audio.test.ts fully decodes and normalizes browser-5-0.webm",
+          "audio.test.ts fully decodes and normalizes browser-300-0.webm"
+        ]
+      },
+      "productionFixtures": "7/7actualproduction404 and no fixture state",
+      "gpuPaintHouseQualification": "429merged-base inputs unchanged, including source shaders/house/front/entry/legacy/model/terrain/shore/paint/dependencies.416of417 earlier230 bridge inputs retain exact hashes; sole new difference is intentional tour pitch. Original reference/quality/house/geometry measurements keep original metadata. Fresh garden-camera/picking/return evidence is recorded here. No fresh performance claim.",
+      "exactHeadLinuxAnd4CI": "Required on final commit; attached PR checks/comment report exact head outcomes. No Linux failure is waived."
+    },
+    "limitations": [
+      "Chromium/CDP phone viewport and mouse/wheel emulation, not physical-device/assistive-technology validation.",
+      "Synthetic history/Peony/action responses are intercepted on loopback; no real private data or external unknown actions.",
+      "No new broad geometry/performance sweep: invariant route/eyes/lens/native coordinates and unchanged geometry/model/quality inputs are proven against prior source, with focused new native camera verification.",
+      "Independent exact-head review, eligible merge, issue closure, release and cleanup belong to orchestrator under AGENTS.md. Builder cannot self-approve or merge."
+    ],
+    "totals": {
+      "matureAndEarlyAndOccupiedTargetClicks": 784,
+      "baselineCheckpointClicks": 28,
+      "accepted2DegreeCheckpointClicks": 28
+    },
+    "status": "SUPERSEDED2DEGREE CALIBRATION HISTORY ONLY; new user steering requires further tilt and merged236 empty-marker removal before final proof."
+  },
+  "retainedRawArtifacts": "Builder retains source-start/end per-file manifests, fixture state JSON, runtime metadata, original individual native images, observations and logs in issue237 temporary evidence directories. Capture HEAD is merged base while isolated source is uncommitted; runtime/per-file hashes and final Git blob bridge bind exact candidate honestly.",
+  "limitations": [
+    "Chromium/CDP desktop/phone viewport emulation; no physical-phone or assistive-technology claim.",
+    "Original finite forest and natural inland turns retained; no world extension.",
+    "No broad116world/performance rerun; previous native WGSL/paint/house evidence qualified only by exact unchanged factories/dependencies/configuration and output parity, not unchanged garden images.",
+    "Independent review, exact-head LinuxWeb/all4CI, eligible merge/release/cleanup are orchestrator gates, not builder approval."
+  ],
+  "combinedNative": {
+    "shovel": {
+      "resultRows": 4,
+      "metadata": {
+        "headAtCapture": "3a73e57cd1ea2abc80394cbc4db6dd77aec5b8a1",
+        "runtimeSourceSha256": "7903598e3549cb78171f6d41247defb5f59c942c725020297f92a0465e366550",
+        "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+        "capturedAt": "2026-11-28T07:43:44.857Z",
+        "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+      },
+      "observationsSha256": "e145deefbf94e799120d45a03d7ad4a929190b372bd39a366d0ee40d5bb1a4fe",
+      "rawDirectory": "final-plane-current-shovel",
+      "errors": 0,
+      "all13TypesFourSizesPlantings": 52,
+      "retiredEmptyNegativeClicks": 52,
+      "actualMatchingFlowerAuraBuffer": true,
+      "refreshConflictExplicitOnly": true,
+      "closedNativeScroll": true
+    },
+    "reservations": {
+      "resultRows": 8,
+      "metadata": {
+        "headAtCapture": "3a73e57cd1ea2abc80394cbc4db6dd77aec5b8a1",
+        "runtimeSourceSha256": "7903598e3549cb78171f6d41247defb5f59c942c725020297f92a0465e366550",
+        "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+        "capturedAt": "2026-11-28T07:45:22.976Z",
+        "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+      },
+      "observationsSha256": "b645929dce2fe7a19dd8050a3f055354330bae833ecf282fd295eb4f0c4bcb10",
+      "rawDirectory": "final-plane-current-reservations",
+      "errors": 0,
+      "actualViews": 32,
+      "noSafeSlotSuppressionAndRecovery": true
+    },
+    "direct": {
+      "resultRows": 4,
+      "metadata": {
+        "headAtCapture": "3a73e57cd1ea2abc80394cbc4db6dd77aec5b8a1",
+        "runtimeSourceSha256": "7903598e3549cb78171f6d41247defb5f59c942c725020297f92a0465e366550",
+        "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+        "capturedAt": "2026-11-28T07:45:43.918Z",
+        "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+      },
+      "observationsSha256": "8f9ae9bf52f2535f702d4471732b69ef5674eb65dfd269019b4045bb230917c8",
+      "rawDirectory": "final-plane-current-direct",
+      "errors": 0,
+      "all13Forms": 52,
+      "all12Invitations": 48,
+      "heldFrames": true,
+      "exactCameraReturn": true,
+      "physicalCanvas": true,
+      "gpuRecovery": true
+    },
+    "lifecycle": {
+      "resultRows": 5,
+      "metadata": {
+        "headAtCapture": "3a73e57cd1ea2abc80394cbc4db6dd77aec5b8a1",
+        "runtimeSourceSha256": "7903598e3549cb78171f6d41247defb5f59c942c725020297f92a0465e366550",
+        "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+        "capturedAt": "2026-11-28T07:46:18.628Z",
+        "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+      },
+      "observationsSha256": "4215397dcab1a4adc3cca796b0f4d83cbf880906e3a88183eb021649af8f08a2",
+      "rawDirectory": "final-plane-current-lifecycle",
+      "errors": 0
+    },
+    "shovel-lifecycle": {
+      "resultRows": 19,
+      "metadata": {
+        "headAtCapture": "3a73e57cd1ea2abc80394cbc4db6dd77aec5b8a1",
+        "runtimeSourceSha256": "7903598e3549cb78171f6d41247defb5f59c942c725020297f92a0465e366550",
+        "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+        "capturedAt": "2026-11-28T07:46:38.990Z",
+        "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+      },
+      "observationsSha256": "87da1d4093c82a07f16e5f23877cf9222d869551c761c628e94c6545e4ee630d",
+      "rawDirectory": "final-plane-current-shovel-lifecycle",
+      "errors": 0,
+      "stateSizeCases": 16,
+      "normalReducedPreGPUHeldRecovery": 2,
+      "sharedDefaultActualMarkerDraws": 3
+    },
+    "hint": {
+      "resultRows": 4,
+      "metadata": {
+        "headAtCapture": "3a73e57cd1ea2abc80394cbc4db6dd77aec5b8a1",
+        "runtimeSourceSha256": "7903598e3549cb78171f6d41247defb5f59c942c725020297f92a0465e366550",
+        "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+        "capturedAt": "2026-11-28T07:47:33.051Z",
+        "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+      },
+      "observationsSha256": "c3d377fcad35aa32c0db2ef13bee0a1f0ece94ced4c7c0c34bbc741d38420899",
+      "rawDirectory": "final-plane-current-hint",
+      "errors": 0
+    },
+    "retention-normal": {
+      "resultRows": 6,
+      "metadata": {
+        "headAtCapture": "3a73e57cd1ea2abc80394cbc4db6dd77aec5b8a1",
+        "runtimeSourceSha256": "7903598e3549cb78171f6d41247defb5f59c942c725020297f92a0465e366550",
+        "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+        "capturedAt": "2026-11-28T07:47:42.469Z",
+        "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+      },
+      "observationsSha256": "8b1c8cfaa88607476a85ce240e9f4f1eabf0c2bd9e9fbfd33a284f9cfc9cbccc",
+      "rawDirectory": "final-plane-current-retention-normal",
+      "errors": 0
+    },
+    "retention-reduced": {
+      "resultRows": 6,
+      "metadata": {
+        "headAtCapture": "3a73e57cd1ea2abc80394cbc4db6dd77aec5b8a1",
+        "runtimeSourceSha256": "7903598e3549cb78171f6d41247defb5f59c942c725020297f92a0465e366550",
+        "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+        "capturedAt": "2026-11-28T07:47:53.003Z",
+        "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+      },
+      "observationsSha256": "7910676ac9eb96b921bf16318fe2db836441376c75fb706bcd9f7dfa932ab4c3",
+      "rawDirectory": "final-plane-current-retention-reduced",
+      "errors": 0
+    },
+    "boundaries": {
+      "resultRows": 4,
+      "metadata": {
+        "headAtCapture": "3a73e57cd1ea2abc80394cbc4db6dd77aec5b8a1",
+        "runtimeSourceSha256": "7903598e3549cb78171f6d41247defb5f59c942c725020297f92a0465e366550",
+        "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+        "capturedAt": "2026-11-28T07:48:03.638Z",
+        "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+      },
+      "observationsSha256": "6e82030a42c6b3a4d916abb1e338fa21d15185a08685c0eff4b1cd8f6706bfb9",
+      "rawDirectory": "final-plane-current-boundaries",
+      "errors": 0,
+      "remappedBoundaries": [
+        6,
+        6,
+        6,
+        6
+      ]
+    }
+  },
+  "sourceFreezeQualification": {
+    "allSrcFiles": 519,
+    "broadNonTestFiles": 354,
+    "currentNearAndFarPerFileStartEndExact": true,
+    "allSourcesAtFinalEndEqualBeforeFirstFinalRun": true,
+    "method": "Shared checks retain original actual runtime metadata; those without their own per-file snapshots are qualified by the same exact globally frozen per-file source observed before first final camera run and after last combined check. No metadata is rewritten."
+  }
+}

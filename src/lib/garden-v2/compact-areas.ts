@@ -1,7 +1,7 @@
 /** Compact presentation only: immutable chronology, never persisted spot mileage. Decision0073. */
 import { flowerTypes, type Plant, type GardenState } from './model';
 import type { TypeAreaLayout, TypeArea } from './type-areas';
-import { bedTerrainHeight, type Bed, type PlantingSpot } from '@/lib/world/layout';
+import { bedTerrainHeight, type Bed, type PlantingSpot, type Vec3 } from '@/lib/world/layout';
 import {bankFrame} from '@/lib/world/bank-garden';
 import { plantingSurfaceHeight } from '@/lib/world/site-surface';
 
@@ -19,6 +19,13 @@ export const terraceFrame=bankFrame;
 export function comparePlanting(a:Plant,b:Plant):number {
  return a.flower.planted_at.localeCompare(b.flower.planted_at) || a.flower.spot-b.flower.spot || a.flower.id.localeCompare(b.flower.id);
 }
+/** Canonical physical centre of one of the six terrace slots. Shared with camera framing. */
+export function terraceSlotPosition(bed:Bed,slot:number):Vec3 {
+ const type=bed.index%13,spacing=Math.max(.5,MATURE_ENVELOPE[type]![0]*2+.2),rowSpacing=Math.max(.65,MATURE_ENVELOPE[type]![0]*2+.18),column=slot%3,row=Math.floor(slot/3);
+ const a=bed.rotation??0,tx=Math.cos(a),tz=Math.sin(a),nx=-tz,nz=tx;
+ const x=bed.center[0]+tx*(column-1)*spacing+nx*(row-.5)*rowSpacing,z=bed.center[2]+tz*(column-1)*spacing+nz*(row-.5)*rowSpacing;
+ return[x,bedTerrainHeight(bed,x,z),z];
+}
 export function compactAreaLayout(state:Pick<GardenState,'plants'|'garden'|'catalog'>):TypeAreaLayout {
  const sorted=flowerTypes.map(type=>state.plants.filter(p=>p.flower.type_key===type).sort(comparePlanting));
  const modules=sorted.flatMap((plants,type)=>Array.from({length:Math.max(1,Math.ceil(plants.length/TERRACE_CAPACITY))},(_,section)=>({type,section,first:plants[section*TERRACE_CAPACITY]})));
@@ -33,11 +40,7 @@ export function compactAreaLayout(state:Pick<GardenState,'plants'|'garden'|'cata
  const spots:PlantingSpot[]=[];
  const address=(type:number,rank:number,spot:number):PlantingSpot=>{
   const section=Math.floor(rank/TERRACE_CAPACITY),slot=rank%TERRACE_CAPACITY,bed=beds.get(`${type}:${section}`)!;
-  // Mature canopy diameters plus at least .14m air; fixed1m rows bound all canonical species.
-  const spacing=Math.max(.5,MATURE_ENVELOPE[type]![0]*2+.2),rowSpacing=Math.max(.65,MATURE_ENVELOPE[type]![0]*2+.18),column=slot%3,row=Math.floor(slot/3);
-  const a=bed.rotation??0,tx=Math.cos(a),tz=Math.sin(a),nx=-tz,nz=tx;
-  const x=bed.center[0]+tx*(column-1)*spacing+nx*(row-.5)*rowSpacing,z=bed.center[2]+tz*(column-1)*spacing+nz*(row-.5)*rowSpacing;
-  return{spot,bed:bed.index,position:[x,bedTerrainHeight(bed,x,z),z]};
+  return{spot,bed:bed.index,position:terraceSlotPosition(bed,slot)};
  };
  const areas=flowerTypes.map((type,index):TypeArea=>{
   const plants=sorted[index]!;plants.forEach((p,rank)=>spots.push(address(index,rank,p.flower.spot)));
