@@ -25,7 +25,8 @@ describe('the place read from the actual accepted tour',()=>{
   const tour=fixture(),leg=tour.legs.find(leg=>leg.edge.to==='terrace:0')!,join=leg.start+leg.length;
   for(const d of [join+.001,join,join-.001,join,join+.001])expect(tourContext(tour,d).type).toBe('rose');
   const middle=leg.start+leg.length/2;
-  expect(tourContext(tour,middle-.01).type).toBe('snapdragon');
+  const before=tour.stops.find(stop=>stop.id===leg.edge.from)!;
+  expect(tourContext(tour,middle-.01).type).toBe(before.place?.kind==='flowers'?flowerTypes[before.place.typeIndex]:null);
   expect(tourContext(tour,middle+.01).type).toBe('rose');
   expect(tourContext(tour,NaN).progress).toBe(0);
   expect(tourContext(tour,-1).progress).toBe(0);

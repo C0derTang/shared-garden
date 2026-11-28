@@ -1,0 +1,1509 @@
+{
+  "issue": "https://github.com/C0derTang/shared-garden/issues/229",
+  "base": "e2edf9fe2faa7e602a9e34892344faac6cb6877b",
+  "runtimeSourceSha256": "b32cf64402fe1cc8b5d394c3997a067494833efe4480bc4a5bc18a235be15b1d",
+  "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+  "scope": "Loopback-only fail-closed synthetic fixtures; no private authentication/backend/production content. Decision0075 was drafted before product edits; conservative refinements accepted by the orchestrator before final matrices. Exact-head independent review and four current-head CI remain merge gates.",
+  "viewports": [
+    [
+      1280,
+      800,
+      1
+    ],
+    [
+      390,
+      844,
+      2
+    ],
+    [
+      844,
+      390,
+      2
+    ],
+    [
+      800,
+      600,
+      1
+    ]
+  ],
+  "layout": {
+    "pace": {
+      "baseCommit": "e2edf9fe2faa7e602a9e34892344faac6cb6877b",
+      "before": {
+        "routeMetres": 109.02391424760727,
+        "nativePixels": 8677.796114597486,
+        "shoreDistancesMetres": [
+          59.327781068047585,
+          63.42481742252172,
+          68.55535434282127,
+          74.36744342922216,
+          80.03261707475225,
+          78.88764604482643,
+          86.59826474071285,
+          78.91521641373357,
+          81.07374599497255,
+          75.87387435025391,
+          70.22345177713741,
+          64.37878782440802,
+          59.61812918953197
+        ]
+      },
+      "after": {
+        "routeMetres": 87.25869604895628,
+        "nativePixels": 7146.851219034865,
+        "approachNativePixels": 631.3594914078565
+      }
+    },
+    "shoreMethod": "Global ±25m shore search at2mm spacing; nearest-distance sampling error bounded by1mm. All reported minima under9m, so no farther x can be nearer.",
+    "proximity": [
+      {
+        "type": "sunflower",
+        "center": [
+          31.2,
+          -0.057572233596332685,
+          -9.893436854
+        ],
+        "nearestOriginalShoreMetres": 1.7150497457680272,
+        "footprint": [
+          1.28,
+          0.86
+        ],
+        "eye": [
+          32.5,
+          1.9533786774915782,
+          -7
+        ]
+      },
+      {
+        "type": "snapdragon",
+        "center": [
+          34.4,
+          -0.005991985436885209,
+          -10.718851954
+        ],
+        "nearestOriginalShoreMetres": 1.6492849938975074,
+        "footprint": [
+          0.8600000000000001,
+          0.645
+        ],
+        "eye": [
+          33.75,
+          1.97170865161661,
+          -6.5
+        ]
+      },
+      {
+        "type": "rose",
+        "center": [
+          37.6,
+          0.05091274015835608,
+          -11.083496054
+        ],
+        "nearestOriginalShoreMetres": 1.6054018556680916,
+        "footprint": [
+          1.5499999999999998,
+          1.04
+        ],
+        "eye": [
+          38.25,
+          2.0887796273657333,
+          -8
+        ]
+      },
+      {
+        "type": "bluebell",
+        "center": [
+          41.2,
+          0.3122144413326281,
+          -4.969
+        ],
+        "nearestOriginalShoreMetres": 8.45556874261824,
+        "footprint": [
+          1.04,
+          0.7050000000000001
+        ],
+        "eye": [
+          41,
+          2.19672297862524,
+          -8.25
+        ]
+      },
+      {
+        "type": "peony",
+        "center": [
+          44,
+          0.014993101436532024,
+          -11.628292125
+        ],
+        "nearestOriginalShoreMetres": 1.5958166680694392,
+        "footprint": [
+          1.37,
+          0.92
+        ],
+        "eye": [
+          43.25,
+          2.3146947903287844,
+          -8.5
+        ]
+      },
+      {
+        "type": "marigold",
+        "center": [
+          47.2,
+          0.044512384224692794,
+          -11.168191471
+        ],
+        "nearestOriginalShoreMetres": 1.6446544620979535,
+        "footprint": [
+          1.16,
+          0.78
+        ],
+        "eye": [
+          47.5,
+          2.4899132534593575,
+          -8
+        ]
+      },
+      {
+        "type": "tulip",
+        "center": [
+          50.4,
+          0.052967264284069795,
+          -12.167728892
+        ],
+        "nearestOriginalShoreMetres": 1.524485426479849,
+        "footprint": [
+          1.19,
+          0.8
+        ],
+        "eye": [
+          51,
+          2.573327343264346,
+          -9
+        ]
+      },
+      {
+        "type": "forget-me-not",
+        "center": [
+          53.2,
+          0.7141438356807128,
+          -7.916
+        ],
+        "nearestOriginalShoreMetres": 6.520696198929053,
+        "footprint": [
+          0.79,
+          0.615
+        ],
+        "eye": [
+          53,
+          2.6140191345911727,
+          -11
+        ]
+      },
+      {
+        "type": "daisy",
+        "center": [
+          58,
+          0.9227203290240912,
+          -8.4633
+        ],
+        "nearestOriginalShoreMetres": 6.88504114528481,
+        "footprint": [
+          1.16,
+          0.78
+        ],
+        "eye": [
+          57,
+          2.7953114382319555,
+          -11.5
+        ]
+      },
+      {
+        "type": "hydrangea",
+        "center": [
+          61.6,
+          0.11865468178414094,
+          -15.782945469
+        ],
+        "nearestOriginalShoreMetres": 1.733516823513915,
+        "footprint": [
+          1.19,
+          0.8
+        ],
+        "eye": [
+          62.75,
+          3.072078491791572,
+          -12.75
+        ]
+      },
+      {
+        "type": "dandelion",
+        "center": [
+          68.6,
+          0.07915723155656665,
+          -16.191006203
+        ],
+        "nearestOriginalShoreMetres": 1.636986161377309,
+        "footprint": [
+          1.13,
+          0.76
+        ],
+        "eye": [
+          69,
+          3.118948218094146,
+          -13
+        ]
+      },
+      {
+        "type": "moonflower",
+        "center": [
+          71.8,
+          -0.02855901468244411,
+          -16.782786764
+        ],
+        "nearestOriginalShoreMetres": 1.6377337721196144,
+        "footprint": [
+          1.37,
+          0.92
+        ],
+        "eye": [
+          72,
+          3.1351694709027367,
+          -13.5
+        ]
+      },
+      {
+        "type": "cactus",
+        "center": [
+          75,
+          -0.04164923351496994,
+          -16.582115791
+        ],
+        "nearestOriginalShoreMetres": 1.6288368801181714,
+        "footprint": [
+          1.19,
+          0.8
+        ],
+        "eye": [
+          74.5,
+          3.1703542594523952,
+          -13.5
+        ]
+      }
+    ],
+    "retainedTrunksAndRocks": true,
+    "occupiedOnlyGrowth": {
+      "startX": 82,
+      "stepMetres": 4.25,
+      "validatedPlants": 193,
+      "validatedBeds": 45
+    },
+    "modelsAndGrowthScaleUnchanged": true
+  },
+  "physical": {
+    "method": "Exact XZ triangle intersection clipping; difference of linear triangle heights attains its minimum at intersection polygon vertices. Every actual soil/ribbon triangle is tested against all overlapping rendered terrain layers via indexed bins. Narrow-crease oracle regression distinguishes this from four barycentric probes.",
+    "unchangedMinimumMetres": 0.0005,
+    "exactOverlaps": [
+      {
+        "count": 26,
+        "beds": 13,
+        "name": "soil",
+        "triangles": 18200,
+        "minimum": 0.011975846891220221,
+        "point": [
+          71.17951202392578,
+          0.41799541917365163,
+          -15.812997956183628,
+          0.4060195722824314,
+          50241,
+          168129
+        ],
+        "pairs": 41603
+      },
+      {
+        "count": 26,
+        "beds": 13,
+        "name": "ribbon",
+        "triangles": 31104,
+        "minimum": 0.02205209795894547,
+        "point": [
+          56.17595122269794,
+          0.5842416642672443,
+          -12.025732040405273,
+          0.5621895663082989,
+          70206,
+          156273
+        ],
+        "pairs": 88984
+      },
+      {
+        "count": 193,
+        "beds": 45,
+        "name": "soil",
+        "triangles": 63000,
+        "minimum": 0.002510386800211123,
+        "point": [
+          96.27502926054969,
+          0.14706089417395007,
+          -21.43817611604876,
+          0.14455050737373895,
+          71157,
+          187896
+        ],
+        "pairs": 741115
+      },
+      {
+        "count": 193,
+        "beds": 45,
+        "name": "ribbon",
+        "triangles": 70848,
+        "minimum": 0.007006025282527695,
+        "point": [
+          78.49377659047751,
+          0.955306705632704,
+          -15.12104170888624,
+          0.9483006803501763,
+          94248,
+          174732
+        ],
+        "pairs": 803391
+      }
+    ],
+    "adverse": {
+      "sampledRibbonDipMetres": 0.0021,
+      "exactSoilMinimumBeforeFinalThreeMmCorrection": -0.0004896077,
+      "witnessXZ": [
+        96.27502926054969,
+        -21.43817611604876
+      ]
+    },
+    "other": "Mature-volume/retained-solid/full-ribbon/shore/eye clearances, joins, all surviving controls/stop/lens/Float32 cameras and high model seed envelopes pass in bank-clearance, bank-garden, compact-areas and garden-tour tests."
+  },
+  "front": {
+    "genuineBase": {
+      "staticCount": 12,
+      "animatedEntryCount": 4,
+      "capturedBeforeAnyProductEdit": true,
+      "baseRuntimeSha256": "5e7caf6c454be5bbdd86da523f66960fbf602d233985d77b98101fd2de9616d3",
+      "rawDirectory": "/tmp/ccapp-229-base",
+      "metadata": "observations.json contains actual uploaded camera, clock, viewport, DPR and image hashes"
+    },
+    "comparison": [
+      {
+        "name": "desktop-day-front.png",
+        "meanAbsolute": 0.03557063802083334,
+        "changedChannels": 0.0054638671875,
+        "max": 122,
+        "entryPhaseUnmatched": false
+      },
+      {
+        "name": "desktop-dusk-front.png",
+        "meanAbsolute": 0.0033421223958333334,
+        "changedChannels": 0.0024954427083333335,
+        "max": 24,
+        "entryPhaseUnmatched": false
+      },
+      {
+        "name": "desktop-night-front.png",
+        "meanAbsolute": 0.00010123697916666667,
+        "changedChannels": 0.00010123697916666667,
+        "max": 1,
+        "entryPhaseUnmatched": false
+      },
+      {
+        "name": "desktop-dusk-entry.png",
+        "meanAbsolute": 3.2463658854166666,
+        "changedChannels": 0.6154078776041667,
+        "max": 176,
+        "entryPhaseUnmatched": true
+      },
+      {
+        "name": "portrait-day-front.png",
+        "meanAbsolute": 0,
+        "changedChannels": 0,
+        "max": 0,
+        "entryPhaseUnmatched": false
+      },
+      {
+        "name": "portrait-dusk-front.png",
+        "meanAbsolute": 0,
+        "changedChannels": 0,
+        "max": 0,
+        "entryPhaseUnmatched": false
+      },
+      {
+        "name": "portrait-night-front.png",
+        "meanAbsolute": 0,
+        "changedChannels": 0,
+        "max": 0,
+        "entryPhaseUnmatched": false
+      },
+      {
+        "name": "portrait-dusk-entry.png",
+        "meanAbsolute": 9.503958308016365,
+        "changedChannels": 0.729939340543606,
+        "max": 205,
+        "entryPhaseUnmatched": true
+      },
+      {
+        "name": "landscape-day-front.png",
+        "meanAbsolute": 0,
+        "changedChannels": 0,
+        "max": 0,
+        "entryPhaseUnmatched": false
+      },
+      {
+        "name": "landscape-dusk-front.png",
+        "meanAbsolute": 0.006321900190383603,
+        "changedChannels": 0.004754020334589055,
+        "max": 24,
+        "entryPhaseUnmatched": false
+      },
+      {
+        "name": "landscape-night-front.png",
+        "meanAbsolute": 0.0001151922064244339,
+        "changedChannels": 0.0001151922064244339,
+        "max": 1,
+        "entryPhaseUnmatched": false
+      },
+      {
+        "name": "landscape-dusk-entry.png",
+        "meanAbsolute": 2.2248577186373395,
+        "changedChannels": 0.5500020253574756,
+        "max": 196,
+        "entryPhaseUnmatched": true
+      },
+      {
+        "name": "narrow-day-front.png",
+        "meanAbsolute": 0.047920833333333336,
+        "changedChannels": 0.007192361111111111,
+        "max": 95,
+        "entryPhaseUnmatched": false
+      },
+      {
+        "name": "narrow-dusk-front.png",
+        "meanAbsolute": 0.050464583333333334,
+        "changedChannels": 0.008775,
+        "max": 106,
+        "entryPhaseUnmatched": false
+      },
+      {
+        "name": "narrow-night-front.png",
+        "meanAbsolute": 0.00004791666666666667,
+        "changedChannels": 0.00004791666666666667,
+        "max": 1,
+        "entryPhaseUnmatched": false
+      },
+      {
+        "name": "narrow-dusk-entry.png",
+        "meanAbsolute": 11.8900875,
+        "changedChannels": 0.82436875,
+        "max": 215,
+        "entryPhaseUnmatched": true
+      }
+    ],
+    "entryLimitation": "Native entry captures have unmatched animation phase/door angle. Pixel differences do not isolate thinning. Separate actual original source/buffer and 48 matched-time/aspect parametric entry proof passes; orchestrator inspected original/final genuine entry and worst static views.",
+    "staticPredicate": "Foliage only, same site for front and garden: original rear predicate plus x>27,x<88, shoreline offset>-.5,<14, origin above terrain<6.2, lower endpoint above terrain<3.8. All original wood/high crowns/rocks retained.",
+    "beforeGarden": "Archived genuine portrait-full-terrace-0.png from prerequisite orientation-verified2 has exactly the same 5e7caf6 runtime and fixture fingerprints as this issue untouched base; no reconstructed before render.",
+    "cleanCaptures": "Only explicit synthetic fixture debug button capture-hidden; product controls unchanged."
+  },
+  "native": {
+    "trustedCanvasPicks": 416,
+    "fullFlowerIdentityPicks": 312,
+    "fullAndEmptySeedPicks": 104,
+    "counts": {
+      "freshNative": 16,
+      "lowerHole": 4,
+      "expansion": 2,
+      "retention": 48,
+      "retentionFrames": 175,
+      "boundaries": 68,
+      "boundaryFrames": 301,
+      "interruptions": 2,
+      "orientation": 20,
+      "semanticPlaces": 1136,
+      "occupied": 4
+    },
+    "checks": [
+      [
+        "npm run lint",
+        "PASS"
+      ],
+      [
+        "npm run typecheck",
+        "PASS"
+      ],
+      [
+        "npm test",
+        "1489 pass, 3 existing skips, 6 known local Mac audio_unavailable failures in src/lib/media/audio.test.ts; complete Linux Web CI required"
+      ],
+      [
+        "node --test content/daisy-questions.test.mjs scripts/release/production.test.mjs scripts/setup-home-media.test.mjs scripts/dev-signin.test.mjs",
+        "55 PASS independently (npm test short-circuits on local audio failures)"
+      ],
+      [
+        "npm run build",
+        "PASS"
+      ],
+      [
+        "npm run check:wgsl",
+        "PASS"
+      ],
+      [
+        "npm run test:paint",
+        "4 PASS; max immutable-reference error 0.000011146068573 < unchanged 0.00002"
+      ],
+      [
+        "node scripts/profiling/check-house-door.mjs",
+        "PASS; front moves, rear/rear normal/porch static at unchanged 0.00001"
+      ],
+      [
+        "BASE_URL=http://127.0.0.1:3233 node scripts/profiling/check-scenic-production.mjs",
+        "7 actual production fixture variants 404/no synthetic state"
+      ],
+      [
+        "node scripts/profiling/check-bank-original-site.mjs",
+        "PASS; original geography/source/buffers, 48 matched parametric entries, default/legacy factories"
+      ],
+      [
+        "node scripts/profiling/bank-site-plan.mjs",
+        "PASS; exact base source pace and source-derived actual cubic map"
+      ],
+      [
+        "node scripts/profiling/check-bank-targets.mjs",
+        "416 trusted canvas identity/seed picks; all 13 names/pictures and reserved bounds at all 4 sizes"
+      ],
+      [
+        "node scripts/profiling/check-compact-garden.mjs",
+        "16 PASS; full78/mixed26/empty/sparse12001 at all 4 sizes"
+      ],
+      [
+        "KINDS=boundary node scripts/profiling/check-compact-garden.mjs",
+        "4 PASS; original UUID/lower-hole"
+      ],
+      [
+        "node scripts/profiling/check-compact-expansion.mjs",
+        "2 PASS; actual plant to first occupied overflow"
+      ],
+      [
+        "node scripts/profiling/check-compact-retention.mjs",
+        "48 PASS; 175 exact submitted refresh frames and next native phase"
+      ],
+      [
+        "node scripts/profiling/check-compact-boundaries.mjs",
+        "68 PASS; 301 submitted frames; surviving frames exact, removed geometry uses canonical old-boundary fallback"
+      ],
+      [
+        "node scripts/profiling/check-compact-interruptions.mjs",
+        "2 PASS; held returns/cancellation/focus/drag/blur/visibility/GPU lifecycle"
+      ],
+      [
+        "node scripts/profiling/check-garden-orientation.mjs",
+        "20 PASS; 1136 semantic locations; zero reserved target collisions"
+      ],
+      [
+        "node scripts/profiling/check-bank-occupied.mjs",
+        "4 PASS; actual 193 mature Roses, 45 beds, full group/latest section beyond original water clipping bounds"
+      ],
+      [
+        "node scripts/profiling/profile-bank-render.mjs",
+        "16 normal-motion ABBA runs, 10 warm frames discarded + 80 retained each; raw timestamps retained"
+      ]
+    ]
+  },
+  "quality": {
+    "renderBudgetPixels": 1900000,
+    "shadowResolution": 2048,
+    "dprCap": 2,
+    "dependenciesUnchanged": true,
+    "paintReferenceUnchanged": true,
+    "houseCoreUnchanged": true,
+    "rendererDisposalAndBoundedRecoveryVerified": true
+  },
+  "cpu": {
+    "method": "Three actual pure scene/rebuilds per synthetic scenario; Vite setup/GPU upload/shader compilation excluded. Canonical mature/full models included separately. 1000 actual camera samples separately. No concurrent GPU workload during measurement. Raw maxima retained; no universal FPS claim.",
+    "node": "v24.18.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "samples": [
+      {
+        "kind": "empty",
+        "run": 0,
+        "plants": 0,
+        "beds": 13,
+        "edges": 54,
+        "routeMetres": 87.25869604895628,
+        "scrollPixels": 7146.851219034865,
+        "vertices": {
+          "path": 18522,
+          "ground": 54432
+        },
+        "meadowStrokes": 113569,
+        "ms": {
+          "layout": 0.46699999999998454,
+          "tour": 3.8102499999999964,
+          "path": 8.490624999999994,
+          "ground": 26.86862500000001,
+          "meadow": 155.66424999999998,
+          "models": 0.0006670000000212895,
+          "poses1000": 2.352374999999995,
+          "geometryTotal": 195.30074999999997,
+          "total": 195.301417
+        }
+      },
+      {
+        "kind": "empty",
+        "run": 1,
+        "plants": 0,
+        "beds": 13,
+        "edges": 54,
+        "routeMetres": 87.25869604895628,
+        "scrollPixels": 7146.851219034865,
+        "vertices": {
+          "path": 18522,
+          "ground": 54432
+        },
+        "meadowStrokes": 113569,
+        "ms": {
+          "layout": 0.0654999999999859,
+          "tour": 1.2948329999999828,
+          "path": 7.37091700000002,
+          "ground": 22.411749999999984,
+          "meadow": 153.43995800000005,
+          "models": 0.004082999999923231,
+          "poses1000": 2.03712500000006,
+          "geometryTotal": 184.58295800000002,
+          "total": 184.58704099999994
+        }
+      },
+      {
+        "kind": "empty",
+        "run": 2,
+        "plants": 0,
+        "beds": 13,
+        "edges": 54,
+        "routeMetres": 87.25869604895628,
+        "scrollPixels": 7146.851219034865,
+        "vertices": {
+          "path": 18522,
+          "ground": 54432
+        },
+        "meadowStrokes": 113569,
+        "ms": {
+          "layout": 0.053417000000081316,
+          "tour": 1.227125000000001,
+          "path": 6.3862080000000105,
+          "ground": 20.962499999999977,
+          "meadow": 138.577584,
+          "models": 0.00024999999993724487,
+          "poses1000": 1.3802080000000387,
+          "geometryTotal": 167.20683400000007,
+          "total": 167.207084
+        }
+      },
+      {
+        "kind": "mixed",
+        "run": 0,
+        "plants": 26,
+        "beds": 13,
+        "edges": 54,
+        "routeMetres": 87.25869604895628,
+        "scrollPixels": 7146.851219034865,
+        "vertices": {
+          "path": 18522,
+          "ground": 54432
+        },
+        "meadowStrokes": 113569,
+        "ms": {
+          "layout": 0.5817499999999427,
+          "tour": 1.1287919999999758,
+          "path": 6.302125000000046,
+          "ground": 21.753791999999976,
+          "meadow": 122.74733300000003,
+          "models": 7.901624999999967,
+          "poses1000": 1.3714580000000751,
+          "geometryTotal": 152.51379199999997,
+          "total": 160.41541699999993
+        }
+      },
+      {
+        "kind": "mixed",
+        "run": 1,
+        "plants": 26,
+        "beds": 13,
+        "edges": 54,
+        "routeMetres": 87.25869604895628,
+        "scrollPixels": 7146.851219034865,
+        "vertices": {
+          "path": 18522,
+          "ground": 54432
+        },
+        "meadowStrokes": 113569,
+        "ms": {
+          "layout": 0.08133299999997234,
+          "tour": 1.1109589999999798,
+          "path": 6.359166000000073,
+          "ground": 22.091208999999935,
+          "meadow": 128.6639580000001,
+          "models": 3.222374999999829,
+          "poses1000": 1.2962500000001,
+          "geometryTotal": 158.30662500000005,
+          "total": 161.52899999999988
+        }
+      },
+      {
+        "kind": "mixed",
+        "run": 2,
+        "plants": 26,
+        "beds": 13,
+        "edges": 54,
+        "routeMetres": 87.25869604895628,
+        "scrollPixels": 7146.851219034865,
+        "vertices": {
+          "path": 18522,
+          "ground": 54432
+        },
+        "meadowStrokes": 113569,
+        "ms": {
+          "layout": 0.07895899999994072,
+          "tour": 1.046875,
+          "path": 6.3058750000000146,
+          "ground": 20.559791000000132,
+          "meadow": 121.45354199999997,
+          "models": 2.965208000000075,
+          "poses1000": 1.237999999999829,
+          "geometryTotal": 149.44504200000006,
+          "total": 152.41025000000013
+        }
+      },
+      {
+        "kind": "full",
+        "run": 0,
+        "plants": 78,
+        "beds": 13,
+        "edges": 54,
+        "routeMetres": 87.25869604895628,
+        "scrollPixels": 7146.851219034865,
+        "vertices": {
+          "path": 18522,
+          "ground": 54432
+        },
+        "meadowStrokes": 113569,
+        "ms": {
+          "layout": 0.11308400000007168,
+          "tour": 1.057207999999946,
+          "path": 6.238792000000103,
+          "ground": 20.755124999999907,
+          "meadow": 137.48749999999995,
+          "models": 8.378625000000056,
+          "poses1000": 1.694833000000017,
+          "geometryTotal": 165.65170899999998,
+          "total": 174.03033400000004
+        }
+      },
+      {
+        "kind": "full",
+        "run": 1,
+        "plants": 78,
+        "beds": 13,
+        "edges": 54,
+        "routeMetres": 87.25869604895628,
+        "scrollPixels": 7146.851219034865,
+        "vertices": {
+          "path": 18522,
+          "ground": 54432
+        },
+        "meadowStrokes": 113569,
+        "ms": {
+          "layout": 0.10241700000005949,
+          "tour": 1.1291669999998248,
+          "path": 6.928166000000147,
+          "ground": 20.452374999999847,
+          "meadow": 118.40000000000009,
+          "models": 7.429041999999981,
+          "poses1000": 1.3552079999999478,
+          "geometryTotal": 147.01212499999997,
+          "total": 154.44116699999995
+        }
+      },
+      {
+        "kind": "full",
+        "run": 2,
+        "plants": 78,
+        "beds": 13,
+        "edges": 54,
+        "routeMetres": 87.25869604895628,
+        "scrollPixels": 7146.851219034865,
+        "vertices": {
+          "path": 18522,
+          "ground": 54432
+        },
+        "meadowStrokes": 113569,
+        "ms": {
+          "layout": 0.10720800000012787,
+          "tour": 1.0867499999999382,
+          "path": 6.274584000000004,
+          "ground": 20.551707999999962,
+          "meadow": 133.04816699999992,
+          "models": 7.3282080000001315,
+          "poses1000": 0.599042000000054,
+          "geometryTotal": 161.06841699999995,
+          "total": 168.39662500000009
+        }
+      },
+      {
+        "kind": "sparse",
+        "run": 0,
+        "plants": 26,
+        "beds": 13,
+        "edges": 54,
+        "routeMetres": 87.25869604895628,
+        "scrollPixels": 7146.851219034865,
+        "vertices": {
+          "path": 18522,
+          "ground": 54432
+        },
+        "meadowStrokes": 113569,
+        "ms": {
+          "layout": 0.07512500000007094,
+          "tour": 1.121417000000065,
+          "path": 6.863541999999825,
+          "ground": 20.44100000000003,
+          "meadow": 126.36691600000017,
+          "models": 2.3551669999999376,
+          "poses1000": 0.6186250000000655,
+          "geometryTotal": 154.86800000000017,
+          "total": 157.2231670000001
+        }
+      },
+      {
+        "kind": "sparse",
+        "run": 1,
+        "plants": 26,
+        "beds": 13,
+        "edges": 54,
+        "routeMetres": 87.25869604895628,
+        "scrollPixels": 7146.851219034865,
+        "vertices": {
+          "path": 18522,
+          "ground": 54432
+        },
+        "meadowStrokes": 113569,
+        "ms": {
+          "layout": 0.06937500000003638,
+          "tour": 1.1663750000000164,
+          "path": 6.250999999999976,
+          "ground": 20.61716699999988,
+          "meadow": 119.54258299999992,
+          "models": 2.4193750000004,
+          "poses1000": 0.6097079999999551,
+          "geometryTotal": 147.64649999999983,
+          "total": 150.06587500000023
+        }
+      },
+      {
+        "kind": "sparse",
+        "run": 2,
+        "plants": 26,
+        "beds": 13,
+        "edges": 54,
+        "routeMetres": 87.25869604895628,
+        "scrollPixels": 7146.851219034865,
+        "vertices": {
+          "path": 18522,
+          "ground": 54432
+        },
+        "meadowStrokes": 113569,
+        "ms": {
+          "layout": 0.07533399999965695,
+          "tour": 1.0666660000001684,
+          "path": 6.275750000000244,
+          "ground": 19.89574999999968,
+          "meadow": 117.02866700000004,
+          "models": 2.1790000000000873,
+          "poses1000": 0.6017080000001442,
+          "geometryTotal": 144.3421669999998,
+          "total": 146.52116699999988
+        }
+      }
+    ],
+    "originalCasterStrokes": 161168,
+    "thinnedCasterStrokes": 157171
+  },
+  "gpu": {
+    "method": "Actual bank GardenV2,mixed26/full78 synthetic flowers; fixed dusk/normal motion; native timestamp-query hook;10warm frames discarded,80retained; overview ABBA reference/optimized. Same final geometry/camera per paired scene. Command-buffer envelope is not sum of overlapping Metal spans. Timestamp feature/observer overhead means no universal FPS claim.",
+    "browser": "156.0.8078.4",
+    "adapter": {
+      "vendor": "apple",
+      "architecture": "metal-3"
+    },
+    "summary": [
+      {
+        "kind": "mixed",
+        "view": "desktop",
+        "variant": "reference",
+        "frames": 160,
+        "gpuEnvelopeMs": {
+          "p50": 7.749591,
+          "p95": 8.416622
+        },
+        "submitIntervalsMs": {
+          "p50": 16,
+          "p95": 18,
+          "max": 19
+        }
+      },
+      {
+        "kind": "mixed",
+        "view": "desktop",
+        "variant": "optimized",
+        "frames": 160,
+        "gpuEnvelopeMs": {
+          "p50": 7.375137,
+          "p95": 8.061044
+        },
+        "submitIntervalsMs": {
+          "p50": 16,
+          "p95": 18,
+          "max": 21
+        }
+      },
+      {
+        "kind": "mixed",
+        "view": "portrait",
+        "variant": "reference",
+        "frames": 160,
+        "gpuEnvelopeMs": {
+          "p50": 12.413935,
+          "p95": 13.229089
+        },
+        "submitIntervalsMs": {
+          "p50": 16,
+          "p95": 17,
+          "max": 18
+        }
+      },
+      {
+        "kind": "mixed",
+        "view": "portrait",
+        "variant": "optimized",
+        "frames": 160,
+        "gpuEnvelopeMs": {
+          "p50": 11.59999,
+          "p95": 12.329937
+        },
+        "submitIntervalsMs": {
+          "p50": 16,
+          "p95": 18,
+          "max": 19
+        }
+      },
+      {
+        "kind": "full",
+        "view": "desktop",
+        "variant": "reference",
+        "frames": 160,
+        "gpuEnvelopeMs": {
+          "p50": 8.588036,
+          "p95": 9.187026
+        },
+        "submitIntervalsMs": {
+          "p50": 16,
+          "p95": 18,
+          "max": 19
+        }
+      },
+      {
+        "kind": "full",
+        "view": "desktop",
+        "variant": "optimized",
+        "frames": 160,
+        "gpuEnvelopeMs": {
+          "p50": 8.329581,
+          "p95": 8.97628
+        },
+        "submitIntervalsMs": {
+          "p50": 16,
+          "p95": 18,
+          "max": 20
+        }
+      },
+      {
+        "kind": "full",
+        "view": "portrait",
+        "variant": "reference",
+        "frames": 160,
+        "gpuEnvelopeMs": {
+          "p50": 13.128883,
+          "p95": 14.045244
+        },
+        "submitIntervalsMs": {
+          "p50": 16,
+          "p95": 18,
+          "max": 19
+        }
+      },
+      {
+        "kind": "full",
+        "view": "portrait",
+        "variant": "optimized",
+        "frames": 160,
+        "gpuEnvelopeMs": {
+          "p50": 12.461976,
+          "p95": 13.669209
+        },
+        "submitIntervalsMs": {
+          "p50": 16,
+          "p95": 18,
+          "max": 18
+        }
+      }
+    ],
+    "runs": [
+      {
+        "kind": "mixed",
+        "view": "desktop",
+        "dpr": 1,
+        "canvas": [
+          1280,
+          800
+        ],
+        "variant": "reference",
+        "run": 0,
+        "frames": 80,
+        "gpuEnvelopeMs": {
+          "p50": 7.795006,
+          "p95": 8.672284,
+          "max": 9.042904
+        },
+        "encodeMs": {
+          "p50": 2,
+          "p95": 3
+        },
+        "submitIntervalsMs": {
+          "p50": 16,
+          "p95": 18,
+          "max": 18
+        }
+      },
+      {
+        "kind": "mixed",
+        "view": "desktop",
+        "dpr": 1,
+        "canvas": [
+          1280,
+          800
+        ],
+        "variant": "optimized",
+        "run": 1,
+        "frames": 80,
+        "gpuEnvelopeMs": {
+          "p50": 7.375137,
+          "p95": 7.911462,
+          "max": 8.294998
+        },
+        "encodeMs": {
+          "p50": 2,
+          "p95": 3
+        },
+        "submitIntervalsMs": {
+          "p50": 16,
+          "p95": 18,
+          "max": 18
+        }
+      },
+      {
+        "kind": "mixed",
+        "view": "desktop",
+        "dpr": 1,
+        "canvas": [
+          1280,
+          800
+        ],
+        "variant": "optimized",
+        "run": 2,
+        "frames": 80,
+        "gpuEnvelopeMs": {
+          "p50": 7.334804,
+          "p95": 8.12021,
+          "max": 8.45687
+        },
+        "encodeMs": {
+          "p50": 2,
+          "p95": 3
+        },
+        "submitIntervalsMs": {
+          "p50": 16,
+          "p95": 18,
+          "max": 21
+        }
+      },
+      {
+        "kind": "mixed",
+        "view": "desktop",
+        "dpr": 1,
+        "canvas": [
+          1280,
+          800
+        ],
+        "variant": "reference",
+        "run": 3,
+        "frames": 80,
+        "gpuEnvelopeMs": {
+          "p50": 7.6683,
+          "p95": 8.338206,
+          "max": 8.630578
+        },
+        "encodeMs": {
+          "p50": 2,
+          "p95": 2
+        },
+        "submitIntervalsMs": {
+          "p50": 16,
+          "p95": 18,
+          "max": 19
+        }
+      },
+      {
+        "kind": "mixed",
+        "view": "portrait",
+        "dpr": 2,
+        "canvas": [
+          780,
+          1688
+        ],
+        "variant": "reference",
+        "run": 0,
+        "frames": 80,
+        "gpuEnvelopeMs": {
+          "p50": 12.46656,
+          "p95": 13.229089,
+          "max": 13.847789
+        },
+        "encodeMs": {
+          "p50": 1,
+          "p95": 1
+        },
+        "submitIntervalsMs": {
+          "p50": 16,
+          "p95": 17,
+          "max": 18
+        }
+      },
+      {
+        "kind": "mixed",
+        "view": "portrait",
+        "dpr": 2,
+        "canvas": [
+          780,
+          1688
+        ],
+        "variant": "optimized",
+        "run": 1,
+        "frames": 80,
+        "gpuEnvelopeMs": {
+          "p50": 11.570366,
+          "p95": 12.213397,
+          "max": 12.519517
+        },
+        "encodeMs": {
+          "p50": 1,
+          "p95": 2
+        },
+        "submitIntervalsMs": {
+          "p50": 16,
+          "p95": 18,
+          "max": 19
+        }
+      },
+      {
+        "kind": "mixed",
+        "view": "portrait",
+        "dpr": 2,
+        "canvas": [
+          780,
+          1688
+        ],
+        "variant": "optimized",
+        "run": 2,
+        "frames": 80,
+        "gpuEnvelopeMs": {
+          "p50": 11.601448,
+          "p95": 12.336853,
+          "max": 12.80993
+        },
+        "encodeMs": {
+          "p50": 1,
+          "p95": 2
+        },
+        "submitIntervalsMs": {
+          "p50": 16,
+          "p95": 18,
+          "max": 18
+        }
+      },
+      {
+        "kind": "mixed",
+        "view": "portrait",
+        "dpr": 2,
+        "canvas": [
+          780,
+          1688
+        ],
+        "variant": "reference",
+        "run": 3,
+        "frames": 80,
+        "gpuEnvelopeMs": {
+          "p50": 12.398894,
+          "p95": 13.147632,
+          "max": 13.930788
+        },
+        "encodeMs": {
+          "p50": 1,
+          "p95": 1
+        },
+        "submitIntervalsMs": {
+          "p50": 16,
+          "p95": 17,
+          "max": 18
+        }
+      },
+      {
+        "kind": "full",
+        "view": "desktop",
+        "dpr": 1,
+        "canvas": [
+          1280,
+          800
+        ],
+        "variant": "reference",
+        "run": 0,
+        "frames": 80,
+        "gpuEnvelopeMs": {
+          "p50": 8.574495,
+          "p95": 9.210984,
+          "max": 9.640103
+        },
+        "encodeMs": {
+          "p50": 2,
+          "p95": 3
+        },
+        "submitIntervalsMs": {
+          "p50": 16,
+          "p95": 18,
+          "max": 19
+        }
+      },
+      {
+        "kind": "full",
+        "view": "desktop",
+        "dpr": 1,
+        "canvas": [
+          1280,
+          800
+        ],
+        "variant": "optimized",
+        "run": 1,
+        "frames": 80,
+        "gpuEnvelopeMs": {
+          "p50": 8.363414,
+          "p95": 9.100402,
+          "max": 9.443272
+        },
+        "encodeMs": {
+          "p50": 2,
+          "p95": 3
+        },
+        "submitIntervalsMs": {
+          "p50": 16,
+          "p95": 18,
+          "max": 20
+        }
+      },
+      {
+        "kind": "full",
+        "view": "desktop",
+        "dpr": 1,
+        "canvas": [
+          1280,
+          800
+        ],
+        "variant": "optimized",
+        "run": 2,
+        "frames": 80,
+        "gpuEnvelopeMs": {
+          "p50": 8.247082,
+          "p95": 8.90399,
+          "max": 9.334858
+        },
+        "encodeMs": {
+          "p50": 2,
+          "p95": 3
+        },
+        "submitIntervalsMs": {
+          "p50": 16,
+          "p95": 18,
+          "max": 19
+        }
+      },
+      {
+        "kind": "full",
+        "view": "desktop",
+        "dpr": 1,
+        "canvas": [
+          1280,
+          800
+        ],
+        "variant": "reference",
+        "run": 3,
+        "frames": 80,
+        "gpuEnvelopeMs": {
+          "p50": 8.640034,
+          "p95": 9.095237,
+          "max": 9.725394
+        },
+        "encodeMs": {
+          "p50": 2,
+          "p95": 3
+        },
+        "submitIntervalsMs": {
+          "p50": 16,
+          "p95": 18,
+          "max": 19
+        }
+      },
+      {
+        "kind": "full",
+        "view": "portrait",
+        "dpr": 2,
+        "canvas": [
+          780,
+          1688
+        ],
+        "variant": "reference",
+        "run": 0,
+        "frames": 80,
+        "gpuEnvelopeMs": {
+          "p50": 13.160883,
+          "p95": 14.06716,
+          "max": 14.793816
+        },
+        "encodeMs": {
+          "p50": 0,
+          "p95": 1
+        },
+        "submitIntervalsMs": {
+          "p50": 16,
+          "p95": 18,
+          "max": 19
+        }
+      },
+      {
+        "kind": "full",
+        "view": "portrait",
+        "dpr": 2,
+        "canvas": [
+          780,
+          1688
+        ],
+        "variant": "optimized",
+        "run": 1,
+        "frames": 80,
+        "gpuEnvelopeMs": {
+          "p50": 12.644682,
+          "p95": 13.839831,
+          "max": 14.450947
+        },
+        "encodeMs": {
+          "p50": 1,
+          "p95": 1
+        },
+        "submitIntervalsMs": {
+          "p50": 16,
+          "p95": 18,
+          "max": 18
+        }
+      },
+      {
+        "kind": "full",
+        "view": "portrait",
+        "dpr": 2,
+        "canvas": [
+          780,
+          1688
+        ],
+        "variant": "optimized",
+        "run": 2,
+        "frames": 80,
+        "gpuEnvelopeMs": {
+          "p50": 12.348103,
+          "p95": 12.883636,
+          "max": 13.791374
+        },
+        "encodeMs": {
+          "p50": 1,
+          "p95": 1
+        },
+        "submitIntervalsMs": {
+          "p50": 16,
+          "p95": 18,
+          "max": 18
+        }
+      },
+      {
+        "kind": "full",
+        "view": "portrait",
+        "dpr": 2,
+        "canvas": [
+          780,
+          1688
+        ],
+        "variant": "reference",
+        "run": 3,
+        "frames": 80,
+        "gpuEnvelopeMs": {
+          "p50": 13.08855,
+          "p95": 13.943121,
+          "max": 14.584862
+        },
+        "encodeMs": {
+          "p50": 0,
+          "p95": 1
+        },
+        "submitIntervalsMs": {
+          "p50": 16,
+          "p95": 17,
+          "max": 18
+        }
+      }
+    ],
+    "rawSha256": "ea51c0f25b957d3a962354d45360d01856f00836535e6e151a11064c4400d662"
+  },
+  "sourceHygiene": {
+    "finalSuiteDirectories": [
+      "/tmp/ccapp-229-targets",
+      "/tmp/ccapp-229-native-final",
+      "/tmp/ccapp-229-lower-holes",
+      "/tmp/ccapp-229-expansion",
+      "/tmp/ccapp-229-retention",
+      "/tmp/ccapp-229-boundaries",
+      "/tmp/ccapp-229-interruptions",
+      "/tmp/ccapp-229-orientation",
+      "/tmp/ccapp-229-occupied",
+      "/tmp/ccapp-229-render",
+      "/tmp/ccapp-229-production-final",
+      "/tmp/ccapp-229-site",
+      "/tmp/ccapp-229-cpu"
+    ],
+    "allStartEndRuntimeFingerprintsEqual": true,
+    "headAtCapture": "Base e2edf9fe until the one final commit; runtime SHA is the exact product-source authority for these uncommitted captures.",
+    "priorEvidence": "native-v2 predates continuous interior lens correction and is prior only. targets-init-error and targets-r1..r4 retain harness import/early cursor/returned-label readiness failures; final actual identity click proof selects only after actual enabled world gate/two frames. Original raw files and adverse attempts are retained without metadata rewrite."
+  },
+  "limits": [
+    "Chromium/CDP phone emulation on an Apple Metal adapter, not a physical phone measurement.",
+    "GPU timestamps are a command-buffer envelope, not summed overlapping spans. Observer/timestamp feature adds overhead; no universal FPS or device claim.",
+    "Local Mac lacks supported audio tools for six existing audio normalization tests; complete Linux Web CI must pass.",
+    "Raw local artifacts under /tmp are retained for exact-head independent review; public assets are sanitized synthetic scenes.",
+    "Builder does not self-approve or merge."
+  ]
+}

@@ -270,7 +270,7 @@ export function GardenWorld({
         if (!element) return;
         const ndc = projectToNdc(view.viewProjection, caption.position);
         let visible = (caption.maxDistance === undefined || distance(caption) <= caption.maxDistance) && !(stateRef.current.scenicRoute && view.eye && gardenHouseOccludes(view.eye, caption.position)) && ndc !== null && Math.abs(ndc[0]) < 1.2 && Math.abs(ndc[1]) < 1.2 && ndc[2] < 1;
-        if(stateRef.current.scenicRoute && visible && ndc && caption.size === "label"){
+        if(stateRef.current.scenicRoute && visible && ndc && (caption.size === "label" || caption.id.startsWith("care-"))){
           const box={x:(ndc[0]+1)/2*view.width-element.offsetWidth/2,y:(1-ndc[1])/2*view.height-element.offsetHeight/2,w:element.offsetWidth,h:element.offsetHeight};
           if(placedLabels.some(other=>box.x<other.x+other.w+12&&box.x+box.w+12>other.x&&box.y<other.y+other.h+8&&box.y+box.h+8>other.y))visible=false;
           else placedLabels.push(box);

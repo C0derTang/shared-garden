@@ -10,7 +10,7 @@ export function scenicRocks(){return landingRocks();}
 const outsideHouse=(x:number,z:number)=>{const p=worldToHouse([x,0,z]);return p[0]<-5.5||p[0]>5.5||p[2]<-HOUSE.depth-3.3||p[2]>3.5;};
 export function buildScenicMeadowStrokes(route:ScenicRoute,beds:readonly Bed[]):Stroke[]{
  const clear=(x:number,z:number)=>outsideHouse(x,z)&&landingLakeDepth(x,z)<-.3&&distanceToScenicPath(route,x,z)>.92;
- const strokes=[...buildLandingFieldStrokes(),...buildMeadowStrokes(beds).filter(s=>s.kind===STROKE_KIND.surface)].filter(s=>clear(s.origin[0],s.origin[2]));
+ const strokes=[...buildLandingFieldStrokes().filter(s=>distanceToBeds(s.origin[0],s.origin[2],beds)>.12),...buildMeadowStrokes(beds).filter(s=>s.kind===STROKE_KIND.surface)].filter(s=>clear(s.origin[0],s.origin[2]));
  const random=createRandom(0x224);
  const blade=(x:number,z:number)=>{
   if(!clear(x,z)||distanceToBeds(x,z,beds)<.08)return;
