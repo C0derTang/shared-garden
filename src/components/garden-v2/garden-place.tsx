@@ -4,6 +4,7 @@ import type {TourContext} from '@/lib/world/tour-context';
 import {type FlowerAnchor,type SpotTarget} from '@/lib/world/picking';
 import {placeGardenCue,visibleCueFootprints,type CueRect} from '@/lib/world/cue-placement';
 import type {WorldView} from '@/components/world/renderer';
+import type {GardenInvitation} from '@/lib/garden-v2/invitation';
 import styles from './garden-v2.module.css';
 
 /** Position a note from the actual submitted view, never another camera state. */
@@ -51,14 +52,17 @@ export function useGardenPlace(flowers:readonly FlowerAnchor[],seeds:readonly Sp
  return {layer,onView};
 }
 /** Quiet ink on the walk, never a navigation control or live announcement. */
-export function GardenPlace({context,layer}:{context:TourContext;layer:RefCallback<HTMLDivElement>}){
+export function GardenPlace({context,layer,invitation=null,busy=false,onVisit}:{context:TourContext;layer:RefCallback<HTMLDivElement>;invitation?:GardenInvitation|null;busy?:boolean;onVisit?:(id:string)=>void}){
  return <div ref={layer} className={styles.placeLayer}>
-  <aside className={styles.gardenPlace} aria-label="Along the garden walk" data-garden-place>
+  <aside className={styles.gardenPlace} aria-label="Along the garden walk" data-garden-place data-invitation={!!invitation || undefined}>
    <p><span className={styles.srOnly}>Current place: </span><span data-place-label>{context.label}</span></p>
    <svg width="112" height="12" viewBox="0 0 112 12" aria-hidden="true" data-route-progress={context.progress.toFixed(4)}>
     <path d="M4 7 Q30 3 55 7 T108 6" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="1 5" strokeLinecap="round"/>
     <circle cx={4+104*context.progress} cy={6} r="3" fill="currentColor"/>
    </svg>
+   {invitation && <button type="button" className={styles.invitation} data-garden-invitation disabled={busy} onClick={()=>onVisit?.(invitation.id)}>
+    {invitation.action}<span className={styles.invitationFlower}> · {invitation.name}</span><span aria-hidden="true"> →</span>
+   </button>}
   </aside>
  </div>;
 }

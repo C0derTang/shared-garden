@@ -13,6 +13,7 @@ import { diffAway, hasAwayNews, noAwayNews, readAwaySnapshot, takeAwaySnapshot, 
 import { captionName, catalogItem, gardenDayLabel, plantSpec, stageWords } from "@/lib/garden-v2/flowers";
 import type { FlowerType, GardenResult, GardenState, Plant } from "@/lib/garden-v2/model";
 import { gardenPlots, waitingOnYou, type GardenPlot } from "@/lib/garden-v2/plots";
+import { nextGardenVisit } from "@/lib/garden-v2/invitation";
 import { useGardenV2 } from "@/lib/garden-v2/use-garden-v2";
 import { gardenViewHref, type GardenView } from "@/lib/garden-v2/views";
 import { gardenTour, retainTourDistance, pixelsToTourDistance, tourDistanceToPixels } from "@/lib/world/garden-tour";
@@ -36,7 +37,7 @@ import { useSeedBlows } from "./seed-blows";
 import { SplitView } from "./split-view";
 import styles from "./garden-v2.module.css";
 
-/** How long the camera glides toward a flower before its view opens. */
+/** The retained planting ceremony; ordinary activities open immediately. */
 export const GLIDE_MS = 950;
 /**
  * Closing a Dandelion whose seeds are about to blow in the world: the camera
@@ -130,6 +131,10 @@ export function GardenV2({
   // Where focus returns when a view closes (#210): the hidden plot that opened it, else the world.
   const returnSpot = useRef<number | null>(null);
   const returning = useRef(false);
+  const seedHolding = useRef(false);
+  const returnInvitation = useRef(false);
+  const intent = useRef(0);
+  const closedIntent = useRef<number | null>(null);
   // The flower layer (GPU code and shaders) loads with the world, not in the page's first bundle.
   const [flowerLayer, setFlowerLayer] = useState<FlowerLayer | null>(null);
   useEffect(() => {
@@ -219,9 +224,11 @@ export function GardenV2({
   );
 
   const visit = useCallback(
-    (id: string, immediate = false) => {
+    (id: string, immediate = true) => {
       const anchor = anchors.find((candidate) => candidate.id === id);
       if (!anchor) return;
+      intent.current += 1;
+      returning.current = false;
       setMode({ kind: "idle" });
       setVisiting(id);
       setWandered(true);
@@ -235,6 +242,7 @@ export function GardenV2({
     (spot: number) => {
       const area = layout?.areas.find((candidate) => candidate.target.spot === spot);
       if (!area) return;
+      intent.current += 1;
       setMode({ kind: "idle" });
       setVisiting(null);
       setWandered(true);
@@ -244,10 +252,12 @@ export function GardenV2({
   );
 
   const openView = useCallback((next: GardenView) => {
+    intent.current += 1;
     // Ends any glide or close-look hold (#201): the camera is released too.
     interruptScrollGlide();
     window.clearTimeout(timer.current);
     setFocus(null);
+    seedHolding.current = false;
     setMode({ kind: "idle" });
     setVisiting(null);
     setWandered(true);
@@ -262,15 +272,17 @@ export function GardenV2({
 
   const { awaitsWorld } = seedBlows;
   const close = useCallback(() => {
+    closedIntent.current = intent.current;
     window.clearTimeout(timer.current);
     const closing = visiting;
+    seedHolding.current = closing !== null && awaitsWorld(closing);
     returning.current=worldStatus==="ready"&&(!reducedMotion||(closing!==null&&awaitsWorld(closing)));
     if(returning.current)setCameraReady(false);
     setMode({ kind: "idle" });
     setVisiting(null);
     if (closing !== null && awaitsWorld(closing)) {
       // The seeds blow in the world as you return: hold the close look while they lift.
-      timer.current = window.setTimeout(() => setFocus(null), reducedMotion ? STILL_SEED_HOLD_MS : SEED_HOLD_MS);
+      timer.current = window.setTimeout(() => { seedHolding.current = false; setFocus(null); }, reducedMotion ? STILL_SEED_HOLD_MS : SEED_HOLD_MS);
     } else {
       setFocus(null);
     }
@@ -316,7 +328,8 @@ export function GardenV2({
   const plots = useMemo(() => (state ? gardenPlots(state, partner.short) : []), [state, partner.short]);
   const openPlot = useCallback(
     (plot: GardenPlot) => {
-      if(returning.current||!arrival.settled||sheetOpen)return;
+      if(seedHolding.current||(!plot.plant&&returning.current)||!arrival.settled||sheetOpen)return;
+      returnInvitation.current = false;
       returnSpot.current = plot.spot;
       if (plot.plant) visit(plot.plant.flower.id);
       else startPlant(plot.spot);
@@ -326,7 +339,8 @@ export function GardenV2({
   // A tap in the world (or a flower chosen in an overlay) returns focus to the world.
   const pickFlower = useCallback(
     (id: string) => {
-      if(returning.current||!arrival.settled||sheetOpen)return;
+      if(seedHolding.current||!arrival.settled||sheetOpen)return;
+      returnInvitation.current = false;
       returnSpot.current = null;
       visit(id);
     },
@@ -335,6 +349,7 @@ export function GardenV2({
   const pickSpot = useCallback(
     (spot: number) => {
       if(returning.current||!arrival.settled||sheetOpen)return;
+      returnInvitation.current = false;
       returnSpot.current = null;
       startPlant(spot);
     },
@@ -348,7 +363,30 @@ export function GardenV2({
     },
     [state, visit],
   );
-  const returnFocus = useCallback(() => focusPlot(returnSpot.current), []);
+  const returnFocus = useCallback(() => {
+    const epoch = closedIntent.current;
+    if (epoch !== intent.current) return;
+    if (returnInvitation.current) {
+      const attempt = (left: number) => {
+        if (intent.current !== epoch) return;
+        const current = document.activeElement;
+        if (current instanceof HTMLElement && current !== document.body && !current.closest('[role="dialog"]')) return;
+        const invitation = document.querySelector<HTMLButtonElement>('[data-garden-invitation]');
+        const target = invitation && getComputedStyle(invitation).visibility !== "hidden" && !invitation.disabled
+          ? invitation : document.querySelector<HTMLElement>('[data-garden-world]');
+        target?.focus({ preventScroll: true });
+        if (document.activeElement !== target && left > 0) requestAnimationFrame(() => attempt(left - 1));
+      };
+      attempt(20);
+    } else focusPlot(returnSpot.current);
+  }, []);
+  const invite = useCallback((id: string) => {
+    if (seedHolding.current || !arrival.settled || sheetOpen || busy || error) return;
+    returnInvitation.current = true;
+    returnSpot.current = null;
+    visit(id);
+  }, [arrival.settled, sheetOpen, busy, error, visit]);
+  const invitation = state && !error && now < Date.parse(state.next_rollover_at) ? nextGardenVisit(state) : null;
 
   // A small "♡" floats over every flower still waiting on your care today (#214), following the
   // plant's height as it grows. It is left out while the camera glides to a flower or a
@@ -429,7 +467,7 @@ export function GardenV2({
           </div>
         </div>
       </div>
-      {!navigationBlocked && !pickerOpen && place && <GardenPlace context={place} layer={placeLayer} />}
+      {!covered && !sheetOpen && arrival.settled && !pickerOpen && place && <GardenPlace context={place} layer={placeLayer} invitation={invitation} busy={busy} onVisit={invite} />}
       {!navigationBlocked && route && <FlowerPicker areas={layout!.areas} currentType={place?.type??null} open={pickerOpen} onOpenChange={open=>{if(open)interruptScrollGlide();setPickerOpen(open);}} onSelect={type=>{
         const index=layout!.areas.findIndex(area=>area.type===type),distance=route.anchors.get(index)??0;
         setPickerOpen(false);setWandered(true);

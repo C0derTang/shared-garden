@@ -1,0 +1,5258 @@
+{
+  "issue": "https://github.com/C0derTang/shared-garden/issues/230",
+  "base": "d55aec6b2c5074deedf8c91965ec08f6fbfda2ec",
+  "decision": "../decisions/0076-direct-garden-visits.md",
+  "scope": "Synthetic loopback-only UI verification. No private authentication, real backend mutations or production content. Prerequisites 228/229 and test-only issue 233 are merged. Actual production UI source remains byte-identical to the frozen230 capture;233 intentionally changes the broad metadata scan through a test-only helper, documented separately. Builder local validation complete; current-head Linux Web/fourCI and fresh independent review remain orchestrator merge gates.",
+  "runtime": {
+    "headAtCapture": "d55aec6b2c5074deedf8c91965ec08f6fbfda2ec",
+    "runtimeSourceSha256": "ba75e5663328230ea68fc3738fa41ea350ae52986f9dc015e33bf4ac7b45d339",
+    "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+    "capturedAt": "2026-11-28T04:33:34.942Z",
+    "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+  },
+  "sourceProof": {
+    "perFileSnapshot": "/tmp/ccapp-230-frozen-runtime",
+    "matrixStartEnd": "/tmp/ccapp-230-browser-r2/source-start.json and source-end.json",
+    "afterStartEnd": "/tmp/ccapp-230-after-visible/source-start.json and source-end.json",
+    "unchangedInputProof": "/tmp/ccapp-230-world-input-equivalence.json",
+    "changedExistingRuntimeFiles": [
+      "src/components/garden-v2/garden-place.tsx",
+      "src/components/garden-v2/garden-v2.module.css",
+      "src/components/garden-v2/garden-v2.tsx"
+    ],
+    "newRuntimeFile": "src/lib/garden-v2/invitation.ts",
+    "applicability": "At the original issue 230 capture, every pre-existing other non-test source, portrait, shader/reference, profiler/fixture and dependency input was byte-identical to merged229. After issue 233, 417 of those 418 inputs remain identical; the sole earlier-input delta is the test-only ground sampler. All 312 actual production source files and their file set exactly match the frozen issue 230 snapshot. Original issue 229 geometry/paint/house/buffer metadata and original issue 230 captures are preserved, never relabeled. Final 32-view reservation and lifecycle checks are fresh on integrated base 1db0a7e.",
+    "originalBeforeReconstruction": "/tmp/ccapp-230-before/base-reconstructed-manifest.json",
+    "finalBridge": "0230-production-inputs.json",
+    "explanationAfter233": "Existing evidenceMetadata calls its broad non-.test src scan a runtime hash, but it includes src/test/ground-sampler.ts. Prerequisite233 intentionally changes only that test helper among the earlier snapshot files; original capture hashes are preserved as captured. No actual production source input differs from the frozen230 snapshot. Imports of the changed helper are confined to tests/profiling, not production modules.",
+    "stillUnchangedEarlierInputs": 417,
+    "onlyEarlierInputDelta": "src/test/ground-sampler.ts (test-only)",
+    "unchangedActualProductionSourceFiles": 312,
+    "productionSourceSha256": "5e2d760dfff05fe459be703b467204855d26d6fc1b269b739db8ab45f9fbab4e",
+    "unchangedExistingFilesAtOriginalCapture": 418,
+    "finalBroadSrcCaptureSha256": "a727435f1166b7b9181df168f4f5c3857435af86b51389d7ab5b389caacb6eff"
+  },
+  "latency": {
+    "beforeReplay": {
+      "metadata": {
+        "headAtCapture": "d55aec6b2c5074deedf8c91965ec08f6fbfda2ec",
+        "runtimeSourceSha256": "b32cf64402fe1cc8b5d394c3997a067494833efe4480bc4a5bc18a235be15b1d",
+        "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+        "capturedAt": "2026-11-28T04:30:02.696Z",
+        "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+      },
+      "method": "Replay from recorded source; real trusted Enter on ordinary plot, DOM appearance via MutationObserver; first center within viewport/elementFromPoint===textarea and cumulative opacity>=.95; trusted Playwright field.click waits stable/scrolls and real keyboard x verified. Native frames/timers; world ready before every sample. All retain existing650ms+80ms panel transition; loopback mocked read-only network. Not universal device/FPS claim.",
+      "samples": [
+        {
+          "view": "desktop",
+          "width": 1280,
+          "height": 800,
+          "motion": "no-preference",
+          "i": 0,
+          "started": 2139.0999999046326,
+          "domMs": 1001.9000000953674,
+          "visibleHitMs": 1416.4000000953674,
+          "trustedTypedMs": 2255.2000000476837,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "desktop",
+          "width": 1280,
+          "height": 800,
+          "motion": "no-preference",
+          "i": 1,
+          "started": 6759.799999952316,
+          "domMs": 992.6000000238419,
+          "visibleHitMs": 1413.5,
+          "trustedTypedMs": 2212.2999999523163,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "desktop",
+          "width": 1280,
+          "height": 800,
+          "motion": "no-preference",
+          "i": 2,
+          "started": 11343.399999976158,
+          "domMs": 989.1999999284744,
+          "visibleHitMs": 1410.8999999761581,
+          "trustedTypedMs": 2211.1999999284744,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "desktop",
+          "width": 1280,
+          "height": 800,
+          "motion": "no-preference",
+          "i": 3,
+          "started": 15924.5,
+          "domMs": 984.1999999284744,
+          "visibleHitMs": 1413.8999999761581,
+          "trustedTypedMs": 2211.2999999523163,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "desktop",
+          "width": 1280,
+          "height": 800,
+          "motion": "reduce",
+          "i": 0,
+          "started": 2130.399999976158,
+          "domMs": 34.39999997615814,
+          "visibleHitMs": 46.200000047683716,
+          "trustedTypedMs": 89.60000002384186,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "desktop",
+          "width": 1280,
+          "height": 800,
+          "motion": "reduce",
+          "i": 1,
+          "started": 2308.7999999523163,
+          "domMs": 19.5,
+          "visibleHitMs": 47.5,
+          "trustedTypedMs": 53.300000071525574,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "desktop",
+          "width": 1280,
+          "height": 800,
+          "motion": "reduce",
+          "i": 2,
+          "started": 2429.399999976158,
+          "domMs": 17.399999976158142,
+          "visibleHitMs": 43.60000002384186,
+          "trustedTypedMs": 49.700000047683716,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "desktop",
+          "width": 1280,
+          "height": 800,
+          "motion": "reduce",
+          "i": 3,
+          "started": 2545.899999976158,
+          "domMs": 16.799999952316284,
+          "visibleHitMs": 43.299999952316284,
+          "trustedTypedMs": 48.799999952316284,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "phone",
+          "width": 390,
+          "height": 844,
+          "motion": "no-preference",
+          "i": 0,
+          "started": 2117.100000023842,
+          "domMs": 999.5,
+          "visibleHitMs": 2235.7999999523163,
+          "trustedTypedMs": 2246.5,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "phone",
+          "width": 390,
+          "height": 844,
+          "motion": "no-preference",
+          "i": 1,
+          "started": 6740.100000023842,
+          "domMs": 991.5,
+          "visibleHitMs": 2221.399999976158,
+          "trustedTypedMs": 2222.6999999284744,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "phone",
+          "width": 390,
+          "height": 844,
+          "motion": "no-preference",
+          "i": 2,
+          "started": 11336.899999976158,
+          "domMs": 979.7999999523163,
+          "visibleHitMs": 2224.899999976158,
+          "trustedTypedMs": 2226.100000023842,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "phone",
+          "width": 390,
+          "height": 844,
+          "motion": "no-preference",
+          "i": 3,
+          "started": 15952.600000023842,
+          "domMs": 973.5999999046326,
+          "visibleHitMs": 2208.7999999523163,
+          "trustedTypedMs": 2215.1999999284744,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "phone",
+          "width": 390,
+          "height": 844,
+          "motion": "reduce",
+          "i": 0,
+          "started": 2132.3000000715256,
+          "domMs": 34.59999990463257,
+          "visibleHitMs": 112.79999995231628,
+          "trustedTypedMs": 114.09999990463257,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "phone",
+          "width": 390,
+          "height": 844,
+          "motion": "reduce",
+          "i": 1,
+          "started": 2314.399999976158,
+          "domMs": 19.200000047683716,
+          "visibleHitMs": 63.700000047683716,
+          "trustedTypedMs": 64.70000004768372,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "phone",
+          "width": 390,
+          "height": 844,
+          "motion": "reduce",
+          "i": 2,
+          "started": 2446.3000000715256,
+          "domMs": 17.899999976158142,
+          "visibleHitMs": 64.59999990463257,
+          "trustedTypedMs": 65.5,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "phone",
+          "width": 390,
+          "height": 844,
+          "motion": "reduce",
+          "i": 3,
+          "started": 2578.100000023842,
+          "domMs": 17.5,
+          "visibleHitMs": 65.60000002384186,
+          "trustedTypedMs": 66.20000004768372,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "landscape",
+          "width": 844,
+          "height": 390,
+          "motion": "no-preference",
+          "i": 0,
+          "started": 2118.2999999523163,
+          "domMs": 1003.5,
+          "visibleHitMs": 2235.600000023842,
+          "trustedTypedMs": 2242.2000000476837,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "landscape",
+          "width": 844,
+          "height": 390,
+          "motion": "no-preference",
+          "i": 1,
+          "started": 6738.600000023842,
+          "domMs": 992.6999999284744,
+          "visibleHitMs": 2225.0999999046326,
+          "trustedTypedMs": 2226.5999999046326,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "landscape",
+          "width": 844,
+          "height": 390,
+          "motion": "no-preference",
+          "i": 2,
+          "started": 11337.699999928474,
+          "domMs": 991.7000000476837,
+          "visibleHitMs": 2226.2000000476837,
+          "trustedTypedMs": 2227.9000000953674,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "landscape",
+          "width": 844,
+          "height": 390,
+          "motion": "no-preference",
+          "i": 3,
+          "started": 15933.799999952316,
+          "domMs": 983.2000000476837,
+          "visibleHitMs": 2212.2000000476837,
+          "trustedTypedMs": 2212.899999976158,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "landscape",
+          "width": 844,
+          "height": 390,
+          "motion": "reduce",
+          "i": 0,
+          "started": 2124.3000000715256,
+          "domMs": 32.59999990463257,
+          "visibleHitMs": 107.5,
+          "trustedTypedMs": 109.09999990463257,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "landscape",
+          "width": 844,
+          "height": 390,
+          "motion": "reduce",
+          "i": 1,
+          "started": 2303.3000000715256,
+          "domMs": 19.5,
+          "visibleHitMs": 59.699999928474426,
+          "trustedTypedMs": 60.39999997615814,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "landscape",
+          "width": 844,
+          "height": 390,
+          "motion": "reduce",
+          "i": 2,
+          "started": 2429.100000023842,
+          "domMs": 17.399999976158142,
+          "visibleHitMs": 67.29999995231628,
+          "trustedTypedMs": 68.10000002384186,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "landscape",
+          "width": 844,
+          "height": 390,
+          "motion": "reduce",
+          "i": 3,
+          "started": 2563.899999976158,
+          "domMs": 17.800000071525574,
+          "visibleHitMs": 65.80000007152557,
+          "trustedTypedMs": 66.5,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "narrow",
+          "width": 800,
+          "height": 600,
+          "motion": "no-preference",
+          "i": 0,
+          "started": 2129,
+          "domMs": 1002.2999999523163,
+          "visibleHitMs": 2243.0999999046326,
+          "trustedTypedMs": 2254.399999976158,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "narrow",
+          "width": 800,
+          "height": 600,
+          "motion": "no-preference",
+          "i": 1,
+          "started": 6751.299999952316,
+          "domMs": 993,
+          "visibleHitMs": 2226.600000023842,
+          "trustedTypedMs": 2228.100000023842,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "narrow",
+          "width": 800,
+          "height": 600,
+          "motion": "no-preference",
+          "i": 2,
+          "started": 11348.699999928474,
+          "domMs": 991.3000000715256,
+          "visibleHitMs": 2229.2000000476837,
+          "trustedTypedMs": 2230.899999976158,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "narrow",
+          "width": 800,
+          "height": 600,
+          "motion": "no-preference",
+          "i": 3,
+          "started": 15953.299999952316,
+          "domMs": 991.2999999523163,
+          "visibleHitMs": 2223,
+          "trustedTypedMs": 2223.7000000476837,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "narrow",
+          "width": 800,
+          "height": 600,
+          "motion": "reduce",
+          "i": 0,
+          "started": 2138,
+          "domMs": 33.39999997615814,
+          "visibleHitMs": 104.39999997615814,
+          "trustedTypedMs": 105.70000004768372,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "narrow",
+          "width": 800,
+          "height": 600,
+          "motion": "reduce",
+          "i": 1,
+          "started": 2312,
+          "domMs": 19.899999976158142,
+          "visibleHitMs": 64.60000002384186,
+          "trustedTypedMs": 65.29999995231628,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "narrow",
+          "width": 800,
+          "height": 600,
+          "motion": "reduce",
+          "i": 2,
+          "started": 2444.899999976158,
+          "domMs": 17.600000023841858,
+          "visibleHitMs": 65,
+          "trustedTypedMs": 65.80000007152557,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "narrow",
+          "width": 800,
+          "height": 600,
+          "motion": "reduce",
+          "i": 3,
+          "started": 2577.7999999523163,
+          "domMs": 18.300000071525574,
+          "visibleHitMs": 65.5,
+          "trustedTypedMs": 66.40000009536743,
+          "focused": "TEXTAREA"
+        }
+      ],
+      "summary": {
+        "no-preference": {
+          "domMs": {
+            "n": 16,
+            "min": 973.5999999046326,
+            "median": 991.6000000238419,
+            "max": 1003.5
+          },
+          "visibleHitMs": {
+            "n": 16,
+            "min": 1410.8999999761581,
+            "median": 2223.949999988079,
+            "max": 2243.0999999046326
+          },
+          "trustedTypedMs": {
+            "n": 16,
+            "min": 2211.1999999284744,
+            "median": 2226.349999964237,
+            "max": 2255.2000000476837
+          }
+        },
+        "reduce": {
+          "domMs": {
+            "n": 16,
+            "min": 16.799999952316284,
+            "median": 18.750000059604645,
+            "max": 34.59999990463257
+          },
+          "visibleHitMs": {
+            "n": 16,
+            "min": 43.299999952316284,
+            "median": 64.80000001192093,
+            "max": 112.79999995231628
+          },
+          "trustedTypedMs": {
+            "n": 16,
+            "min": 48.799999952316284,
+            "median": 66.00000005960464,
+            "max": 114.09999990463257
+          }
+        }
+      }
+    },
+    "after": {
+      "metadata": {
+        "headAtCapture": "d55aec6b2c5074deedf8c91965ec08f6fbfda2ec",
+        "runtimeSourceSha256": "ba75e5663328230ea68fc3738fa41ea350ae52986f9dc015e33bf4ac7b45d339",
+        "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+        "capturedAt": "2026-11-28T04:31:45.856Z",
+        "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+      },
+      "method": "Replay from recorded source; real trusted Enter on ordinary plot, DOM appearance via MutationObserver; first center within viewport/elementFromPoint===textarea and cumulative opacity>=.95; trusted Playwright field.click waits stable/scrolls and real keyboard x verified. Native frames/timers; world ready before every sample. All retain existing650ms+80ms panel transition; loopback mocked read-only network. Not universal device/FPS claim.",
+      "samples": [
+        {
+          "view": "desktop",
+          "width": 1280,
+          "height": 800,
+          "motion": "no-preference",
+          "i": 0,
+          "started": 2163,
+          "domMs": 33.799999952316284,
+          "visibleHitMs": 456.39999997615814,
+          "trustedTypedMs": 458.2999999523163,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "desktop",
+          "width": 1280,
+          "height": 800,
+          "motion": "no-preference",
+          "i": 1,
+          "started": 4999.899999976158,
+          "domMs": 28.299999952316284,
+          "visibleHitMs": 436.60000002384186,
+          "trustedTypedMs": 438.1999999284744,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "desktop",
+          "width": 1280,
+          "height": 800,
+          "motion": "no-preference",
+          "i": 2,
+          "started": 7812.899999976158,
+          "domMs": 28.799999952316284,
+          "visibleHitMs": 440.39999997615814,
+          "trustedTypedMs": 442.1999999284744,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "desktop",
+          "width": 1280,
+          "height": 800,
+          "motion": "no-preference",
+          "i": 3,
+          "started": 10627.899999976158,
+          "domMs": 28.299999952316284,
+          "visibleHitMs": 442.5,
+          "trustedTypedMs": 444.6999999284744,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "desktop",
+          "width": 1280,
+          "height": 800,
+          "motion": "reduce",
+          "i": 0,
+          "started": 2136.8000000715256,
+          "domMs": 27.399999976158142,
+          "visibleHitMs": 43.89999997615814,
+          "trustedTypedMs": 73.89999997615814,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "desktop",
+          "width": 1280,
+          "height": 800,
+          "motion": "reduce",
+          "i": 1,
+          "started": 2302.600000023842,
+          "domMs": 19.799999952316284,
+          "visibleHitMs": 42.299999952316284,
+          "trustedTypedMs": 66.10000002384186,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "desktop",
+          "width": 1280,
+          "height": 800,
+          "motion": "reduce",
+          "i": 2,
+          "started": 2437.899999976158,
+          "domMs": 19.300000071525574,
+          "visibleHitMs": 40.800000071525574,
+          "trustedTypedMs": 63.300000071525574,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "desktop",
+          "width": 1280,
+          "height": 800,
+          "motion": "reduce",
+          "i": 3,
+          "started": 2568.899999976158,
+          "domMs": 18.100000023841858,
+          "visibleHitMs": 43.200000047683716,
+          "trustedTypedMs": 49.700000047683716,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "phone",
+          "width": 390,
+          "height": 844,
+          "motion": "no-preference",
+          "i": 0,
+          "started": 2128.600000023842,
+          "domMs": 33,
+          "visibleHitMs": 452.39999997615814,
+          "trustedTypedMs": 454.10000002384186,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "phone",
+          "width": 390,
+          "height": 844,
+          "motion": "no-preference",
+          "i": 1,
+          "started": 4967.700000047684,
+          "domMs": 28.199999928474426,
+          "visibleHitMs": 446.1999999284744,
+          "trustedTypedMs": 448.10000002384186,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "phone",
+          "width": 390,
+          "height": 844,
+          "motion": "no-preference",
+          "i": 2,
+          "started": 7792,
+          "domMs": 17.700000047683716,
+          "visibleHitMs": 436.3000000715256,
+          "trustedTypedMs": 437.39999997615814,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "phone",
+          "width": 390,
+          "height": 844,
+          "motion": "no-preference",
+          "i": 3,
+          "started": 10598.5,
+          "domMs": 17.700000047683716,
+          "visibleHitMs": 448.39999997615814,
+          "trustedTypedMs": 450.2000000476837,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "phone",
+          "width": 390,
+          "height": 844,
+          "motion": "reduce",
+          "i": 0,
+          "started": 2129,
+          "domMs": 36.39999997615814,
+          "visibleHitMs": 111.09999990463257,
+          "trustedTypedMs": 112.59999990463257,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "phone",
+          "width": 390,
+          "height": 844,
+          "motion": "reduce",
+          "i": 1,
+          "started": 2311.399999976158,
+          "domMs": 19.799999952316284,
+          "visibleHitMs": 59.799999952316284,
+          "trustedTypedMs": 60.5,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "phone",
+          "width": 390,
+          "height": 844,
+          "motion": "reduce",
+          "i": 2,
+          "started": 2440.5999999046326,
+          "domMs": 18.700000047683716,
+          "visibleHitMs": 63.90000009536743,
+          "trustedTypedMs": 64.70000004768372,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "phone",
+          "width": 390,
+          "height": 844,
+          "motion": "reduce",
+          "i": 3,
+          "started": 2574.0999999046326,
+          "domMs": 19.300000071525574,
+          "visibleHitMs": 63.700000047683716,
+          "trustedTypedMs": 64.40000009536743,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "landscape",
+          "width": 844,
+          "height": 390,
+          "motion": "no-preference",
+          "i": 0,
+          "started": 2124.5999999046326,
+          "domMs": 34,
+          "visibleHitMs": 447.60000002384186,
+          "trustedTypedMs": 449.2000000476837,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "landscape",
+          "width": 844,
+          "height": 390,
+          "motion": "no-preference",
+          "i": 1,
+          "started": 4949.899999976158,
+          "domMs": 21.600000023841858,
+          "visibleHitMs": 438.10000002384186,
+          "trustedTypedMs": 439.7999999523163,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "landscape",
+          "width": 844,
+          "height": 390,
+          "motion": "no-preference",
+          "i": 2,
+          "started": 7750.299999952316,
+          "domMs": 19.399999976158142,
+          "visibleHitMs": 437.2000000476837,
+          "trustedTypedMs": 438.7999999523163,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "landscape",
+          "width": 844,
+          "height": 390,
+          "motion": "no-preference",
+          "i": 3,
+          "started": 10561.699999928474,
+          "domMs": 24.300000071525574,
+          "visibleHitMs": 442.7000000476837,
+          "trustedTypedMs": 445,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "landscape",
+          "width": 844,
+          "height": 390,
+          "motion": "reduce",
+          "i": 0,
+          "started": 2173.600000023842,
+          "domMs": 25.199999928474426,
+          "visibleHitMs": 99.89999997615814,
+          "trustedTypedMs": 101.39999997615814,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "landscape",
+          "width": 844,
+          "height": 390,
+          "motion": "reduce",
+          "i": 1,
+          "started": 2342.399999976158,
+          "domMs": 18,
+          "visibleHitMs": 64.5,
+          "trustedTypedMs": 65.5,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "landscape",
+          "width": 844,
+          "height": 390,
+          "motion": "reduce",
+          "i": 2,
+          "started": 2473.7999999523163,
+          "domMs": 16.200000047683716,
+          "visibleHitMs": 65.60000002384186,
+          "trustedTypedMs": 66.5,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "landscape",
+          "width": 844,
+          "height": 390,
+          "motion": "reduce",
+          "i": 3,
+          "started": 2604.100000023842,
+          "domMs": 15.399999976158142,
+          "visibleHitMs": 69.29999995231628,
+          "trustedTypedMs": 70,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "narrow",
+          "width": 800,
+          "height": 600,
+          "motion": "no-preference",
+          "i": 0,
+          "started": 2120.899999976158,
+          "domMs": 24.899999976158142,
+          "visibleHitMs": 432.39999997615814,
+          "trustedTypedMs": 433.5,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "narrow",
+          "width": 800,
+          "height": 600,
+          "motion": "no-preference",
+          "i": 1,
+          "started": 4904.899999976158,
+          "domMs": 17.200000047683716,
+          "visibleHitMs": 448.39999997615814,
+          "trustedTypedMs": 449.39999997615814,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "narrow",
+          "width": 800,
+          "height": 600,
+          "motion": "no-preference",
+          "i": 2,
+          "started": 7705.200000047684,
+          "domMs": 16.09999990463257,
+          "visibleHitMs": 447.59999990463257,
+          "trustedTypedMs": 448.59999990463257,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "narrow",
+          "width": 800,
+          "height": 600,
+          "motion": "no-preference",
+          "i": 3,
+          "started": 10508.799999952316,
+          "domMs": 28.300000071525574,
+          "visibleHitMs": 445.60000002384186,
+          "trustedTypedMs": 447.5,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "narrow",
+          "width": 800,
+          "height": 600,
+          "motion": "reduce",
+          "i": 0,
+          "started": 2181.7000000476837,
+          "domMs": 32.299999952316284,
+          "visibleHitMs": 109.29999995231628,
+          "trustedTypedMs": 110.89999997615814,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "narrow",
+          "width": 800,
+          "height": 600,
+          "motion": "reduce",
+          "i": 1,
+          "started": 2363.2000000476837,
+          "domMs": 18.5,
+          "visibleHitMs": 59.799999952316284,
+          "trustedTypedMs": 60.700000047683716,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "narrow",
+          "width": 800,
+          "height": 600,
+          "motion": "reduce",
+          "i": 2,
+          "started": 2491.7000000476837,
+          "domMs": 15.600000023841858,
+          "visibleHitMs": 64.60000002384186,
+          "trustedTypedMs": 65.39999997615814,
+          "focused": "TEXTAREA"
+        },
+        {
+          "view": "narrow",
+          "width": 800,
+          "height": 600,
+          "motion": "reduce",
+          "i": 3,
+          "started": 2623.5,
+          "domMs": 16.40000009536743,
+          "visibleHitMs": 66.10000002384186,
+          "trustedTypedMs": 67.40000009536743,
+          "focused": "TEXTAREA"
+        }
+      ],
+      "summary": {
+        "no-preference": {
+          "domMs": {
+            "n": 16,
+            "min": 16.09999990463257,
+            "median": 26.549999952316284,
+            "max": 34
+          },
+          "visibleHitMs": {
+            "n": 16,
+            "min": 432.39999997615814,
+            "median": 444.1500000357628,
+            "max": 456.39999997615814
+          },
+          "trustedTypedMs": {
+            "n": 16,
+            "min": 433.5,
+            "median": 446.25,
+            "max": 458.2999999523163
+          }
+        },
+        "reduce": {
+          "domMs": {
+            "n": 16,
+            "min": 15.399999976158142,
+            "median": 19.000000059604645,
+            "max": 36.39999997615814
+          },
+          "visibleHitMs": {
+            "n": 16,
+            "min": 40.800000071525574,
+            "median": 64.20000004768372,
+            "max": 111.09999990463257
+          },
+          "trustedTypedMs": {
+            "n": 16,
+            "min": 49.700000047683716,
+            "median": 65.80000001192093,
+            "max": 112.59999990463257
+          }
+        }
+      }
+    },
+    "originalBeforeCapture": {
+      "meta": {
+        "headAtCapture": "d55aec6b2c5074deedf8c91965ec08f6fbfda2ec",
+        "runtimeSourceSha256": "b32cf64402fe1cc8b5d394c3997a067494833efe4480bc4a5bc18a235be15b1d",
+        "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+        "capturedAt": "2026-11-28T04:19:24.332Z",
+        "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+      },
+      "results": [
+        {
+          "motion": "no-preference",
+          "i": 0,
+          "elapsedMs": 998.1000000238419,
+          "focused": true,
+          "disabled": false
+        },
+        {
+          "motion": "no-preference",
+          "i": 1,
+          "elapsedMs": 997.5,
+          "focused": true,
+          "disabled": false
+        },
+        {
+          "motion": "no-preference",
+          "i": 2,
+          "elapsedMs": 990.0999999046326,
+          "focused": true,
+          "disabled": false
+        },
+        {
+          "motion": "no-preference",
+          "i": 3,
+          "elapsedMs": 998.1999999284744,
+          "focused": true,
+          "disabled": false
+        },
+        {
+          "motion": "no-preference",
+          "i": 4,
+          "elapsedMs": 998,
+          "focused": true,
+          "disabled": false
+        },
+        {
+          "motion": "no-preference",
+          "i": 5,
+          "elapsedMs": 994.3000000715256,
+          "focused": true,
+          "disabled": false
+        },
+        {
+          "motion": "no-preference",
+          "i": 6,
+          "elapsedMs": 995.7000000476837,
+          "focused": true,
+          "disabled": false
+        },
+        {
+          "motion": "no-preference",
+          "i": 7,
+          "elapsedMs": 983.1000000238419,
+          "focused": true,
+          "disabled": false
+        },
+        {
+          "motion": "reduce",
+          "i": 0,
+          "elapsedMs": 43.699999928474426,
+          "focused": true,
+          "disabled": false
+        },
+        {
+          "motion": "reduce",
+          "i": 1,
+          "elapsedMs": 21.699999928474426,
+          "focused": true,
+          "disabled": false
+        },
+        {
+          "motion": "reduce",
+          "i": 2,
+          "elapsedMs": 21.100000023841858,
+          "focused": true,
+          "disabled": false
+        },
+        {
+          "motion": "reduce",
+          "i": 3,
+          "elapsedMs": 19.399999976158142,
+          "focused": true,
+          "disabled": false
+        },
+        {
+          "motion": "reduce",
+          "i": 4,
+          "elapsedMs": 19.600000023841858,
+          "focused": true,
+          "disabled": false
+        },
+        {
+          "motion": "reduce",
+          "i": 5,
+          "elapsedMs": 19.299999952316284,
+          "focused": true,
+          "disabled": false
+        },
+        {
+          "motion": "reduce",
+          "i": 6,
+          "elapsedMs": 21.600000023841858,
+          "focused": true,
+          "disabled": false
+        },
+        {
+          "motion": "reduce",
+          "i": 7,
+          "elapsedMs": 19.299999952316284,
+          "focused": true,
+          "disabled": false
+        }
+      ],
+      "calls": [
+        "readPrivateInteraction",
+        "refreshGardenV2",
+        "readPrivateInteraction",
+        "refreshGardenV2"
+      ],
+      "method": "Native performance.now from real ordinary plot click to actual textarea focused and writable; ready world before each sample; loopback mocked reads; native timers/frames; draft never submitted"
+    }
+  },
+  "matrix": [
+    {
+      "view": "desktop",
+      "width": 1280,
+      "height": 800,
+      "touchEmulation": false,
+      "motion": "reduce",
+      "invitation44px": true,
+      "explicitOnlyMutationErrorDraft": true,
+      "exactReturn": true,
+      "physicalCanvas": true,
+      "all13Forms": [
+        {
+          "type": "rose",
+          "id": "00000000-0000-4000-8000-000000000001"
+        },
+        {
+          "type": "cactus",
+          "id": "00000000-0000-4000-8000-000000000002"
+        },
+        {
+          "type": "tulip",
+          "id": "00000000-0000-4000-8000-000000000003"
+        },
+        {
+          "type": "marigold",
+          "id": "00000000-0000-4000-8000-000000000004"
+        },
+        {
+          "type": "daisy",
+          "id": "00000000-0000-4000-8000-000000000005"
+        },
+        {
+          "type": "hydrangea",
+          "id": "00000000-0000-4000-8000-000000000006"
+        },
+        {
+          "type": "sunflower",
+          "id": "00000000-0000-4000-8000-000000000007"
+        },
+        {
+          "type": "snapdragon",
+          "id": "00000000-0000-4000-8000-000000000008"
+        },
+        {
+          "type": "moonflower",
+          "id": "00000000-0000-4000-8000-000000000009"
+        },
+        {
+          "type": "bluebell",
+          "id": "00000000-0000-4000-8000-000000000010"
+        },
+        {
+          "type": "dandelion",
+          "id": "00000000-0000-4000-8000-000000000011"
+        },
+        {
+          "type": "forget-me-not",
+          "id": "00000000-0000-4000-8000-000000000012"
+        },
+        {
+          "type": "peony",
+          "id": "00000000-0000-4000-8000-000000000013"
+        }
+      ],
+      "all12Invitations": [
+        {
+          "type": "rose",
+          "label": "write a note \u00b7 rose \u2192",
+          "id": "00000000-0000-4000-8000-000000000001",
+          "box": {
+            "x": 27.984375,
+            "y": 103.9375,
+            "width": 160.359375,
+            "height": 44
+          }
+        },
+        {
+          "type": "cactus",
+          "label": "check in \u00b7 cactus \u2192",
+          "id": "00000000-0000-4000-8000-000000000002",
+          "box": {
+            "x": 27.984375,
+            "y": 103.9375,
+            "width": 135.5,
+            "height": 44
+          }
+        },
+        {
+          "type": "tulip",
+          "label": "share a song \u00b7 tulip \u2192",
+          "id": "00000000-0000-4000-8000-000000000003",
+          "box": {
+            "x": 27.984375,
+            "y": 103.9375,
+            "width": 162.546875,
+            "height": 44
+          }
+        },
+        {
+          "type": "marigold",
+          "label": "leave an appreciation \u00b7 marigold \u2192",
+          "id": "00000000-0000-4000-8000-000000000004",
+          "box": {
+            "x": 27.984375,
+            "y": 103.9375,
+            "width": 261.578125,
+            "height": 44
+          }
+        },
+        {
+          "type": "daisy",
+          "label": "answer a question \u00b7 daisy \u2192",
+          "id": "00000000-0000-4000-8000-000000000005",
+          "box": {
+            "x": 27.984375,
+            "y": 103.9375,
+            "width": 212.09375,
+            "height": 44
+          }
+        },
+        {
+          "type": "hydrangea",
+          "label": "choose a mood color \u00b7 hydrangea \u2192",
+          "id": "00000000-0000-4000-8000-000000000006",
+          "box": {
+            "x": 27.984375,
+            "y": 103.9375,
+            "width": 268.171875,
+            "height": 44
+          }
+        },
+        {
+          "type": "sunflower",
+          "label": "share a photo \u00b7 sunflower \u2192",
+          "id": "00000000-0000-4000-8000-000000000007",
+          "box": {
+            "x": 27.984375,
+            "y": 103.9375,
+            "width": 211.65625,
+            "height": 44
+          }
+        },
+        {
+          "type": "snapdragon",
+          "label": "write an honest check-in \u00b7 snapdragon \u2192",
+          "id": "00000000-0000-4000-8000-000000000008",
+          "box": {
+            "x": 27.984375,
+            "y": 103.9375,
+            "width": 299.21875,
+            "height": 50.8125
+          }
+        },
+        {
+          "type": "moonflower",
+          "label": "leave a late-night thought \u00b7 moonflower \u2192",
+          "id": "00000000-0000-4000-8000-000000000009",
+          "box": {
+            "x": 27.984375,
+            "y": 103.9375,
+            "width": 299.21875,
+            "height": 50.8125
+          }
+        },
+        {
+          "type": "bluebell",
+          "label": "record a voice memo \u00b7 bluebell \u2192",
+          "id": "00000000-0000-4000-8000-000000000010",
+          "box": {
+            "x": 27.984375,
+            "y": 103.9375,
+            "width": 243.96875,
+            "height": 44
+          }
+        },
+        {
+          "type": "dandelion",
+          "label": "add to a wish \u00b7 dandelion \u2192",
+          "id": "00000000-0000-4000-8000-000000000011",
+          "box": {
+            "x": 27.984375,
+            "y": 103.9375,
+            "width": 213.96875,
+            "height": 44
+          }
+        },
+        {
+          "type": "forget-me-not",
+          "label": "share a memory \u00b7 forget-me-not \u2192",
+          "id": "00000000-0000-4000-8000-000000000012",
+          "box": {
+            "x": 27.984375,
+            "y": 103.9375,
+            "width": 260.96875,
+            "height": 44
+          }
+        }
+      ],
+      "truthfulQuietAndMoonStates": true,
+      "heldFrames": true,
+      "states": [
+        {
+          "kind": "empty",
+          "plants": 0,
+          "distance": "46.9154925996146"
+        },
+        {
+          "kind": "full",
+          "plants": 78,
+          "distance": "46.9154925996146"
+        },
+        {
+          "kind": "sparse",
+          "plants": 26,
+          "distance": "46.9154925996146"
+        },
+        {
+          "kind": "boundary",
+          "plants": 25,
+          "distance": "46.9154925996146"
+        },
+        {
+          "kind": "occupied",
+          "plants": 79,
+          "distance": "46.9154925996146"
+        }
+      ],
+      "gpuRecovery": true,
+      "calls": [
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "mutateGardenV2",
+          "args": [
+            {
+              "kind": "submit",
+              "flowerId": "00000000-0000-4000-8000-000000000001",
+              "payload": {
+                "text": "Synthetic explicit error witness"
+              }
+            }
+          ]
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPeonyV2",
+          "args": [
+            "00000000-0000-4000-8000-000000000013"
+          ]
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        }
+      ],
+      "errors": []
+    },
+    {
+      "view": "portrait",
+      "width": 390,
+      "height": 844,
+      "touchEmulation": true,
+      "motion": "reduce",
+      "invitation44px": true,
+      "explicitOnlyMutationErrorDraft": true,
+      "exactReturn": true,
+      "physicalCanvas": true,
+      "all13Forms": [
+        {
+          "type": "rose",
+          "id": "00000000-0000-4000-8000-000000000001"
+        },
+        {
+          "type": "cactus",
+          "id": "00000000-0000-4000-8000-000000000002"
+        },
+        {
+          "type": "tulip",
+          "id": "00000000-0000-4000-8000-000000000003"
+        },
+        {
+          "type": "marigold",
+          "id": "00000000-0000-4000-8000-000000000004"
+        },
+        {
+          "type": "daisy",
+          "id": "00000000-0000-4000-8000-000000000005"
+        },
+        {
+          "type": "hydrangea",
+          "id": "00000000-0000-4000-8000-000000000006"
+        },
+        {
+          "type": "sunflower",
+          "id": "00000000-0000-4000-8000-000000000007"
+        },
+        {
+          "type": "snapdragon",
+          "id": "00000000-0000-4000-8000-000000000008"
+        },
+        {
+          "type": "moonflower",
+          "id": "00000000-0000-4000-8000-000000000009"
+        },
+        {
+          "type": "bluebell",
+          "id": "00000000-0000-4000-8000-000000000010"
+        },
+        {
+          "type": "dandelion",
+          "id": "00000000-0000-4000-8000-000000000011"
+        },
+        {
+          "type": "forget-me-not",
+          "id": "00000000-0000-4000-8000-000000000012"
+        },
+        {
+          "type": "peony",
+          "id": "00000000-0000-4000-8000-000000000013"
+        }
+      ],
+      "all12Invitations": [
+        {
+          "type": "rose",
+          "label": "write a note \u00b7 rose \u2192",
+          "id": "00000000-0000-4000-8000-000000000001",
+          "box": {
+            "x": 27.984375,
+            "y": 116.3125,
+            "width": 160.359375,
+            "height": 44
+          }
+        },
+        {
+          "type": "cactus",
+          "label": "check in \u00b7 cactus \u2192",
+          "id": "00000000-0000-4000-8000-000000000002",
+          "box": {
+            "x": 27.984375,
+            "y": 116.3125,
+            "width": 135.5,
+            "height": 44
+          }
+        },
+        {
+          "type": "tulip",
+          "label": "share a song \u00b7 tulip \u2192",
+          "id": "00000000-0000-4000-8000-000000000003",
+          "box": {
+            "x": 27.984375,
+            "y": 116.3125,
+            "width": 162.546875,
+            "height": 44
+          }
+        },
+        {
+          "type": "marigold",
+          "label": "leave an appreciation \u00b7 marigold \u2192",
+          "id": "00000000-0000-4000-8000-000000000004",
+          "box": {
+            "x": 27.984375,
+            "y": 116.3125,
+            "width": 261.578125,
+            "height": 44
+          }
+        },
+        {
+          "type": "daisy",
+          "label": "answer a question \u00b7 daisy \u2192",
+          "id": "00000000-0000-4000-8000-000000000005",
+          "box": {
+            "x": 27.984375,
+            "y": 116.3125,
+            "width": 212.09375,
+            "height": 44
+          }
+        },
+        {
+          "type": "hydrangea",
+          "label": "choose a mood color \u00b7 hydrangea \u2192",
+          "id": "00000000-0000-4000-8000-000000000006",
+          "box": {
+            "x": 27.984375,
+            "y": 116.3125,
+            "width": 268.171875,
+            "height": 44
+          }
+        },
+        {
+          "type": "sunflower",
+          "label": "share a photo \u00b7 sunflower \u2192",
+          "id": "00000000-0000-4000-8000-000000000007",
+          "box": {
+            "x": 27.984375,
+            "y": 116.3125,
+            "width": 211.65625,
+            "height": 44
+          }
+        },
+        {
+          "type": "snapdragon",
+          "label": "write an honest check-in \u00b7 snapdragon \u2192",
+          "id": "00000000-0000-4000-8000-000000000008",
+          "box": {
+            "x": 27.984375,
+            "y": 116.3125,
+            "width": 281.21875,
+            "height": 50.8125
+          }
+        },
+        {
+          "type": "moonflower",
+          "label": "leave a late-night thought \u00b7 moonflower \u2192",
+          "id": "00000000-0000-4000-8000-000000000009",
+          "box": {
+            "x": 27.984375,
+            "y": 116.3125,
+            "width": 281.21875,
+            "height": 50.8125
+          }
+        },
+        {
+          "type": "bluebell",
+          "label": "record a voice memo \u00b7 bluebell \u2192",
+          "id": "00000000-0000-4000-8000-000000000010",
+          "box": {
+            "x": 27.984375,
+            "y": 116.3125,
+            "width": 243.96875,
+            "height": 44
+          }
+        },
+        {
+          "type": "dandelion",
+          "label": "add to a wish \u00b7 dandelion \u2192",
+          "id": "00000000-0000-4000-8000-000000000011",
+          "box": {
+            "x": 27.984375,
+            "y": 116.3125,
+            "width": 213.96875,
+            "height": 44
+          }
+        },
+        {
+          "type": "forget-me-not",
+          "label": "share a memory \u00b7 forget-me-not \u2192",
+          "id": "00000000-0000-4000-8000-000000000012",
+          "box": {
+            "x": 27.984375,
+            "y": 116.3125,
+            "width": 260.96875,
+            "height": 44
+          }
+        }
+      ],
+      "truthfulQuietAndMoonStates": true,
+      "heldFrames": true,
+      "states": [
+        {
+          "kind": "empty",
+          "plants": 0,
+          "distance": "46.9154925996146"
+        },
+        {
+          "kind": "full",
+          "plants": 78,
+          "distance": "46.9154925996146"
+        },
+        {
+          "kind": "sparse",
+          "plants": 26,
+          "distance": "46.9154925996146"
+        },
+        {
+          "kind": "boundary",
+          "plants": 25,
+          "distance": "46.9154925996146"
+        },
+        {
+          "kind": "occupied",
+          "plants": 79,
+          "distance": "46.9154925996146"
+        }
+      ],
+      "gpuRecovery": true,
+      "calls": [
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "mutateGardenV2",
+          "args": [
+            {
+              "kind": "submit",
+              "flowerId": "00000000-0000-4000-8000-000000000001",
+              "payload": {
+                "text": "Synthetic explicit error witness"
+              }
+            }
+          ]
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPeonyV2",
+          "args": [
+            "00000000-0000-4000-8000-000000000013"
+          ]
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        }
+      ],
+      "errors": []
+    },
+    {
+      "view": "landscape",
+      "width": 844,
+      "height": 390,
+      "touchEmulation": true,
+      "motion": "reduce",
+      "invitation44px": true,
+      "explicitOnlyMutationErrorDraft": true,
+      "exactReturn": true,
+      "physicalCanvas": true,
+      "all13Forms": [
+        {
+          "type": "rose",
+          "id": "00000000-0000-4000-8000-000000000001"
+        },
+        {
+          "type": "cactus",
+          "id": "00000000-0000-4000-8000-000000000002"
+        },
+        {
+          "type": "tulip",
+          "id": "00000000-0000-4000-8000-000000000003"
+        },
+        {
+          "type": "marigold",
+          "id": "00000000-0000-4000-8000-000000000004"
+        },
+        {
+          "type": "daisy",
+          "id": "00000000-0000-4000-8000-000000000005"
+        },
+        {
+          "type": "hydrangea",
+          "id": "00000000-0000-4000-8000-000000000006"
+        },
+        {
+          "type": "sunflower",
+          "id": "00000000-0000-4000-8000-000000000007"
+        },
+        {
+          "type": "snapdragon",
+          "id": "00000000-0000-4000-8000-000000000008"
+        },
+        {
+          "type": "moonflower",
+          "id": "00000000-0000-4000-8000-000000000009"
+        },
+        {
+          "type": "bluebell",
+          "id": "00000000-0000-4000-8000-000000000010"
+        },
+        {
+          "type": "dandelion",
+          "id": "00000000-0000-4000-8000-000000000011"
+        },
+        {
+          "type": "forget-me-not",
+          "id": "00000000-0000-4000-8000-000000000012"
+        },
+        {
+          "type": "peony",
+          "id": "00000000-0000-4000-8000-000000000013"
+        }
+      ],
+      "all12Invitations": [
+        {
+          "type": "rose",
+          "label": "write a note \u00b7 rose \u2192",
+          "id": "00000000-0000-4000-8000-000000000001",
+          "box": {
+            "x": 27.984375,
+            "y": 326,
+            "width": 160.359375,
+            "height": 44
+          }
+        },
+        {
+          "type": "cactus",
+          "label": "check in \u00b7 cactus \u2192",
+          "id": "00000000-0000-4000-8000-000000000002",
+          "box": {
+            "x": 27.984375,
+            "y": 326,
+            "width": 135.5,
+            "height": 44
+          }
+        },
+        {
+          "type": "tulip",
+          "label": "share a song \u00b7 tulip \u2192",
+          "id": "00000000-0000-4000-8000-000000000003",
+          "box": {
+            "x": 27.984375,
+            "y": 326,
+            "width": 162.546875,
+            "height": 44
+          }
+        },
+        {
+          "type": "marigold",
+          "label": "leave an appreciation \u00b7 marigold \u2192",
+          "id": "00000000-0000-4000-8000-000000000004",
+          "box": {
+            "x": 27.984375,
+            "y": 326,
+            "width": 261.578125,
+            "height": 44
+          }
+        },
+        {
+          "type": "daisy",
+          "label": "answer a question \u00b7 daisy \u2192",
+          "id": "00000000-0000-4000-8000-000000000005",
+          "box": {
+            "x": 27.984375,
+            "y": 326,
+            "width": 212.09375,
+            "height": 44
+          }
+        },
+        {
+          "type": "hydrangea",
+          "label": "choose a mood color \u00b7 hydrangea \u2192",
+          "id": "00000000-0000-4000-8000-000000000006",
+          "box": {
+            "x": 27.984375,
+            "y": 326,
+            "width": 268.171875,
+            "height": 44
+          }
+        },
+        {
+          "type": "sunflower",
+          "label": "share a photo \u00b7 sunflower \u2192",
+          "id": "00000000-0000-4000-8000-000000000007",
+          "box": {
+            "x": 27.984375,
+            "y": 326,
+            "width": 211.65625,
+            "height": 44
+          }
+        },
+        {
+          "type": "snapdragon",
+          "label": "write an honest check-in \u00b7 snapdragon \u2192",
+          "id": "00000000-0000-4000-8000-000000000008",
+          "box": {
+            "x": 27.984375,
+            "y": 319.1875,
+            "width": 299.21875,
+            "height": 50.8125
+          }
+        },
+        {
+          "type": "moonflower",
+          "label": "leave a late-night thought \u00b7 moonflower \u2192",
+          "id": "00000000-0000-4000-8000-000000000009",
+          "box": {
+            "x": 27.984375,
+            "y": 319.1875,
+            "width": 299.21875,
+            "height": 50.8125
+          }
+        },
+        {
+          "type": "bluebell",
+          "label": "record a voice memo \u00b7 bluebell \u2192",
+          "id": "00000000-0000-4000-8000-000000000010",
+          "box": {
+            "x": 27.984375,
+            "y": 319.1875,
+            "width": 243.96875,
+            "height": 44
+          }
+        },
+        {
+          "type": "dandelion",
+          "label": "add to a wish \u00b7 dandelion \u2192",
+          "id": "00000000-0000-4000-8000-000000000011",
+          "box": {
+            "x": 27.984375,
+            "y": 319.1875,
+            "width": 213.96875,
+            "height": 44
+          }
+        },
+        {
+          "type": "forget-me-not",
+          "label": "share a memory \u00b7 forget-me-not \u2192",
+          "id": "00000000-0000-4000-8000-000000000012",
+          "box": {
+            "x": 27.984375,
+            "y": 319.1875,
+            "width": 260.96875,
+            "height": 44
+          }
+        }
+      ],
+      "truthfulQuietAndMoonStates": true,
+      "heldFrames": true,
+      "states": [
+        {
+          "kind": "empty",
+          "plants": 0,
+          "distance": "46.9154925996146"
+        },
+        {
+          "kind": "full",
+          "plants": 78,
+          "distance": "46.9154925996146"
+        },
+        {
+          "kind": "sparse",
+          "plants": 26,
+          "distance": "46.9154925996146"
+        },
+        {
+          "kind": "boundary",
+          "plants": 25,
+          "distance": "46.9154925996146"
+        },
+        {
+          "kind": "occupied",
+          "plants": 79,
+          "distance": "46.9154925996146"
+        }
+      ],
+      "gpuRecovery": true,
+      "calls": [
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "mutateGardenV2",
+          "args": [
+            {
+              "kind": "submit",
+              "flowerId": "00000000-0000-4000-8000-000000000001",
+              "payload": {
+                "text": "Synthetic explicit error witness"
+              }
+            }
+          ]
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPeonyV2",
+          "args": [
+            "00000000-0000-4000-8000-000000000013"
+          ]
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        }
+      ],
+      "errors": []
+    },
+    {
+      "view": "narrow",
+      "width": 800,
+      "height": 600,
+      "touchEmulation": false,
+      "motion": "reduce",
+      "invitation44px": true,
+      "explicitOnlyMutationErrorDraft": true,
+      "exactReturn": true,
+      "physicalCanvas": true,
+      "all13Forms": [
+        {
+          "type": "rose",
+          "id": "00000000-0000-4000-8000-000000000001"
+        },
+        {
+          "type": "cactus",
+          "id": "00000000-0000-4000-8000-000000000002"
+        },
+        {
+          "type": "tulip",
+          "id": "00000000-0000-4000-8000-000000000003"
+        },
+        {
+          "type": "marigold",
+          "id": "00000000-0000-4000-8000-000000000004"
+        },
+        {
+          "type": "daisy",
+          "id": "00000000-0000-4000-8000-000000000005"
+        },
+        {
+          "type": "hydrangea",
+          "id": "00000000-0000-4000-8000-000000000006"
+        },
+        {
+          "type": "sunflower",
+          "id": "00000000-0000-4000-8000-000000000007"
+        },
+        {
+          "type": "snapdragon",
+          "id": "00000000-0000-4000-8000-000000000008"
+        },
+        {
+          "type": "moonflower",
+          "id": "00000000-0000-4000-8000-000000000009"
+        },
+        {
+          "type": "bluebell",
+          "id": "00000000-0000-4000-8000-000000000010"
+        },
+        {
+          "type": "dandelion",
+          "id": "00000000-0000-4000-8000-000000000011"
+        },
+        {
+          "type": "forget-me-not",
+          "id": "00000000-0000-4000-8000-000000000012"
+        },
+        {
+          "type": "peony",
+          "id": "00000000-0000-4000-8000-000000000013"
+        }
+      ],
+      "all12Invitations": [
+        {
+          "type": "rose",
+          "label": "write a note \u00b7 rose \u2192",
+          "id": "00000000-0000-4000-8000-000000000001",
+          "box": {
+            "x": 27.984375,
+            "y": 536,
+            "width": 160.359375,
+            "height": 44
+          }
+        },
+        {
+          "type": "cactus",
+          "label": "check in \u00b7 cactus \u2192",
+          "id": "00000000-0000-4000-8000-000000000002",
+          "box": {
+            "x": 27.984375,
+            "y": 536,
+            "width": 135.5,
+            "height": 44
+          }
+        },
+        {
+          "type": "tulip",
+          "label": "share a song \u00b7 tulip \u2192",
+          "id": "00000000-0000-4000-8000-000000000003",
+          "box": {
+            "x": 27.984375,
+            "y": 536,
+            "width": 162.546875,
+            "height": 44
+          }
+        },
+        {
+          "type": "marigold",
+          "label": "leave an appreciation \u00b7 marigold \u2192",
+          "id": "00000000-0000-4000-8000-000000000004",
+          "box": {
+            "x": 27.984375,
+            "y": 536,
+            "width": 261.578125,
+            "height": 44
+          }
+        },
+        {
+          "type": "daisy",
+          "label": "answer a question \u00b7 daisy \u2192",
+          "id": "00000000-0000-4000-8000-000000000005",
+          "box": {
+            "x": 27.984375,
+            "y": 536,
+            "width": 212.09375,
+            "height": 44
+          }
+        },
+        {
+          "type": "hydrangea",
+          "label": "choose a mood color \u00b7 hydrangea \u2192",
+          "id": "00000000-0000-4000-8000-000000000006",
+          "box": {
+            "x": 27.984375,
+            "y": 536,
+            "width": 268.171875,
+            "height": 44
+          }
+        },
+        {
+          "type": "sunflower",
+          "label": "share a photo \u00b7 sunflower \u2192",
+          "id": "00000000-0000-4000-8000-000000000007",
+          "box": {
+            "x": 27.984375,
+            "y": 536,
+            "width": 211.65625,
+            "height": 44
+          }
+        },
+        {
+          "type": "snapdragon",
+          "label": "write an honest check-in \u00b7 snapdragon \u2192",
+          "id": "00000000-0000-4000-8000-000000000008",
+          "box": {
+            "x": 27.984375,
+            "y": 529.1875,
+            "width": 299.21875,
+            "height": 50.8125
+          }
+        },
+        {
+          "type": "moonflower",
+          "label": "leave a late-night thought \u00b7 moonflower \u2192",
+          "id": "00000000-0000-4000-8000-000000000009",
+          "box": {
+            "x": 27.984375,
+            "y": 529.1875,
+            "width": 299.21875,
+            "height": 50.8125
+          }
+        },
+        {
+          "type": "bluebell",
+          "label": "record a voice memo \u00b7 bluebell \u2192",
+          "id": "00000000-0000-4000-8000-000000000010",
+          "box": {
+            "x": 27.984375,
+            "y": 529.1875,
+            "width": 243.96875,
+            "height": 44
+          }
+        },
+        {
+          "type": "dandelion",
+          "label": "add to a wish \u00b7 dandelion \u2192",
+          "id": "00000000-0000-4000-8000-000000000011",
+          "box": {
+            "x": 27.984375,
+            "y": 529.1875,
+            "width": 213.96875,
+            "height": 44
+          }
+        },
+        {
+          "type": "forget-me-not",
+          "label": "share a memory \u00b7 forget-me-not \u2192",
+          "id": "00000000-0000-4000-8000-000000000012",
+          "box": {
+            "x": 27.984375,
+            "y": 529.1875,
+            "width": 260.96875,
+            "height": 44
+          }
+        }
+      ],
+      "truthfulQuietAndMoonStates": true,
+      "heldFrames": true,
+      "states": [
+        {
+          "kind": "empty",
+          "plants": 0,
+          "distance": "46.9154925996146"
+        },
+        {
+          "kind": "full",
+          "plants": 78,
+          "distance": "46.9154925996146"
+        },
+        {
+          "kind": "sparse",
+          "plants": 26,
+          "distance": "46.9154925996146"
+        },
+        {
+          "kind": "boundary",
+          "plants": 25,
+          "distance": "46.9154925996146"
+        },
+        {
+          "kind": "occupied",
+          "plants": 79,
+          "distance": "46.9154925996146"
+        }
+      ],
+      "gpuRecovery": true,
+      "calls": [
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "mutateGardenV2",
+          "args": [
+            {
+              "kind": "submit",
+              "flowerId": "00000000-0000-4000-8000-000000000001",
+              "payload": {
+                "text": "Synthetic explicit error witness"
+              }
+            }
+          ]
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPeonyV2",
+          "args": [
+            "00000000-0000-4000-8000-000000000013"
+          ]
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        },
+        {
+          "name": "readPrivateInteraction",
+          "args": []
+        },
+        {
+          "name": "refreshGardenV2",
+          "args": []
+        }
+      ],
+      "errors": []
+    }
+  ],
+  "localChecks": {
+    "lint": "pass on integrated1db",
+    "typecheck": "pass on integrated1db",
+    "fullWeb": "npm test ran on the integrated base: 160 files passed, 2 skipped; 1,510 tests passed, 3 skipped, and only the six known Mac audio_unavailable failures (163 files / 1,519 tests total). Complete Linux Web is required before merge.",
+    "knownMacAudioFailures": [
+      "fully decodes and normalizes safari-300.webm",
+      "fully decodes and normalizes safari-5.webm",
+      "fully decodes and normalizes tone-5.webm",
+      "fully decodes and normalizes tone-300.webm",
+      "fully decodes and normalizes browser-5-0.webm",
+      "fully decodes and normalizes browser-300-0.webm"
+    ],
+    "node": "55/55 pass on integrated1db",
+    "build": "pass on integrated1db",
+    "wgsl": "fresh pinnedvgpu0.6 validation passed before test-only233; all shader/compiler/dependency inputs remain byte-identical, qualified by production-input proof",
+    "productionFixture404": "all7actual production-mode variants404/no fixture state on integrated1db",
+    "linuxWebAndRequiredFourCI": "pending current-head CI; orchestrator merge gate"
+  },
+  "rawArtifacts": [
+    "/tmp/ccapp-230-before",
+    "/tmp/ccapp-230-baseline-visible-replay-r3",
+    "/tmp/ccapp-230-after-visible",
+    "/tmp/ccapp-230-browser-r2",
+    "/tmp/ccapp-230-visible-checkpoint",
+    "/tmp/ccapp-230-lifecycle",
+    "/tmp/ccapp-230-production",
+    "/tmp/ccapp-230-reservations",
+    "/tmp/ccapp-230-reservations-r2",
+    "/tmp/ccapp-230-lifecycle-final",
+    "/tmp/ccapp-230-production-final"
+  ],
+  "adverseEvidence": [
+    {
+      "path": "/tmp/ccapp-230-checkpoint",
+      "finding": "Original form screenshot caught offscreen CSS transition after DOM fill. It is not evidence of visible interactivity. Corrected trusted click+keyboard captures accepted in visible-checkpoint."
+    },
+    {
+      "path": "/tmp/ccapp-230-baseline-visible-replay",
+      "finding": "Harness first captured DOM/focus then sampled before phone hit-observer RAF. Incomplete run, not included in paired final distributions."
+    },
+    {
+      "path": "/tmp/ccapp-230-baseline-visible-replay-r2",
+      "finding": "Interrupted incomplete harness wait; finalr3 bounds wait and preserves completed32 samples. Temporary concurrent exploratory process was stopped before final paired runs."
+    },
+    {
+      "path": "/tmp/ccapp-230-browser-final",
+      "finding": "Harness expected Cactus share button; actual existing button is I\u2019m here. Harness corrected, app source unchanged; final matrix repeats all cases."
+    },
+    {
+      "path": "/tmp/ccapp-230-reservations/landscape-moonflower-failure.png",
+      "finding": "Harness used innerText for naturally visibility:hidden semantic label and expected visible text. Corrected to textContent plus separate visible/hittable assertions; preserves six legitimate no-safe-slot cases without app edits."
+    }
+  ],
+  "limitations": [
+    "Phone/touch is Chromium browser emulation, not physical-device or assistive-technology testing.",
+    "Timing is local native performance.now under mocked read-only loopback data. DOM, first visible/hittable center and stable trusted typing are separate metrics; latter metrics include retained panel animation and automated scrolling/actionability. No universal performance/FPS claim.",
+    "Original before capture has its contemporaneous aggregate hash. Per-file base manifest was reconstructed from its recorded Git object afterwards and checked against that aggregate; it is labeled reconstructed, not a contemporaneous snapshot.",
+    "Shared refresh uses the real client refresh path with synthetic server-action responses, not a private Realtime backend connection.",
+    "No real microphone, private upload or media storage accessed. Existing media/history forms and full application tests retain their original contracts."
+  ],
+  "lifecycle": {
+    "meta": {
+      "headAtCapture": "d55aec6b2c5074deedf8c91965ec08f6fbfda2ec",
+      "runtimeSourceSha256": "ba75e5663328230ea68fc3738fa41ea350ae52986f9dc015e33bf4ac7b45d339",
+      "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+      "capturedAt": "2026-11-28T04:40:41.356Z",
+      "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+    },
+    "results": [
+      {
+        "motion": "no-preference",
+        "delayedGpu": true,
+        "realTrustedTypingBeforeDevice": true,
+        "newerRealUuidAndFocus": true,
+        "returnDistancePreserved": true,
+        "noAutomaticMutation": true,
+        "calls": [
+          {
+            "name": "readPrivateInteraction",
+            "args": []
+          },
+          {
+            "name": "refreshGardenV2",
+            "args": []
+          },
+          {
+            "name": "readPrivateInteraction",
+            "args": []
+          },
+          {
+            "name": "refreshGardenV2",
+            "args": []
+          },
+          {
+            "name": "readPrivateInteraction",
+            "args": []
+          },
+          {
+            "name": "refreshGardenV2",
+            "args": []
+          }
+        ]
+      },
+      {
+        "motion": "reduce",
+        "delayedGpu": true,
+        "realTrustedTypingBeforeDevice": true,
+        "newerRealUuidAndFocus": true,
+        "returnDistancePreserved": true,
+        "noAutomaticMutation": true,
+        "calls": [
+          {
+            "name": "readPrivateInteraction",
+            "args": []
+          },
+          {
+            "name": "refreshGardenV2",
+            "args": []
+          },
+          {
+            "name": "readPrivateInteraction",
+            "args": []
+          },
+          {
+            "name": "refreshGardenV2",
+            "args": []
+          },
+          {
+            "name": "readPrivateInteraction",
+            "args": []
+          },
+          {
+            "name": "refreshGardenV2",
+            "args": []
+          }
+        ]
+      },
+      {
+        "motion": "no-preference",
+        "arrivalRetained": true,
+        "settledWithinMs": 5188,
+        "calls": [
+          {
+            "name": "readPrivateInteraction",
+            "args": []
+          },
+          {
+            "name": "refreshGardenV2",
+            "args": []
+          },
+          {
+            "name": "readPrivateInteraction",
+            "args": []
+          },
+          {
+            "name": "refreshGardenV2",
+            "args": []
+          }
+        ]
+      },
+      {
+        "motion": "no-preference",
+        "boundedDandelionHold": true,
+        "elapsedUntilNativeNavigationMs": 4825,
+        "exactlyOneExplicitMutation": true,
+        "calls": [
+          {
+            "name": "readPrivateInteraction",
+            "args": []
+          },
+          {
+            "name": "refreshGardenV2",
+            "args": []
+          },
+          {
+            "name": "readPrivateInteraction",
+            "args": []
+          },
+          {
+            "name": "refreshGardenV2",
+            "args": []
+          },
+          {
+            "name": "mutateGardenV2",
+            "args": [
+              {
+                "kind": "fulfillDandelion",
+                "flowerId": "00000000-0000-4000-8000-000000000011"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "motion": "reduce",
+        "boundedDandelionHold": true,
+        "elapsedUntilNativeNavigationMs": 1297,
+        "exactlyOneExplicitMutation": true,
+        "calls": [
+          {
+            "name": "readPrivateInteraction",
+            "args": []
+          },
+          {
+            "name": "refreshGardenV2",
+            "args": []
+          },
+          {
+            "name": "readPrivateInteraction",
+            "args": []
+          },
+          {
+            "name": "refreshGardenV2",
+            "args": []
+          },
+          {
+            "name": "mutateGardenV2",
+            "args": [
+              {
+                "kind": "fulfillDandelion",
+                "flowerId": "00000000-0000-4000-8000-000000000011"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "productionMode": {
+    "actualProductionServer": true,
+    "results": [
+      {
+        "path": "/dev/garden-areas",
+        "status": 404,
+        "fixtureStateAbsent": true
+      },
+      {
+        "path": "/dev/garden-areas?empty=1&scope=1&arrival=1",
+        "status": 404,
+        "fixtureStateAbsent": true
+      },
+      {
+        "path": "/dev/garden-areas?boundary=1",
+        "status": 404,
+        "fixtureStateAbsent": true
+      },
+      {
+        "path": "/dev/garden-areas?sparse=1",
+        "status": 404,
+        "fixtureStateAbsent": true
+      },
+      {
+        "path": "/dev/garden-areas?bloom=1&many=1",
+        "status": 404,
+        "fixtureStateAbsent": true
+      },
+      {
+        "path": "/dev/world?areas=1&walking=1",
+        "status": 404,
+        "fixtureStateAbsent": true
+      },
+      {
+        "path": "/dev/landing?sky=dusk&member=1",
+        "status": 404,
+        "fixtureStateAbsent": true
+      }
+    ]
+  },
+  "reproduce": {
+    "environment": "Pinned project dependencies; use an installed Playwright module via PLAYWRIGHT_MODULE and the matching Chromium via CHROMIUM_EXECUTABLE. Never supply real credentials. BASE_URL is restricted to loopback.",
+    "commands": [
+      "npm run dev -- --hostname 127.0.0.1 --port 3234",
+      "BASE_URL=http://127.0.0.1:3234 node scripts/profiling/check-direct-visits.mjs",
+      "BASE_URL=http://127.0.0.1:3234 node scripts/profiling/check-direct-visit-reservations.mjs",
+      "BASE_URL=http://127.0.0.1:3234 node scripts/profiling/check-direct-visit-lifecycle.mjs",
+      "BASE_URL=http://127.0.0.1:3234 node scripts/profiling/measure-direct-visits.mjs",
+      "BASE_URL=http://127.0.0.1:3235 node scripts/profiling/check-scenic-production.mjs"
+    ],
+    "baselineReplay": "Run measure-direct-visits.mjs from the immutable recorded baseline worktree against that matching dev server, preserving that tree\u2019s own manifest. Final replay uses the same algorithm and explicit source hashes.",
+    "mocking": "All network requests must match the loopback origin; unknown server actions throw. Matrix mutation handler accepts only one exact explicitly submitted error-witness note. Lifecycle handler accepts only an explicitly fulfilled synthetic Dandelion. Timing handler is read-only. No real backend/media access."
+  },
+  "integratedBase": "1db0a7e9b2ef858501946077585a74353d5c69d3",
+  "reservations": {
+    "metadata": {
+      "headAtCapture": "1db0a7e9b2ef858501946077585a74353d5c69d3",
+      "runtimeSourceSha256": "a727435f1166b7b9181df168f4f5c3857435af86b51389d7ab5b389caacb6eff",
+      "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+      "capturedAt": "2026-11-28T04:59:26.431Z",
+      "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+    },
+    "results": [
+      {
+        "view": "desktop",
+        "width": 1280,
+        "height": 800,
+        "dpr": 1,
+        "motion": "reduced",
+        "task": "moonflower",
+        "targetUuid": "00000000-0000-4000-8000-000000000049",
+        "plants": 78,
+        "oneEligibleUnbloomedPlant": true,
+        "observations": [
+          {
+            "sample": "overlook",
+            "accepted": 38.26415201131552,
+            "place": "garden overlook",
+            "label": "leave a late-night thought \u00b7 moonflower \u2192",
+            "bounds": {
+              "x": 17.59375,
+              "y": 56.75,
+              "width": 320,
+              "height": 100.390625
+            },
+            "button": {
+              "x": 27.984375,
+              "y": 103.9375,
+              "width": 299.21875,
+              "height": 50.8125
+            },
+            "suppressed": false,
+            "visibleTargets": 29,
+            "targetCollisions": [],
+            "visibleHearts": 0,
+            "actualCamera": {
+              "matrix": [
+                1.1512720584869385,
+                0.7110576629638672,
+                0.4767337143421173,
+                0.4766201972961426,
+                0,
+                1.8709207773208618,
+                -0.5534234046936035,
+                -0.5532916188240051,
+                0.8032130002975464,
+                -1.0191826820373535,
+                -0.6833183169364929,
+                -0.6831555962562561,
+                -30.870155334472656,
+                -35.0477294921875,
+                -16.940645217895508,
+                -16.836610794067383
+              ],
+              "eye": [
+                31,
+                3.6825945377349854,
+                -6
+              ],
+              "capturedAt": 690
+            },
+            "physicalEntry": null
+          },
+          {
+            "sample": "activity-flower",
+            "accepted": 84.25545593122166,
+            "place": "moonflower garden",
+            "label": "leave a late-night thought \u00b7 moonflower \u2192",
+            "bounds": {
+              "x": 17.59375,
+              "y": 56.75,
+              "width": 320,
+              "height": 100.390625
+            },
+            "button": {
+              "x": 27.984375,
+              "y": 103.9375,
+              "width": 299.21875,
+              "height": 50.8125
+            },
+            "suppressed": false,
+            "visibleTargets": 11,
+            "targetCollisions": [],
+            "visibleHearts": 1,
+            "actualCamera": {
+              "matrix": [
+                1.811775803565979,
+                -0.11666259169578552,
+                -0.045666273683309555,
+                -0.045655399560928345,
+                0,
+                2.1803925037384033,
+                -0.6607233881950378,
+                -0.6605660319328308,
+                -0.11038127541542053,
+                -1.9148762226104736,
+                -0.7495569586753845,
+                -0.7493784427642822,
+                -131.93287658691406,
+                -24.287261962890625,
+                -4.859751224517822,
+                -4.758594036102295
+              ],
+              "eye": [
+                71.99716186523438,
+                3.1351258754730225,
+                -13.50000286102295
+              ],
+              "capturedAt": 754
+            },
+            "physicalEntry": {
+              "point": {
+                "x": 415.58805455145034,
+                "y": 329.5448065188157
+              },
+              "domMs": 23,
+              "correctUuid": "00000000-0000-4000-8000-000000000049",
+              "trustedTyping": true,
+              "exactGpuReturn": true
+            }
+          },
+          {
+            "sample": "inland-flower",
+            "accepted": 50.72670793830419,
+            "place": "bluebell garden",
+            "label": "leave a late-night thought \u00b7 moonflower \u2192",
+            "bounds": {
+              "x": 17.59375,
+              "y": 56.75,
+              "width": 320,
+              "height": 100.390625
+            },
+            "button": {
+              "x": 27.984375,
+              "y": 103.9375,
+              "width": 299.21875,
+              "height": 50.8125
+            },
+            "suppressed": false,
+            "visibleTargets": 7,
+            "targetCollisions": [],
+            "visibleHearts": 0,
+            "actualCamera": {
+              "matrix": [
+                -2.328209638595581,
+                0.10009511560201645,
+                0.05461855232715607,
+                0.054605547338724136,
+                0,
+                3.349797248840332,
+                -0.4409644901752472,
+                -0.44085949659347534,
+                0.1419033706188202,
+                1.6422611474990845,
+                0.8961269855499268,
+                0.8959136009216309,
+                96.62300872802734,
+                2.085427761077881,
+                6.021749496459961,
+                6.1203155517578125
+              ],
+              "eye": [
+                40.99820327758789,
+                2.196643352508545,
+                -8.24927043914795
+              ],
+              "capturedAt": 993
+            },
+            "physicalEntry": null
+          },
+          {
+            "sample": "curve:terrace:0->bank:3:0",
+            "accepted": 47.37626086946308,
+            "place": "rose garden",
+            "label": "leave a late-night thought \u00b7 moonflower \u2192",
+            "bounds": {
+              "x": 17.59375,
+              "y": 682,
+              "width": 320,
+              "height": 100.390625
+            },
+            "button": {
+              "x": 27.984375,
+              "y": 729.1875,
+              "width": 299.21875,
+              "height": 50.8125
+            },
+            "suppressed": false,
+            "visibleTargets": 14,
+            "targetCollisions": [],
+            "visibleHearts": 0,
+            "actualCamera": {
+              "matrix": [
+                1.5769037008285522,
+                -0.7708291411399841,
+                -0.46760788559913635,
+                -0.4674965441226959,
+                0,
+                2.612199544906616,
+                -0.48370835185050964,
+                -0.4835931658744812,
+                -0.9962261915206909,
+                -1.220127820968628,
+                -0.7401658296585083,
+                -0.7399895787239075,
+                -68.40634155273438,
+                14.88772201538086,
+                13.262463569641113,
+                13.359305381774902
+              ],
+              "eye": [
+                38.5391960144043,
+                2.0940170288085938,
+                -7.662658214569092
+              ],
+              "capturedAt": 1233
+            },
+            "physicalEntry": null
+          }
+        ],
+        "noSafeSlotSuppressionAndRecovery": true,
+        "errors": []
+      },
+      {
+        "view": "desktop",
+        "width": 1280,
+        "height": 800,
+        "dpr": 1,
+        "motion": "normal",
+        "task": "snapdragon",
+        "targetUuid": "00000000-0000-4000-8000-000000000043",
+        "plants": 78,
+        "oneEligibleUnbloomedPlant": true,
+        "observations": [
+          {
+            "sample": "overlook",
+            "accepted": 38.26415201131552,
+            "place": "garden overlook",
+            "label": "write an honest check-in \u00b7 snapdragon \u2192",
+            "bounds": {
+              "x": 17.59375,
+              "y": 56.75,
+              "width": 320,
+              "height": 100.390625
+            },
+            "button": {
+              "x": 27.984375,
+              "y": 103.9375,
+              "width": 299.21875,
+              "height": 50.8125
+            },
+            "suppressed": false,
+            "visibleTargets": 29,
+            "targetCollisions": [],
+            "visibleHearts": 1,
+            "actualCamera": {
+              "matrix": [
+                1.1512720584869385,
+                0.7110576629638672,
+                0.4767337143421173,
+                0.4766201972961426,
+                0,
+                1.8709207773208618,
+                -0.5534234046936035,
+                -0.5532916188240051,
+                0.8032130002975464,
+                -1.0191826820373535,
+                -0.6833183169364929,
+                -0.6831555962562561,
+                -30.870155334472656,
+                -35.0477294921875,
+                -16.940645217895508,
+                -16.836610794067383
+              ],
+              "eye": [
+                31,
+                3.6825945377349854,
+                -6
+              ],
+              "capturedAt": 674
+            },
+            "physicalEntry": null
+          },
+          {
+            "sample": "activity-flower",
+            "accepted": 41.56680805946825,
+            "place": "snapdragon garden",
+            "label": "write an honest check-in \u00b7 snapdragon \u2192",
+            "bounds": {
+              "x": 17.59375,
+              "y": 56.75,
+              "width": 320,
+              "height": 100.390625
+            },
+            "button": {
+              "x": 27.984375,
+              "y": 103.9375,
+              "width": 299.21875,
+              "height": 50.8125
+            },
+            "suppressed": false,
+            "visibleTargets": 14,
+            "targetCollisions": [],
+            "visibleHearts": 1,
+            "actualCamera": {
+              "matrix": [
+                1.7939677238464355,
+                0.16425058245658875,
+                0.14140211045742035,
+                0.14136843383312225,
+                0,
+                2.6964352130889893,
+                -0.3715280592441559,
+                -0.3714395761489868,
+                0.2763749957084656,
+                -1.0661609172821045,
+                -0.9178500771522522,
+                -0.9176315069198608,
+                -58.74508285522461,
+                -17.79050064086914,
+                -10.106239318847656,
+                -10.003832817077637
+              ],
+              "eye": [
+                33.74740219116211,
+                1.9716870784759521,
+                -6.500843048095703
+              ],
+              "capturedAt": 738
+            },
+            "physicalEntry": {
+              "point": {
+                "x": 497.16524655312844,
+                "y": 363.02916298988123
+              },
+              "domMs": 34,
+              "correctUuid": "00000000-0000-4000-8000-000000000043",
+              "trustedTyping": true,
+              "exactGpuReturn": true
+            }
+          },
+          {
+            "sample": "inland-flower",
+            "accepted": 50.72670793830419,
+            "place": "bluebell garden",
+            "label": "write an honest check-in \u00b7 snapdragon \u2192",
+            "bounds": {
+              "x": 17.59375,
+              "y": 56.75,
+              "width": 320,
+              "height": 100.390625
+            },
+            "button": {
+              "x": 27.984375,
+              "y": 103.9375,
+              "width": 299.21875,
+              "height": 50.8125
+            },
+            "suppressed": false,
+            "visibleTargets": 7,
+            "targetCollisions": [],
+            "visibleHearts": 0,
+            "actualCamera": {
+              "matrix": [
+                -2.328209638595581,
+                0.10009511560201645,
+                0.05461855232715607,
+                0.054605547338724136,
+                0,
+                3.349797248840332,
+                -0.4409644901752472,
+                -0.44085949659347534,
+                0.1419033706188202,
+                1.6422611474990845,
+                0.8961269855499268,
+                0.8959136009216309,
+                96.62300872802734,
+                2.085427761077881,
+                6.021749496459961,
+                6.1203155517578125
+              ],
+              "eye": [
+                40.99820327758789,
+                2.196643352508545,
+                -8.24927043914795
+              ],
+              "capturedAt": 2769
+            },
+            "physicalEntry": null
+          },
+          {
+            "sample": "curve:terrace:0->bank:3:0",
+            "accepted": 47.37626086946308,
+            "place": "rose garden",
+            "label": "write an honest check-in \u00b7 snapdragon \u2192",
+            "bounds": {
+              "x": 17.59375,
+              "y": 682,
+              "width": 320,
+              "height": 100.390625
+            },
+            "button": {
+              "x": 27.984375,
+              "y": 729.1875,
+              "width": 299.21875,
+              "height": 50.8125
+            },
+            "suppressed": false,
+            "visibleTargets": 14,
+            "targetCollisions": [],
+            "visibleHearts": 1,
+            "actualCamera": {
+              "matrix": [
+                1.5769037008285522,
+                -0.7708291411399841,
+                -0.46760788559913635,
+                -0.4674965441226959,
+                0,
+                2.612199544906616,
+                -0.48370835185050964,
+                -0.4835931658744812,
+                -0.9962261915206909,
+                -1.220127820968628,
+                -0.7401658296585083,
+                -0.7399895787239075,
+                -68.40634155273438,
+                14.88772201538086,
+                13.262463569641113,
+                13.359305381774902
+              ],
+              "eye": [
+                38.5391960144043,
+                2.0940170288085938,
+                -7.662658214569092
+              ],
+              "capturedAt": 3042
+            },
+            "physicalEntry": null
+          }
+        ],
+        "noSafeSlotSuppressionAndRecovery": true,
+        "errors": []
+      },
+      {
+        "view": "portrait",
+        "width": 390,
+        "height": 844,
+        "dpr": 2,
+        "motion": "reduced",
+        "task": "moonflower",
+        "targetUuid": "00000000-0000-4000-8000-000000000049",
+        "plants": 78,
+        "oneEligibleUnbloomedPlant": true,
+        "observations": [
+          {
+            "sample": "overlook",
+            "accepted": 38.26415201131552,
+            "place": "garden overlook",
+            "label": "leave a late-night thought \u00b7 moonflower \u2192",
+            "bounds": {
+              "x": 17.59375,
+              "y": 74.734375,
+              "width": 302,
+              "height": 94.78125
+            },
+            "button": {
+              "x": 27.984375,
+              "y": 116.3125,
+              "width": 281.21875,
+              "height": 50.8125
+            },
+            "suppressed": false,
+            "visibleTargets": 24,
+            "targetCollisions": [],
+            "visibleHearts": 0,
+            "actualCamera": {
+              "matrix": [
+                1.4205015897750854,
+                0.25337907671928406,
+                0.4767337143421173,
+                0.4766201972961426,
+                0,
+                0.6666859984397888,
+                -0.5534234046936035,
+                -0.5532916188240051,
+                0.9910476207733154,
+                -0.36317670345306396,
+                -0.6833183169364929,
+                -0.6831555962562561,
+                -38.089263916015625,
+                -12.488946914672852,
+                -16.940645217895508,
+                -16.836610794067383
+              ],
+              "eye": [
+                31,
+                3.6825945377349854,
+                -6
+              ],
+              "capturedAt": 643
+            },
+            "physicalEntry": null
+          },
+          {
+            "sample": "activity-flower",
+            "accepted": 84.25545593122166,
+            "place": "moonflower garden",
+            "label": "leave a late-night thought \u00b7 moonflower \u2192",
+            "bounds": {
+              "x": 17.59375,
+              "y": 74.734375,
+              "width": 302,
+              "height": 94.78125
+            },
+            "button": {
+              "x": 27.984375,
+              "y": 116.3125,
+              "width": 281.21875,
+              "height": 50.8125
+            },
+            "suppressed": false,
+            "visibleTargets": 7,
+            "targetCollisions": [],
+            "visibleHearts": 1,
+            "actualCamera": {
+              "matrix": [
+                2.2418832778930664,
+                -0.041690997779369354,
+                -0.045666273683309555,
+                -0.045655399560928345,
+                0,
+                0.7791935801506042,
+                -0.6607233881950378,
+                -0.6605660319328308,
+                -0.1365852952003479,
+                -0.6843076348304749,
+                -0.7495569586753845,
+                -0.7493784427642822,
+                -163.25314331054688,
+                -8.679390907287598,
+                -4.859751224517822,
+                -4.758594036102295
+              ],
+              "eye": [
+                71.99716186523438,
+                3.1351258754730225,
+                -13.50000286102295
+              ],
+              "capturedAt": 706
+            },
+            "physicalEntry": {
+              "point": {
+                "x": 110.39278851212619,
+                "y": 395.4370759125387
+              },
+              "domMs": 25,
+              "correctUuid": "00000000-0000-4000-8000-000000000049",
+              "trustedTyping": true,
+              "exactGpuReturn": true
+            }
+          },
+          {
+            "sample": "inland-flower",
+            "accepted": 50.72670793830419,
+            "place": "bluebell garden",
+            "label": "leave a late-night thought \u00b7 moonflower \u2192",
+            "bounds": {
+              "x": 17.59375,
+              "y": 74.734375,
+              "width": 302,
+              "height": 94.78125
+            },
+            "button": {
+              "x": 27.984375,
+              "y": 116.3125,
+              "width": 281.21875,
+              "height": 50.8125
+            },
+            "suppressed": false,
+            "visibleTargets": 7,
+            "targetCollisions": [],
+            "visibleHearts": 0,
+            "actualCamera": {
+              "matrix": [
+                -2.742386817932129,
+                0.034050360321998596,
+                0.05461855232715607,
+                0.054605547338724136,
+                0,
+                1.1395341157913208,
+                -0.4409644901752472,
+                -0.44085949659347534,
+                0.16714729368686676,
+                0.5586644411087036,
+                0.8961269855499268,
+                0.8959136009216309,
+                113.81177520751953,
+                0.7094208598136902,
+                6.021749496459961,
+                6.1203155517578125
+              ],
+              "eye": [
+                40.99820327758789,
+                2.196643352508545,
+                -8.24927043914795
+              ],
+              "capturedAt": 929
+            },
+            "physicalEntry": null
+          },
+          {
+            "sample": "curve:terrace:0->bank:3:0",
+            "accepted": 47.37626086946308,
+            "place": "rose garden",
+            "label": "leave a late-night thought \u00b7 moonflower \u2192",
+            "bounds": {
+              "x": 17.59375,
+              "y": 74.734375,
+              "width": 302,
+              "height": 94.78125
+            },
+            "button": {
+              "x": 27.984375,
+              "y": 116.3125,
+              "width": 281.21875,
+              "height": 50.8125
+            },
+            "suppressed": false,
+            "visibleTargets": 14,
+            "targetCollisions": [],
+            "visibleHearts": 0,
+            "actualCamera": {
+              "matrix": [
+                1.9420220851898193,
+                -0.27416324615478516,
+                -0.46760788559913635,
+                -0.4674965441226959,
+                0,
+                0.929089367389679,
+                -0.48370835185050964,
+                -0.4835931658744812,
+                -1.226893663406372,
+                -0.4339667856693268,
+                -0.7401658296585083,
+                -0.7399895787239075,
+                -84.24523162841797,
+                5.295163631439209,
+                13.262463569641113,
+                13.359305381774902
+              ],
+              "eye": [
+                38.5391960144043,
+                2.0940170288085938,
+                -7.662658214569092
+              ],
+              "capturedAt": 1217
+            },
+            "physicalEntry": null
+          }
+        ],
+        "noSafeSlotSuppressionAndRecovery": true,
+        "errors": []
+      },
+      {
+        "view": "portrait",
+        "width": 390,
+        "height": 844,
+        "dpr": 2,
+        "motion": "normal",
+        "task": "snapdragon",
+        "targetUuid": "00000000-0000-4000-8000-000000000043",
+        "plants": 78,
+        "oneEligibleUnbloomedPlant": true,
+        "observations": [
+          {
+            "sample": "overlook",
+            "accepted": 38.26415201131552,
+            "place": "garden overlook",
+            "label": "write an honest check-in \u00b7 snapdragon \u2192",
+            "bounds": {
+              "x": 17.59375,
+              "y": 74.734375,
+              "width": 302,
+              "height": 94.78125
+            },
+            "button": {
+              "x": 27.984375,
+              "y": 116.3125,
+              "width": 281.21875,
+              "height": 50.8125
+            },
+            "suppressed": false,
+            "visibleTargets": 24,
+            "targetCollisions": [],
+            "visibleHearts": 1,
+            "actualCamera": {
+              "matrix": [
+                1.4205015897750854,
+                0.25337907671928406,
+                0.4767337143421173,
+                0.4766201972961426,
+                0,
+                0.6666859984397888,
+                -0.5534234046936035,
+                -0.5532916188240051,
+                0.9910476207733154,
+                -0.36317670345306396,
+                -0.6833183169364929,
+                -0.6831555962562561,
+                -38.089263916015625,
+                -12.488946914672852,
+                -16.940645217895508,
+                -16.836610794067383
+              ],
+              "eye": [
+                31,
+                3.6825945377349854,
+                -6
+              ],
+              "capturedAt": 641
+            },
+            "physicalEntry": null
+          },
+          {
+            "sample": "activity-flower",
+            "accepted": 41.56680805946825,
+            "place": "snapdragon garden",
+            "label": "write an honest check-in \u00b7 snapdragon \u2192",
+            "bounds": {
+              "x": 17.59375,
+              "y": 74.734375,
+              "width": 302,
+              "height": 94.78125
+            },
+            "button": {
+              "x": 27.984375,
+              "y": 116.3125,
+              "width": 281.21875,
+              "height": 50.8125
+            },
+            "suppressed": false,
+            "visibleTargets": 10,
+            "targetCollisions": [],
+            "visibleHearts": 1,
+            "actualCamera": {
+              "matrix": [
+                2.219848394393921,
+                0.058697257190942764,
+                0.14140211045742035,
+                0.14136843383312225,
+                0,
+                0.9636090993881226,
+                -0.3715280592441559,
+                -0.3714395761489868,
+                0.3419853150844574,
+                -0.3810076415538788,
+                -0.9178500771522522,
+                -0.9176315069198608,
+                -72.69092559814453,
+                -6.3576860427856445,
+                -10.106239318847656,
+                -10.003832817077637
+              ],
+              "eye": [
+                33.74740219116211,
+                1.9716870784759521,
+                -6.500843048095703
+              ],
+              "capturedAt": 706
+            },
+            "physicalEntry": {
+              "point": {
+                "x": 141.14864619326698,
+                "y": 408.0612786960527
+              },
+              "domMs": 31,
+              "correctUuid": "00000000-0000-4000-8000-000000000043",
+              "trustedTyping": true,
+              "exactGpuReturn": true
+            }
+          },
+          {
+            "sample": "inland-flower",
+            "accepted": 50.72670793830419,
+            "place": "bluebell garden",
+            "label": "write an honest check-in \u00b7 snapdragon \u2192",
+            "bounds": {
+              "x": 17.59375,
+              "y": 74.734375,
+              "width": 302,
+              "height": 94.78125
+            },
+            "button": {
+              "x": 27.984375,
+              "y": 116.3125,
+              "width": 281.21875,
+              "height": 50.8125
+            },
+            "suppressed": false,
+            "visibleTargets": 7,
+            "targetCollisions": [],
+            "visibleHearts": 0,
+            "actualCamera": {
+              "matrix": [
+                -2.742386817932129,
+                0.034050360321998596,
+                0.05461855232715607,
+                0.054605547338724136,
+                0,
+                1.1395341157913208,
+                -0.4409644901752472,
+                -0.44085949659347534,
+                0.16714729368686676,
+                0.5586644411087036,
+                0.8961269855499268,
+                0.8959136009216309,
+                113.81177520751953,
+                0.7094208598136902,
+                6.021749496459961,
+                6.1203155517578125
+              ],
+              "eye": [
+                40.99820327758789,
+                2.196643352508545,
+                -8.24927043914795
+              ],
+              "capturedAt": 2754
+            },
+            "physicalEntry": null
+          },
+          {
+            "sample": "curve:terrace:0->bank:3:0",
+            "accepted": 47.37626086946308,
+            "place": "rose garden",
+            "label": "write an honest check-in \u00b7 snapdragon \u2192",
+            "bounds": {
+              "x": 17.59375,
+              "y": 74.734375,
+              "width": 302,
+              "height": 94.78125
+            },
+            "button": {
+              "x": 27.984375,
+              "y": 116.3125,
+              "width": 281.21875,
+              "height": 50.8125
+            },
+            "suppressed": false,
+            "visibleTargets": 14,
+            "targetCollisions": [],
+            "visibleHearts": 1,
+            "actualCamera": {
+              "matrix": [
+                1.9420220851898193,
+                -0.27416324615478516,
+                -0.46760788559913635,
+                -0.4674965441226959,
+                0,
+                0.929089367389679,
+                -0.48370835185050964,
+                -0.4835931658744812,
+                -1.226893663406372,
+                -0.4339667856693268,
+                -0.7401658296585083,
+                -0.7399895787239075,
+                -84.24523162841797,
+                5.295163631439209,
+                13.262463569641113,
+                13.359305381774902
+              ],
+              "eye": [
+                38.5391960144043,
+                2.0940170288085938,
+                -7.662658214569092
+              ],
+              "capturedAt": 3057
+            },
+            "physicalEntry": null
+          }
+        ],
+        "noSafeSlotSuppressionAndRecovery": true,
+        "errors": []
+      },
+      {
+        "view": "landscape",
+        "width": 844,
+        "height": 390,
+        "dpr": 2,
+        "motion": "reduced",
+        "task": "moonflower",
+        "targetUuid": "00000000-0000-4000-8000-000000000049",
+        "plants": 78,
+        "oneEligibleUnbloomedPlant": true,
+        "observations": [
+          {
+            "sample": "overlook",
+            "accepted": 38.26415201131552,
+            "place": "garden overlook",
+            "label": "leave a late-night thought \u00b7 moonflower \u2192",
+            "bounds": {
+              "x": 17.59375,
+              "y": 274.703125,
+              "width": 320,
+              "height": 97.703125
+            },
+            "button": null,
+            "suppressed": true,
+            "visibleTargets": 42,
+            "targetCollisions": [
+              {
+                "kind": "flower",
+                "id": "00000000-0000-4000-8000-000000000037"
+              },
+              {
+                "kind": "flower",
+                "id": "00000000-0000-4000-8000-000000000038"
+              },
+              {
+                "kind": "flower",
+                "id": "00000000-0000-4000-8000-000000000039"
+              },
+              {
+                "kind": "flower",
+                "id": "00000000-0000-4000-8000-000000000040"
+              },
+              {
+                "kind": "flower",
+                "id": "00000000-0000-4000-8000-000000000041"
+              },
+              {
+                "kind": "flower",
+                "id": "00000000-0000-4000-8000-000000000042"
+              },
+              {
+                "kind": "spot",
+                "spot": -7
+              }
+            ],
+            "visibleHearts": 0,
+            "actualCamera": {
+              "matrix": [
+                0.8511773943901062,
+                0.7110576629638672,
+                0.4767337143421173,
+                0.4766201972961426,
+                0,
+                1.8709207773208618,
+                -0.5534234046936035,
+                -0.5532916188240051,
+                0.5938446521759033,
+                -1.0191826820373535,
+                -0.6833183169364929,
+                -0.6831555962562561,
+                -22.82343101501465,
+                -35.0477294921875,
+                -16.940645217895508,
+                -16.836610794067383
+              ],
+              "eye": [
+                31,
+                3.6825945377349854,
+                -6
+              ],
+              "capturedAt": 641
+            },
+            "physicalEntry": null
+          },
+          {
+            "sample": "activity-flower",
+            "accepted": 84.25545593122166,
+            "place": "moonflower garden",
+            "label": "leave a late-night thought \u00b7 moonflower \u2192",
+            "bounds": {
+              "x": 17.59375,
+              "y": 274.703125,
+              "width": 320,
+              "height": 97.703125
+            },
+            "button": null,
+            "suppressed": true,
+            "visibleTargets": 15,
+            "targetCollisions": [
+              {
+                "kind": "flower",
+                "id": "00000000-0000-4000-8000-000000000066"
+              }
+            ],
+            "visibleHearts": 1,
+            "actualCamera": {
+              "matrix": [
+                1.3395119905471802,
+                -0.11666259169578552,
+                -0.045666273683309555,
+                -0.045655399560928345,
+                0,
+                2.1803925037384033,
+                -0.6607233881950378,
+                -0.6605660319328308,
+                -0.08160889893770218,
+                -1.9148762226104736,
+                -0.7495569586753845,
+                -0.7493784427642822,
+                -97.54278564453125,
+                -24.287261962890625,
+                -4.859751224517822,
+                -4.758594036102295
+              ],
+              "eye": [
+                71.99716186523438,
+                3.1351258754730225,
+                -13.50000286102295
+              ],
+              "capturedAt": 707
+            },
+            "physicalEntry": {
+              "point": {
+                "x": 312.5997293275591,
+                "y": 160.65309317792264
+              },
+              "domMs": 22,
+              "correctUuid": "00000000-0000-4000-8000-000000000049",
+              "trustedTyping": true,
+              "exactGpuReturn": true
+            }
+          },
+          {
+            "sample": "inland-flower",
+            "accepted": 50.72670793830419,
+            "place": "bluebell garden",
+            "label": "leave a late-night thought \u00b7 moonflower \u2192",
+            "bounds": {
+              "x": 17.59375,
+              "y": 274.703125,
+              "width": 320,
+              "height": 97.703125
+            },
+            "button": null,
+            "suppressed": true,
+            "visibleTargets": 7,
+            "targetCollisions": [
+              {
+                "kind": "flower",
+                "id": "00000000-0000-4000-8000-000000000057"
+              }
+            ],
+            "visibleHearts": 0,
+            "actualCamera": {
+              "matrix": [
+                -1.7213302850723267,
+                0.10009511560201645,
+                0.05461855232715607,
+                0.054605547338724136,
+                0,
+                3.349797248840332,
+                -0.4409644901752472,
+                -0.44085949659347534,
+                0.1049143448472023,
+                1.6422611474990845,
+                0.8961269855499268,
+                0.8959136009216309,
+                71.43692016601562,
+                2.085427761077881,
+                6.021749496459961,
+                6.1203155517578125
+              ],
+              "eye": [
+                40.99820327758789,
+                2.196643352508545,
+                -8.24927043914795
+              ],
+              "capturedAt": 945
+            },
+            "physicalEntry": null
+          },
+          {
+            "sample": "curve:terrace:0->bank:3:0",
+            "accepted": 47.37626086946308,
+            "place": "rose garden",
+            "label": "leave a late-night thought \u00b7 moonflower \u2192",
+            "bounds": {
+              "x": 17.59375,
+              "y": 274.6875,
+              "width": 320,
+              "height": 97.703125
+            },
+            "button": {
+              "x": 27.984375,
+              "y": 319.1875,
+              "width": 299.21875,
+              "height": 50.8125
+            },
+            "suppressed": false,
+            "visibleTargets": 17,
+            "targetCollisions": [],
+            "visibleHearts": 0,
+            "actualCamera": {
+              "matrix": [
+                1.1658624410629272,
+                -0.7708291411399841,
+                -0.46760788559913635,
+                -0.4674965441226959,
+                0,
+                2.612199544906616,
+                -0.48370835185050964,
+                -0.4835931658744812,
+                -0.7365463972091675,
+                -1.220127820968628,
+                -0.7401658296585083,
+                -0.7399895787239075,
+                -50.57530212402344,
+                14.88772201538086,
+                13.262463569641113,
+                13.359305381774902
+              ],
+              "eye": [
+                38.5391960144043,
+                2.0940170288085938,
+                -7.662658214569092
+              ],
+              "capturedAt": 1250
+            },
+            "physicalEntry": null
+          }
+        ],
+        "noSafeSlotSuppressionAndRecovery": true,
+        "errors": []
+      },
+      {
+        "view": "landscape",
+        "width": 844,
+        "height": 390,
+        "dpr": 2,
+        "motion": "normal",
+        "task": "snapdragon",
+        "targetUuid": "00000000-0000-4000-8000-000000000043",
+        "plants": 78,
+        "oneEligibleUnbloomedPlant": true,
+        "observations": [
+          {
+            "sample": "overlook",
+            "accepted": 38.26415201131552,
+            "place": "garden overlook",
+            "label": "write an honest check-in \u00b7 snapdragon \u2192",
+            "bounds": {
+              "x": 17.59375,
+              "y": 274.703125,
+              "width": 320,
+              "height": 97.703125
+            },
+            "button": null,
+            "suppressed": true,
+            "visibleTargets": 42,
+            "targetCollisions": [
+              {
+                "kind": "flower",
+                "id": "00000000-0000-4000-8000-000000000037"
+              },
+              {
+                "kind": "flower",
+                "id": "00000000-0000-4000-8000-000000000038"
+              },
+              {
+                "kind": "flower",
+                "id": "00000000-0000-4000-8000-000000000039"
+              },
+              {
+                "kind": "flower",
+                "id": "00000000-0000-4000-8000-000000000040"
+              },
+              {
+                "kind": "flower",
+                "id": "00000000-0000-4000-8000-000000000041"
+              },
+              {
+                "kind": "flower",
+                "id": "00000000-0000-4000-8000-000000000042"
+              },
+              {
+                "kind": "spot",
+                "spot": -7
+              }
+            ],
+            "visibleHearts": 1,
+            "actualCamera": {
+              "matrix": [
+                0.8511773943901062,
+                0.7110576629638672,
+                0.4767337143421173,
+                0.4766201972961426,
+                0,
+                1.8709207773208618,
+                -0.5534234046936035,
+                -0.5532916188240051,
+                0.5938446521759033,
+                -1.0191826820373535,
+                -0.6833183169364929,
+                -0.6831555962562561,
+                -22.82343101501465,
+                -35.0477294921875,
+                -16.940645217895508,
+                -16.836610794067383
+              ],
+              "eye": [
+                31,
+                3.6825945377349854,
+                -6
+              ],
+              "capturedAt": 642
+            },
+            "physicalEntry": null
+          },
+          {
+            "sample": "activity-flower",
+            "accepted": 41.56680805946825,
+            "place": "snapdragon garden",
+            "label": "write an honest check-in \u00b7 snapdragon \u2192",
+            "bounds": {
+              "x": 17.59375,
+              "y": 274.703125,
+              "width": 320,
+              "height": 97.703125
+            },
+            "button": null,
+            "suppressed": true,
+            "visibleTargets": 19,
+            "targetCollisions": [
+              {
+                "kind": "flower",
+                "id": "00000000-0000-4000-8000-000000000039"
+              },
+              {
+                "kind": "flower",
+                "id": "00000000-0000-4000-8000-000000000042"
+              }
+            ],
+            "visibleHearts": 1,
+            "actualCamera": {
+              "matrix": [
+                1.3263458013534546,
+                0.16425058245658875,
+                0.14140211045742035,
+                0.14136843383312225,
+                0,
+                2.6964352130889893,
+                -0.3715280592441559,
+                -0.3714395761489868,
+                0.20433413982391357,
+                -1.0661609172821045,
+                -0.9178500771522522,
+                -0.9176315069198608,
+                -43.4323844909668,
+                -17.79050064086914,
+                -10.106239318847656,
+                -10.003832817077637
+              ],
+              "eye": [
+                33.74740219116211,
+                1.9716870784759521,
+                -6.500843048095703
+              ],
+              "capturedAt": 706
+            },
+            "physicalEntry": {
+              "point": {
+                "x": 352.36794191630213,
+                "y": 176.97671695756708
+              },
+              "domMs": 31,
+              "correctUuid": "00000000-0000-4000-8000-000000000043",
+              "trustedTyping": true,
+              "exactGpuReturn": true
+            }
+          },
+          {
+            "sample": "inland-flower",
+            "accepted": 50.72670793830419,
+            "place": "bluebell garden",
+            "label": "write an honest check-in \u00b7 snapdragon \u2192",
+            "bounds": {
+              "x": 17.59375,
+              "y": 274.703125,
+              "width": 320,
+              "height": 97.703125
+            },
+            "button": null,
+            "suppressed": true,
+            "visibleTargets": 7,
+            "targetCollisions": [
+              {
+                "kind": "flower",
+                "id": "00000000-0000-4000-8000-000000000057"
+              }
+            ],
+            "visibleHearts": 0,
+            "actualCamera": {
+              "matrix": [
+                -1.7213302850723267,
+                0.10009511560201645,
+                0.05461855232715607,
+                0.054605547338724136,
+                0,
+                3.349797248840332,
+                -0.4409644901752472,
+                -0.44085949659347534,
+                0.1049143448472023,
+                1.6422611474990845,
+                0.8961269855499268,
+                0.8959136009216309,
+                71.43692016601562,
+                2.085427761077881,
+                6.021749496459961,
+                6.1203155517578125
+              ],
+              "eye": [
+                40.99820327758789,
+                2.196643352508545,
+                -8.24927043914795
+              ],
+              "capturedAt": 2738
+            },
+            "physicalEntry": null
+          },
+          {
+            "sample": "curve:terrace:0->bank:3:0",
+            "accepted": 47.37626086946308,
+            "place": "rose garden",
+            "label": "write an honest check-in \u00b7 snapdragon \u2192",
+            "bounds": {
+              "x": 17.59375,
+              "y": 274.6875,
+              "width": 320,
+              "height": 97.703125
+            },
+            "button": {
+              "x": 27.984375,
+              "y": 319.1875,
+              "width": 299.21875,
+              "height": 50.8125
+            },
+            "suppressed": false,
+            "visibleTargets": 17,
+            "targetCollisions": [],
+            "visibleHearts": 1,
+            "actualCamera": {
+              "matrix": [
+                1.1658624410629272,
+                -0.7708291411399841,
+                -0.46760788559913635,
+                -0.4674965441226959,
+                0,
+                2.612199544906616,
+                -0.48370835185050964,
+                -0.4835931658744812,
+                -0.7365463972091675,
+                -1.220127820968628,
+                -0.7401658296585083,
+                -0.7399895787239075,
+                -50.57530212402344,
+                14.88772201538086,
+                13.262463569641113,
+                13.359305381774902
+              ],
+              "eye": [
+                38.5391960144043,
+                2.0940170288085938,
+                -7.662658214569092
+              ],
+              "capturedAt": 3074
+            },
+            "physicalEntry": null
+          }
+        ],
+        "noSafeSlotSuppressionAndRecovery": true,
+        "errors": []
+      },
+      {
+        "view": "narrow",
+        "width": 800,
+        "height": 600,
+        "dpr": 1,
+        "motion": "reduced",
+        "task": "moonflower",
+        "targetUuid": "00000000-0000-4000-8000-000000000049",
+        "plants": 78,
+        "oneEligibleUnbloomedPlant": true,
+        "observations": [
+          {
+            "sample": "overlook",
+            "accepted": 38.26415201131552,
+            "place": "garden overlook",
+            "label": "leave a late-night thought \u00b7 moonflower \u2192",
+            "bounds": {
+              "x": 17.59375,
+              "y": 56.75,
+              "width": 320,
+              "height": 96.390625
+            },
+            "button": {
+              "x": 27.984375,
+              "y": 99.9375,
+              "width": 299.21875,
+              "height": 50.8125
+            },
+            "suppressed": false,
+            "visibleTargets": 24,
+            "targetCollisions": [],
+            "visibleHearts": 0,
+            "actualCamera": {
+              "matrix": [
+                1.3815264701843262,
+                0.7110576629638672,
+                0.4767337143421173,
+                0.4766201972961426,
+                0,
+                1.8709207773208618,
+                -0.5534234046936035,
+                -0.5532916188240051,
+                0.9638556241989136,
+                -1.0191826820373535,
+                -0.6833183169364929,
+                -0.6831555962562561,
+                -37.044185638427734,
+                -35.0477294921875,
+                -16.940645217895508,
+                -16.836610794067383
+              ],
+              "eye": [
+                31,
+                3.6825945377349854,
+                -6
+              ],
+              "capturedAt": 659
+            },
+            "physicalEntry": null
+          },
+          {
+            "sample": "activity-flower",
+            "accepted": 84.25545593122166,
+            "place": "moonflower garden",
+            "label": "leave a late-night thought \u00b7 moonflower \u2192",
+            "bounds": {
+              "x": 17.59375,
+              "y": 56.75,
+              "width": 320,
+              "height": 96.390625
+            },
+            "button": {
+              "x": 27.984375,
+              "y": 99.9375,
+              "width": 299.21875,
+              "height": 50.8125
+            },
+            "suppressed": false,
+            "visibleTargets": 8,
+            "targetCollisions": [],
+            "visibleHearts": 1,
+            "actualCamera": {
+              "matrix": [
+                2.174130916595459,
+                -0.11666259169578552,
+                -0.045666273683309555,
+                -0.045655399560928345,
+                0,
+                2.1803925037384033,
+                -0.6607233881950378,
+                -0.6605660319328308,
+                -0.13245752453804016,
+                -1.9148762226104736,
+                -0.7495569586753845,
+                -0.7493784427642822,
+                -158.31944274902344,
+                -24.287261962890625,
+                -4.859751224517822,
+                -4.758594036102295
+              ],
+              "eye": [
+                71.99716186523438,
+                3.1351258754730225,
+                -13.50000286102295
+              ],
+              "capturedAt": 721
+            },
+            "physicalEntry": {
+              "point": {
+                "x": 231.69152937099233,
+                "y": 247.15860488911179
+              },
+              "domMs": 22,
+              "correctUuid": "00000000-0000-4000-8000-000000000049",
+              "trustedTyping": true,
+              "exactGpuReturn": true
+            }
+          },
+          {
+            "sample": "inland-flower",
+            "accepted": 50.72670793830419,
+            "place": "bluebell garden",
+            "label": "leave a late-night thought \u00b7 moonflower \u2192",
+            "bounds": {
+              "x": 17.59375,
+              "y": 56.75,
+              "width": 320,
+              "height": 96.390625
+            },
+            "button": {
+              "x": 27.984375,
+              "y": 99.9375,
+              "width": 299.21875,
+              "height": 50.8125
+            },
+            "suppressed": false,
+            "visibleTargets": 7,
+            "targetCollisions": [],
+            "visibleHearts": 0,
+            "actualCamera": {
+              "matrix": [
+                -2.742386817932129,
+                0.09825129806995392,
+                0.05461855232715607,
+                0.054605547338724136,
+                0,
+                3.2880918979644775,
+                -0.4409644901752472,
+                -0.44085949659347534,
+                0.16714729368686676,
+                1.6120096445083618,
+                0.8961269855499268,
+                0.8959136009216309,
+                113.81177520751953,
+                2.0470128059387207,
+                6.021749496459961,
+                6.1203155517578125
+              ],
+              "eye": [
+                40.99820327758789,
+                2.196643352508545,
+                -8.24927043914795
+              ],
+              "capturedAt": 945
+            },
+            "physicalEntry": null
+          },
+          {
+            "sample": "curve:terrace:0->bank:3:0",
+            "accepted": 47.37626086946308,
+            "place": "rose garden",
+            "label": "leave a late-night thought \u00b7 moonflower \u2192",
+            "bounds": {
+              "x": 17.59375,
+              "y": 486,
+              "width": 320,
+              "height": 96.390625
+            },
+            "button": {
+              "x": 27.984375,
+              "y": 529.1875,
+              "width": 299.21875,
+              "height": 50.8125
+            },
+            "suppressed": false,
+            "visibleTargets": 14,
+            "targetCollisions": [],
+            "visibleHearts": 0,
+            "actualCamera": {
+              "matrix": [
+                1.892284631729126,
+                -0.7708291411399841,
+                -0.46760788559913635,
+                -0.4674965441226959,
+                0,
+                2.612199544906616,
+                -0.48370835185050964,
+                -0.4835931658744812,
+                -1.1954715251922607,
+                -1.220127820968628,
+                -0.7401658296585083,
+                -0.7399895787239075,
+                -82.08761596679688,
+                14.88772201538086,
+                13.262463569641113,
+                13.359305381774902
+              ],
+              "eye": [
+                38.5391960144043,
+                2.0940170288085938,
+                -7.662658214569092
+              ],
+              "capturedAt": 1122
+            },
+            "physicalEntry": null
+          }
+        ],
+        "noSafeSlotSuppressionAndRecovery": true,
+        "errors": []
+      },
+      {
+        "view": "narrow",
+        "width": 800,
+        "height": 600,
+        "dpr": 1,
+        "motion": "normal",
+        "task": "snapdragon",
+        "targetUuid": "00000000-0000-4000-8000-000000000043",
+        "plants": 78,
+        "oneEligibleUnbloomedPlant": true,
+        "observations": [
+          {
+            "sample": "overlook",
+            "accepted": 38.26415201131552,
+            "place": "garden overlook",
+            "label": "write an honest check-in \u00b7 snapdragon \u2192",
+            "bounds": {
+              "x": 17.59375,
+              "y": 56.75,
+              "width": 320,
+              "height": 96.390625
+            },
+            "button": {
+              "x": 27.984375,
+              "y": 99.9375,
+              "width": 299.21875,
+              "height": 50.8125
+            },
+            "suppressed": false,
+            "visibleTargets": 24,
+            "targetCollisions": [],
+            "visibleHearts": 1,
+            "actualCamera": {
+              "matrix": [
+                1.3815264701843262,
+                0.7110576629638672,
+                0.4767337143421173,
+                0.4766201972961426,
+                0,
+                1.8709207773208618,
+                -0.5534234046936035,
+                -0.5532916188240051,
+                0.9638556241989136,
+                -1.0191826820373535,
+                -0.6833183169364929,
+                -0.6831555962562561,
+                -37.044185638427734,
+                -35.0477294921875,
+                -16.940645217895508,
+                -16.836610794067383
+              ],
+              "eye": [
+                31,
+                3.6825945377349854,
+                -6
+              ],
+              "capturedAt": 642
+            },
+            "physicalEntry": null
+          },
+          {
+            "sample": "activity-flower",
+            "accepted": 41.56680805946825,
+            "place": "snapdragon garden",
+            "label": "write an honest check-in \u00b7 snapdragon \u2192",
+            "bounds": {
+              "x": 17.59375,
+              "y": 56.75,
+              "width": 320,
+              "height": 96.390625
+            },
+            "button": {
+              "x": 27.984375,
+              "y": 99.9375,
+              "width": 299.21875,
+              "height": 50.8125
+            },
+            "suppressed": false,
+            "visibleTargets": 11,
+            "targetCollisions": [],
+            "visibleHearts": 1,
+            "actualCamera": {
+              "matrix": [
+                2.152761220932007,
+                0.16425058245658875,
+                0.14140211045742035,
+                0.14136843383312225,
+                0,
+                2.6964352130889893,
+                -0.3715280592441559,
+                -0.3714395761489868,
+                0.3316499888896942,
+                -1.0661609172821045,
+                -0.9178500771522522,
+                -0.9176315069198608,
+                -70.49409484863281,
+                -17.79050064086914,
+                -10.106239318847656,
+                -10.003832817077637
+              ],
+              "eye": [
+                33.74740219116211,
+                1.9716870784759521,
+                -6.500843048095703
+              ],
+              "capturedAt": 707
+            },
+            "physicalEntry": {
+              "point": {
+                "x": 292.87418865659845,
+                "y": 272.2718722424109
+              },
+              "domMs": 33,
+              "correctUuid": "00000000-0000-4000-8000-000000000043",
+              "trustedTyping": true,
+              "exactGpuReturn": true
+            }
+          },
+          {
+            "sample": "inland-flower",
+            "accepted": 50.72670793830419,
+            "place": "bluebell garden",
+            "label": "write an honest check-in \u00b7 snapdragon \u2192",
+            "bounds": {
+              "x": 17.59375,
+              "y": 56.75,
+              "width": 320,
+              "height": 96.390625
+            },
+            "button": {
+              "x": 27.984375,
+              "y": 99.9375,
+              "width": 299.21875,
+              "height": 50.8125
+            },
+            "suppressed": false,
+            "visibleTargets": 7,
+            "targetCollisions": [],
+            "visibleHearts": 0,
+            "actualCamera": {
+              "matrix": [
+                -2.742386817932129,
+                0.09825129806995392,
+                0.05461855232715607,
+                0.054605547338724136,
+                0,
+                3.2880918979644775,
+                -0.4409644901752472,
+                -0.44085949659347534,
+                0.16714729368686676,
+                1.6120096445083618,
+                0.8961269855499268,
+                0.8959136009216309,
+                113.81177520751953,
+                2.0470128059387207,
+                6.021749496459961,
+                6.1203155517578125
+              ],
+              "eye": [
+                40.99820327758789,
+                2.196643352508545,
+                -8.24927043914795
+              ],
+              "capturedAt": 2754
+            },
+            "physicalEntry": null
+          },
+          {
+            "sample": "curve:terrace:0->bank:3:0",
+            "accepted": 47.37626086946308,
+            "place": "rose garden",
+            "label": "write an honest check-in \u00b7 snapdragon \u2192",
+            "bounds": {
+              "x": 17.59375,
+              "y": 486,
+              "width": 320,
+              "height": 96.390625
+            },
+            "button": {
+              "x": 27.984375,
+              "y": 529.1875,
+              "width": 299.21875,
+              "height": 50.8125
+            },
+            "suppressed": false,
+            "visibleTargets": 14,
+            "targetCollisions": [],
+            "visibleHearts": 1,
+            "actualCamera": {
+              "matrix": [
+                1.892284631729126,
+                -0.7708291411399841,
+                -0.46760788559913635,
+                -0.4674965441226959,
+                0,
+                2.612199544906616,
+                -0.48370835185050964,
+                -0.4835931658744812,
+                -1.1954715251922607,
+                -1.220127820968628,
+                -0.7401658296585083,
+                -0.7399895787239075,
+                -82.08761596679688,
+                14.88772201538086,
+                13.262463569641113,
+                13.359305381774902
+              ],
+              "eye": [
+                38.5391960144043,
+                2.0940170288085938,
+                -7.662658214569092
+              ],
+              "capturedAt": 2946
+            },
+            "physicalEntry": null
+          }
+        ],
+        "noSafeSlotSuppressionAndRecovery": true,
+        "errors": []
+      }
+    ],
+    "summary": {
+      "actualViews": 32,
+      "visible": 26,
+      "naturallySuppressed": 6,
+      "suppressionExtent": "All six are the 78-plant garden at 844\u00d7390: Moonflower and Snapdragon long labels at overlook, own activity flower, and inland Bluebell. The Rose departure curve and all other sizes expose the invitation. Suppression preserves target clearance; no aesthetic or source change forces overlap.",
+      "forcedSuppressionAndRecoveryContexts": 8,
+      "actualPhysicalCorrectUuidForms": 8,
+      "motion": "Moonflower reduced, Snapdragon normal, all4sizes",
+      "priorCoverageGap": "The earlier48label checks were at Rose view. These fresh32cases cover other actual native positions and actual note height/long-label wrapping."
+    }
+  },
+  "lifecycleFinal": {
+    "meta": {
+      "headAtCapture": "1db0a7e9b2ef858501946077585a74353d5c69d3",
+      "runtimeSourceSha256": "a727435f1166b7b9181df168f4f5c3857435af86b51389d7ab5b389caacb6eff",
+      "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+      "capturedAt": "2026-11-28T04:59:45.662Z",
+      "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+    },
+    "results": [
+      {
+        "motion": "no-preference",
+        "delayedGpu": true,
+        "realTrustedTypingBeforeDevice": true,
+        "newerRealUuidAndFocus": true,
+        "nextDisappearedReturnsWorldFocus": true,
+        "returnDistancePreserved": true,
+        "noAutomaticMutation": true,
+        "calls": [
+          {
+            "name": "readPrivateInteraction",
+            "args": []
+          },
+          {
+            "name": "refreshGardenV2",
+            "args": []
+          },
+          {
+            "name": "readPrivateInteraction",
+            "args": []
+          },
+          {
+            "name": "refreshGardenV2",
+            "args": []
+          },
+          {
+            "name": "readPrivateInteraction",
+            "args": []
+          },
+          {
+            "name": "refreshGardenV2",
+            "args": []
+          },
+          {
+            "name": "readPrivateInteraction",
+            "args": []
+          },
+          {
+            "name": "refreshGardenV2",
+            "args": []
+          }
+        ]
+      },
+      {
+        "motion": "reduce",
+        "delayedGpu": true,
+        "realTrustedTypingBeforeDevice": true,
+        "newerRealUuidAndFocus": true,
+        "nextDisappearedReturnsWorldFocus": true,
+        "returnDistancePreserved": true,
+        "noAutomaticMutation": true,
+        "calls": [
+          {
+            "name": "readPrivateInteraction",
+            "args": []
+          },
+          {
+            "name": "refreshGardenV2",
+            "args": []
+          },
+          {
+            "name": "readPrivateInteraction",
+            "args": []
+          },
+          {
+            "name": "refreshGardenV2",
+            "args": []
+          },
+          {
+            "name": "readPrivateInteraction",
+            "args": []
+          },
+          {
+            "name": "refreshGardenV2",
+            "args": []
+          },
+          {
+            "name": "readPrivateInteraction",
+            "args": []
+          },
+          {
+            "name": "refreshGardenV2",
+            "args": []
+          }
+        ]
+      },
+      {
+        "motion": "no-preference",
+        "arrivalRetained": true,
+        "settledWithinMs": 5183,
+        "calls": [
+          {
+            "name": "readPrivateInteraction",
+            "args": []
+          },
+          {
+            "name": "refreshGardenV2",
+            "args": []
+          },
+          {
+            "name": "readPrivateInteraction",
+            "args": []
+          },
+          {
+            "name": "refreshGardenV2",
+            "args": []
+          }
+        ]
+      },
+      {
+        "motion": "no-preference",
+        "boundedDandelionHold": true,
+        "elapsedUntilNativeNavigationMs": 4828,
+        "exactlyOneExplicitMutation": true,
+        "calls": [
+          {
+            "name": "readPrivateInteraction",
+            "args": []
+          },
+          {
+            "name": "refreshGardenV2",
+            "args": []
+          },
+          {
+            "name": "readPrivateInteraction",
+            "args": []
+          },
+          {
+            "name": "refreshGardenV2",
+            "args": []
+          },
+          {
+            "name": "mutateGardenV2",
+            "args": [
+              {
+                "kind": "fulfillDandelion",
+                "flowerId": "00000000-0000-4000-8000-000000000011"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "motion": "reduce",
+        "boundedDandelionHold": true,
+        "elapsedUntilNativeNavigationMs": 1299,
+        "exactlyOneExplicitMutation": true,
+        "calls": [
+          {
+            "name": "readPrivateInteraction",
+            "args": []
+          },
+          {
+            "name": "refreshGardenV2",
+            "args": []
+          },
+          {
+            "name": "readPrivateInteraction",
+            "args": []
+          },
+          {
+            "name": "refreshGardenV2",
+            "args": []
+          },
+          {
+            "name": "mutateGardenV2",
+            "args": [
+              {
+                "kind": "fulfillDandelion",
+                "flowerId": "00000000-0000-4000-8000-000000000011"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "productionModeFinal": {
+    "actualProductionServer": true,
+    "results": [
+      {
+        "path": "/dev/garden-areas",
+        "status": 404,
+        "fixtureStateAbsent": true
+      },
+      {
+        "path": "/dev/garden-areas?empty=1&scope=1&arrival=1",
+        "status": 404,
+        "fixtureStateAbsent": true
+      },
+      {
+        "path": "/dev/garden-areas?boundary=1",
+        "status": 404,
+        "fixtureStateAbsent": true
+      },
+      {
+        "path": "/dev/garden-areas?sparse=1",
+        "status": 404,
+        "fixtureStateAbsent": true
+      },
+      {
+        "path": "/dev/garden-areas?bloom=1&many=1",
+        "status": 404,
+        "fixtureStateAbsent": true
+      },
+      {
+        "path": "/dev/world?areas=1&walking=1",
+        "status": 404,
+        "fixtureStateAbsent": true
+      },
+      {
+        "path": "/dev/landing?sky=dusk&member=1",
+        "status": 404,
+        "fixtureStateAbsent": true
+      }
+    ]
+  },
+  "finalCheckLogs": [
+    "/tmp/ccapp-230-final-lint.log",
+    "/tmp/ccapp-230-final-typecheck.log",
+    "/tmp/ccapp-230-final-fulltest.log",
+    "/tmp/ccapp-230-final-node.log",
+    "/tmp/ccapp-230-final-build.log",
+    "/tmp/ccapp-230-wgsl.log"
+  ]
+}

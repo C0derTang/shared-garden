@@ -143,6 +143,108 @@ const captionIds = () => [...document.querySelectorAll("[data-caption]")].map((e
 const hearts = () => [...document.querySelectorAll<HTMLElement>('[data-caption^="care-"]')];
 
 describe("GardenV2", () => {
+  it("opens a real writable form from the invitation before a world frame, without submitting", async () => {
+    const state = garden();
+    api.refreshGardenV2.mockResolvedValue({ state, error: null });
+    render(<GardenV2 initial={{ state, error: null }} />);
+    await flush();
+    const invitation = screen.getByRole("button", { name: /write a note.*rose/i });
+    fireEvent.click(invitation);
+    const field = within(screen.getByRole("dialog", { name: "rose" })).getByRole("textbox");
+    fireEvent.change(field, { target: { value: "A synthetic draft" } });
+    expect(field).toHaveValue("A synthetic draft");
+    expect(api.mutateGardenV2).not.toHaveBeenCalled();
+    expect(location.search).toBe(`?flower=${state.plants[0]!.flower.id}`);
+  });
+
+  it("replaces a cared invitation with the newly due UUID, and safely focuses the world when none remains", async () => {
+    const user = userEvent.setup();
+    const state = garden();
+    await mount(state);
+    await user.click(screen.getByRole("button", { name: /write a note.*rose/i }));
+    const done = structuredClone(state);
+    done.server_now = "2026-11-02T17:01:00Z";
+    done.plants[0]!.member1_submitted = true;
+    api.refreshGardenV2.mockResolvedValue({ state: done, error: null });
+    act(() => window.dispatchEvent(new Event("focus")));
+    await flush();
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("button", { name: /write a note.*rose/i })).toBeNull();
+    expect(document.activeElement).toBe(document.querySelector("[data-garden-world]"));
+    const next = structuredClone(done);
+    next.server_now = "2026-11-02T17:02:00Z";
+    next.plants.push({ ...structuredClone(state.plants[0]!), flower: { ...state.plants[0]!.flower, id: "00000000-0000-4000-8000-000000000099", spot: 12001 } });
+    api.refreshGardenV2.mockResolvedValue({ state: next, error: null });
+    act(() => window.dispatchEvent(new Event("focus")));
+    await flush();
+    await user.click(screen.getByRole("button", { name: /write a note.*rose/i }));
+    expect(location.search).toBe("?flower=00000000-0000-4000-8000-000000000099");
+  });
+
+  it("withholds stale invitations after a refresh error", async () => {
+    await mount();
+    expect(screen.getByRole("button", { name: /write a note.*rose/i })).toBeInTheDocument();
+    api.refreshGardenV2.mockResolvedValue({ state: null, error: "Synthetic refresh failed" });
+    act(() => window.dispatchEvent(new Event("focus")));
+    await flush();
+    expect(screen.queryByRole("button", { name: /write a note.*rose/i })).toBeNull();
+    expect(screen.getByText("Synthetic refresh failed")).toHaveAttribute("role", "status");
+  });
+
+  it("keeps the invitation unavailable while a submitted form is still saving after close", async () => {
+    const user = userEvent.setup();
+    await mount();
+    let finish!: (result: { state: null; error: string; saved: false }) => void;
+    api.mutateGardenV2.mockImplementation(() => new Promise(resolve => { finish = resolve; }));
+    await user.click(screen.getByRole("button", { name: /write a note.*rose/i }));
+    await user.type(screen.getByRole("textbox"), "A synthetic pending draft");
+    await user.click(screen.getByRole("button", { name: "share" }));
+    await user.keyboard("{Escape}");
+    const invitation = screen.getByRole("button", { name: /write a note.*rose/i });
+    expect(invitation).toBeDisabled();
+    await user.click(invitation);
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(api.mutateGardenV2).toHaveBeenCalledTimes(1);
+    await act(async () => finish({ state: null, error: "Synthetic save failed", saved: false }));
+  });
+
+  it("retries a refused invitation focus after modal close", async () => {
+    const user = userEvent.setup();
+    await mount();
+    await user.click(screen.getByRole("button", { name: /write a note.*rose/i }));
+    // Closing autofocus can run while the page is still inert beneath Radix.
+    const native = HTMLElement.prototype.focus;
+    let released = false;
+    const focus = vi.spyOn(HTMLElement.prototype, "focus").mockImplementation(function(this: HTMLElement, options) { if (released) native.call(this, options); });
+    try {
+      await user.keyboard("{Escape}");
+      released = true;
+      await act(async () => { await new Promise(resolve => requestAnimationFrame(resolve)); });
+      expect(document.activeElement).not.toBe(document.body);
+    } finally { focus.mockRestore(); }
+  });
+
+  it("opens ordinary physical care immediately and a newer visit wins over a held-frame return", async () => {
+    vi.stubGlobal("matchMedia", (query: string) => ({ matches: false, media: query, addEventListener: vi.fn(), removeEventListener: vi.fn() }));
+    const state = garden();
+    state.plants.push({ ...structuredClone(state.plants[0]!), flower: { ...state.plants[0]!.flower, id: "00000000-0000-4000-8000-000000000002", spot: 2, type_key: "tulip" } });
+    await mount(state);
+    vi.useFakeTimers();
+    try {
+      act(() => worlds[0]!.callbacks.onPick({ kind: "flower", id: state.plants[0]!.flower.id, distance: 1 }));
+      const field = within(screen.getByRole("dialog", { name: "rose" })).getByRole("textbox");
+      fireEvent.change(field, { target: { value: "No timer advanced" } });
+      expect(field).toHaveValue("No timer advanced");
+      fireEvent.click(screen.getByRole("button", { name: "Back to the garden" }));
+      // No renderer frame confirms the return before a newer deliberate visit.
+      act(() => worlds[0]!.callbacks.onPick({ kind: "flower", id: state.plants[1]!.flower.id, distance: 1 }));
+      expect(screen.getByRole("dialog", { name: "tulip" })).toBeInTheDocument();
+      act(() => vi.advanceTimersByTime(1000));
+      expect(screen.getByRole("dialog", { name: "tulip" })).toBeInTheDocument();
+      expect(api.mutateGardenV2).not.toHaveBeenCalled();
+    } finally { vi.useRealTimers(); }
+  });
+
   it("paints thirteen named areas and lists their flowers and planting targets accessibly", async () => {
     const { state } = await mount();
     const scene = worlds[0]!.states.at(-1)!;
@@ -199,16 +301,14 @@ describe("GardenV2", () => {
     expect(document.activeElement).toBe(rose);
   });
 
-  it("returns focus to the hidden plot with motion on, after the glide and the close", async () => {
+  it("returns focus to the hidden plot with motion on, after immediate opening and close", async () => {
     vi.stubGlobal("matchMedia", (query: string) => ({ matches: false, media: query, addEventListener: vi.fn(), removeEventListener: vi.fn() }));
     const user = userEvent.setup();
     await mount();
     const rose = within(screen.getByRole("navigation", { name: "Plots in the garden" })).getByRole("button", { name: /^rose,/ });
     rose.focus();
     await user.keyboard("{Enter}");
-    // The camera glides first; the split view opens after it.
-    expect(screen.queryByRole("dialog")).toBeNull();
-    const dialog = await screen.findByRole("dialog", { name: "rose" }, { timeout: 3000 });
+    const dialog = screen.getByRole("dialog", { name: "rose" });
     await user.click(within(dialog).getByRole("button", { name: /back to the garden/ }));
     expect(screen.queryByRole("dialog")).toBeNull();
     await act(() => new Promise((resolve) => setTimeout(resolve, 60)));
@@ -588,9 +688,9 @@ describe("GardenV2", () => {
       const user = userEvent.setup();
       await mount(mixed());
       expect(hearts()).toHaveLength(2);
-      // Tapping a flower: gone while the camera glides, and while its view is open.
+      // Tapping a flower opens its activity directly, hiding world care marks.
       act(() => worlds[0]!.callbacks.onPick({ kind: "flower", id: ids(1), distance: 1 }));
-      expect(screen.queryByRole("dialog")).toBeNull();
+      expect(screen.getByRole("dialog", { name: "rose" })).toBeInTheDocument();
       expect(captionIds()).toEqual(["title"]);
       await screen.findByRole("dialog", { name: "rose" }, { timeout: 3000 });
       expect(captionIds()).toEqual(["title"]);
