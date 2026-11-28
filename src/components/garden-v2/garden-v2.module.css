@@ -1602,3 +1602,23 @@
 .pickerPanel button:hover,.pickerPanel button:focus-visible { background:#fff7e1; outline:2px solid #7a8654; outline-offset:-2px; }
 .pickerPanel img { object-fit:contain; flex:none; }
 @media(max-height:450px) { .pickerPanel button { min-height:74px; } .pickerPanel img { height:64px; width:52px; } }
+
+/* The layer resolves device safe areas; only the note reserves a world rect. */
+.placeLayer { position: absolute; inset: 0; padding: max(1.1rem, calc(env(safe-area-inset-top) + .5rem)) max(1.1rem, calc(env(safe-area-inset-right) + .5rem)) max(1.1rem, calc(env(safe-area-inset-bottom) + .5rem)) max(1.1rem, calc(env(safe-area-inset-left) + .5rem)); pointer-events: none; }
+/* A passive handwritten place note; the small dotted ink line is the walk. */
+.gardenPlace {
+  position: absolute;
+  visibility: hidden;
+  left: max(1.1rem, calc(env(safe-area-inset-left) + .5rem));
+  bottom: max(1.1rem, calc(env(safe-area-inset-bottom) + .5rem));
+  max-width: min(20rem, calc(100vw - 5.5rem));
+  padding: .35rem .65rem .15rem;
+  border-radius: 1.3rem .9rem 1.1rem .8rem;
+  color: #fff7e4;
+  background: rgb(35 32 20 / .74);
+  text-shadow: 0 1px 2px #241d15;
+  pointer-events: none;
+}
+.gardenPlace p { margin: 0; font-size: clamp(1.12rem, 2.4vw, 1.4rem); line-height: 1.25; }
+.gardenPlace svg { display: block; margin-top: .1rem; opacity: .85; }
+.pickerPanel button[aria-current="location"] { background: #fff7e1; box-shadow: inset 0 0 0 1px #7a8654; }

@@ -1,0 +1,317 @@
+{
+  "issue": "https://github.com/C0derTang/shared-garden/issues/228",
+  "base": "4cbf8e8384ca9c35cb29cba3fda2265096052ede",
+  "runtimeSourceSha256": "5e7caf6c454be5bbdd86da523f66960fbf602d233985d77b98101fd2de9616d3",
+  "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+  "scope": "Loopback synthetic state only; no authentication or private backend content. Decision/spec/plan files drafted before product edits and committed with the feature.",
+  "orientation": {
+    "cases": 20,
+    "semanticPlaces": 500,
+    "viewports": [
+      [
+        1280,
+        800
+      ],
+      [
+        390,
+        844
+      ],
+      [
+        844,
+        390
+      ],
+      [
+        800,
+        600
+      ]
+    ],
+    "states": [
+      "empty",
+      "mixed26",
+      "full78",
+      "sparse12001",
+      "occupied85"
+    ],
+    "visibleTargetCollisions": 0,
+    "actualCareHeartCollisions": 0,
+    "suppressedNotes": 0,
+    "pageErrors": 0,
+    "liveSyntheticNoticeCases": 20,
+    "actualLandscapeFlowerTapsWithExactReturn": 6,
+    "pickerRows": 13,
+    "rowContent": "canonical static image and flower name only",
+    "actualCurrentFocusAndAria": true,
+    "actualSubmittedCameraAndNativeAcceptedDistance": true
+  },
+  "existingNativeRegression": {
+    "cases": 16,
+    "normalMotionCases": 4,
+    "reducedMotionCases": 12,
+    "trustedCDPTouch": "phone and landscape emulation on same Mac",
+    "coverage": [
+      "all13 pictures/anchors/seed targets",
+      "native wheel small/large/reverse",
+      "Home/End porch/end",
+      "panel own scroll",
+      "activity and scoped typing priority",
+      "actual canvas pick/drag rejection",
+      "exact activity return",
+      "resize and GPU recovery"
+    ]
+  },
+  "remappedBoundaryLifecycle": {
+    "cases": 4,
+    "aspects": [
+      "desktop",
+      "portrait"
+    ],
+    "motions": [
+      "normal",
+      "reduced"
+    ],
+    "everySubmittedRefreshFrameExact": true,
+    "subsequentNativeWheelPreserved": true
+  },
+  "interruptions": {
+    "cases": 2,
+    "viewport": [
+      800,
+      600
+    ],
+    "coverage": [
+      "held-frame exact return",
+      "blocked input discarded",
+      "reverse wheel/touch interrupt",
+      "blur and visibility cancel",
+      "focus trap",
+      "pointer excursion rejection",
+      "outside dismissal",
+      "no extra picker GPU contexts",
+      "picker recovery",
+      "second GPU loss stops"
+    ]
+  },
+  "localChecks": {
+    "lint": "PASS",
+    "typecheck": "PASS",
+    "build": "PASS",
+    "vitest": {
+      "passed": 1482,
+      "skipped": 3,
+      "failed": 6,
+      "failureReason": "Known Mac audio_unavailable for tracked Linux audio tools only",
+      "failures": [
+        "safari-300.webm",
+        "safari-5.webm",
+        "tone-5.webm",
+        "tone-300.webm",
+        "browser-5-0.webm",
+        "browser-300-0.webm"
+      ]
+    },
+    "standaloneNodeTests": {
+      "passed": 55,
+      "failed": 0
+    },
+    "actualProductionFixtures": {
+      "variants": 7,
+      "status": 404,
+      "fixtureStateAbsent": true
+    },
+    "completeLinuxWebCI": "Required before merge; not waived by Mac limitation"
+  },
+  "unchangedWorldProof": {
+    "base": "4cbf8e8384ca9c35cb29cba3fda2265096052ede",
+    "method": "Execute base Git object against unchanged dependency runtime; strip ONLY new semantic place metadata before exact deep equality; compare actual GPU mesh/stroke and Float32 camera buffers across all legs/fractions/four aspects. Other renderer/shader/paint/site/plant/picking/native-input source files, portraits and locked dependencies are byte identical.",
+    "nativeInputAndRemapCodeByteIdentical": true,
+    "unchangedFiles": 357,
+    "unchangedSha256": "3904f2da95c38af709f8cc65f9e1563315775453a49adfc86b47c7dc56f0570b",
+    "results": [
+      {
+        "kind": "empty",
+        "plants": 0,
+        "exactTourExceptAddedPlaceMetadata": true,
+        "gpuMeshes": {
+          "path": "797cd1110a1f89d7a9097d699fba6072f813b74f1db19862b31a57ec9d93a0fe",
+          "ground": "1021ef1d9390554fe26e3b6afdfd260103984b38f36a29cd46de2b866d080d99",
+          "meadow": "2aa798b0dd0a46560c6212bbe362c6d126043ee8ae41b7fc7b86b8a22bb40348"
+        },
+        "cameraBufferSha256": "928692eedf5517204e1246677791eeab21637a932acbb7481abb0bad38b4cf8b",
+        "cameraCases": 644
+      },
+      {
+        "kind": "mixed",
+        "plants": 26,
+        "exactTourExceptAddedPlaceMetadata": true,
+        "gpuMeshes": {
+          "path": "797cd1110a1f89d7a9097d699fba6072f813b74f1db19862b31a57ec9d93a0fe",
+          "ground": "1021ef1d9390554fe26e3b6afdfd260103984b38f36a29cd46de2b866d080d99",
+          "meadow": "2aa798b0dd0a46560c6212bbe362c6d126043ee8ae41b7fc7b86b8a22bb40348"
+        },
+        "cameraBufferSha256": "928692eedf5517204e1246677791eeab21637a932acbb7481abb0bad38b4cf8b",
+        "cameraCases": 644
+      },
+      {
+        "kind": "full",
+        "plants": 78,
+        "exactTourExceptAddedPlaceMetadata": true,
+        "gpuMeshes": {
+          "path": "797cd1110a1f89d7a9097d699fba6072f813b74f1db19862b31a57ec9d93a0fe",
+          "ground": "1021ef1d9390554fe26e3b6afdfd260103984b38f36a29cd46de2b866d080d99",
+          "meadow": "2aa798b0dd0a46560c6212bbe362c6d126043ee8ae41b7fc7b86b8a22bb40348"
+        },
+        "cameraBufferSha256": "928692eedf5517204e1246677791eeab21637a932acbb7481abb0bad38b4cf8b",
+        "cameraCases": 644
+      },
+      {
+        "kind": "sparse",
+        "plants": 26,
+        "exactTourExceptAddedPlaceMetadata": true,
+        "gpuMeshes": {
+          "path": "797cd1110a1f89d7a9097d699fba6072f813b74f1db19862b31a57ec9d93a0fe",
+          "ground": "1021ef1d9390554fe26e3b6afdfd260103984b38f36a29cd46de2b866d080d99",
+          "meadow": "2aa798b0dd0a46560c6212bbe362c6d126043ee8ae41b7fc7b86b8a22bb40348"
+        },
+        "cameraBufferSha256": "928692eedf5517204e1246677791eeab21637a932acbb7481abb0bad38b4cf8b",
+        "cameraCases": 644
+      },
+      {
+        "kind": "occupied",
+        "plants": 91,
+        "exactTourExceptAddedPlaceMetadata": true,
+        "gpuMeshes": {
+          "path": "86215e6fcfce9f90ceb13df163e36cad1bebdb63820b242c355faf44a7895fd5",
+          "ground": "1021ef1d9390554fe26e3b6afdfd260103984b38f36a29cd46de2b866d080d99",
+          "meadow": "a22f09ffb10238d05e2b076f8173f2f44692b521826c374098c85dc9ab7ce0f8"
+        },
+        "cameraBufferSha256": "6dd97c876a73a403d281acb3b72699d8ec36fd58794f4e0b295a9111daabeb25",
+        "cameraCases": 840
+      }
+    ]
+  },
+  "callbackCpuSample": {
+    "method": "Temporary local timing wrapper around actual useGardenPlace onView callback, including cache return/projection/DOM. Wrapper records only to synthetic browser memory; source restored exactly. Sampling uses observed callback counts, not sleep. Timer resolution0.1ms can quantize quiet overhead to0.",
+    "sourceRestoredExactly": true,
+    "results": [
+      {
+        "view": "desktop",
+        "width": 1280,
+        "height": 800,
+        "dpr": 1,
+        "plants": 78,
+        "motion": "normal",
+        "quiet": {
+          "cached": {
+            "count": 177,
+            "medianMs": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 0.10000002384185791
+          },
+          "placement": {
+            "count": 3,
+            "medianMs": 0.30000007152557373,
+            "p95Ms": 0.3999999761581421,
+            "maxMs": 0.3999999761581421
+          },
+          "hidden": {
+            "count": 0,
+            "medianMs": null,
+            "p95Ms": null,
+            "maxMs": null
+          }
+        },
+        "travel": {
+          "cached": {
+            "count": 33,
+            "medianMs": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 0.10000002384185791
+          },
+          "placement": {
+            "count": 87,
+            "medianMs": 0.10000002384185791,
+            "p95Ms": 0.20000004768371582,
+            "maxMs": 0.30000007152557373
+          },
+          "hidden": {
+            "count": 0,
+            "medianMs": null,
+            "p95Ms": null,
+            "maxMs": null
+          }
+        }
+      },
+      {
+        "view": "portrait",
+        "width": 390,
+        "height": 844,
+        "dpr": 2,
+        "plants": 78,
+        "motion": "normal",
+        "quiet": {
+          "cached": {
+            "count": 177,
+            "medianMs": 0,
+            "p95Ms": 0.09999990463256836,
+            "maxMs": 0.10000002384185791
+          },
+          "placement": {
+            "count": 3,
+            "medianMs": 0.3999999761581421,
+            "p95Ms": 0.5,
+            "maxMs": 0.5
+          },
+          "hidden": {
+            "count": 0,
+            "medianMs": null,
+            "p95Ms": null,
+            "maxMs": null
+          }
+        },
+        "travel": {
+          "cached": {
+            "count": 33,
+            "medianMs": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 0.10000002384185791
+          },
+          "placement": {
+            "count": 87,
+            "medianMs": 0.19999992847442627,
+            "p95Ms": 0.20000004768371582,
+            "maxMs": 0.2999999523162842
+          },
+          "hidden": {
+            "count": 0,
+            "medianMs": null,
+            "p95Ms": null,
+            "maxMs": null
+          }
+        }
+      }
+    ]
+  },
+  "reproduce": {
+    "environment": "Independently installed Playwright and Chromium with native WebGPU; set PLAYWRIGHT_MODULE and CHROMIUM_EXECUTABLE. Run GPU browser scripts serially, with dev server on3230 and actual production server on3231.",
+    "commands": [
+      "ADVERSARIAL=1 BASE_URL=http://localhost:3230 PROFILE_OUTPUT=/tmp/ccapp-228-orientation node scripts/profiling/check-garden-orientation.mjs",
+      "BASE_URL=http://localhost:3230 PROFILE_OUTPUT=/tmp/ccapp-228-native node scripts/profiling/check-compact-garden.mjs",
+      "BOUNDARIES=1 BASE_URL=http://localhost:3230 PROFILE_OUTPUT=/tmp/ccapp-228-retention node scripts/profiling/check-compact-retention.mjs",
+      "BASE_URL=http://localhost:3230 PROFILE_OUTPUT=/tmp/ccapp-228-interruptions node scripts/profiling/check-compact-interruptions.mjs",
+      "node scripts/profiling/check-orientation-equivalence.mjs",
+      "BASE_URL=http://localhost:3231 PROFILE_OUTPUT=/tmp/ccapp-228-production node scripts/profiling/check-scenic-production.mjs",
+      "npm run lint",
+      "npm run typecheck",
+      "npm test",
+      "npm run build",
+      "node --test content/daisy-questions.test.mjs scripts/release/production.test.mjs scripts/setup-home-media.test.mjs scripts/dev-signin.test.mjs"
+    ]
+  },
+  "limits": [
+    "Phone and trusted CDP touch are browser emulation, not physical phone or trackpad testing.",
+    "CPU sample is one Mac, 78 actual plants and short normal-motion quiet/travel sequences; not an FPS or universal hardware claim.",
+    "Live notice is an injected synthetic status surface; private authenticated content and real backend care submissions are not exercised.",
+    "Actual world geometry/meshes/camera and unchanged shader/paint/house/picking sources reuse original reviewed provenance; no old baseline or quality tolerance was changed.",
+    "Required CI, fresh exact-head independent review and merge eligibility remain orchestrator gates."
+  ]
+}

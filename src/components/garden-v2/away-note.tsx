@@ -24,7 +24,7 @@ export function AwayNote({ news, state, onDismiss }: { news: AwayNews; state: Ga
   const lines = awayLines(news, state, partner.short);
   if (!lines.length) return null;
   return (
-    <section className={styles.away} aria-labelledby="away-title">
+    <section data-world-reserved className={styles.away} aria-labelledby="away-title">
       <h2 id="away-title" className={styles.awayTitle}>
         while you were away…
       </h2>
