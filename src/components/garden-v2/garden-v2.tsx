@@ -13,6 +13,7 @@ import { diffAway, hasAwayNews, noAwayNews, readAwaySnapshot, takeAwaySnapshot, 
 import { captionName, catalogItem, gardenDayLabel, plantSpec, stageWords } from "@/lib/garden-v2/flowers";
 import type { FlowerType, GardenResult, GardenState, Plant } from "@/lib/garden-v2/model";
 import { gardenPlots, waitingOnYou, type GardenPlot } from "@/lib/garden-v2/plots";
+import { nextGardenVisit } from "@/lib/garden-v2/invitation";
 import { useGardenV2 } from "@/lib/garden-v2/use-garden-v2";
 import { gardenViewHref, type GardenView } from "@/lib/garden-v2/views";
 import { gardenTour, retainTourDistance, pixelsToTourDistance, tourDistanceToPixels } from "@/lib/world/garden-tour";
@@ -36,7 +37,7 @@ import { useSeedBlows } from "./seed-blows";
 import { SplitView } from "./split-view";
 import styles from "./garden-v2.module.css";
 
-/** How long the camera glides toward a flower before its view opens. */
+/** The retained planting ceremony; ordinary activities open immediately. */
 export const GLIDE_MS = 950;
 /**
  * Closing a Dandelion whose seeds are about to blow in the world: the camera
@@ -48,7 +49,7 @@ export const GARDEN_PATH = "/garden";
 const flowerHref = (id: string) => `${GARDEN_PATH}?flower=${encodeURIComponent(id)}`;
 const themeStyle = { "--hand": handFont.style.fontFamily } as CSSProperties;
 
-type Mode = { kind: "idle" } | { kind: "flower"; id: string } | { kind: "plant"; spot: number; type: FlowerType };
+type Mode = { kind: "idle" } | { kind: "flower"; id: string } | { kind: "plant"; spot: number; type: FlowerType; intent: number };
 
 function useWorldFlowers(state: GardenState | null, layout: TypeAreaLayout | null) {
   const flowers = useMemo<WorldFlower[]>(
@@ -125,11 +126,15 @@ export function GardenV2({
   /** The flower the camera is gliding to or showing in its painting (its seeds wait for the painting). */
   const [visiting, setVisiting] = useState<string | null>(null);
   const timer = useRef<number | undefined>(undefined);
-  const visitSpot = useRef<number | null>(null);
+  const visitSpot = useRef<{ spot: number; intent: number } | null>(null);
   const updateWorldStatus=useCallback((status:WorldStatus)=>{if(status!=="ready")interruptScrollGlide();setWorldStatus(status);},[interruptScrollGlide]);
   // Where focus returns when a view closes (#210): the hidden plot that opened it, else the world.
   const returnSpot = useRef<number | null>(null);
   const returning = useRef(false);
+  const seedHolding = useRef(false);
+  const returnInvitation = useRef(false);
+  const intent = useRef(0);
+  const closedIntent = useRef<number | null>(null);
   // The flower layer (GPU code and shaders) loads with the world, not in the page's first bundle.
   const [flowerLayer, setFlowerLayer] = useState<FlowerLayer | null>(null);
   useEffect(() => {
@@ -219,9 +224,11 @@ export function GardenV2({
   );
 
   const visit = useCallback(
-    (id: string, immediate = false) => {
+    (id: string, immediate = true) => {
       const anchor = anchors.find((candidate) => candidate.id === id);
       if (!anchor) return;
+      intent.current += 1;
+      returning.current = false;
       setMode({ kind: "idle" });
       setVisiting(id);
       setWandered(true);
@@ -235,19 +242,24 @@ export function GardenV2({
     (spot: number) => {
       const area = layout?.areas.find((candidate) => candidate.target.spot === spot);
       if (!area) return;
+      const owner = ++intent.current;
       setMode({ kind: "idle" });
       setVisiting(null);
       setWandered(true);
-      glide({ position: area.target.position, height: 0.7 }, () => setMode({ kind: "plant", spot: area.target.persistedSpot, type: area.type }));
+      glide({ position: area.target.position, height: 0.7 }, () => {
+        if (intent.current === owner) setMode({ kind: "plant", spot: area.target.persistedSpot, type: area.type, intent: owner });
+      });
     },
     [glide, layout],
   );
 
   const openView = useCallback((next: GardenView) => {
+    intent.current += 1;
     // Ends any glide or close-look hold (#201): the camera is released too.
     interruptScrollGlide();
     window.clearTimeout(timer.current);
     setFocus(null);
+    seedHolding.current = false;
     setMode({ kind: "idle" });
     setVisiting(null);
     setWandered(true);
@@ -262,15 +274,18 @@ export function GardenV2({
 
   const { awaitsWorld } = seedBlows;
   const close = useCallback(() => {
+    closedIntent.current = ++intent.current;
+    visitSpot.current = null;
     window.clearTimeout(timer.current);
     const closing = visiting;
+    seedHolding.current = closing !== null && awaitsWorld(closing);
     returning.current=worldStatus==="ready"&&(!reducedMotion||(closing!==null&&awaitsWorld(closing)));
     if(returning.current)setCameraReady(false);
     setMode({ kind: "idle" });
     setVisiting(null);
     if (closing !== null && awaitsWorld(closing)) {
       // The seeds blow in the world as you return: hold the close look while they lift.
-      timer.current = window.setTimeout(() => setFocus(null), reducedMotion ? STILL_SEED_HOLD_MS : SEED_HOLD_MS);
+      timer.current = window.setTimeout(() => { seedHolding.current = false; setFocus(null); }, reducedMotion ? STILL_SEED_HOLD_MS : SEED_HOLD_MS);
     } else {
       setFocus(null);
     }
@@ -287,10 +302,14 @@ export function GardenV2({
     visit(id, true);
   }, [anchors, visit]);
 
-  // After planting, glide to the new flower so today's care is one tap away.
+  // A successful active planting opens its flower; canceled/older intents cannot.
   useEffect(() => {
-    const spot = visitSpot.current;
-    const planted = spot === null ? undefined : state?.plants.find((plant) => plant.flower.spot === spot);
+    const pending = visitSpot.current;
+    if (pending && pending.intent !== intent.current) {
+      visitSpot.current = null;
+      return;
+    }
+    const planted = pending === null ? undefined : state?.plants.find((plant) => plant.flower.spot === pending.spot);
     if (!planted || !anchors.some((anchor) => anchor.id === planted.flower.id)) return;
     visitSpot.current = null;
     visit(planted.flower.id);
@@ -316,7 +335,8 @@ export function GardenV2({
   const plots = useMemo(() => (state ? gardenPlots(state, partner.short) : []), [state, partner.short]);
   const openPlot = useCallback(
     (plot: GardenPlot) => {
-      if(returning.current||!arrival.settled||sheetOpen)return;
+      if(seedHolding.current||(!plot.plant&&returning.current)||!arrival.settled||sheetOpen)return;
+      returnInvitation.current = false;
       returnSpot.current = plot.spot;
       if (plot.plant) visit(plot.plant.flower.id);
       else startPlant(plot.spot);
@@ -326,7 +346,8 @@ export function GardenV2({
   // A tap in the world (or a flower chosen in an overlay) returns focus to the world.
   const pickFlower = useCallback(
     (id: string) => {
-      if(returning.current||!arrival.settled||sheetOpen)return;
+      if(seedHolding.current||!arrival.settled||sheetOpen)return;
+      returnInvitation.current = false;
       returnSpot.current = null;
       visit(id);
     },
@@ -335,6 +356,7 @@ export function GardenV2({
   const pickSpot = useCallback(
     (spot: number) => {
       if(returning.current||!arrival.settled||sheetOpen)return;
+      returnInvitation.current = false;
       returnSpot.current = null;
       startPlant(spot);
     },
@@ -348,7 +370,30 @@ export function GardenV2({
     },
     [state, visit],
   );
-  const returnFocus = useCallback(() => focusPlot(returnSpot.current), []);
+  const returnFocus = useCallback(() => {
+    const epoch = closedIntent.current;
+    if (epoch !== intent.current) return;
+    if (returnInvitation.current) {
+      const attempt = (left: number) => {
+        if (intent.current !== epoch) return;
+        const current = document.activeElement;
+        if (current instanceof HTMLElement && current !== document.body && !current.closest('[role="dialog"]')) return;
+        const invitation = document.querySelector<HTMLButtonElement>('[data-garden-invitation]');
+        const target = invitation && getComputedStyle(invitation).visibility !== "hidden" && !invitation.disabled
+          ? invitation : document.querySelector<HTMLElement>('[data-garden-world]');
+        target?.focus({ preventScroll: true });
+        if (document.activeElement !== target && left > 0) requestAnimationFrame(() => attempt(left - 1));
+      };
+      attempt(20);
+    } else focusPlot(returnSpot.current);
+  }, []);
+  const invite = useCallback((id: string) => {
+    if (seedHolding.current || !arrival.settled || sheetOpen || busy || error) return;
+    returnInvitation.current = true;
+    returnSpot.current = null;
+    visit(id);
+  }, [arrival.settled, sheetOpen, busy, error, visit]);
+  const invitation = state && !error && now < Date.parse(state.next_rollover_at) ? nextGardenVisit(state) : null;
 
   // A small "♡" floats over every flower still waiting on your care today (#214), following the
   // plant's height as it grows. It is left out while the camera glides to a flower or a
@@ -377,6 +422,7 @@ export function GardenV2({
   const openPlant = mode.kind === "flower" ? state.plants.find((plant) => plant.flower.id === mode.id) : undefined;
   const openItem = openPlant ? catalogItem(state, openPlant.flower.type_key) : undefined;
   const openName = openPlant ? captionName(openItem, openPlant.flower.type_key) : "";
+  const plantingIntent = mode.kind === "plant" ? mode.intent : null;
 
   return (
     <main
@@ -429,7 +475,7 @@ export function GardenV2({
           </div>
         </div>
       </div>
-      {!navigationBlocked && !pickerOpen && place && <GardenPlace context={place} layer={placeLayer} />}
+      {!covered && !sheetOpen && arrival.settled && !pickerOpen && place && <GardenPlace context={place} layer={placeLayer} invitation={invitation} busy={busy} onVisit={invite} />}
       {!navigationBlocked && route && <FlowerPicker areas={layout!.areas} currentType={place?.type??null} open={pickerOpen} onOpenChange={open=>{if(open)interruptScrollGlide();setPickerOpen(open);}} onSelect={type=>{
         const index=layout!.areas.findIndex(area=>area.type===type),distance=route.anchors.get(index)??0;
         setPickerOpen(false);setWandered(true);
@@ -525,8 +571,9 @@ export function GardenV2({
           const planted = result.state?.plants.find((plant) => plant.flower.spot === spot);
           const name = planted ? captionName(catalogItem(result.state!, planted.flower.type_key), planted.flower.type_key) : "flower";
           setAnnouncement(`The ${name} is planted.`);
+          if (plantingIntent === null || plantingIntent !== intent.current) return;
           setMode({ kind: "idle" });
-          visitSpot.current = spot;
+          visitSpot.current = { spot, intent: plantingIntent };
         }}
       />
       <ArrivalLight phase={arrival.phase} lightRef={arrival.lightRef} />

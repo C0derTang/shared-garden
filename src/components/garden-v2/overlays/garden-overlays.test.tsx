@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { WorldRendererCallbacks, WorldSceneState } from "@/components/world/renderer";
@@ -350,36 +350,37 @@ describe("the garden's overlays", () => {
     expect(screen.queryByRole("dialog", { name: "a little guide" })).toBeNull();
   });
 
-  describe("with motion on, across a flower-to-flower glide", () => {
-    // The camera glides (GLIDE_MS) between one flower's view and the next; a
-    // moment that becomes pending in that gap must stay on top, and the next
-    // view must wait for it to close.
+  describe("with motion on, across an immediate flower handoff", () => {
+    // Ordinary visits have no artificial gap. A moment discovered after the
+    // next form opens waits for that form's draft and scope, just like any visit.
     const tick = (ms: number) => act(() => vi.advanceTimersByTimeAsync(ms));
     function motionOn() {
       vi.stubGlobal("matchMedia", (query: string) => ({ matches: false, media: query, addEventListener: vi.fn(), removeEventListener: vi.fn() }));
     }
-    async function deliverMomentDuringGlide() {
+    async function deliverMomentAfterHandoff() {
       api.readPrivateInteraction.mockResolvedValue(pendingMoment);
       await act(async () => {
         window.dispatchEvent(new Event("focus"));
       });
       await tick(0);
-      expect(screen.getByRole("dialog", { name: "A synthetic moment" })).toBeInTheDocument();
+      expect(screen.queryByRole("dialog", { name: "A synthetic moment" })).toBeNull();
     }
-    async function expectViewWaitsThenOpens(name: string) {
-      // The glide ends while the moment shows: the next view waits, focus stays in the moment.
+    async function expectDraftKeepsItsTurn(name: string) {
+      const view = screen.getByRole("dialog", { name });
+      const field = within(view).getByRole("textbox", { name: "Care" });
+      fireEvent.change(field, { target: { value: "A preserved synthetic draft" } });
+      field.focus();
       await tick(GLIDE_MS + 50);
-      expect(screen.queryByRole("dialog", { name })).toBeNull();
-      const moment = screen.getByRole("dialog", { name: "A synthetic moment" });
-      expect(moment.contains(document.activeElement)).toBe(true);
-      // Closing the moment lets the view open, with focus inside it.
+      expect(field).toHaveValue("A preserved synthetic draft");
+      expect(document.activeElement).toBe(field);
+      expect(screen.queryByRole("dialog", { name: "A synthetic moment" })).toBeNull();
       await act(async () => {
         document.activeElement!.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
       });
       await tick(50);
-      const view = screen.getByRole("dialog", { name });
-      expect(screen.queryByRole("dialog", { name: "A synthetic moment" })).toBeNull();
-      expect(view.contains(document.activeElement)).toBe(true);
+      expect(screen.queryByRole("dialog", { name })).toBeNull();
+      const moment = screen.getByRole("dialog", { name: "A synthetic moment" });
+      expect(moment.contains(document.activeElement)).toBe(true);
     }
 
     // Testing Library only advances fake timers it recognizes as Jest's.
@@ -391,7 +392,7 @@ describe("the garden's overlays", () => {
       vi.useRealTimers();
     });
 
-    it("holds the next view behind a moment that arrives during a \"next:\" handoff", async () => {
+    it("preserves the next form when a moment arrives after an immediate \"next:\" handoff", async () => {
       motionOn();
       const rose = state.plants[0]!;
       rose.member1_submitted = false;
@@ -416,11 +417,11 @@ describe("the garden's overlays", () => {
       await tick(0);
       await user.click(screen.getByRole("button", { name: /next: marigold/ }));
       expect(screen.queryByRole("dialog", { name: "rose" })).toBeNull();
-      await deliverMomentDuringGlide();
-      await expectViewWaitsThenOpens("marigold");
+      await deliverMomentAfterHandoff();
+      await expectDraftKeepsItsTurn("marigold");
     });
 
-    it("holds the new flower's view behind a moment that arrives after planting", async () => {
+    it("preserves the new flower's form when a moment arrives after planting", async () => {
       motionOn();
       await mount();
       useGlideTimers();
@@ -431,7 +432,7 @@ describe("the garden's overlays", () => {
       const plant = screen.getByRole("dialog", { name: "plant a seed" });
       await user.click(within(plant).getByRole("radio", { name: /^marigold/ }));
       const planted = structuredClone(state);
-      planted.plants.push({ ...structuredClone(state.plants[0]!), flower: { ...state.plants[0]!.flower, id: "00000000-0000-4000-8000-0000000000dd", spot: 2, type_key: "marigold" } });
+      planted.plants.push({ ...structuredClone(state.plants[0]!), member1_submitted: false, member2_submitted: false, entries: [], flower: { ...state.plants[0]!.flower, id: "00000000-0000-4000-8000-0000000000dd", spot: 2, type_key: "marigold" } });
       planted.garden.next_spot = 3;
       api.mutateGardenV2.mockResolvedValue({ state: planted, saved: true, error: null });
       // Later reads (the moment's focus refresh also refreshes the garden) see the planted flower.
@@ -439,8 +440,8 @@ describe("the garden's overlays", () => {
       await user.click(within(plant).getByRole("button", { name: "plant the marigold" }));
       await tick(0);
       expect(screen.queryByRole("dialog", { name: "plant a seed" })).toBeNull();
-      await deliverMomentDuringGlide();
-      await expectViewWaitsThenOpens("marigold");
+      await deliverMomentAfterHandoff();
+      await expectDraftKeepsItsTurn("marigold");
     });
   });
 
