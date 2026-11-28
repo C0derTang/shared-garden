@@ -7,7 +7,7 @@ import { BACKYARD_RIGHT as RIGHT, BACKYARD_FORWARD as FORWARD } from "./backyard
 import { HOUSE, houseToWorld } from "./landing-frame";
 import { gardenFovY } from "./garden-camera";
 import {plantingSurfaceHeight} from "./site-surface";
-export interface ScenicCameraPose extends JourneyPose { readonly overview?: number; readonly rear?: number; readonly bankFov?: number }
+export interface ScenicCameraPose extends JourneyPose { readonly overview?: number; readonly rear?: number; readonly bankFov?: number; readonly bankFovY?: number }
 /** Geometry-independent place semantics consumed only by passive orientation UI. */
 export type ScenicPlace =
   | { readonly kind: 'porch' | 'woodland' | 'overlook' | 'meadow-bend' | 'meadow-edge' }

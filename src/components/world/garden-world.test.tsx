@@ -219,3 +219,15 @@ it('hides a projected route control covered by the initial garden hint while ret
  act(()=>created[0]!.onFrame?.({viewProjection:new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]),width:390,height:844,arrival:null,entryFade:0}));
  expect(button).toHaveAttribute('data-offscreen');expect(button.style.opacity).toBe('0');vi.unstubAllGlobals();
 });
+
+it('suppresses decorative scenic due-hearts over reserved tabs and recovers them without changing default-world marks',async()=>{
+ created.length=0;vi.stubGlobal('navigator',{...navigator,gpu:{}});
+ const markCaption={id:'care-reserved',text:'♡',position:[.8,-.8,0] as [number,number,number],size:'mark' as const},route=scenicRoute([]);
+ const {rerender}=render(<><button data-world-reserved>Choose a flower</button><GardenWorld scenicRoute={route} captions={[markCaption]}/></>);await flush();act(()=>created[0]!.onReady());
+ const mark=document.querySelector<HTMLElement>('[data-caption="care-reserved"]')!;Object.defineProperty(mark,'offsetWidth',{configurable:true,value:20});Object.defineProperty(mark,'offsetHeight',{configurable:true,value:24});
+ const bounds=vi.spyOn(screen.getByRole('button',{name:'Choose a flower'}),'getBoundingClientRect').mockReturnValue({x:350,y:740,left:350,top:740,right:390,bottom:820,width:40,height:80,toJSON:()=>({})});
+ const frame={viewProjection:new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]),width:390,height:844,arrival:null,entryFade:0};
+ act(()=>created[0]!.onFrame?.(frame));expect(mark.tagName).toBe('SPAN');expect(mark).toHaveAttribute('aria-hidden','true');expect(mark.style.visibility).toBe('hidden');
+ bounds.mockReturnValue({x:0,y:0,left:0,top:0,right:40,bottom:50,width:40,height:50,toJSON:()=>({})});act(()=>created[0]!.onFrame?.(frame));expect(mark.style.visibility).toBe('visible');
+ bounds.mockReturnValue({x:350,y:740,left:350,top:740,right:390,bottom:820,width:40,height:80,toJSON:()=>({})});rerender(<><button data-world-reserved>Choose a flower</button><GardenWorld captions={[markCaption]}/></>);await flush();act(()=>created.at(-1)!.onFrame?.(frame));expect(mark.style.visibility).toBe('visible');vi.unstubAllGlobals();
+});

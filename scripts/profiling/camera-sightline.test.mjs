@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {test,after} from 'node:test';
+import {createServer} from 'vite';
+import {resolve} from 'node:path';
+import {sightlineStrip} from './camera-sightline.mjs';
+const modules=await createServer({configFile:false,resolve:{alias:{'@':resolve('src')}},server:{middlewareMode:true,watch:null,hmr:false,ws:false}}),{meshClearanceQuery,groundSampler}=await modules.ssrLoadModule('/src/test/ground-sampler.ts');
+after(()=>modules.close());
+const mesh=(vertices,indices)=>({vertices:new Float32Array(vertices),indices:new Uint32Array(indices),stride:3}),flat=mesh([-1,0,-1,2,0,-1,-1,0,1,2,0,1],[0,1,2,1,3,2]);
+test('proves the actual sight corridor clears a flat surface',()=>{const result=meshClearanceQuery(flat)(sightlineStrip([0,1,0],[1,.1,0]));assert(result.pairs>0);assert(result.minimum>.09);});
+test('rejects a through-ground target even though its screen point can be clicked',()=>{const result=meshClearanceQuery(flat)(sightlineStrip([0,1,0],[1,-.2,0]));assert(result.minimum<-.19);});
+test('catches a narrow ground crease missed by sparse uniform ray probes',()=>{const crease=mesh([.379,0,-.05,.383,0,-.05,.381,2,.05],[0,1,2]),sample=groundSampler(crease);for(let i=0;i<=10;i++)assert.equal(sample(i/10,0),null);const result=meshClearanceQuery(crease)(sightlineStrip([0,1,0],[1,.1,0]));assert(result.pairs>0);assert(result.minimum<-.1);});

@@ -280,7 +280,7 @@ export function GardenWorld({
           else placedLabels.push(box);
         }
         const control = Boolean(caption.onSelect || caption.href || caption.formAction);
-        if(stateRef.current.scenicRoute && control && ndc){
+        if(stateRef.current.scenicRoute && (control || caption.id.startsWith("care-")) && ndc){
           const x=(ndc[0]+1)/2*view.width,y=(1-ndc[1])/2*view.height,halfW=element.offsetWidth/2+12,halfH=element.offsetHeight/2+12;
           if(x<halfW||x>view.width-halfW||y<halfH||y>view.height-halfH||reservedControls.some(rect=>x+halfW>rect.left&&x-halfW<rect.right&&y+halfH>rect.top&&y-halfH<rect.bottom))visible=false;
         }
