@@ -1,0 +1,287 @@
+{
+  "base": "d55aec6b2c5074deedf8c91965ec08f6fbfda2ec",
+  "command": "npx vitest run --config scripts/profiling/geometry-check-benchmark.config.mts --reporter=verbose",
+  "platform": {
+    "system": "Darwin",
+    "machine": "arm64",
+    "node": "v24.18.0"
+  },
+  "conditions": [
+    "Original meshes generated once per paired sample and shared unchanged between old/new implementations.",
+    "First sample retained cold; sample1 reverses execution order. No discarded samples, timing assertions or retries.",
+    "Sample2 retained as adverse: inventory/lint process started during its trailing measurement; samples0/1 used the quiet CPU/GPU window.",
+    "CPU includes user+system time across process threads; old index construction is included within each query, new snapshot construction is reported separately and in total."
+  ],
+  "samples": [
+    {
+      "sample": 0,
+      "order": [
+        "old",
+        "new"
+      ],
+      "plants": 193,
+      "beds": 45,
+      "triangles": {
+        "ground": 219888,
+        "soil": 63000,
+        "ribbon": 70848
+      },
+      "runs": [
+        {
+          "kind": "old",
+          "indexMs": 0.003917000000001281,
+          "operations": [
+            2720.4417909999997,
+            3057.3634169999996
+          ],
+          "wallMs": 5777.816417,
+          "cpuMs": 5898.572,
+          "candidateVisits": 233849064,
+          "results": [
+            {
+              "minimum": 0.002510386800211123,
+              "point": [
+                96.27502926054969,
+                0.14706089417395007,
+                -21.43817611604876,
+                0.14455050737373895,
+                71157,
+                187896
+              ],
+              "pairs": 741115
+            },
+            {
+              "minimum": 0.007006025282527695,
+              "point": [
+                78.49377659047751,
+                0.955306705632704,
+                -15.12104170888624,
+                0.9483006803501763,
+                94248,
+                174732
+              ],
+              "pairs": 803391
+            }
+          ]
+        },
+        {
+          "kind": "new",
+          "indexMs": 202.70920800000022,
+          "operations": [
+            550.585583,
+            580.8029579999993
+          ],
+          "wallMs": 1334.1091250000009,
+          "cpuMs": 1544.977,
+          "candidateVisits": 24093407,
+          "results": [
+            {
+              "minimum": 0.002510386800211123,
+              "point": [
+                96.27502926054969,
+                0.14706089417395007,
+                -21.43817611604876,
+                0.14455050737373895,
+                71157,
+                187896
+              ],
+              "pairs": 741115
+            },
+            {
+              "minimum": 0.007006025282527695,
+              "point": [
+                78.49377659047751,
+                0.955306705632704,
+                -15.12104170888624,
+                0.9483006803501763,
+                94248,
+                174732
+              ],
+              "pairs": 803391
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "order": [
+        "new",
+        "old"
+      ],
+      "plants": 193,
+      "beds": 45,
+      "triangles": {
+        "ground": 219888,
+        "soil": 63000,
+        "ribbon": 70848
+      },
+      "runs": [
+        {
+          "kind": "new",
+          "indexMs": 158.0732079999998,
+          "operations": [
+            552.7218750000011,
+            585.6364169999997
+          ],
+          "wallMs": 1296.4447500000006,
+          "cpuMs": 1342.582,
+          "candidateVisits": 24093407,
+          "results": [
+            {
+              "minimum": 0.002510386800211123,
+              "point": [
+                96.27502926054969,
+                0.14706089417395007,
+                -21.43817611604876,
+                0.14455050737373895,
+                71157,
+                187896
+              ],
+              "pairs": 741115
+            },
+            {
+              "minimum": 0.007006025282527695,
+              "point": [
+                78.49377659047751,
+                0.955306705632704,
+                -15.12104170888624,
+                0.9483006803501763,
+                94248,
+                174732
+              ],
+              "pairs": 803391
+            }
+          ]
+        },
+        {
+          "kind": "old",
+          "indexMs": 0.0040829999998095445,
+          "operations": [
+            2650.635292000001,
+            3048.711083
+          ],
+          "wallMs": 5699.360500000001,
+          "cpuMs": 5733.092,
+          "candidateVisits": 233849064,
+          "results": [
+            {
+              "minimum": 0.002510386800211123,
+              "point": [
+                96.27502926054969,
+                0.14706089417395007,
+                -21.43817611604876,
+                0.14455050737373895,
+                71157,
+                187896
+              ],
+              "pairs": 741115
+            },
+            {
+              "minimum": 0.007006025282527695,
+              "point": [
+                78.49377659047751,
+                0.955306705632704,
+                -15.12104170888624,
+                0.9483006803501763,
+                94248,
+                174732
+              ],
+              "pairs": 803391
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "order": [
+        "old",
+        "new"
+      ],
+      "plants": 193,
+      "beds": 45,
+      "triangles": {
+        "ground": 219888,
+        "soil": 63000,
+        "ribbon": 70848
+      },
+      "runs": [
+        {
+          "kind": "old",
+          "indexMs": 0.0022499999995488906,
+          "operations": [
+            2646.2104580000014,
+            3129.4124999999985
+          ],
+          "wallMs": 5775.632666999998,
+          "cpuMs": 5768.13,
+          "candidateVisits": 233849064,
+          "results": [
+            {
+              "minimum": 0.002510386800211123,
+              "point": [
+                96.27502926054969,
+                0.14706089417395007,
+                -21.43817611604876,
+                0.14455050737373895,
+                71157,
+                187896
+              ],
+              "pairs": 741115
+            },
+            {
+              "minimum": 0.007006025282527695,
+              "point": [
+                78.49377659047751,
+                0.955306705632704,
+                -15.12104170888624,
+                0.9483006803501763,
+                94248,
+                174732
+              ],
+              "pairs": 803391
+            }
+          ]
+        },
+        {
+          "kind": "new",
+          "indexMs": 168.39545799999905,
+          "operations": [
+            575.8477910000001,
+            610.7878329999985
+          ],
+          "wallMs": 1355.0465829999994,
+          "cpuMs": 1407.511,
+          "candidateVisits": 24093407,
+          "results": [
+            {
+              "minimum": 0.002510386800211123,
+              "point": [
+                96.27502926054969,
+                0.14706089417395007,
+                -21.43817611604876,
+                0.14455050737373895,
+                71157,
+                187896
+              ],
+              "pairs": 741115
+            },
+            {
+              "minimum": 0.007006025282527695,
+              "point": [
+                78.49377659047751,
+                0.955306705632704,
+                -15.12104170888624,
+                0.9483006803501763,
+                94248,
+                174732
+              ],
+              "pairs": 803391
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

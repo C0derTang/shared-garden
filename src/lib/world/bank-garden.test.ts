@@ -6,15 +6,15 @@ import {gardenTour} from './garden-tour';
 import {buildScenicGroundMesh} from './scenic-ground';
 import {buildScenicPath} from './scenic-path';
 import {buildBedMesh} from './scenery';
-import {groundSampler,minimumMeshClearance} from '@/test/ground-sampler';
+import {groundSampler,meshClearanceQuery} from '@/test/ground-sampler';
 import {landingLakeDepth} from './site-geography';
 import {bedRimRadius} from './layout';
 import {scenicWaterExtent} from './scenic-water';
 function stateWithRoses(count:number){const state=parseGardenState(structuredClone(fixture)),plant=state.plants[0]!;state.plants=Array.from({length:count},(_,i)=>({...structuredClone(plant),flower:{...plant.flower,id:`synthetic-${i}`,spot:i+1,planted_at:new Date(Date.UTC(2099,0,1,0,0,i)).toISOString()}}));return state;}
 it('keeps actual bank roots, full soil/ribbon triangle interiors above every rendered terrain layer',()=>{
- const state=stateWithRoses(193),layout=compactAreaLayout(state),tour=gardenTour(layout.beds),sample=groundSampler(buildScenicGroundMesh(tour,layout.beds));
+ const state=stateWithRoses(193),layout=compactAreaLayout(state),tour=gardenTour(layout.beds),ground=buildScenicGroundMesh(tour,layout.beds),sample=groundSampler(ground),clearance=meshClearanceQuery(ground);
  for(const spot of layout.spots){const ground=sample(spot.position[0],spot.position[2]);expect(ground).not.toBeNull();expect(spot.position[1]-ground!,`root ${spot.spot} at${spot.position}`).toBeGreaterThan(.001);expect(landingLakeDepth(spot.position[0],spot.position[2])).toBeLessThan(0);}
- for(const [name,mesh]of [['soil',buildBedMesh(layout.beds)],['ribbon',buildScenicPath(tour)]] as const){const result=minimumMeshClearance(mesh,buildScenicGroundMesh(tour,layout.beds));expect(result.pairs).toBeGreaterThan(mesh.indices.length/3);expect(result.minimum,`${name} exact overlap minimum at${result.point}`).toBeGreaterThan(.0005);}
+ for(const [name,mesh]of [['soil',buildBedMesh(layout.beds)],['ribbon',buildScenicPath(tour)]] as const){const result=clearance(mesh);expect(result.pairs).toBeGreaterThan(mesh.indices.length/3);expect(result.minimum,`${name} exact overlap minimum at${result.point}`).toBeGreaterThan(.0005);}
 
  const extent=scenicWaterExtent(tour);for(const stop of tour.stops){expect(extent.maxX-stop.pose.eye[0]).toBeGreaterThanOrEqual(420);expect(extent.minZ).toBeLessThan(stop.pose.eye[2]-420);}
 },30000);
