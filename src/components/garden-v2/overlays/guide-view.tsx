@@ -11,7 +11,7 @@ export const guideSteps = [
   },
   {
     title: "wander",
-    body: "scroll to wander along the path, or choose a flower picture and name in the picker on the right. tap a flower to visit; tap a glowing seed mark to plant. a little ♡ means your care is open.",
+    body: "scroll to wander along the path, or choose a flower picture and name in the picker on the right. tap a flower to visit; use the shovel tab on the right to plant. a little ♡ means your care is open.",
   },
   {
     title: "keepsakes",

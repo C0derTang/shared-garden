@@ -143,6 +143,37 @@ const captionIds = () => [...document.querySelectorAll("[data-caption]")].map((e
 const hearts = () => [...document.querySelectorAll<HTMLElement>('[data-caption^="care-"]')];
 
 describe("GardenV2", () => {
+  it("opens the shovel before device readiness and closes the strict picker when planting opens", async () => {
+    const user=userEvent.setup(),state=garden();api.refreshGardenV2.mockResolvedValue({state,error:null});
+    render(<GardenV2 initial={{state,error:null}}/>);await flush();
+    await user.click(screen.getByRole("button",{name:"Plant a flower"}));
+    expect(screen.getByRole("dialog",{name:"plant a seed"})).toBeInTheDocument();
+    expect(worlds[0]!.states.at(-1)!.focus).toBeNull();await user.keyboard("{Escape}");
+    act(()=>worlds[0]!.callbacks.onReady());
+    await user.click(screen.getByRole("button",{name:"Choose a flower"}));
+    expect(screen.getByRole("dialog",{name:"Choose a flower"})).toBeInTheDocument();
+    await user.click(screen.getByRole("button",{name:"Plant a flower"}));
+    expect(screen.queryByRole("dialog",{name:"Choose a flower"})).toBeNull();
+    expect(screen.getByRole("dialog",{name:"plant a seed"})).toBeInTheDocument();
+    expect(api.mutateGardenV2).not.toHaveBeenCalled();
+  });
+
+  it("does not return shovel focus over a newer navigation picker after a refused close focus", async () => {
+    const user=userEvent.setup();await mount();
+    await user.click(screen.getByRole("button",{name:"Plant a flower"}));
+    const native=HTMLElement.prototype.focus,frames:FrameRequestCallback[]=[];
+    let release=false;
+    const focus=vi.spyOn(HTMLElement.prototype,"focus").mockImplementation(function(this:HTMLElement,options){if(release||!this.hasAttribute("data-garden-shovel"))native.call(this,options);});
+    const raf=vi.spyOn(globalThis,"requestAnimationFrame").mockImplementation(callback=>{frames.push(callback);return frames.length;});
+    try{
+      await user.keyboard("{Escape}");expect(frames.length).toBeGreaterThan(0);release=true;
+      await user.click(screen.getByRole("button",{name:"Choose a flower"}));
+      const picker=screen.getByRole("dialog",{name:"Choose a flower"}),option=within(picker).getAllByRole("button")[0]!;
+      expect(option).toHaveFocus();act(()=>{for(const frame of frames.splice(0))frame(0);});
+      expect(option).toHaveFocus();
+    }finally{focus.mockRestore();raf.mockRestore();}
+  });
+
   it("opens a real writable form from the invitation before a world frame, without submitting", async () => {
     const state = garden();
     api.refreshGardenV2.mockResolvedValue({ state, error: null });
@@ -245,7 +276,7 @@ describe("GardenV2", () => {
     } finally { vi.useRealTimers(); }
   });
 
-  it("paints thirteen named areas and lists their flowers and planting targets accessibly", async () => {
+  it("paints thirteen passive named areas and lists only real flowers accessibly", async () => {
     const { state } = await mount();
     const scene = worlds[0]!.states.at(-1)!;
     expect(scene).toMatchObject({ spotCapacity: 12, occupiedSpots: [1], paused: false, focus: null });
@@ -263,10 +294,11 @@ describe("GardenV2", () => {
     // Every plot is in the hidden list, in reading order, with its full name.
     const list = screen.getByRole("navigation", { name: "Plots in the garden" });
     const plots = within(list).getAllByRole("button");
-    expect(plots).toHaveLength(14);
+    expect(plots).toHaveLength(1);
     expect(within(list).getByRole("button", { name: /^rose, in bud, 2 of 5\. Your care is open; partner cared today\. rose area$/ })).toHaveTextContent("rose · 2 of 5 ♡ · rose area");
-    expect(within(list).getAllByRole("button", { name: /^Plant a / })).toHaveLength(13);
-    expect(within(list).getByRole("button", { name: "Plant a cactus in the cactus area" })).toHaveTextContent("plant cactus · cactus area");
+    expect(within(list).queryAllByRole("button", { name: /^Plant a / })).toHaveLength(0);
+    expect(scene).toMatchObject({ plantingTargets: false });
+    expect(document.querySelector("button[data-caption^=area-]")).toBeNull();
     expect(screen.getByRole("link", { name: "old garden" })).toHaveAttribute("href", "/legacy");
     expect(screen.queryByText(/dev showcase/i)).toBeNull();
   });
@@ -345,18 +377,15 @@ describe("GardenV2", () => {
     expect(peony.getAttribute("aria-label")).not.toMatch(/care|cared/i);
   });
 
-  it("plants on an empty plot from the hidden list, and returns focus to that plot", async () => {
-    const user = userEvent.setup();
-    await mount();
-    const empty = within(screen.getByRole("navigation", { name: "Plots in the garden" })).getByRole("button", { name: "Plant a cactus in the cactus area" });
-    empty.focus();
-    await user.keyboard("{Enter}");
-    const dialog = await screen.findByRole("dialog", { name: "plant a seed" });
-    expect(within(dialog).getByRole("radio", { name: /^cactus/ })).toBeChecked();
-    await user.keyboard("{Escape}");
+  it("opens the shovel immediately without a camera target, rejects old empty picks and returns focus", async () => {
+    const user=userEvent.setup();await mount();
+    act(()=>worlds[0]!.callbacks.onPick({kind:"spot",spot:-1,distance:1}));
     expect(screen.queryByRole("dialog")).toBeNull();
-    await act(() => new Promise((resolve) => setTimeout(resolve, 30)));
-    expect(document.activeElement).toBe(empty);
+    const shovel=screen.getByRole("button",{name:"Plant a flower"});shovel.focus();await user.keyboard("{Enter}");
+    expect(screen.getByRole("dialog",{name:"plant a seed"})).toBeInTheDocument();
+    expect(worlds[0]!.states.at(-1)!.focus).toBeNull();
+    expect(api.mutateGardenV2).not.toHaveBeenCalled();await user.keyboard("{Escape}");
+    await act(()=>new Promise(resolve=>setTimeout(resolve,30)));expect(screen.getByRole("button",{name:"Plant a flower"})).toHaveFocus();
   });
 
   it("keeps direct taps in the world working, and returns focus to the world after them", async () => {
@@ -376,11 +405,11 @@ describe("GardenV2", () => {
     expect(await screen.findByRole("dialog", { name: "rose" })).toBeInTheDocument();
   });
 
-  it("plants any flower on an empty spot, asking a Dandelion for its wish", async () => {
+  it("plants from the shovel, asking a Dandelion for its wish", async () => {
     const user = userEvent.setup();
     const { state } = await mount();
-    // Tapping the glowing seed mark of spot 2 in the world.
-    act(() => worlds[0]!.callbacks.onPick({ kind: "spot", spot: -1, distance: 1 }));
+    // The shovel submits the authoritative next slot2.
+    await user.click(screen.getByRole("button", { name: "Plant a flower" }));
     const dialog = await screen.findByRole("dialog", { name: "plant a seed" });
     expect(within(dialog).getAllByRole("radio")).toHaveLength(13);
     await user.click(within(dialog).getByRole("radio", { name: /^dandelion/ }));
@@ -397,12 +426,12 @@ describe("GardenV2", () => {
     expect(screen.getByText("The dandelion is planted.")).toBeInTheDocument();
   });
 
-  it.each(["close only", "newer flower"] as const)("applies a delayed planted state without taking over after %s", async (next) => {
+  it.each(["close only", "newer flower", "newer planting"] as const)("applies a delayed planted state without taking over after %s", async (next) => {
     const user = userEvent.setup();
     const { state } = await mount();
     let finish!: (result: { state: GardenState; saved: true; error: null }) => void;
     api.mutateGardenV2.mockImplementation(() => new Promise(resolve => { finish = resolve; }));
-    await user.click(document.querySelector<HTMLButtonElement>('[data-plot-spot="-1"]')!);
+    await user.click(screen.getByRole("button", { name: "Plant a flower" }));
     const planting = screen.getByRole("dialog", { name: "plant a seed" });
     await user.click(within(planting).getByRole("radio", { name: /^tulip/ }));
     await user.click(within(planting).getByRole("button", { name: "plant the tulip" }));
@@ -411,6 +440,11 @@ describe("GardenV2", () => {
     if (next === "newer flower") {
       await user.click(document.querySelector<HTMLButtonElement>('[data-plot-spot="1"]')!);
       await user.type(screen.getByRole("textbox"), "Newer intentional rose draft");
+    }
+    if (next === "newer planting") {
+      await user.click(screen.getByRole("button", { name: "Plant a flower" }));
+      await user.click(screen.getByRole("radio", { name: /^dandelion/ }));
+      await user.type(screen.getByLabelText("Your shared wish"), "A newer intentional planting wish");
     }
     const before = worlds[0]!.states.at(-1)!;
     const planted = structuredClone(state);
@@ -427,6 +461,11 @@ describe("GardenV2", () => {
     if (next === "close only") {
       expect(screen.queryByRole("dialog")).toBeNull();
       expect(window.location.search).toBe("");
+    } else if (next === "newer planting") {
+      expect(screen.getByRole("dialog", { name: "plant a seed" })).toBeInTheDocument();
+      expect(screen.getByLabelText("Your shared wish")).toHaveValue("A newer intentional planting wish");
+      expect(screen.getByLabelText("Your shared wish")).toHaveFocus();
+      expect(window.location.search).toBe("");
     } else {
       expect(screen.getByRole("dialog", { name: "rose" })).toBeInTheDocument();
       expect(screen.getByRole("textbox")).toHaveValue("Newer intentional rose draft");
@@ -442,7 +481,7 @@ describe("GardenV2", () => {
     api.refreshGardenV2.mockImplementation(() => new Promise(resolve => { deliver = resolve; }));
     // The write succeeded, but its follow-up read is still in flight.
     api.mutateGardenV2.mockResolvedValue({ state: null, saved: true, error: null });
-    await user.click(document.querySelector<HTMLButtonElement>('[data-plot-spot="-1"]')!);
+    await user.click(screen.getByRole("button", { name: "Plant a flower" }));
     const planting = screen.getByRole("dialog", { name: "plant a seed" });
     await user.click(within(planting).getByRole("radio", { name: /^tulip/ }));
     await user.click(within(planting).getByRole("button", { name: "plant the tulip" }));
@@ -763,7 +802,7 @@ describe("GardenV2", () => {
       expect(hearts()).toHaveLength(2);
       act(() => worlds[0]!.callbacks.onFrame?.({ viewProjection: new Float32Array(16), width: 1280, height: 800, entryFade: 0, arrival: null, scenicReady: true }));
       // Planting an empty spot.
-      act(() => worlds[0]!.callbacks.onPick({ kind: "spot", spot: -9, distance: 1 }));
+      await user.click(screen.getByRole("button", { name: "Plant a flower" }));
       await screen.findByRole("dialog", { name: "plant a seed" }, { timeout: 3000 });
       expect(captionIds()).toEqual(["title"]);
       await user.keyboard("{Escape}");
@@ -931,23 +970,23 @@ it("shares native scroll with the picture/name picker and has no stop/free-walki
   await user.click(screen.getByRole('link',{name:'settings'}));scroll.scrollTop=500;fireEvent.scroll(scroll);expect(worlds.at(-1)!.states.at(-1)!.tourDistance).toBe(distance);
 });
 
-it('blocks another plot activation during normal return, then accepts it when the renderer settles',async()=>{
+it('keeps the shovel usable during a held normal camera return',async()=>{
  vi.stubGlobal('matchMedia',(query:string)=>({matches:false,media:query,addEventListener:vi.fn(),removeEventListener:vi.fn()}));
  await mount();const user=userEvent.setup();
  await user.click(document.querySelector<HTMLButtonElement>('[data-plot-spot="1"]')!);await act(async()=>{await new Promise(resolve=>setTimeout(resolve,1000));});
  expect(screen.getByRole('dialog',{name:'rose'})).toBeInTheDocument();
  await user.keyboard('{Escape}');expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
  const scroll=screen.getByLabelText('Scroll through the garden'),before=worlds[0]!.states.at(-1)!.tourDistance;scroll.scrollTop+=400;fireEvent.scroll(scroll);expect(worlds[0]!.states.at(-1)!.tourDistance).toBe(before);
- await user.click(document.querySelector<HTMLButtonElement>('[data-plot-spot="-1"]')!);
+ await user.click(screen.getByRole("button", { name: "Plant a flower" }));
  expect(worlds[0]!.states.at(-1)!.focus).toBeNull();
  act(()=>worlds[0]!.callbacks.onFrame?.({viewProjection:new Float32Array(16),width:1280,height:800,entryFade:0,arrival:null,scenicReady:true}));
- await user.click(document.querySelector<HTMLButtonElement>('[data-plot-spot="-1"]')!);
- expect(worlds[0]!.states.at(-1)!.focus).not.toBeNull();
+ expect(worlds[0]!.states.at(-1)!.focus).toBeNull();
+ expect(screen.getByRole('dialog',{name:'plant a seed'})).toBeInTheDocument();
 });
 
 it('keeps accessible plot visits usable after closing while the world is still loading',async()=>{
  vi.stubGlobal('matchMedia',(query:string)=>({matches:false,media:query,addEventListener:vi.fn(),removeEventListener:vi.fn()}));
  const state=garden();api.refreshGardenV2.mockResolvedValue({state,error:null});render(<GardenV2 initial={{state,error:null}} />);await flush();await flush();const user=userEvent.setup();
  await user.click(document.querySelector<HTMLButtonElement>('[data-plot-spot="1"]')!);await screen.findByRole('dialog',{name:'rose'});await user.keyboard('{Escape}');
- await user.click(document.querySelector<HTMLButtonElement>('[data-plot-spot="-1"]')!);await screen.findByRole('dialog',{name:'plant a seed'});
+ await user.click(screen.getByRole("button", { name: "Plant a flower" }));await screen.findByRole('dialog',{name:'plant a seed'});
 });

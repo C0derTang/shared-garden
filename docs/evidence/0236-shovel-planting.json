@@ -1,0 +1,218 @@
+{
+  "issue": "https://github.com/C0derTang/shared-garden/issues/236",
+  "base": "057ec685e1b02291437fbd1f7d2f45e2666a2e0f",
+  "decision": "../decisions/0077-shovel-planting-menu.md",
+  "scope": "Loopback-only synthetic verification of one shovel entry opening the original PlantView/SplitView presentation. Empty target drawing/picking/keyboard/caption/cue affordances removed only in GardenV2. No real private backend, credentials, media or database reset; no unmerged camera source.",
+  "runtime": {
+    "headAtCapture": "057ec685e1b02291437fbd1f7d2f45e2666a2e0f",
+    "runtimeSourceSha256": "e3b7e4ea6e4c4bda5847fef88012987da0a2dcfff50ac5ec0342c98a00d21f32",
+    "fixtureSha256": "82d04f945f136e6f632b2aff6b1bcedb656ed23eac93129a5986044407204931",
+    "capturedAt": "2026-11-28T06:51:38.946Z",
+    "scope": "Loopback-only synthetic state; no authenticated session or backend mutations"
+  },
+  "sourceHashScope": "Existing evidenceMetadata broad non-.test src scan includes test-support files; it is not claimed to contain production modules only. Source-start/end per-file manifests are exact; final capture-to-Git-blob linkage is recorded in the builder handoff and PR.",
+  "sourceProof": {
+    "finalMatrixStart": "/tmp/ccapp-236-final-browser-r4/source-start.json",
+    "finalMatrixEnd": "/tmp/ccapp-236-final-browser-r4/source-end.json",
+    "equal": true,
+    "inputQualification": "0236-production-inputs.json",
+    "note": "413 of 417 earlier unchanged inputs remain exact; four explicitly changed inputs are PlantView, guide, relay and renderer. GardenV2/CSS are separately recorded runtime changes. No all-GPU-inputs-unchanged claim. Renderer outside the optional empty-target guard/interface matches057 exactly. All immutable camera/geography/models/shaders/paint/house/lake/dependencies remain unchanged."
+  },
+  "redGreen": {
+    "initial": "/tmp/ccapp-236-red.log:28 intended failures/33 passes before implementation",
+    "focused": "/tmp/ccapp-236-final-focused.log:98 passes across five files",
+    "newerPickerFocus": "/tmp/ccapp-236-newer-picker-red.log reproduces refused close-focus retry stealing newer navigation-picker focus; picker-open now increments explicit intent; final focused suite green"
+  },
+  "fourSizePlanting": {
+    "raw": "/tmp/ccapp-236-final-browser-r4/observations.json",
+    "sizes": [
+      [
+        1280,
+        800
+      ],
+      [
+        390,
+        844
+      ],
+      [
+        844,
+        390
+      ],
+      [
+        800,
+        600
+      ]
+    ],
+    "actualTypeSubmissions": 52,
+    "actualMatchingBedAndOriginalUuid": 52,
+    "actualSubmittedWorldAuraBufferComparisons": 52,
+    "actualRetiredSeedPointClicksWithoutPlanting": 52,
+    "actualMarkerDrawsInGardenV2": 0,
+    "checks": [
+      "strict13 navigation options each image/name only",
+      "48x52 shovel target and mutual exclusion",
+      "existing original form and preview",
+      "required Dandelion wish and explicit-only submit",
+      "shared refresh retains trusted wish and latest current slot",
+      "conflict preserves draft and requires explicit retry at updated slot",
+      "actual flower canvas pick opens original UUID",
+      "exact submitted camera matrix/eye and tour return",
+      "typing and form scroll isolation",
+      "native wheel and no modal/inert/pointer blocker after close"
+    ],
+    "errors": []
+  },
+  "stateAndLifecycle": {
+    "raw": "/tmp/ccapp-236-lifecycle-final-r3/observations.json",
+    "stateSizeCases": 16,
+    "states": [
+      "mixed26",
+      "full78",
+      "sparse12001/lower-hole1",
+      "boundary occupied state/lower-hole24"
+    ],
+    "checks": [
+      "actual explicit Peony planting and original UUID at current slot",
+      "original final radio/submit remain reachable",
+      "focus trap and shovel return",
+      "scroll isolation and exact camera/tour return",
+      "no empty keyboard target"
+    ],
+    "preDeviceHeldAndGpuLossCases": 2,
+    "motions": [
+      "normal desktop",
+      "reduced phone"
+    ],
+    "trustedWishAndFocusRetained": true,
+    "actualSharedDefaultMarkerDrawPositiveControl": 6
+  },
+  "localChecks": {
+    "lint": "PASS; npm run lint, plus final changed profiler file lint",
+    "types": "PASS; npm run typecheck",
+    "build": "PASS; npm run build",
+    "fullNpmTest": {
+      "command": "npm test",
+      "log": "/tmp/ccapp-236-final-tests-r4.log",
+      "passed": 1535,
+      "failed": 6,
+      "skipped": 3,
+      "total": 1544,
+      "failure": "Known unchanged Mac audio_unavailable decoder failures",
+      "failedCases": [
+        "safari-300.webm",
+        "safari-5.webm",
+        "tone-5.webm",
+        "tone-300.webm",
+        "browser-5-0.webm",
+        "browser-300-0.webm"
+      ],
+      "note": "Complete current-head Linux Web must pass; no skipped required failure or altered test threshold."
+    },
+    "standaloneNode": {
+      "passed": 55,
+      "failed": 0,
+      "log": "/tmp/ccapp-236-node55-last.log"
+    },
+    "actualProduction": {
+      "raw": "/tmp/ccapp-236-production-final-r2/observations.json",
+      "fixtureVariants": 7,
+      "all404": true,
+      "syntheticStateAbsent": true,
+      "note": "Actual production start restarted from final source build; development-only fixture gates unchanged."
+    },
+    "quality": "Prior accepted geometry/paint/WGSL/house evidence is reused only for exactly unchanged input files in the explicit bridge. Fresh actual absent-marker/physical-flower/default-positive tests cover changed renderer target control."
+  },
+  "earlyDirectionAndHistory": {
+    "approvedExistingUi": "/tmp/ccapp-236-reused-checkpoint; root inspected original desktop/phone PlantView with trusted wish and explicit submit",
+    "settledDiagnostic": "/tmp/ccapp-236-settled-diagnostic:desktop/phone actual opacity1,no inert/covered/dialog, native wheel and physical Rose UUID",
+    "supersededProposal": "Initial custom drawer/grid was superseded by explicit user correction. It is not the accepted final UI. First proposal PNGs were inadvertently overwritten by the second proposal run; first logs remain only, with no reconstructed original pixels claimed. Later proposal PNGs are retained as superseded design history.",
+    "adverseHarnessWitnesses": [
+      "/tmp/ccapp-236-final-browser/desktop-failure.json: observer incorrectly assumed geometry labels propagated to vertex buffers; corrected to observe the actual aura-draw bound vertex buffer, with no application/threshold/timeout change.",
+      "/tmp/ccapp-236-lifecycle-final/desktop-mixed-failure.png: final-row measurement during existing panel animation; corrected harness waits for natural animation completion and scrolls the original control to center, with no UI/threshold/timeout change.",
+      "/tmp/ccapp-236-delayed-final.log: an omitted BASE_URL used the old stopped 3234 default; corrected invocation uses owned3250.",
+      "/tmp/ccapp-236-delayed-final-r2/desktop-queued-newer-flower-failure.json: queued server snapshot advanced while actual visible state/layout remained held; oracle corrected to visibleInitialState, with no application change.",
+      "/tmp/ccapp-236-hint-red/portrait.png: long hint overlapped upper shovel; one copy literal shortened, then four-size actual clearance passed."
+    ],
+    "priorInterim": "/tmp/ccapp-236-final-browser-r2 passed52 at c33 and r3 passed52 at ce1; final r4 is freshly captured at e3, with the exact same source hash as final state/lifecycle, delayed, reservation, seed and hint runs."
+  },
+  "limits": [
+    "Phone/touch is Chromium emulation, not physical-device or assistive-technology validation.",
+    "Shared refresh uses real client actions with synthetic responses, not a private Realtime connection.",
+    "No real microphone, private upload/storage, account or production content accessed.",
+    "This issue preserves057 camera; independent237 integrates the merged menu for later combined framing checks.",
+    "All four exact-head CI checks and fresh independent approval remain repository merge gates. Builder does not self-approve, merge, release or clean feature branches/worktrees."
+  ],
+  "delayedSave": {
+    "raw": "/tmp/ccapp-236-delayed-final-r3/observations.json",
+    "cases": 24,
+    "sizes": [
+      [
+        1280,
+        800
+      ],
+      [
+        390,
+        844
+      ],
+      [
+        844,
+        390
+      ],
+      [
+        800,
+        600
+      ]
+    ],
+    "outcomes": [
+      "newer physical Rose",
+      "newer planting wish",
+      "close only",
+      "active success",
+      "queued read/newer Rose",
+      "queued read/newer planting"
+    ],
+    "checks": [
+      "legitimate saved plant retained",
+      "one explicit mutation only",
+      "visible trusted draft and focus preserved",
+      "newer href/tour retained",
+      "close stays closed",
+      "active success opens and accepts trusted typing in actual new UUID form"
+    ],
+    "sourceStartEndEqual": true
+  },
+  "hintClearance": {
+    "red": "/tmp/ccapp-236-hint-red/observations.json",
+    "green": "/tmp/ccapp-236-hint-green/observations.json",
+    "sizes": 4,
+    "fix": "Shorten initial hint copy only; preserve planting UI and existing styles",
+    "allTabTargetsAtLeast44px": true
+  },
+  "retainedInvitations": {
+    "raw": "/tmp/ccapp-236-reservations-final/observations.json",
+    "actualViews": 32,
+    "labels": [
+      "Moonflower",
+      "Snapdragon"
+    ],
+    "checks": [
+      "actual flower envelopes and visible care hearts",
+      "global chrome including both tabs",
+      "approved no-safe-slot suppression/recovery",
+      "physical correct-UUID forms"
+    ]
+  },
+  "retainedDailyAndSeedLifecycle": {
+    "raw": "/tmp/ccapp-236-seed-lifecycle-final/observations.json",
+    "checks": [
+      "normal/reduced trusted daily typing before GPU device",
+      "newer daily UUID and focus",
+      "normal arrival remains bounded",
+      "normal/reduced explicit Dandelion fulfillment and bounded seed hold"
+    ]
+  },
+  "browserSuite": {
+    "runner": "/tmp/ccapp-236-final-browser-suite.json",
+    "allExitCodesZero": true
+  }
+}

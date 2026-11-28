@@ -315,7 +315,7 @@ describe("the garden's overlays", () => {
     await user.click(within(guide).getByRole("button", { name: "next" }));
     expect(within(guide).getByRole("heading", { name: "wander, page 2 of 3" })).toBeInTheDocument();
     expect(
-      within(guide).getByText("scroll to wander along the path, or choose a flower picture and name in the picker on the right. tap a flower to visit; tap a glowing seed mark to plant. a little ♡ means your care is open."),
+      within(guide).getByText("scroll to wander along the path, or choose a flower picture and name in the picker on the right. tap a flower to visit; use the shovel tab on the right to plant. a little ♡ means your care is open."),
     ).toBeInTheDocument();
     await user.click(within(guide).getByRole("button", { name: "back" }));
     await user.click(within(guide).getByRole("button", { name: "skip" }));
@@ -426,8 +426,8 @@ describe("the garden's overlays", () => {
       await mount();
       useGlideTimers();
       const user = userEvent.setup({ delay: null });
-      // Tapping the rose area seed mark (persisted next spot 2).
-      act(() => worlds[0]!.callbacks.onPick({ kind: "spot", spot: -1, distance: 1 }));
+      // The shovel opens the existing planting screen at authoritative next spot2.
+      fireEvent.click(screen.getByRole("button", { name: "Plant a flower" }));
       await tick(GLIDE_MS + 50);
       const plant = screen.getByRole("dialog", { name: "plant a seed" });
       await user.click(within(plant).getByRole("radio", { name: /^marigold/ }));

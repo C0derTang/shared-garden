@@ -69,11 +69,11 @@ try{
      const bounds=await cue.boundingBox(),suppressed=await cue.getAttribute('data-place-suppressed')==='true';
      assert(bounds.x>=0&&bounds.y>=0&&bounds.x+bounds.width<=width&&bounds.y+bounds.height<=height);
      const chrome=await page.locator('nav,[data-world-reserved],[role="status"],[data-private-notice-host="garden"],main > button').evaluateAll(elements=>elements.filter(element=>!element.closest('[data-garden-place]')).map(element=>{const r=element.getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height};}).filter(r=>r.width>0&&r.height>0));
-     const actual=await page.evaluate(()=>window.__actualCamera),footprints=visibleCueFootprints({width,height,viewProjection:actual.matrix},layout.areas.map(area=>area.target),anchors);
+     const actual=await page.evaluate(()=>window.__actualCamera),footprints=visibleCueFootprints({width,height,viewProjection:actual.matrix},[],anchors);
      const targetCollisions=footprints.filter(footprint=>footprint.parts.some(part=>{const radius=Math.max(24,part.core);return overlap(bounds,{x:Math.min(part.a[0],part.b[0])-radius,y:Math.min(part.a[1],part.b[1])-radius,width:Math.abs(part.a[0]-part.b[0])+2*radius,height:Math.abs(part.a[1]-part.b[1])+2*radius});}));
      const hearts=await page.locator('[data-caption^="care-"]').evaluateAll(elements=>elements.filter(element=>getComputedStyle(element).visibility!=='hidden').map(element=>{const r=element.getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height};}));
      assert(suppressed||chrome.every(rect=>!overlap(bounds,rect)),'Expanded note clears actual chrome');
-     assert(suppressed||targetCollisions.length===0,'Expanded note clears actual flower/seed envelopes');
+     assert(suppressed||targetCollisions.length===0,'Expanded note clears actual flower envelopes');
      assert(suppressed||hearts.every(rect=>!overlap(bounds,rect)),'Expanded note clears visible actual care hearts');
      let button=null;
      if(!suppressed){button=await invitation.boundingBox();assert(button.width>=44&&button.height>=44);assert(await invitation.evaluate(element=>{const r=element.getBoundingClientRect();return element.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}),'Actual invitation is hittable');}
@@ -82,7 +82,7 @@ try{
       const footprint=footprints.find(item=>item.target.kind==='flower'&&item.target.id===target.flower.id);assert(footprint,'The actual due flower is in view');
       let point=null;
       for(const part of footprint.parts){const x=(part.a[0]+part.b[0])/2,y=(part.a[1]+part.b[1])/2;
-       const picked=pickOnScreen({width,height,viewProjection:actual.matrix},x,y,layout.areas.map(area=>area.target),anchors);
+       const picked=pickOnScreen({width,height,viewProjection:actual.matrix},x,y,[],anchors);
        if(x>0&&y>64&&x<width&&y<height&&picked?.kind==='flower'&&picked.id===target.flower.id&&await page.evaluate(({x,y})=>document.elementFromPoint(x,y)?.tagName==='CANVAS',{x,y})){point={x,y};break;}
       }
       assert(point,'The correct due UUID is physically reachable');
