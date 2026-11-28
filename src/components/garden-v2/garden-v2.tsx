@@ -18,6 +18,8 @@ import { gardenViewHref, type GardenView } from "@/lib/garden-v2/views";
 import { gardenTour, retainTourDistance, pixelsToTourDistance, tourDistanceToPixels } from "@/lib/world/garden-tour";
 import { nativeToTourPixels, tourToNativePixels } from "@/lib/world/tour-scroll";
 import { compactAreaLayout } from "@/lib/garden-v2/compact-areas";
+import { tourContext } from "@/lib/world/tour-context";
+import { GardenPlace, useGardenPlace } from "./garden-place";
 import { FlowerPicker } from "./flower-picker";
 import type {WorldView} from "@/components/world/renderer";
 import type { FocusTarget } from "@/lib/world/journey";
@@ -142,14 +144,11 @@ export function GardenV2({
   // Opened by the walk through the house door: arrive under its warm light (#204).
   const arrival = useGardenArrival({ allowed: !initialFlowerId && !initialView, worldStatus, layersLoaded: flowerLayer !== null, reducedMotion });
   const recordArrivalView=arrival.onView;
-  const onWorldView=useCallback((frame:WorldView)=>{
-    recordArrivalView(frame);
-    if(frame.scenicReady!==undefined){setCameraReady(frame.scenicReady);if(frame.scenicReady)returning.current=false;}
-  },[recordArrivalView]);
   // A scoped sheet (such as a private moment) is open: the hint waits.
   const sheetOpen = Boolean(useSheetScope()?.active);
   const layout = useMemo(() => state ? compactAreaLayout(state) : null, [state]);
   const route = useMemo(() => layout ? gardenTour(layout.beds) : undefined, [layout]);
+  const place = route ? tourContext(route,tourDistance) : null;
   const previousRoute = useRef(route);
   const scrollInitialized=useRef(false);
   // Publish the retained route coordinate before any frame can use the new
@@ -170,6 +169,13 @@ export function GardenV2({
     previousRoute.current=route;
   },[route,interruptScrollGlide]);
   const { flowers, anchors } = useWorldFlowers(state, layout);
+  const cueSeeds=useMemo(()=>layout?.areas.map(area=>area.target)??[],[layout]);
+  const {layer:placeLayer,onView:placeNote}=useGardenPlace(anchors,cueSeeds);
+  const onWorldView=useCallback((frame:WorldView)=>{
+    recordArrivalView(frame);
+    placeNote(frame);
+    if(frame.scenicReady!==undefined){setCameraReady(frame.scenicReady);if(frame.scenicReady)returning.current=false;}
+  },[recordArrivalView,placeNote]);
   useEffect(() => flowerLayer?.setFlowers(flowers), [flowerLayer, flowers]);
   // Any full-screen view (a flower, planting, or an overlay such as Memories) covers the world.
   const covered = mode.kind !== "idle" || view !== null;
@@ -423,7 +429,8 @@ export function GardenV2({
           </div>
         </div>
       </div>
-      {!navigationBlocked && route && <FlowerPicker areas={layout!.areas} open={pickerOpen} onOpenChange={open=>{if(open)interruptScrollGlide();setPickerOpen(open);}} onSelect={type=>{
+      {!navigationBlocked && !pickerOpen && place && <GardenPlace context={place} layer={placeLayer} />}
+      {!navigationBlocked && route && <FlowerPicker areas={layout!.areas} currentType={place?.type??null} open={pickerOpen} onOpenChange={open=>{if(open)interruptScrollGlide();setPickerOpen(open);}} onSelect={type=>{
         const index=layout!.areas.findIndex(area=>area.type===type),distance=route.anchors.get(index)??0;
         setPickerOpen(false);setWandered(true);
         interruptScrollGlide();
@@ -462,7 +469,7 @@ export function GardenV2({
       />
       <FireworksOverlay {...fireworks.overlay} hidden={covered} />
       {worldStatus === "ready" && arrival.settled && !wandered && !covered && !sheetOpen && (
-        <p data-world-reserved className={styles.hint}>scroll through the garden · choose a flower at the right</p>
+        <p data-world-reserved className={styles.hint}>scroll to wander · tap a flower or seed mark</p>
       )}
       {/* The away note waits for the fireworks to finish, so their words never overlap. */}
       {!covered && arrival.settled && !fireworks.overlay.playing && hasAwayNews(news) && <AwayNote news={news} state={state} onDismiss={() => setNews(noAwayNews)} />}

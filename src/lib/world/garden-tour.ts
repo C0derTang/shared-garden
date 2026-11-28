@@ -10,19 +10,19 @@ const heading=(p:ScenicCameraPose)=>Math.atan2(p.look[0]-p.eye[0],p.look[2]-p.ey
 export function gardenTour(beds:readonly Bed[]):GardenTour {
  const ordered=[...beds].sort((a,b)=>(a.tourOrder??0)-(b.tourOrder??0));
  const terraces:ScenicStop[]=ordered.map(b=>{const frame=terraceFrame(b.tourOrder??0),eye=point(frame.walk[0],frame.walk[1],2.35);
- return{id:`terrace:${b.index}`,label:'',typeIndex:b.index%13,section:b.row,pose:{eye,look:[b.center[0],b.center[1]+.55,b.center[2]]}};});
+ return{id:`terrace:${b.index}`,label:'',typeIndex:b.index%13,section:b.row,place:{kind:'flowers',typeIndex:b.index%13,section:b.row},pose:{eye,look:[b.center[0],b.center[1]+.55,b.center[2]]}};});
  const base=terraces.filter(s=>s.section===0),expansion=terraces.filter(s=>s.section!==0),room=[...base];
  if(expansion.length){
   const last=expansion.at(-1)!;
-  const turn:ScenicStop={id:`expansion-turn:${last.id}`,label:'meadow bend',transit:true,pose:{eye:point(23,last.pose.eye[2]+3,2.35),look:last.pose.look}};
-  const returning:ScenicStop[]=[...expansion].reverse().map(stop=>({id:`return:${stop.id}`,label:'meadow return',transit:true,pose:{eye:point(24,stop.pose.eye[2],2.35),look:stop.pose.look}}));
+  const turn:ScenicStop={id:`expansion-turn:${last.id}`,label:'meadow bend',place:{kind:'meadow-bend'},transit:true,pose:{eye:point(23,last.pose.eye[2]+3,2.35),look:last.pose.look}};
+  const returning:ScenicStop[]=[...expansion].reverse().map(stop=>({id:`return:${stop.id}`,label:'meadow return',place:{kind:'meadow-return',typeIndex:stop.typeIndex!,section:stop.section!},transit:true,pose:{eye:point(24,stop.pose.eye[2],2.35),look:stop.pose.look}}));
   room.splice(room.findIndex(s=>s.typeIndex===4)+1,0,...expansion,turn,...returning);
  }
  const first=base[0]!,last=base.at(-1)!;
- room.unshift({id:'arrival',label:'garden',pose:{eye:point(first.pose.eye[0]+1,first.pose.eye[2]-3,5.0),look:[18,landingTerrainHeight(18,64),64],overview:.5}});
- room.push({id:'end',label:'garden end',pose:{eye:point(last.pose.eye[0]-1,last.pose.eye[2]-2),look:last.pose.look}});
+ room.unshift({id:'arrival',label:'garden',place:{kind:'overlook'},pose:{eye:point(first.pose.eye[0]+1,first.pose.eye[2]-3,5.0),look:[18,landingTerrainHeight(18,64),64],overview:.5}});
+ room.push({id:'end',label:'garden end',place:{kind:'meadow-edge'},pose:{eye:point(last.pose.eye[0]-1,last.pose.eye[2]-2),look:last.pose.look}});
  const surveyed=scenicRoute([]),ids=['house-rear',...Array.from({length:7},(_,i)=>`woodland:${i}`),'overview:0'];
- const access=ids.map(id=>surveyed.stops.find(s=>s.id===id)!);
+ const access:ScenicStop[]=ids.map(id=>{const stop=surveyed.stops.find(s=>s.id===id)!;return {...stop,place:{kind:stop.pose.rear?'porch':stop.pose.overview?'overlook':'woodland'}};});
  const stops=[...access,...room];
  // A stop's tangent belongs to its immutable spatial slot, not its current
  // itinerary neighbors. Inserting a spur must not bend surviving room edges.

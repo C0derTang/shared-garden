@@ -8,7 +8,11 @@ import { HOUSE, houseToWorld } from "./landing-frame";
 import { gardenFovY } from "./garden-camera";
 import {plantingSurfaceHeight} from "./site-surface";
 export interface ScenicCameraPose extends JourneyPose { readonly overview?: number; readonly rear?: number }
-export interface ScenicStop { readonly id: string; readonly label: string; readonly pose: ScenicCameraPose; readonly typeIndex?: number; readonly section?: number; readonly transit?: boolean }
+/** Geometry-independent place semantics consumed only by passive orientation UI. */
+export type ScenicPlace =
+  | { readonly kind: 'porch' | 'woodland' | 'overlook' | 'meadow-bend' | 'meadow-edge' }
+  | { readonly kind: 'flowers' | 'meadow-return'; readonly typeIndex: number; readonly section: number };
+export interface ScenicStop { readonly place?: ScenicPlace; readonly id: string; readonly label: string; readonly pose: ScenicCameraPose; readonly typeIndex?: number; readonly section?: number; readonly transit?: boolean }
 export interface ScenicEdge { readonly id: string; readonly from: string; readonly to: string; readonly points: readonly [Vec3, Vec3, Vec3, Vec3]; readonly primary?: boolean }
 export interface ScenicIsland { readonly id: string; readonly center: Vec3; readonly radiusX: number; readonly radiusZ: number; readonly section?: number }
 export interface ScenicRoute { readonly stops: readonly ScenicStop[]; readonly edges: readonly ScenicEdge[]; readonly islands: readonly ScenicIsland[] }
